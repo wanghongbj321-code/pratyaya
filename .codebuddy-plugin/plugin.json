@@ -1,9 +1,13 @@
 {
   "name": "mvl-workshop-facilitator",
-  "version": "1.0.0",
-  "description": "AI-native MVL workshop facilitator: guides group discussions, distills discussion transcripts into structured modules, renders a vertical MAAU canvas HTML per module, and assembles the global MAAU canvas plus a presentation report.",
+  "version": "1.5.0",
+  "description": "AI-native MVL workshop facilitator: distills traceable conclusions, blocks incomplete modules, obtains versioned human confirmation, then renders module and global Canvas HTML.",
   "agents": ["./agents/mvl-workshop-facilitator.md"],
-  "skills": ["./skills/mvl-distill"],
+  "skills": [
+    "./skills/mvl-distill",
+    "./skills/module-conclusion-gate",
+    "./skills/canvas-render"
+  ],
 
   "expertType": "agent",
   "agentName": "mvl-workshop-facilitator",
@@ -20,7 +24,6 @@
     "en": "Facilitates 3-day AI-native MVL workshops: guides discussion, distills transcripts, renders per-module canvas HTML, and assembles the global MAAU canvas plus report.",
     "zh": "MVL工作坊助教：引导小组讨论、提炼录音转写、生成模块画布，汇总全局MAAU画布与演示报告。"
   },
-  "avatar": "avatars/expert.png",
   "categoryId": "12-IndustryConsultant",
   "defaultInitPrompt": {
     "zh": "我们是第1组，项目名是【XXX】，开始MVL工作坊第一天上午模块",
@@ -34,7 +37,7 @@
   ],
   "quickPrompts": [
     { "en": "We are Group 1, project [XXX]. Start the Day 1 morning module of the MVL workshop.", "zh": "我们是第1组，项目名是【XXX】，开始MVL工作坊第一天上午模块" },
-    { "en": "Here is the discussion transcript for this module. Distill it and generate the module canvas.", "zh": "这是本模块的讨论转写，请提炼并生成模块画布" },
+    { "en": "Here is the transcript. Distill it, audit the module's core value, and prepare the conclusion review pack.", "zh": "这是本模块的讨论转写，请提炼内容、审核核心价值并生成结论确认包" },
     { "en": "All six modules are complete. Generate the global MAAU canvas and the presentation report.", "zh": "六个模块已全部完成，请生成全局MAAU画布和演示报告" }
   ]
 }

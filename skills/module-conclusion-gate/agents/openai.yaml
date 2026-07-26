@@ -1,0 +1,4 @@
+interface:
+  display_name: "模块结论闸门"
+  short_description: "Audit evidence, gaps and human approval before Canvas rendering"
+  default_prompt: "审核当前 MVL 模块是否完成核心价值，列出结论证据与缺失影响，并判断是否允许正式渲染。"

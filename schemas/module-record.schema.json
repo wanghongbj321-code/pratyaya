@@ -1,0 +1,377 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "module-record.schema.json",
+  "title": "MVL Module Record",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "module_id",
+    "version",
+    "status",
+    "canvas_fields",
+    "conclusions",
+    "gaps",
+    "inferences",
+    "alignment",
+    "approval",
+    "gate"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "module_id": {
+      "enum": ["M1", "M2", "M3", "M4", "M5", "M6"]
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "status": {
+      "enum": [
+        "ingested",
+        "extracted",
+        "draft",
+        "gaps_open",
+        "review_ready",
+        "confirmed",
+        "rendered"
+      ]
+    },
+    "summary": {
+      "type": "string"
+    },
+    "canvas_fields": {
+      "type": "object",
+      "description": "Fields defined by the selected module framework. Missing fields remain explicit rather than being inferred."
+    },
+    "conclusions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "statement",
+          "kind",
+          "evidence_refs",
+          "confidence",
+          "review_status"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^M[1-6]-C[0-9]{2,}$"
+          },
+          "statement": {
+            "type": "string",
+            "minLength": 1
+          },
+          "kind": {
+            "enum": ["fact", "decision", "hypothesis", "recommendation"]
+          },
+          "evidence_refs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^M[1-6]-T[0-9]{2,}-P[0-9]{3,}$"
+            }
+          },
+          "confidence": {
+            "enum": ["high", "medium", "low", "unknown"]
+          },
+          "review_status": {
+            "enum": [
+              "proposed",
+              "disputed",
+              "confirmed",
+              "validated",
+              "rejected"
+            ]
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "gaps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "topic",
+          "severity",
+          "impact",
+          "question",
+          "status"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^M[1-6]-G[0-9]{2,}$"
+          },
+          "topic": {
+            "type": "string",
+            "minLength": 1
+          },
+          "severity": {
+            "enum": ["blocker", "major", "minor"]
+          },
+          "impact": {
+            "type": "string",
+            "minLength": 1
+          },
+          "question": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "enum": ["open", "resolved", "accepted_risk"]
+          },
+          "resolution": {
+            "type": ["string", "null"]
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "inferences": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "statement", "impact", "status"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^M[1-6]-I[0-9]{2,}$"
+          },
+          "statement": {
+            "type": "string",
+            "minLength": 1
+          },
+          "impact": {
+            "enum": ["core", "supporting", "cosmetic"]
+          },
+          "status": {
+            "enum": ["pending", "accepted", "rejected"]
+          },
+          "evidence_refs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "approval": {
+      "type": "object",
+      "required": ["version", "confirmed_by"],
+      "properties": {
+        "version": {
+          "type": ["integer", "null"],
+          "minimum": 1
+        },
+        "confirmed_by": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "role", "confirmed_at"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "role": {
+                "type": "string",
+                "minLength": 1
+              },
+              "confirmed_at": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "accepted_gap_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "gate": {
+      "type": "object",
+      "required": ["render_allowed", "checked_at", "reasons"],
+      "properties": {
+        "render_allowed": {
+          "type": "boolean"
+        },
+        "checked_at": {
+          "type": ["string", "null"]
+        },
+        "reasons": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "alignment": {
+      "type": "object",
+      "description": "Alignment status between business and technical stakeholders for this module",
+      "required": ["consensus", "divergences", "decisions"],
+      "properties": {
+        "consensus": {
+          "type": "array",
+          "description": "Points where all parties explicitly agree",
+          "items": {
+            "type": "object",
+            "required": ["id", "statement", "participants", "evidence_refs"],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^M[1-6]-A[0-9]{2,}$"
+              },
+              "statement": {
+                "type": "string",
+                "minLength": 1
+              },
+              "participants": {
+                "type": "array",
+                "minItems": 2,
+                "items": {
+                  "type": "object",
+                  "required": ["name", "role"],
+                  "properties": {
+                    "name": { "type": "string", "minLength": 1 },
+                    "role": { "type": "string", "minLength": 1 }
+                  }
+                }
+              },
+              "evidence_refs": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^M[1-6]-T[0-9]{2,}-P[0-9]{3,}$"
+                }
+              }
+            }
+          }
+        },
+        "divergences": {
+          "type": "array",
+          "description": "Points where parties disagree; open major/blocker divergences block render",
+          "items": {
+            "type": "object",
+            "required": ["id", "topic", "severity", "impact", "positions", "resolution_status", "evidence_refs"],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^M[1-6]-D[0-9]{2,}$"
+              },
+              "topic": {
+                "type": "string",
+                "minLength": 1
+              },
+              "severity": {
+                "enum": ["blocker", "major", "minor"]
+              },
+              "impact": {
+                "type": "string",
+                "minLength": 1
+              },
+              "positions": {
+                "type": "array",
+                "minItems": 2,
+                "items": {
+                  "type": "object",
+                  "required": ["name", "role", "view"],
+                  "properties": {
+                    "name": { "type": "string", "minLength": 1 },
+                    "role": { "type": "string", "minLength": 1 },
+                    "view": { "type": "string", "minLength": 1 }
+                  }
+                }
+              },
+              "resolution_status": {
+                "enum": ["open", "resolved", "accepted_risk"]
+              },
+              "resolution": {
+                "type": ["string", "null"]
+              },
+              "evidence_refs": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^M[1-6]-T[0-9]{2,}-P[0-9]{3,}$"
+                }
+              },
+              "accepted_by": {
+                "type": "array",
+                "description": "Required when resolution_status is accepted_risk; must match approval.confirmed_by",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "decisions": {
+          "type": "array",
+          "description": "Key decisions with who decided, when, and who acknowledged",
+          "items": {
+            "type": "object",
+            "required": ["id", "decision", "decided_by", "decided_at", "version", "acknowledged_by"],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^M[1-6]-X[0-9]{2,}$"
+              },
+              "decision": {
+                "type": "string",
+                "minLength": 1
+              },
+              "decided_by": {
+                "type": "object",
+                "required": ["name", "role"],
+                "properties": {
+                  "name": { "type": "string", "minLength": 1 },
+                  "role": { "type": "string", "minLength": 1 }
+                }
+              },
+              "decided_at": {
+                "type": "string",
+                "minLength": 1
+              },
+              "version": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "acknowledged_by": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["name", "role"],
+                  "properties": {
+                    "name": { "type": "string", "minLength": 1 },
+                    "role": { "type": "string", "minLength": 1 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

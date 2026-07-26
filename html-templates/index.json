@@ -1,0 +1,43 @@
+{
+  "schema_version": "1.0",
+  "source_capability": "html-slides",
+  "purpose": "MVL Canvas 的策展视觉外壳。模板中的业务文字和数字均为占位示例，不是事实源。",
+  "templates": [
+    {
+      "id": "blue-professional-balanced",
+      "file": "01-蓝色专业-均衡总览版.html",
+      "visual_system": "Blue Professional",
+      "layout": "balanced",
+      "formality": "medium-high",
+      "density": "medium",
+      "best_for": "内部方案、管理层均衡总览"
+    },
+    {
+      "id": "blue-professional-flow",
+      "file": "02-蓝色专业-流程决策版.html",
+      "visual_system": "Blue Professional",
+      "layout": "flow",
+      "formality": "medium-high",
+      "density": "medium-high",
+      "best_for": "流程评审、职责与决策边界展示"
+    },
+    {
+      "id": "signal-balanced",
+      "file": "03-机构信号-均衡总览版.html",
+      "visual_system": "Signal",
+      "layout": "balanced",
+      "formality": "high",
+      "density": "medium-high",
+      "best_for": "领导审阅、正式机构型总览"
+    },
+    {
+      "id": "signal-flow",
+      "file": "04-机构信号-流程决策版.html",
+      "visual_system": "Signal",
+      "layout": "flow",
+      "formality": "high",
+      "density": "high",
+      "best_for": "管理层流程决策、风险与控制点展示"
+    }
+  ]
+}

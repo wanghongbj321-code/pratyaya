@@ -1,0 +1,97 @@
+{
+  "schema_version": "1.0",
+  "module_id": "M1",
+  "version": 2,
+  "status": "review_ready",
+  "summary": "在明确范围内缩短关键业务处理时间，并通过现状基线与目标值验证。",
+  "canvas_fields": {
+    "goal": "缩短目标流程的平均处理时间",
+    "value": [
+      "让目标用户更快完成关键业务处理"
+    ],
+    "success_metrics": [
+      {
+        "name": "平均处理时间",
+        "baseline": "48 小时",
+        "target": "24 小时以内",
+        "measurement": "业务系统事件时间戳"
+      }
+    ],
+    "evidence": [
+      "M1-T01-P012：当前平均处理时间为 48 小时"
+    ],
+    "boundary": "本次只验证目标流程，不接入生产系统。",
+    "acceptance": "模拟环境平均处理时间达到 24 小时以内。",
+    "grouping": [
+      "业务负责人",
+      "用户代表",
+      "技术与数据代表",
+      "导师"
+    ]
+  },
+  "conclusions": [
+    {
+      "id": "M1-C01",
+      "statement": "首轮验证聚焦目标流程的平均处理时间。",
+      "kind": "decision",
+      "evidence_refs": ["M1-T01-P012"],
+      "confidence": "high",
+      "review_status": "confirmed"
+    }
+  ],
+  "gaps": [
+    {
+      "id": "M1-G01",
+      "topic": "峰值时段的样本量",
+      "severity": "minor",
+      "impact": "可能影响试点样本的代表性，但不改变首轮验证目标。",
+      "question": "试点是否覆盖峰值时段？",
+      "status": "accepted_risk",
+      "resolution": "首轮接受风险，第二轮扩大样本。"
+    }
+  ],
+  "inferences": [],
+  "alignment": {
+    "consensus": [
+      {
+        "id": "M1-A01",
+        "statement": "首轮验证聚焦平均处理时间",
+        "participants": [
+          { "name": "场景负责人", "role": "Business Owner" },
+          { "name": "技术负责人", "role": "Tech Lead" }
+        ],
+        "evidence_refs": ["M1-T01-P012"]
+      }
+    ],
+    "divergences": [],
+    "decisions": [
+      {
+        "id": "M1-X01",
+        "decision": "以48小时为基线，目标24小时",
+        "decided_by": { "name": "场景负责人", "role": "Business Owner" },
+        "decided_at": "2026-07-26T10:00:00+08:00",
+        "version": 2,
+        "acknowledged_by": [
+          { "name": "技术负责人", "role": "Tech Lead" }
+        ]
+      }
+    ]
+  },
+  "approval": {
+    "version": 2,
+    "confirmed_by": [
+      {
+        "name": "场景负责人",
+        "role": "Business Owner",
+        "confirmed_at": "2026-07-26T10:00:00+08:00"
+      }
+    ],
+    "accepted_gap_ids": ["M1-G01"],
+    "notes": "确认作为 M1 正式成果。"
+  },
+  "gate": {
+    "render_allowed": false,
+    "checked_at": null,
+    "reasons": []
+  }
+}

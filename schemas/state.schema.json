@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "state.schema.json",
+  "title": "MVL Workshop State",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "group_id",
+    "project_name",
+    "current_module",
+    "modules",
+    "updated_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "group_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "project_name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "current_module": {
+      "enum": ["M1", "M2", "M3", "M4", "M5", "M6"]
+    },
+    "modules": {
+      "type": "object",
+      "required": ["M1", "M2", "M3", "M4", "M5", "M6"],
+      "additionalProperties": false,
+      "patternProperties": {
+        "^M[1-6]$": {
+          "type": "object",
+          "required": ["version", "status", "render_allowed"],
+          "properties": {
+            "version": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "status": {
+              "enum": [
+                "not_started",
+                "ingested",
+                "extracted",
+                "draft",
+                "gaps_open",
+                "review_ready",
+                "confirmed",
+                "rendered"
+              ]
+            },
+            "render_allowed": {
+              "type": "boolean"
+            },
+            "module_record": {
+              "type": ["string", "null"]
+            },
+            "output_file": {
+              "type": ["string", "null"]
+            },
+            "content_hash": {
+              "type": ["string", "null"]
+            }
+          },
+          "additionalProperties": true
+        }
+      }
+    },
+    "updated_at": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "additionalProperties": true
+}
