@@ -1,0 +1,16 @@
+# WorkBuddy 项目数据（本机记忆，不入库）
+.workbuddy/
+
+# 工作坊运行时状态（助教使用时生成的组目录）
+mvl-workshop/
+
+# 真实转写测试素材（业务敏感，不入库）
+test-transcripts/
+
+# 客户工作坊手册原件（第三方内部材料，不入库；方法论蒸馏件在专家包内）
+references/*.pdf
+
+# 系统与临时文件
+Thumbs.db
+.DS_Store
+*.tmp
