@@ -44,7 +44,7 @@ html-templates/
    - module-conclusion-gate
    - canvas-render
 5. 确认 html-templates/index.json 及索引中的四个 HTML 模板已随专家包安装。
-6. 验证安装后的插件名称为 mvl-workshop-facilitator，版本不低于 1.4.0。
+6. 验证安装后的插件名称为 mvl-workshop-facilitator，版本不低于 1.5.0。
 7. 安装完成后向我报告：安装是否成功、实际安装位置、插件版本、已注册的专家和 Skill、模板资产是否齐全。
 8. 最后明确提醒我完全退出并重新启动 WorkBuddy，使新专家生效。
 
@@ -100,7 +100,7 @@ D:\AI\AI原生MVL工作坊\mvl-workshop-facilitator
 正确安装时，回答中应至少出现：
 
 - 专家技术名称：`mvl-workshop-facilitator`
-- 插件版本：`1.4.0` 或更高
+- 插件版本：`1.5.0` 或更高
 - 三个 Skill：`mvl-distill`、`module-conclusion-gate`、`canvas-render`
 - 状态机：`not_started → ingested → extracted → draft → gaps_open ↔ review_ready → confirmed → rendered`
 
@@ -110,7 +110,7 @@ D:\AI\AI原生MVL工作坊\mvl-workshop-facilitator
 2. 确认安装的是专家包根目录，而不是多套了一层同名文件夹；
 3. 确认根目录存在 `.codebuddy-plugin/plugin.json`；
 4. 把上面的一键安装提示词重新发给 WorkBuddy，并要求它报告实际安装位置和错误信息；
-5. 若安装的是旧版本，要求覆盖安装 1.4.0 或更高版本后再次重启。
+5. 若安装的是旧版本，要求覆盖安装 1.5.0 或更高版本后再次重启。
 
 ## 核心架构
 
@@ -155,7 +155,6 @@ skills/
   module-conclusion-gate/
   canvas-render/
 examples/
-tests/
 html-templates/
   index.json
   01-蓝色专业-均衡总览版.html
@@ -201,37 +200,6 @@ html-templates/
 
 如果只想边讨论边看版式，可以要求草稿 Canvas；草稿会带“未确认，禁止用于管理层决策”水印，不能进入全局成果。
 
-## 闸门命令
+---
 
-```powershell
-python skills/module-conclusion-gate/scripts/check_gate.py examples/module-record-ready.json
-```
-
-退出码：
-
-- `0`：允许正式渲染
-- `2`：业务质量闸门未通过
-- `1`：输入文件无效
-
-## 验证
-
-```powershell
-python -m unittest discover -s tests -v
-```
-
-示例：
-
-- `examples/module-record-ready.json`：已确认、可放行
-- `examples/module-record-blocked.json`：有 blocker、核心推断和缺失确认，必须阻断
-
-## 本地 HTML 约束
-
-生成的 HTML 应单文件离线可用。不要通过 `fetch()` 读取本地 JSON，也不要用 iframe 嵌套兄弟 HTML；全局 Canvas 使用普通相对链接进入模块详情，避免浏览器的 `file:` 唯一安全源错误。
-
-生成后运行：
-
-```powershell
-python skills/canvas-render/scripts/audit_canvas_html.py output/module-1-canvas.html
-```
-
-四个模板只提供布局与视觉语法，正式内容必须来自通过闸门的同版本 JSON。
+> 开发者与维护者操作（质量闸门命令、回归验证、HTML 离线约束与审计）见 **DEVELOPMENT.md**。本文件只面向工作坊助教，不涉及命令行操作。
