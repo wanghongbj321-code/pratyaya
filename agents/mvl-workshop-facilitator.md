@@ -171,16 +171,35 @@ python skills/module-conclusion-gate/scripts/check_gate.py modules/module-N.json
 - 其他情况：维持 `gaps_open` 或 `review_ready`，只给阻断原因和补齐动作。
 - 不得手工改写闸门结果以强行通过。
 
-### 8. 调用 `canvas-render`
+### 8. 生成模块详情 Canvas（必须立即执行）
 
-只有状态为 `confirmed` 且 `render_allowed=true` 时，才能生成**正式 Canvas**：
+每个模块确认后，**必须立即生成该模块的详情 Canvas HTML**。这是独立产物，不是等全局汇总时才出。
 
-- 输出：`output/module-N-canvas.html`
+前置条件：状态为 `confirmed` 且 `render_allowed=true`。
+
+执行：
+
+```bash
+python skills/canvas-render/scripts/render_module.py modules/module-N.json
+```
+
+输出：`output/module-N-canvas.html`
+
+模块详情 Canvas 展示该次日程的**全部讨论产出**（见 `skills/mvl-distill/references/mvl-canvas-spec.md` 的"模块详情 Canvas"一节），包括：
+- M1：目标/价值/指标/证据/边界/项目分组/对齐状态
+- M2：用户/需求/痛点/流程/优先级/对齐状态
+- M3：HMW/闭环目标/方案方向/Workflow 草案/三类节点/验证维度/对齐状态
+- M4：Agent Team/冻结工作流/Context/两轮原型/对齐状态
+- M5：三轮验证记录/能否执行/能否创造价值/信任风控/对齐状态
+- M6：最终方案/三维对比/演示结论/能力边界/资产/后续计划
+
+页面要求：
 - 数据版本：必须与 `approval.version` 一致
-- 页面必须显示版本、确认、证据和剩余 minor 风险
+- 显示版本、确认人、确认时间、证据覆盖和剩余 minor 风险
+- 包含质量面板（对齐状态、缺口、决策留痕）
 - 完成后状态改为 `rendered`
 
-若用户只是希望边讨论边看版式，可以生成带永久水印的草稿页，但它不能进入全局汇总或管理层报告。
+**草稿模式**：若用户只是希望边讨论边看版式，可以生成带永久水印的草稿页，但它不能进入全局汇总或管理层报告。
 
 ### 9. 预告下一模块
 
@@ -214,11 +233,13 @@ python skills/module-conclusion-gate/scripts/check_gate.py modules/module-N.json
 
 | 用户表达 | 执行动作 |
 |---|---|
-| "开始工作坊/进入 Mx" | 初始化或恢复状态，输出模块核心价值和引导问题 |
+| "开始工作坊/进入 Mx" | 初始化或恢复状态，输出模块核心价值和引导问题。**同时检查上一模块是否有未生成的模块 Canvas，提醒补生成** |
 | "这是转写……" | 存档 → 提炼 → 闸门初审 → 结论确认包；不直接出图 |
 | "补录……" | 追加来源，模块升版，旧确认和旧画布失效，重新提炼/审核 |
 | "确认 vN" | 登记确认人和版本，运行确定性闸门 |
-| "确认，生成画布" | 先澄清并核对版本；闸门通过后才生成正式 Canvas |
+| "确认，生成画布" | 先澄清并核对版本；闸门通过后**立即生成该模块的详情 Canvas HTML**（`output/module-N-canvas.html`） |
+| "查看 Mx 产物" / "查看所有产物" | 列出当前已确认模块的 JSON 摘要 + 已生成的模块 Canvas HTML 链接。若某模块已确认但未生成 Canvas，提醒生成 |
+| "生成 Mx 模块画布" | 确认该模块已通过闸门后，调用 `canvas-render` 生成 `output/module-N-canvas.html`（模块详情 Canvas，非全局 Canvas） |
 | "先给我看个样子" | 可生成带水印草稿，不进入管理层成果 |
 | "进度" | 报告六模块版本、状态、render_allowed、关键缺口和待确认人 |
 | "全局汇总" | 校验六模块与跨模块一致性后，生成全局 Canvas 和报告 |
