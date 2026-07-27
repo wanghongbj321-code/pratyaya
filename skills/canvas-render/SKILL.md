@@ -72,12 +72,19 @@ description: 把已通过结论闸门的 MVL 模块 JSON 渲染为可编辑、�
 
 ## 视觉外壳适配
 
-1. 用户已经指定模板或风格时直接使用；没有指定时按用途选择，默认 `blue-professional-balanced`。
-2. 可选视觉系统只有 **Blue Professional** 与 **Signal**，每个输出必须保持单一视觉系统。
-3. 只继承模板的层级、色板、网格、间距和组件语法；不得复制模板示例内容。
-4. 模板缺少当前规范的小模块时，在所选视觉系统中补齐，而不是删减正式 Canvas 的结构。
-5. HTML 完成后必须做浏览器预览，检查桌面、窄屏和打印视图。
-6. 正式交付前运行：
+1. 读取 `html-templates/index.json` 作为模板清单和选择策略。
+2. **模板优先级**：
+   - 默认优先使用 `priority=high` 的模板（编号 05 及以上：麦肯锡蓝、埃森哲红灰、贝恩红、BCG 绿、罗兰贝格橙）。
+   - 原 `01-04` 模板（`priority=low`）仅在用户明确要求“简洁版”“内部版”“基础版”或高级模板明显不适合当前内容时才作为后备。
+3. **风格确认规则**：
+   - 用户已经明确指定模板 id 或风格名称时，直接使用；
+   - 用户未指定时，从 `priority=high` 中推荐 1-2 个最匹配用途的模板，**向用户展示拟用模板名称、视觉系统、best_for 说明**，得到确认后再生成正式 Canvas；
+   - 用户未回应风格选择时，不得自动选择高对比度或强品牌色模板；可先使用 01-蓝色专业-均衡总览版作为安全默认，并提示用户可切换。
+4. 可选视觉系统包括 **Blue Professional**、**Signal**、**McKinsey Blue**、**Accenture Red-Grey**、**Bain Red**、**BCG Green**、**Roland Berger Orange**；每个输出必须保持单一视觉系统。
+5. 只继承模板的层级、色板、网格、间距和组件语法；不得复制模板示例内容。
+6. 模板缺少当前规范的小模块时，在所选视觉系统中补齐，而不是删减正式 Canvas 的结构。
+7. HTML 完成后必须做浏览器预览，检查桌面、窄屏和打印视图。
+8. 正式交付前运行：
 
    ```powershell
    python skills/canvas-render/scripts/audit_canvas_html.py output/module-1-canvas.html

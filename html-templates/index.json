@@ -1,7 +1,16 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "source_capability": "html-slides",
   "purpose": "MVL Canvas 的策展视觉外壳。模板中的业务文字和数字均为占位示例，不是事实源。",
+  "selection_policy": {
+    "description": "模板按优先级分组。默认优先使用高级咨询公司风格模板（编号 05 及以上，priority=high）；原 01-04 模板仅在用户明确要求简洁/内部版或高级模板不适用时作为后备（priority=low）。",
+    "rules": [
+      "用户已指定模板 id 或风格名称时，直接使用对应模板",
+      "未指定时，优先从 priority=high 的模板中选择：先匹配 visual_system，再按 formality 与 density 匹配用途",
+      "仅当用户明确要求'简洁版'、'内部版'、'基础版'或高级模板元素不适合当前内容时，才使用 priority=low 的 01-04 模板",
+      "渲染前必须向用户展示拟用模板名称与风格特征，得到确认后再生成正式 Canvas；用户未回应风格选择时不得自动选择高 contrast 或强品牌色模板"
+    ]
+  },
   "templates": [
     {
       "id": "blue-professional-balanced",
@@ -10,7 +19,8 @@
       "layout": "balanced",
       "formality": "medium-high",
       "density": "medium",
-      "best_for": "内部方案、管理层均衡总览"
+      "priority": "low",
+      "best_for": "内部方案、管理层均衡总览（后备）"
     },
     {
       "id": "blue-professional-flow",
@@ -19,7 +29,8 @@
       "layout": "flow",
       "formality": "medium-high",
       "density": "medium-high",
-      "best_for": "流程评审、职责与决策边界展示"
+      "priority": "low",
+      "best_for": "流程评审、职责与决策边界展示（后备）"
     },
     {
       "id": "signal-balanced",
@@ -28,7 +39,8 @@
       "layout": "balanced",
       "formality": "high",
       "density": "medium-high",
-      "best_for": "领导审阅、正式机构型总览"
+      "priority": "low",
+      "best_for": "领导审阅、正式机构型总览（后备）"
     },
     {
       "id": "signal-flow",
@@ -37,7 +49,8 @@
       "layout": "flow",
       "formality": "high",
       "density": "high",
-      "best_for": "管理层流程决策、风险与控制点展示"
+      "priority": "low",
+      "best_for": "管理层流程决策、风险与控制点展示（后备）"
     },
     {
       "id": "mckinsey-blue-conclusion",
@@ -46,7 +59,8 @@
       "layout": "balanced",
       "formality": "high",
       "density": "medium",
-      "best_for": "高管汇报、结论先行、数据驱动的Storyline"
+      "priority": "high",
+      "best_for": "高管汇报、结论先行、数据驱动的 Storyline"
     },
     {
       "id": "accenture-red-grey-institutional",
@@ -55,7 +69,38 @@
       "layout": "balanced",
       "formality": "high",
       "density": "medium-high",
+      "priority": "high",
       "best_for": "机构审阅、正式机构风格、红灰品牌色"
+    },
+    {
+      "id": "bain-red-action",
+      "file": "07-贝恩红-行动洞察版.html",
+      "visual_system": "Bain Red",
+      "layout": "balanced",
+      "formality": "high",
+      "density": "medium",
+      "priority": "high",
+      "best_for": "高管汇报、行动洞察、简洁有力的结论驱动"
+    },
+    {
+      "id": "bcg-green-matrix",
+      "file": "08-BCG绿-增长矩阵版.html",
+      "visual_system": "BCG Green",
+      "layout": "balanced",
+      "formality": "high",
+      "density": "medium",
+      "priority": "high",
+      "best_for": "战略汇报、增长矩阵风格、结构化战略分析"
+    },
+    {
+      "id": "roland-berger-orange",
+      "file": "09-罗兰贝格橙-欧洲机构版.html",
+      "visual_system": "Roland Berger Orange",
+      "layout": "balanced",
+      "formality": "high",
+      "density": "medium",
+      "priority": "high",
+      "best_for": "欧洲机构风格、橙色品牌色、简洁商务汇报"
     }
   ]
 }

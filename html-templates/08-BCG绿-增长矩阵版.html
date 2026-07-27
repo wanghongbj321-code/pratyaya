@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>智能业务协同单元｜BCG绿增长矩阵版</title>
+  <style>
+    :root{
+      --bcg-green:#005238;
+      --bcg-bright:#00A86B;
+      --bcg-pale:#E8F5F0;
+      --bcg-light:#F5F8F7;
+      --ink:#1A1A1A;
+      --muted:#5C6B65;
+      --line:#D5E0DB;
+      --paper:#FFFFFF;
+      --accent:#F0AB00;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bcg-light);color:var(--ink);font-family:Georgia,"Noto Serif SC","Songti SC",serif;line-height:1.55}
+    main{max-width:1400px;margin:auto;padding:36px 32px 48px}
+
+    /* 页眉 */
+    .head{margin-bottom:24px;padding-bottom:16px;border-bottom:4px solid var(--bcg-green)}
+    .eyebrow{font-size:10px;font-weight:700;letter-spacing:.2em;color:var(--bcg-bright);text-transform:uppercase;margin-bottom:6px}
+    .head h1{font-size:clamp(28px,3.2vw,44px);font-weight:700;color:var(--bcg-green);margin:0 0 10px;line-height:1.2}
+    .head .subtitle{font-size:15px;color:var(--muted);margin:0;max-width:900px}
+
+    /* 核心结论条 */
+    .executive-summary{background:var(--bcg-pale);border-left:5px solid var(--bcg-green);padding:18px 22px;margin-bottom:26px}
+    .executive-summary .label{font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--bcg-green);text-transform:uppercase;margin-bottom:6px}
+    .executive-summary p{margin:0;font-size:16px;color:var(--ink);line-height:1.6}
+
+    /* 画布容器 */
+    .canvas{background:var(--paper);border:1px solid var(--line);padding:28px 32px 32px}
+
+    /* 模块网格 */
+    .grid{display:grid;grid-template-columns:1fr 1fr 1.4fr;gap:22px;margin-bottom:22px}
+    .bottom{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-bottom:22px}
+
+    section{border:1px solid var(--line);background:var(--paper)}
+    section>h2{margin:0;padding:12px 16px;font-size:14px;font-weight:700;color:var(--paper);background:var(--bcg-green);display:flex;align-items:center;gap:10px}
+    section>h2 b{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--paper);color:var(--bcg-green);font-size:13px;font-weight:800}
+    .block{padding:14px 16px;border-bottom:1px solid var(--line)}
+    .block:last-child{border-bottom:0}
+    h3{margin:0 0 8px;font-size:12px;font-weight:700;color:var(--bcg-green);letter-spacing:.03em;text-transform:uppercase}
+    p,li{font-size:13px;line-height:1.55;color:var(--ink)}
+    ul{margin:6px 0;padding-left:18px}li{margin:5px 0}
+
+    /* 表格 */
+    table{width:100%;border-collapse:collapse;font-size:12px}
+    th{background:var(--bcg-pale);color:var(--bcg-green);padding:10px 12px;text-align:left;font-weight:700;border-bottom:2px solid var(--bcg-green)}
+    td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.45}
+    td:first-child{font-weight:700;color:var(--ink)}
+    tr:last-child td{border-bottom:0}
+
+    /* 工作流横向条 */
+    .work{margin-bottom:22px}
+    .flow{display:flex;gap:16px;padding:16px;background:var(--bcg-pale);border:1px solid var(--line)}
+    .step{position:relative;flex:1;min-width:140px;padding:14px;background:var(--paper);border-top:3px solid var(--bcg-green)}
+    .step:not(:last-child):after{content:"→";position:absolute;right:-15px;top:40%;color:var(--bcg-bright);font-size:18px;font-weight:700}
+    .step em{display:block;font-size:11px;font-weight:700;color:var(--bcg-bright);margin-bottom:6px;font-style:normal}
+    .step strong{display:block;font-size:13px;font-weight:700;color:var(--bcg-green);margin-bottom:8px}
+    .step small{display:block;font-size:11px;color:var(--muted)}
+
+    /* 三列内容 */
+    .triples{display:grid;grid-template-columns:repeat(3,1fr)}
+    .triples .block{border-bottom:0;border-left:1px solid var(--line)}
+    .triples .block:first-child{border-left:0}
+
+    /* 2x2 矩阵装饰 */
+    .matrix{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+    .matrix>div{padding:12px;background:var(--bcg-pale);border-left:3px solid var(--bcg-green);font-size:12px}
+    .matrix>div strong{display:block;color:var(--bcg-green);margin-bottom:4px}
+
+    /* 底部总结 */
+    footer{display:flex;gap:20px;align-items:flex-start;padding:18px 20px;background:var(--bcg-green);color:var(--paper)}
+    footer .label{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;opacity:.85;margin-bottom:4px}
+    footer strong{font-size:15px;font-weight:700;line-height:1.4}
+    footer p{margin:0;font-size:13px;opacity:.9;line-height:1.5}
+
+    /* 脚注 */
+    .footnotes{margin-top:18px;padding-top:14px;border-top:1px solid var(--line);font-size:10px;color:var(--muted);line-height:1.6}
+    .footnotes b{color:var(--bcg-green)}
+
+    /* 数据高亮 */
+    .metric{display:inline-block;font-size:24px;font-weight:700;color:var(--bcg-green);line-height:1}
+    .metric-label{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-top:4px}
+
+    /* 质量面板与批注 */
+    #quality-panel{background:var(--bcg-pale);border:1px solid var(--line);padding:16px 18px;margin-bottom:20px}
+    #quality-panel h3{margin:0 0 10px;font-size:12px;color:var(--bcg-green);text-transform:uppercase;letter-spacing:.05em}
+    #alignment-section{margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+    #alignment-section h4{margin:0 0 8px;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+    #local-notes{display:none}
+
+    @media(max-width:1100px){.grid{grid-template-columns:1fr 1fr}.team{grid-column:1/-1}}
+    @media(max-width:720px){main{padding:20px 16px}.grid,.bottom,.triples,.matrix{grid-template-columns:1fr}.team{grid-column:auto}.step:not(:last-child):after{display:none}.flow{flex-direction:column}}
+    @media print{body{background:white}main{padding:0}.canvas{border:0}#quality-panel,#local-notes{display:none}}
+  </style>
+</head>
+<body data-mode="formal" data-page-type="global" data-module="global" data-version="1">
+<main>
+  <header class="head" id="canvas-header">
+    <div>
+      <div class="eyebrow">MVL Executive Canvas · BCG Green</div>
+      <h1>通过人机协作，将分散信息转化为可追踪、可审核的标准流程</h1>
+      <p class="subtitle">本方案面向管理层，呈现目标、用户、工作流、Agent 团队与验证结论的完整闭环。</p>
+    </div>
+  </header>
+
+  <div class="executive-summary">
+    <div class="label">核心战略结论</div>
+    <p>在模拟环境中，该 MVL 已验证：关键业务事项的平均处理周期可缩短 50% 以上，人工整理成本下降 40%，同时保留所有关键决策的人工确认点，确保合规与可追溯。</p>
+  </div>
+
+  <article class="canvas">
+    <div class="grid">
+      <section id="intent">
+        <h2><b>1</b>Intent（意图）</h2>
+        <div class="block" id="intent-goal">
+          <h3>目标 Goal</h3>
+          <p>围绕高频业务事项，建立从信息收集、分析建议到执行归档的完整闭环。</p>
+        </div>
+        <div class="block" id="intent-value">
+          <h3>价值 Value</h3>
+          <ul>
+            <li>降低重复沟通与人工整理成本</li>
+            <li>提高流程一致性与结果可追溯性</li>
+            <li>沉淀可复用的知识、规则与模板</li>
+          </ul>
+        </div>
+        <div class="block" id="intent-success-metrics">
+          <h3>成功指标</h3>
+          <div style="display:flex;gap:24px;margin-top:10px">
+            <div><span class="metric">≥50%</span><span class="metric-label">周期缩短</span></div>
+            <div><span class="metric">≥85%</span><span class="metric-label">一次通过</span></div>
+            <div><span class="metric">4.5</span><span class="metric-label">满意度/5</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="user">
+        <h2><b>2</b>User（用户）</h2>
+        <div class="block" id="user-users">
+          <h3>主要用户</h3>
+          <p>业务执行人员、项目负责人、专业审核人员与协作方代表。</p>
+        </div>
+        <div class="block" id="user-needs">
+          <h3>核心需求</h3>
+          <ul>
+            <li>快速理解事项背景与规则依据</li>
+            <li>获得结构化建议与下一步行动</li>
+            <li>关键节点可确认、可退回、可追踪</li>
+          </ul>
+        </div>
+        <div class="block" id="user-pain-points">
+          <h3>典型痛点</h3>
+          <ul>
+            <li>信息分散，查找与核对耗时</li>
+            <li>依赖个人经验，输出质量不稳定</li>
+            <li>过程证据不足，复盘与交接困难</li>
+          </ul>
+        </div>
+        <div class="block" id="user-most-important-outcomes">
+          <h3>最重要结果</h3>
+          <p>在关键节点获得结构化建议与可追溯的决策记录。</p>
+        </div>
+      </section>
+
+      <section class="team" id="agent-team">
+        <h2><b>3</b>Agent Team（人 + Agent）</h2>
+        <div class="table" id="agent-team-roles">
+          <table>
+            <thead><tr><th>角色</th><th>主要职责</th><th>自动化</th><th>决策边界</th></tr></thead>
+            <tbody>
+              <tr><td>业务负责人</td><td>确认目标、范围与关键结果</td><td>否</td><td>最终审批与例外决策</td></tr>
+              <tr><td>智能助手</td><td>检索规则、生成建议、记录过程</td><td>是</td><td>只建议，不替代授权</td></tr>
+              <tr><td>专业审核人</td><td>审核依据、风险与输出内容</td><td>否</td><td>专业判断与放行</td></tr>
+              <tr><td>协作方代表</td><td>补充信息、确认交付与反馈</td><td>否</td><td>确认自身职责范围</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="block" id="agent-team-collaboration">
+          <h3>协作规则</h3>
+          <p>Agent 负责信息整合与初稿生成；所有关键决策保留人工确认；每个结论附带证据编号，支持复核。</p>
+        </div>
+      </section>
+    </div>
+
+    <section class="work" id="workflow">
+      <h2><b>4</b>Workflow（闭环工作流）</h2>
+      <div class="flow">
+        <div class="step" id="workflow-automation">
+          <em>Agent 执行</em>
+          <strong>信息提取与规则匹配</strong>
+          <small>自动读取材料、识别关键字段、关联历史规则</small>
+        </div>
+        <div class="step" id="workflow-human-agent-nodes">
+          <em>人审 + Agent</em>
+          <strong>风险判断与建议生成</strong>
+          <small>Agent 给出初稿与依据，人工判断并确认</small>
+        </div>
+        <div class="step" id="workflow-human-checkpoints">
+          <em>人工确认</em>
+          <strong>审批与交付</strong>
+          <small>授权人确认最终输出，生成可追溯记录</small>
+        </div>
+        <div class="step" id="workflow-rules">
+          <em>关键规则</em>
+          <strong>归档与复盘</strong>
+          <small>过程数据进入知识库，支持持续优化</small>
+        </div>
+      </div>
+      <div class="triples">
+        <div class="block" id="workflow-steps">
+          <h3>关键步骤</h3>
+          <p>触发 → 提取 → 分析 → 建议 → 确认 → 执行 → 归档。</p>
+        </div>
+        <div class="block" id="workflow-context">
+          <h3>所需上下文</h3>
+          <p>业务规则库、历史案例、权限清单、协作方信息。</p>
+        </div>
+        <div class="block" id="workflow-boundary">
+          <h3>边界</h3>
+          <p>仅处理规则明确的常规事项；例外与高风险事项强制人工介入。</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="bottom">
+      <section id="context">
+        <h2><b>5</b>Context（知识库与上下文）</h2>
+        <div class="block" id="context-knowledge">
+          <h3>知识库</h3>
+          <ul>
+            <li>业务规则与审批标准</li>
+            <li>历史案例与典型问题</li>
+            <li>常见问题 FAQ 与最佳实践</li>
+          </ul>
+        </div>
+        <div class="block" id="context-data-sources">
+          <h3>数据源</h3>
+          <p>内部业务系统、协作平台消息、审批记录与外部公开资料。</p>
+        </div>
+        <div class="block" id="context-tools-skills">
+          <h3>工具与技能</h3>
+          <p>语义检索、规则引擎、文档生成、版本控制与审计日志。</p>
+        </div>
+      </section>
+
+      <section id="validation">
+        <h2><b>6</b>Validation（验证与风险）</h2>
+        <div class="block" id="validation-executable">
+          <h3>能否执行</h3>
+          <p>已完成三轮验证：流程跑通、人工节点可正常介入、异常处理路径有效。</p>
+        </div>
+        <div class="block" id="validation-value">
+          <h3>能否创造价值</h3>
+          <p>关键指标在模拟环境中达到预期；真实落地需补充数据接口与权限打通。</p>
+        </div>
+        <div class="block" id="validation-evolution">
+          <h3>能否持续进化</h3>
+          <p>过程数据可回流知识库，规则与模型可随业务变化迭代。</p>
+        </div>
+      </section>
+    </div>
+
+    <footer>
+      <div style="flex:1">
+        <div class="label">底部结论</div>
+        <strong>本 MVL 在模拟环境中已验证核心闭环，建议下一步对接真实数据源并扩大验证范围。</strong>
+      </div>
+      <div style="flex:1">
+        <div class="label">关键限制</div>
+        <p>当前交付为概念验证原型，非生产级系统；正式上线前需完成安全、权限与性能评估。</p>
+      </div>
+    </footer>
+
+    <div class="footnotes">
+      <b>来源说明：</b>本 Canvas 内容来自工作坊讨论记录与模块确认结论。示例中的数字与描述仅为版式占位，正式交付时应替换为同版本 JSON 中的确认数据。｜版本 v1 · 已确认
+    </div>
+  </article>
+
+  <aside id="quality-panel">
+    <h3>质量与对齐</h3>
+    <div id="quality-version">版本：v1 · 已确认</div>
+    <div id="quality-approval">确认人：业务负责人 + 技术负责人</div>
+    <div id="quality-gaps">剩余缺口：无 blocker / 无 major</div>
+    <div id="quality-risks">已接受风险：模拟环境验证</div>
+    <section id="alignment-section">
+      <h4>对齐状态</h4>
+      <div id="alignment-consensus">业务目标与技术路径已对齐</div>
+      <div id="alignment-divergences">无重大开放分歧</div>
+      <div id="alignment-decisions">关键决策已记录</div>
+    </section>
+  </aside>
+
+  <section id="local-notes" contenteditable="true">本地批注区域</section>
+  <script type="application/json" id="canvas-data">{"module_id":"global","version":1,"template":"bcg-green-matrix","confirmed":true}</script>
+</main>
+</body>
+</html>

@@ -237,10 +237,11 @@ python skills/canvas-render/scripts/render_module.py modules/module-N.json
 | "这是转写……" | 存档 → 提炼 → 闸门初审 → 结论确认包；不直接出图 |
 | "补录……" | 追加来源，模块升版，旧确认和旧画布失效，重新提炼/审核 |
 | "确认 vN" | 登记确认人和版本，运行确定性闸门 |
-| "确认，生成画布" | 先澄清并核对版本；闸门通过后**立即生成该模块的详情 Canvas HTML**（`output/module-N-canvas.html`） |
+| "确认，生成画布" | 先澄清并核对版本；展示拟用模板并询问风格；用户确认后，闸门通过后**立即生成该模块的详情 Canvas HTML**（`output/module-N-canvas.html`） |
 | "查看 Mx 产物" / "查看所有产物" | 列出当前已确认模块的 JSON 摘要 + 已生成的模块 Canvas HTML 链接。若某模块已确认但未生成 Canvas，提醒生成 |
-| "生成 Mx 模块画布" | 确认该模块已通过闸门后，调用 `canvas-render` 生成 `output/module-N-canvas.html`（模块详情 Canvas，非全局 Canvas） |
-| "先给我看个样子" | 可生成带水印草稿，不进入管理层成果 |
+| "生成 Mx 模块画布" | 确认该模块已通过闸门后，展示拟用模板并询问风格；用户确认后调用 `canvas-render` 生成 `output/module-N-canvas.html`（模块详情 Canvas，非全局 Canvas） |
+| "换风格/换个模板" | 列出 `html-templates/index.json` 中 `priority=high` 的 05+ 高级模板备选，说明视觉系统和 best_for，让用户选择 |
+| "先给我看个样子" | 可生成带水印草稿，并提示当前使用的模板风格；不进入管理层成果 |
 | "进度" | 报告六模块版本、状态、render_allowed、关键缺口和待确认人 |
 | "全局汇总" | 校验六模块与跨模块一致性后，生成全局 Canvas 和报告 |
 | "对齐检查" / "对齐度" | 输出当前模块的共识地图、分歧点、决策留痕和未解决分歧 |
