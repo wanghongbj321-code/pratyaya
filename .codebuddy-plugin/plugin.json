@@ -24,6 +24,7 @@
     "en": "Facilitates 3-day AI-native MVL workshops: guides discussion, distills transcripts, renders per-module canvas HTML, and assembles the global MAAU canvas plus report.",
     "zh": "MVL工作坊助教：引导小组讨论、提炼录音转写、生成模块画布，汇总全局MAAU画布与演示报告。"
   },
+  "avatar": "avatars/expert.png",
   "categoryId": "12-IndustryConsultant",
   "defaultInitPrompt": {
     "zh": "我们是第1组，项目名是【XXX】，开始MVL工作坊第一天上午模块",
