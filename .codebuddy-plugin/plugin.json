@@ -1,6 +1,6 @@
 {
   "name": "mvl-workshop-facilitator",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "description": "AI-native MVL workshop facilitator: distills traceable conclusions, blocks incomplete modules, obtains versioned human confirmation, then renders module and global Canvas HTML.",
   "agents": ["./agents/mvl-workshop-facilitator.md"],
   "skills": [

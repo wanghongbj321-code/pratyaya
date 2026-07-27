@@ -122,11 +122,12 @@ MVL Canvas 是六次工作坊已确认结论的完整展示层。正式页面只
 
 ## 视觉要求
 
-- 专业商务风，深蓝或低饱和机构色为主，白底卡片
-- 完整保留六个大模块及其固定小模块，不新增第七个大模块
-- 核心结论和关键指标优先，详情证据下钻查看
-- 草稿页显示“草稿 / 未确认 / 禁止用于管理层决策”
-- 正式页面不得出现未关闭的 blocker/major
-- A3/A4 横向打印保持可读
+- 专业商务风，深蓝或低饱和机构色为主，白底卡片。
+- **全局 Canvas**：完整保留六个大模块（Intent / User / Agent Team / Workflow / Context / Validation）及其固定小模块，不新增第七个大模块。
+- **模块详情 Canvas**：使用每个模块的专属章节（见 `../../canvas-render/references/render-contract.md`），不套用六板块结构，也不留空白板块。
+- 核心结论和关键指标优先，详情证据下钻查看。
+- 草稿页显示“草稿 / 未确认 / 禁止用于管理层决策”。
+- 正式页面不得出现未关闭的 blocker/major。
+- A3/A4 横向打印保持可读。
 
 完整 HTML 实现约束见 `../../canvas-render/references/render-contract.md`。

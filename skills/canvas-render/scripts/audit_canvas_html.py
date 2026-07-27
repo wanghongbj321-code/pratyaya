@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Audit an MVL Canvas HTML file for structure and offline safety."""
+"""Audit an MVL Canvas HTML file for structure and offline safety.
+
+Supports two page types:
+- data-page-type="global": the six-section MAAU global canvas.
+- data-page-type="module-detail": per-module detail canvas with module-specific sections.
+"""
 
 from __future__ import annotations
 
@@ -10,7 +15,7 @@ from html.parser import HTMLParser
 from pathlib import Path
 
 
-REQUIRED_IDS = {
+GLOBAL_REQUIRED_IDS = {
     "canvas-header",
     "intent",
     "intent-goal",
@@ -45,6 +50,29 @@ REQUIRED_IDS = {
     "local-notes",
     "canvas-data",
 }
+
+MODULE_DETAIL_REQUIRED_IDS = {
+    "canvas-header",
+    "module-summary",
+    "module-summary-headline",
+    "module-summary-overview",
+    "module-outputs",
+    "module-conclusions",
+    "conclusions-table",
+    "module-evidence",
+    "evidence-list",
+    "module-gaps",
+    "gaps-table",
+    "inferences-table",
+    "quality-panel",
+    "alignment-consensus",
+    "alignment-divergences",
+    "alignment-decisions",
+    "local-notes",
+    "canvas-data",
+}
+
+VALID_MODULES = {"M1", "M2", "M3", "M4", "M5", "M6"}
 
 
 class CanvasInspector(HTMLParser):
@@ -106,16 +134,30 @@ def audit(path: Path) -> dict[str, object]:
     except Exception as exc:  # HTMLParser errors are uncommon, but must be reported.
         errors.append(f"HTML parse error: {exc}")
 
-    for element_id in sorted(REQUIRED_IDS - inspector.ids):
+    page_type = inspector.body_attrs.get("data-page-type", "").strip()
+    if page_type == "global":
+        required_ids = GLOBAL_REQUIRED_IDS
+    elif page_type == "module-detail":
+        required_ids = MODULE_DETAIL_REQUIRED_IDS
+    else:
+        errors.append('body data-page-type must be "global" or "module-detail"')
+        required_ids = set()
+
+    for element_id in sorted(required_ids - inspector.ids):
         errors.append(f"missing required id: {element_id}")
 
     mode = inspector.body_attrs.get("data-mode", "")
     if mode not in {"formal", "draft"}:
         errors.append("body data-mode must be formal or draft")
-    if not inspector.body_attrs.get("data-module", "").strip():
-        errors.append("body data-module is required")
-    if not inspector.body_attrs.get("data-version", "").strip():
+
+    version = inspector.body_attrs.get("data-version", "").strip()
+    if not version:
         errors.append("body data-version is required")
+
+    module = inspector.body_attrs.get("data-module", "").strip()
+    if page_type == "module-detail":
+        if module not in VALID_MODULES:
+            errors.append(f"body data-module must be one of {sorted(VALID_MODULES)} for module-detail pages")
 
     if not inspector.local_notes_editable:
         errors.append("local-notes must have contenteditable=true")
