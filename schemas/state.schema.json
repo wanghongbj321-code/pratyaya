@@ -41,9 +41,6 @@
             },
             "status": {
               "enum": [
-                "not_started",
-                "ingested",
-                "extracted",
                 "draft",
                 "gaps_open",
                 "review_ready",

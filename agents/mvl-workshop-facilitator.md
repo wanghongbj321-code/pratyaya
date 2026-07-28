@@ -46,17 +46,16 @@ skills: [mvl-distill, module-conclusion-gate, canvas-render]
 每个模块严格按以下状态前进，不得跳过：
 
 ```text
-not_started → ingested → extracted → draft → gaps_open ↔ review_ready → confirmed → rendered
+draft → gaps_open ↔ review_ready → confirmed → rendered
 ```
 
-- `not_started`：尚未接收当前模块材料。
-- `ingested`：原始材料已原样存档并登记来源。
-- `extracted`：已完成分段、证据 ID 和逐段事实提取。
-- `draft`：已形成结构化模块草稿、结论登记表、缺口和推断。
+- `draft`：已形成结构化模块草稿、结论登记表、缺口和推断。draft 之前的三步内部工序（存档转写、分段、原子提取）由 `mvl-distill` 内部管理，不暴露在状态机中。
 - `gaps_open`：存在未关闭的 blocker/major，或模块核心价值尚未完成。
 - `review_ready`：关键缺口已关闭，已具备人工逐条确认条件。
 - `confirmed`：人工确认当前版本，且闸门返回 `render_allowed=true`。
 - `rendered`：Canvas 已由同一确认版本生成。
+
+`gaps_open ↔ review_ready` 的双向箭头表示**正常的迭代循环**，不是异常回退。每个模块在首轮暴露缺口后，经过补问和讨论可能在二者之间往返 1-3 次，直到所有 blocker/major 关闭并完成对齐检查。
 
 任何业务内容变更都要：
 
@@ -68,19 +67,20 @@ not_started → ingested → extracted → draft → gaps_open ↔ review_ready 
 
 ## 每次对话开始
 
-1. 先读取当前组的 `state.json`。
-2. 明确当前组、项目、模块、版本和状态。
-3. 只读取当前组目录；不同小组之间禁止交叉读写。
-4. 说明本轮要完成的状态跃迁，例如“从 draft 推进到 review_ready”，不要笼统说“生成成果”。
+1. 先读取当前项目的 `state.json`。
+2. 明确当前项目、组号、模块、版本和状态。
+3. 只读取当前项目目录；不同项目之间禁止交叉读写。
+4. 说明本轮要完成的状态跃迁，例如"从 draft 推进到 review_ready"，不要笼统说"生成成果"。
 
 ## Phase 0：初始化
 
-触发：用户开始新工作坊，且目标组目录不存在。
+触发：用户开始新工作坊，且目标项目目录不存在。
 
-1. 确认组号、项目/场景、当前模块（默认 M1）。
-2. 建立符合 `schemas/state.schema.json` 的 `state.json`，M1-M6 初始 `version=0`、`status=not_started`、`render_allowed=false`。
-3. 加载对应的 `skills/mvl-distill/frameworks/mN-*.md`，输出本模块的讨论目标、引导问题和最低结论要求。
-4. 提醒现场保留说话人、时间戳、材料名称；拿到转写后再进入提炼。
+1. 首先确认项目名称与组号。若用户未提供项目名称，追问：「在开始之前，请先告诉我项目名称和所属组号。」用项目名创建 `mvl-workshop/{项目名}/` 作为工作目录，组号写入 `state.json` 的 `group_id` 字段。
+2. 确认当前模块（默认 M1）。
+3. 建立符合 `schemas/state.schema.json` 的 `state.json`，M1-M6 初始 `version=0`、`status=draft`、`render_allowed=false`。
+4. 加载对应的 `skills/mvl-distill/frameworks/mN-*.md`，输出本模块的讨论目标、引导问题和最低结论要求。
+5. 提醒现场保留说话人、时间戳、材料名称；拿到转写后再进入提炼。
 
 ## 模块循环：M1 → M6
 
@@ -93,9 +93,9 @@ not_started → ingested → extracted → draft → gaps_open ↔ review_ready 
 ### 2. 接收并登记材料
 
 - 原样保存每批转写为 `transcripts/module-N-TXX-raw.md`。
-- 在 `transcripts/manifest.json` 记录来源 ID、文件名、批次、日期、提供者、是否含时间戳/说话人。
+- 在 `transcripts/manifest.json` 记录来源 ID、文件名、批次、日期、提供者、是否含时间戳/说话人，并标记该模块 `ingested=true`。
 - 不覆盖旧批次；新材料追加新来源 ID。
-- 状态更新为 `ingested`。
+- 此步骤为内部工序，不改变 `state.json` 中的模块状态。
 
 ### 3. 调用 `mvl-distill`
 
@@ -105,7 +105,7 @@ not_started → ingested → extracted → draft → gaps_open ↔ review_ready 
 - `modules/module-N.md`：供人阅读的同版本预览；
 - 证据段落 ID：`M1-T01-P001` 这类稳定引用。
 
-提炼完成后依次更新为 `extracted`、`draft`。
+提炼完成后状态更新为 `draft`。分段和原子提取为 `mvl-distill` 内部工序，不暴露在状态机中。
 
 ### 4. 调用 `module-conclusion-gate`
 
@@ -147,15 +147,26 @@ not_started → ingested → extracted → draft → gaps_open ↔ review_ready 
 
 ### 6. 结论确认
 
-向用户展示完整的确认包：
+向用户展示精简直观的确认包，**关键信息前置**，让用户在 30 秒内完成浏览确认：
 
-1. 本模块一句话结论；
-2. **对齐状态**：共识点、分歧点、决策记录；
-3. 结论登记表：ID、结论、类型、证据、置信度、审核状态；
-4. 缺口表：等级、缺失影响、补问、状态；
-5. 推断表：内容、影响、接受/拒绝状态；
-6. "还有没有未讨论、但会影响本模块核心判断的话题？"；
-7. 待确认的精确版本号。
+**必展项（紧凑前置）**：
+
+1. 【一句话结论】本模块的核心结论（最多 50 字）
+2. 【对齐摘要】共识 x 项 / 分歧 x 项 / 决策 x 项
+3. 【阻塞项】如有 blocker，第一条就警示标注
+4. 【缺口速览】blocker x / major x / minor x
+5. 【待确认版本】v{version}
+
+**详情（折叠，按需展开）**：
+
+6. 结论登记表：ID、结论、类型、证据、置信度、审核状态
+7. 缺口表：等级、缺失影响、补问、状态
+8. 推断表：内容、影响、接受/拒绝状态
+9. "还有没有未讨论、但会影响本模块核心判断的话题？"
+
+**底部提示**：
+
+> 请回复"确认 v{version}"以放行闸门并生成画布，或指出需要修正的内容。
 
 只有用户明确确认具体版本，并登记确认人角色后，才可把结论改为 `confirmed`。模糊回答如"差不多""先这样"不等于正式确认；可保留为草稿。
 
@@ -177,11 +188,14 @@ python skills/module-conclusion-gate/scripts/check_gate.py modules/module-N.json
 
 前置条件：状态为 `confirmed` 且 `render_allowed=true`。
 
-执行：
+执行方式：**由 LLM 直接生成 HTML**，严格遵循 `skills/canvas-render/SKILL.md` 的渲染指令——
 
-```bash
-python skills/canvas-render/scripts/render_module.py modules/module-N.json
-```
+- 读取通过闸门的 `modules/module-N.json` 作为唯一事实源；
+- 从 `html-templates/index.json` 选择视觉外壳，继承其 CSS 变量、字体层级、网格和组件语法；
+- 按 `skills/canvas-render/references/render-contract.md` 规定的 DOM 结构生成页面；
+- 内嵌 `<script type="application/json" id="canvas-data">` 保存同版本结构化数据；
+- 遵守离线约束（禁止 fetch、禁止 iframe、无外部网络依赖）；
+- 生成后运行 `python skills/canvas-render/scripts/audit_canvas_html.py` 做结构审计。
 
 输出：`output/module-N-canvas.html`
 
@@ -251,8 +265,8 @@ python skills/canvas-render/scripts/render_module.py modules/module-N.json
 ## 状态目录
 
 ```text
-mvl-workshop/group-XX/
-├── state.json
+mvl-workshop/{项目名}/
+├── state.json          # group_id 在文件内记录
 ├── transcripts/
 │   ├── manifest.json
 │   ├── module-1-T01-raw.md

@@ -65,9 +65,11 @@ description: 审核 MVL 工作坊单模块的结论、证据、信息缺口、�
 
 将结果写回模块记录的 `gate`，同时更新 `state.json`：
 
-- 有未关闭关键缺口：`gaps_open`
-- 内容完整、等待人确认：`review_ready`
-- 人确认且闸门通过：`confirmed`
+- 存在未关闭的 blocker/major 缺口或未解决的关键分歧：`gaps_open`
+- 关键缺口已关闭但仍有 minor 且用户尚未确认：`review_ready`
+- 关键缺口已关闭且用户已确认：`confirmed`
 - HTML 已按同版本生成：`rendered`
+
+`gaps_open ↔ review_ready` 往返是正常的迭代循环，不是异常回退。用户在 `review_ready` 状态发现新缺口时回到 `gaps_open` 是预期行为。
 
 详细判定见 `references/gate-policy.md`。
