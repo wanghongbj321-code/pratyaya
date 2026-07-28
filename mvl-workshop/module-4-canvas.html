@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>M4 Canvas | 今麦郎AI应用 · Agent Team冻结</title>
+  <style>
+    :root{--a:#e65100;--s:#fff3e0;--ink:#17233a;--muted:#667085;--line:#d6dce7}
+    *{box-sizing:border-box}
+    body{margin:0;background:#edf1f7;color:var(--ink);font-family:Inter,"Microsoft YaHei",Arial,sans-serif;line-height:1.5}
+    main{max-width:1500px;margin:auto;padding:28px 18px 45px}
+    .head{display:flex;justify-content:space-between;align-items:end;gap:20px;margin-bottom:18px;flex-wrap:wrap}
+    .head h1{font-size:clamp(26px,3vw,42px);margin:5px 0}
+    .head p{margin:0;color:var(--muted)}
+    .eyebrow{font-size:11px;font-weight:800;letter-spacing:.18em;color:#52647b}
+    .draft-badge{border:1px solid #e0a030;background:#fff7e0;color:#8a5a00;border-radius:99px;padding:9px 14px;font-weight:800;font-size:13px}
+    .canvas{background:white;border:1px solid #c7ceda;border-radius:12px;padding:13px;box-shadow:0 18px 50px #22314c1f}
+    .title{display:flex;align-items:center;gap:15px;color:white;padding:17px 20px;border-radius:7px}
+    .title small{opacity:.7;letter-spacing:.14em;font-size:11px}
+    .title h1{margin:3px 0;font-size:clamp(21px,2.2vw,34px)}
+    .title p{margin:0;opacity:.85;font-size:13px}
+    .summary{margin:10px 0;padding:12px 15px;background:var(--s);border-left:4px solid var(--a);font-size:14px}
+    section{border:1.5px solid color-mix(in srgb,var(--a) 62%,#ccd4e1);border-radius:8px;overflow:hidden;margin-bottom:9px}
+    section>h2{margin:0;padding:9px 12px;font-size:18px;color:var(--a);background:linear-gradient(90deg,var(--s),white)}
+    section>h2 b{display:inline-grid;place-items:center;width:25px;height:25px;margin-right:8px;border-radius:50%;background:var(--a);color:white;font-size:14px}
+    .block{padding:11px 13px}
+    .block+.block{border-top:1px solid var(--line)}
+    h3{margin:0 0 7px;font-size:14px;color:var(--a)}
+    p,li{font-size:12.5px;line-height:1.55}
+    ul{margin:5px 0;padding-left:18px}li{margin:4px 0}
+    table{width:100%;border-collapse:collapse;font-size:12px}
+    th{background:var(--a);color:white;padding:9px 7px;text-align:left}
+    td{padding:9px 7px;border:1px solid var(--line);vertical-align:top;line-height:1.4}
+    td:first-child{font-weight:800;color:var(--a)}
+    .ok-tag{display:inline-block;background:#d4edda;color:#155724;border-radius:4px;padding:2px 6px;font-size:11px;font-weight:800;margin:2px 4px 2px 0}
+    .gap-tag{display:inline-block;background:#fff3cd;color:#856404;border-radius:4px;padding:2px 6px;font-size:11px;font-weight:800;margin:2px 4px 2px 0}
+    .infer-tag{display:inline-block;background:#e8daef;color:#6c3483;border-radius:4px;padding:2px 6px;font-size:11px;font-weight:800;margin:2px 4px 2px 0}
+    .quality-panel{margin-top:10px;border:1.5px dashed #aab5c5;border-radius:8px;padding:15px 18px;background:#f8f9fb}
+    .quality-panel h3{font-size:14px;margin-bottom:10px}
+    .quality-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .quality-item{font-size:12.5px}
+    .quality-item strong{color:var(--a)}
+    .back-btn{display:inline-flex;align-items:center;gap:6px;background:var(--a);color:white;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:700;font-size:14px;box-shadow:0 4px 12px rgba(230,81,0,0.3);transition:all 0.2s;white-space:nowrap}
+    .back-btn:hover{background:#bf360c;transform:translateY(-2px)}
+    .back-btn::before{content:"\2190";font-size:18px;font-weight:900}
+    section#local-notes{margin-top:10px;border:1px dashed #aab5c5;border-radius:8px;padding:12px 16px;background:#fffef5;font-size:12px;min-height:60px;outline:none}
+    section#local-notes:empty::before{content:"\70B9\51FB\6B64\5904\6DFB\52A0\672C\5730\6279\6CE8\FF08\4EC5\6D4F\89C8\5668\5B58\50A8\FF0C\4E0D\8986\76D6\4E8B\5B9E\6E90\FF09";color:var(--muted)}
+    .evidence-card{margin:6px 0;padding:8px 12px;border-left:3px solid var(--a);background:#f7f9fc;border-radius:0 6px 6px 0;font-size:12px}
+    .evidence-card strong{color:var(--a)}
+    .node-auto{background:#e3f2fd;color:#1565c0}
+    .node-human{background:#fff3e0;color:#e65100}
+    .node-hybrid{background:#f3e5f5;color:#7b1fa2}
+    .node-type-tag{display:inline-block;border-radius:4px;padding:2px 8px;font-size:10px;font-weight:800;margin:1px 2px}
+    .collab-card{margin:5px 0;padding:8px 12px;border-radius:6px;font-size:12px}
+    .collab-auto{background:#e3f2fd;border:1px solid #90caf9}
+    .collab-hybrid{background:#f3e5f5;border:1px solid #ce93d8}
+    .collab-human{background:#fff3e0;border:1px solid #ffcc80}
+    .readiness-full{color:#2e7d32;font-weight:800}
+    .readiness-partial{color:#ef6c00;font-weight:800}
+    .readiness-none{color:#c62828;font-weight:800}
+    .workflow-flow{display:flex;gap:10px;overflow-x:auto;padding:12px 0;align-items:stretch}
+    .wf-step{flex:1;min-width:135px;border:2px solid var(--line);border-radius:8px;padding:10px;position:relative;background:white}
+    .wf-step.auto{border-color:#1565c0;background:#e3f2fd}
+    .wf-step.human{border-color:#e65100;background:#fff3e0}
+    .wf-step.hybrid{border-color:#7b1fa2;background:#f3e5f5}
+    .wf-step:not(:last-child)::after{content:"\2192";position:absolute;right:-14px;top:40%;color:var(--a);font-size:18px;font-weight:900}
+    .wf-step strong{display:block;font-size:11px;color:var(--a);margin-bottom:4px}
+    .wf-step .node-type-badge{display:inline-block;border-radius:4px;padding:1px 5px;font-size:9px;font-weight:800;margin-bottom:4px}
+    .wf-step.auto .node-type-badge{background:#1565c0;color:white}
+    .wf-step.human .node-type-badge{background:#e65100;color:white}
+    .wf-step.hybrid .node-type-badge{background:#7b1fa2;color:white}
+    .wf-step em{display:block;font-size:10px;color:var(--muted);font-style:normal;margin-top:4px}
+    .conclusion-table th{background:var(--a)}
+    .resolution-card{margin:5px 0;padding:7px 10px;border-left:3px solid #28a745;background:#d4edda;border-radius:0 5px 5px 0;font-size:12px}
+    .resolution-card strong{color:#155724}
+    .pending-card{margin:5px 0;padding:7px 10px;border-left:3px solid #ffc107;background:#fff3cd;border-radius:0 5px 5px 0;font-size:12px}
+    .pending-card strong{color:#856404}
+    .infer-card{margin:5px 0;padding:7px 10px;border-left:3px solid #7b1fa2;background:#f3e5f5;border-radius:0 5px 5px 0;font-size:12px}
+    .infer-card strong{color:#6c3483}
+    @media(max-width:900px){.workflow-flow{flex-direction:column}.wf-step:not(:last-child)::after{display:none}.quality-grid{grid-template-columns:1fr}}
+    @media(max-width:700px){main{padding:16px 9px}table{display:block;overflow-x:auto}.head{flex-direction:column;align-items:start}}
+    @media print{body{background:white}main{padding:0}.head,.quality-panel{display:none}.canvas{box-shadow:none;border:0}}
+  </style>
+</head>
+<body data-mode="draft" data-page-type="module-detail" data-module="M4" data-version="1">
+  <header class="head">
+    <div>
+      <span class="eyebrow">MVL CANVAS · 第1组</span>
+      <h1>M4 Canvas | 今麦郎AI应用 · Agent Team冻结</h1>
+    </div>
+    <span class="draft-badge">⚠ 草稿 / 未确认</span>
+    <a href="./mvl-canvas-summary.html" class="back-btn">返回总览首页</a>
+  </header>
+  <main>
+    <section id="module-summary">
+      <h2>M4: Agent Team冻结与开发筹备</h2>
+      <div id="module-summary-headline">
+        <div style="background:var(--s);border-left:4px solid var(--a);padding:12px 16px;border-radius:6px;margin:8px 0">
+          <strong>一句话结论：</strong>3个Agent（数据查询/归因分析/改进跟踪）+ 干部 + FD团队组成Agent Team，8步骤工作流已冻结，进入两轮原型验证与开发筹备。
+        </div>
+      </div>
+      <div id="module-summary-overview" style="padding:5px 0 10px">
+        <p>M4承接M3方案方向，完成Agent Team 5角色职责与决策边界冻结、协作模式3类定义、Workflow 8步骤冻结、知识库/数据源/工具清单标注、两轮原型记录（推断）、验收标准4条、开发筹备与团队分工。7项争议已解决，4项待确认进入M5/M6。</p>
+      </div>
+    </section>
+    <section id="module-outputs">
+      <h2><b>1</b>模块输出 · M4</h2>
+
+      <div class="block" id="m4-agent-team">
+        <h3>Agent Team（5角色 · 职责 · 决策边界）</h3>
+        <table>
+          <thead><tr><th>角色</th><th>职责</th><th>类型</th><th>决策边界</th></tr></thead>
+          <tbody>
+            <tr><td>数据查询Agent</td><td>通过MCP从ES查询网点通/BI数据</td><td><span class="node-type-tag node-auto">Agent</span></td><td>只能查ES已有数据，不做归因；数据异常标记退回</td></tr>
+            <tr><td>归因分析Agent</td><td>基于知识库生成归因报告初稿</td><td><span class="node-type-tag node-hybrid">Agent</span></td><td>出初稿供人审，不自主决定归因结论</td></tr>
+            <tr><td>改进跟踪Agent</td><td>推送任务、跟踪进度、关联下次复盘</td><td><span class="node-type-tag node-auto">Agent</span></td><td>自动预警升级，但不自主决定升级给谁</td></tr>
+            <tr><td>干部（部门长/总监）</td><td>触发复盘、审核数据、确认归因、分配措施</td><td><span class="node-type-tag node-human">人</span></td><td>最终决策权：是否采纳归因、如何分配任务</td></tr>
+            <tr><td>FD团队</td><td>反馈归因质量，提供真实案例，参与知识库迭代</td><td><span class="node-type-tag node-human">人</span></td><td>归因对错判断权；决定知识库更新方向</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="block" id="m4-collaboration">
+        <h3>协作模式（3种类型 + 升级机制）</h3>
+        <div class="collab-card collab-auto">
+          <strong>Agent自主执行（人只触发）</strong>
+          <ul style="margin:4px 0"><li>步骤2 数据获取：干部触发 → Agent查ES → 返回数据</li><li>步骤7 任务推送：措施确认 → Agent推送OA/企微/邮件</li><li>步骤8 跟踪闭环：Agent跟踪 → 到期提醒 → 预警升级</li></ul>
+        </div>
+        <div class="collab-card collab-hybrid">
+          <strong>人审Agent输出（Agent初稿 → 人确认）</strong>
+          <ul style="margin:4px 0"><li>步骤4 归因分析：Agent生成报告 → 干部审核 → 通过/退回</li><li>步骤6 改进措施：Agent生成建议 → 干部确认分配</li></ul>
+        </div>
+        <div class="collab-card collab-human">
+          <strong>人工操作（Agent不参与）</strong>
+          <ul style="margin:4px 0"><li>步骤1 触发复盘：干部发起或响应预警</li><li>步骤3 数据审核：干部确认数据完整性</li><li>步骤5 归因确认：干部最终判断归因合理性</li></ul>
+        </div>
+        <div style="margin-top:6px">
+          <p style="font-size:12px;margin:4px 0"><strong>升级机制：</strong>归因错误 → 入知识库 → FD团队复盘 → 迭代模型 &nbsp;|&nbsp; 未完成改进项 → Agent自动预警 → 升级给上级 &nbsp;|&nbsp; Agent无法处理 → 标记异常 → 退回人工</p>
+        </div>
+      </div>
+
+      <div class="block" id="m4-workflow-final">
+        <h3>工作流冻结版（8步骤 · 三类节点）</h3>
+        <table style="font-size:11.5px">
+          <thead><tr><th>步骤</th><th>输入</th><th>输出</th><th>节点类型</th><th>执行说明</th><th>流向/关键规则</th></tr></thead>
+          <tbody>
+            <tr><td>1. 触发复盘</td><td>复盘任务/异常预警</td><td>复盘指令</td><td><span class="node-type-tag node-human">人工操作</span></td><td>干部收到任务或系统预警，发起复盘</td><td>→ 步骤2</td></tr>
+            <tr><td>2. 数据获取</td><td>复盘指令</td><td>结构化数据</td><td><span class="node-type-tag node-auto">自动化</span></td><td>数据查询Agent通过MCP从ES查询</td><td>→ 步骤3</td></tr>
+            <tr><td>3. 数据审核</td><td>结构化数据</td><td>确认数据</td><td><span class="node-type-tag node-human">人工确认</span></td><td>干部审核数据完整性和准确性</td><td>通过→4；退回→2</td></tr>
+            <tr><td>4. 归因分析</td><td>确认数据+知识库</td><td>归因报告初稿</td><td><span class="node-type-tag node-hybrid">人审+Agent</span></td><td>归因分析Agent基于知识库生成多维度归因</td><td>→ 步骤5</td></tr>
+            <tr><td>5. 归因确认</td><td>归因报告</td><td>确认归因</td><td><span class="node-type-tag node-human">人工确认</span></td><td>干部审核归因合理性（初期60-70%）</td><td>通过→6；退回→4</td></tr>
+            <tr><td>6. 改进措施</td><td>归因+建议</td><td>改进清单</td><td><span class="node-type-tag node-hybrid">人审+Agent</span></td><td>改进跟踪Agent生成建议，干部确认分配</td><td>→ 步骤7</td></tr>
+            <tr><td>7. 任务推送</td><td>改进措施+责任人</td><td>推送通知</td><td><span class="node-type-tag node-auto">自动化</span></td><td>Agent通过OA/企微/邮件推送任务</td><td>→ 步骤8</td></tr>
+            <tr><td>8. 跟踪闭环</td><td>措施清单+进度</td><td>闭环状态</td><td><span class="node-type-tag node-auto">自动化</span></td><td>Agent跟踪进度，下次复盘自动关联</td><td>完成→归档；未完成→预警</td></tr>
+          </tbody>
+        </table>
+        <div class="workflow-flow" style="margin-top:8px">
+          <div class="wf-step human"><span class="node-type-badge">人工操作</span><strong>1. 触发复盘</strong><em>干部发起/预警</em></div>
+          <div class="wf-step auto"><span class="node-type-badge">自动化</span><strong>2. 数据获取</strong><em>MCP查ES</em></div>
+          <div class="wf-step human"><span class="node-type-badge">人工确认</span><strong>3. 数据审核</strong><em>干部确认</em></div>
+          <div class="wf-step hybrid"><span class="node-type-badge">人审+Agent</span><strong>4. 归因分析</strong><em>Agent出初稿</em></div>
+          <div class="wf-step human"><span class="node-type-badge">人工确认</span><strong>5. 归因确认</strong><em>干部判断</em></div>
+          <div class="wf-step hybrid"><span class="node-type-badge">人审+Agent</span><strong>6. 改进措施</strong><em>Agent建议+确认</em></div>
+          <div class="wf-step auto"><span class="node-type-badge">自动化</span><strong>7. 任务推送</strong><em>OA/企微/邮件</em></div>
+          <div class="wf-step auto"><span class="node-type-badge">自动化</span><strong>8. 跟踪闭环</strong><em>跟踪+关联</em></div>
+        </div>
+        <p style="font-size:11px;color:var(--muted);margin-top:6px">
+          <span class="node-auto" style="padding:2px 8px;border-radius:3px;font-size:10px">自动化 ×3</span>
+          <span class="node-human" style="padding:2px 8px;border-radius:3px;font-size:10px">人工 ×3</span>
+          <span class="node-hybrid" style="padding:2px 8px;border-radius:3px;font-size:10px">人审+Agent ×2</span>
+        </p>
+        <div style="margin-top:4px;font-size:12px">
+          <strong>冻结规则：</strong>R1 不碰生产系统 | R2 归因必须人工确认 | R3 措施必带责任人+截止时间 | R4 下次复盘自动关联 | R5 错误案例入知识库+FD迭代
+        </div>
+      </div>
+
+      <div class="block" id="m4-knowledge">
+        <h3>知识库 (Knowledge Base)</h3>
+        <table>
+          <thead><tr><th>知识类型</th><th>内容</th><th>就绪度</th></tr></thead>
+          <tbody>
+            <tr><td>报表结构</td><td>Top5常见报表字段定义+模板</td><td><span class="readiness-partial">需业务方提供</span></td></tr>
+            <tr><td>历史归因模型</td><td>Top10历史归因案例（促销/缺货/竞品等）</td><td><span class="readiness-partial">需从会议记录提取</span></td></tr>
+            <tr><td>改进案例库</td><td>历史改进措施执行效果+闭环情况</td><td><span class="readiness-partial">部分存在需整理</span></td></tr>
+            <tr><td>迭代知识</td><td>归因错误案例+FD反馈+新模式</td><td><span class="readiness-none">从零建设</span></td></tr>
+          </tbody>
+        </table>
+        <p style="font-size:11px;color:var(--muted);margin-top:4px">优先级（推断）：第一批 Top5报表+Top10案例 &gt; 第二批 近6个月复盘记录 &gt; 第三批 改进案例归档</p>
+      </div>
+
+      <div class="block" id="m4-data-sources">
+        <h3>数据源 (Data Sources)</h3>
+        <table>
+          <thead><tr><th>数据源</th><th>接入方式</th><th>就绪度</th></tr></thead>
+          <tbody>
+            <tr><td>网点通系统</td><td>MCP接口 → ES</td><td><span class="readiness-partial">需开发MCP</span></td></tr>
+            <tr><td>BI系统</td><td>MCP接口 → ES</td><td><span class="readiness-partial">需开发MCP</span></td></tr>
+            <tr><td>ES中间层</td><td>Agent直连</td><td><span class="readiness-partial">需搭建</span></td></tr>
+            <tr><td>OA系统</td><td>API接口</td><td><span class="readiness-full">已有/可快速对接</span></td></tr>
+            <tr><td>企业微信</td><td>API接口</td><td><span class="readiness-full">已有/可快速对接</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="block" id="m4-tools-skills">
+        <h3>工具与技能 (Tools & Skills)</h3>
+        <table>
+          <thead><tr><th>工具</th><th>用途</th><th>就绪度</th></tr></thead>
+          <tbody>
+            <tr><td>MCP协议封装</td><td>接口包装为Agent可调用</td><td><span class="readiness-partial">需IT开发</span></td></tr>
+            <tr><td>ES数据中间层</td><td>数据汇聚隔离</td><td><span class="readiness-partial">需搭建</span></td></tr>
+            <tr><td>HTML+H5组件</td><td>4入口嵌入</td><td><span class="readiness-partial">需开发</span></td></tr>
+            <tr><td>归因模型提示词</td><td>LLM归因引擎</td><td><span class="readiness-partial">需迭代</span></td></tr>
+            <tr><td>OA/企微工作流</td><td>审批+推送</td><td><span class="readiness-full">已有/可快速对接</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="block" id="m4-prototype-rounds">
+        <h3>两轮原型记录（推断）</h3>
+        <table>
+          <thead><tr><th>轮次</th><th>验证内容</th><th>目标</th><th>发现</th><th>修改</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>第一轮</td><td>数据获取+报告生成</td><td>2分钟内拿到数据</td>
+              <td><span class="infer-tag">推断</span> MCP接口返回格式可能不统一；部分报表字段缺失</td>
+              <td><span class="infer-tag">推断</span> 增加数据清洗预处理；标记缺失字段提醒人工</td>
+            </tr>
+            <tr>
+              <td>第二轮</td><td>归因分析准确性</td><td>Agent vs 人工对比</td>
+              <td><span class="infer-tag">推断</span> 初期准确率60-70%，部分场景偏差大</td>
+              <td><span class="infer-tag">推断</span> 增加人工确认；错误案例入知识库迭代</td>
+            </tr>
+          </tbody>
+        </table>
+        <p style="font-size:11px;color:var(--muted);margin-top:4px">⚠ 两轮原型记录为推演，实际验证后需更新</p>
+      </div>
+
+      <div class="block" id="m4-delivery-preparation">
+        <h3>开发筹备 (Delivery Preparation)</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div>
+            <p style="font-size:12px;font-weight:800;color:var(--a);margin:0 0 4px">开发任务</p>
+            <table>
+              <thead><tr><th>任务</th><th>负责方</th></tr></thead>
+              <tbody>
+                <tr><td>MCP接口开发</td><td>IT供应商/内部IT</td></tr>
+                <tr><td>ES中间层搭建</td><td>IT团队</td></tr>
+                <tr><td>知识库初始构建</td><td>业务方+技术方</td></tr>
+                <tr><td>HTML+H5组件</td><td>前端开发</td></tr>
+                <tr><td>归因Agent开发</td><td>AI开发团队</td></tr>
+                <tr><td>改进跟踪模块</td><td>开发团队</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div>
+            <p style="font-size:12px;font-weight:800;color:var(--a);margin:0 0 4px">场景测试准备</p>
+            <ul style="margin:0">
+              <li>数据获取：部门长/总监测试全链路</li>
+              <li>归因分析：部门长+FD团队对比</li>
+              <li>改进闭环：模拟措施分配→推送→跟踪→关联</li>
+            </ul>
+            <p style="font-size:12px;font-weight:800;color:var(--a);margin:8px 0 4px">团队分工</p>
+            <table>
+              <thead><tr><th>角色</th><th>人员</th></tr></thead>
+              <tbody>
+                <tr><td>业务方</td><td>部门长/总监代表</td></tr>
+                <tr><td>技术-数据</td><td>IT供应商/内部IT</td></tr>
+                <tr><td>技术-AI</td><td>AI开发团队</td></tr>
+                <tr><td>技术-前端</td><td>前端开发</td></tr>
+                <tr><td>项目协调</td><td>项目经理</td></tr>
+              </tbody>
+            </table>
+            <p style="font-size:12px;font-weight:800;color:var(--a);margin:8px 0 4px">迭代节奏 <span class="infer-tag">推断</span></p>
+            <p style="font-size:11px;margin:0">W1 MCP+ES+知识库 &gt; W2 Agent+HTML &gt; W3 第一轮 &gt; W4 修复+第二轮 &gt; W5 全链路 &gt; W6 上线</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="module-conclusions">
+      <h3>结论登记表</h3>
+      <table class="conclusion-table">
+        <thead><tr><th>编号</th><th>结论</th><th>依据</th></tr></thead>
+        <tbody>
+          <tr><td>M4-C01</td><td>数据源方案：ES中间层隔离，MCP封装接口</td><td><span class="ok-tag">已解决</span></td></tr>
+          <tr><td>M4-C02</td><td>入口方案：HTML+H5组件嵌入4个入口</td><td><span class="ok-tag">已解决</span></td></tr>
+          <tr><td>M4-C03</td><td>归因准确度：初期60-70%，FD团队复盘持续迭代</td><td><span class="ok-tag">已解决</span></td></tr>
+          <tr><td>M4-C04</td><td>用户分层：部门长/总监先行，VP+后续定制</td><td><span class="ok-tag">已解决</span></td></tr>
+          <tr><td>M4-C05</td><td>改进跟踪：OA/邮件+清单/数据库</td><td><span class="ok-tag">已解决</span></td></tr>
+          <tr><td>M4-C06</td><td>Agent角色：3个Agent+干部+FD团队，职责和决策边界清晰</td><td><span class="ok-tag">已解决</span></td></tr>
+          <tr><td>M4-C07</td><td>人机协作：3种模式（自主/人审/人工）+升级机制</td><td><span class="ok-tag">已解决</span></td></tr>
+          <tr><td>M4-P01</td><td>MCP接口开发排期：IT供应商/内部IT确认中</td><td><span class="gap-tag">待确认</span></td></tr>
+          <tr><td>M4-P02</td><td>知识库初始内容清单：Top5报表+Top10案例优先级</td><td><span class="gap-tag">待确认</span></td></tr>
+          <tr><td>M4-P03</td><td>企微审批模板设计：OA团队配合</td><td><span class="gap-tag">待确认</span></td></tr>
+          <tr><td>M4-P04</td><td>两轮原型实际验证结果：工作坊后填写</td><td><span class="gap-tag">待确认</span></td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="module-evidence">
+      <h3>证据索引</h3>
+      <div class="evidence-card"><strong>E1｜Agent Team定义：</strong>5角色（3Agent+2人）职责与决策边界已完成冻结</div>
+      <div class="evidence-card"><strong>E2｜协作模式：</strong>3种类型（自主/人审/人工）覆盖全部8个步骤，升级机制涵盖错误案例/未完成项/异常3种场景</div>
+      <div class="evidence-card"><strong>E3｜工作流冻结：</strong>8步骤从触发到闭环完整闭合，5条规则锁定，三类节点统计明确（3+3+2）</div>
+      <div class="evidence-card"><strong>E4｜Context就绪度：</strong>知识库/数据源/工具均标注可获得性，OA/企微接口可快速对接</div>
+      <div class="evidence-card"><strong>E5｜验收标准：</strong>4条标准覆盖数据获取/归因/改进闭环/入口可用性，可判定可执行</div>
+      <div class="evidence-card"><strong>E6｜7个已解决争议：</strong>累计M1-M4共识全部归档，新增Agent角色定义和协作模式</div>
+    </section>
+
+    <section id="module-gaps">
+      <h3>缺口与推断</h3>
+      <div id="gaps-table">
+        <h4 style="font-size:13px;color:var(--a)">缺口</h4>
+        <table>
+          <thead><tr><th>编号</th><th>缺口</th><th>严重度</th><th>说明</th></tr></thead>
+          <tbody>
+            <tr><td>G1</td><td>MCP接口开发排期</td><td><span class="gap-tag">Minor</span></td><td>IT供应商/内部IT确认具体开发排期</td></tr>
+            <tr><td>G2</td><td>知识库初始内容清单</td><td><span class="gap-tag">Minor</span></td><td>需业务方确认Top5报表+Top10案例优先级</td></tr>
+            <tr><td>G3</td><td>企微审批模板设计</td><td><span class="gap-tag">Minor</span></td><td>需OA团队配合设计审批流程模板</td></tr>
+            <tr><td>G4</td><td>两轮原型实际验证结果</td><td><span class="gap-tag">Minor</span></td><td>工作坊后填写实际验证数据</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="inferences-table" style="margin-top:10px">
+        <h4 style="font-size:13px;color:var(--a)">推断</h4>
+        <table>
+          <thead><tr><th>编号</th><th>推断</th><th>验证方式</th></tr></thead>
+          <tbody>
+            <tr><td>I1</td><td>两轮原型发现和修改为推演，实际验证后需更新</td><td><span class="infer-tag">需验证</span></td></tr>
+            <tr><td>I2</td><td>迭代节奏6周为推演，需根据IT资源确认调整</td><td><span class="infer-tag">需验证</span></td></tr>
+            <tr><td>I3</td><td>知识库初始内容优先级为推演，需业务方确认</td><td><span class="infer-tag">需验证</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <aside class="quality-panel">
+      <h3>质量与对齐</h3>
+      <div class="quality-grid">
+        <div class="quality-item">
+          <strong>版本：</strong>v1（草稿）<br>
+          <strong>确认人：</strong>待确认<br>
+          <strong>确认时间：</strong>待确认<br>
+          <strong>结论：</strong>7已解决 + 4待确认
+        </div>
+        <div class="quality-item">
+          <strong>放行检查：</strong><br>
+          <span class="ok-tag">✓ Agent Team角色有职责+决策边界</span>
+          <span class="ok-tag">✓ Workflow从触发到完成闭合</span>
+          <span class="ok-tag">✓ 三类节点均至少一项（3+3+2）</span>
+          <span class="ok-tag">✓ 知识/数据/工具标注可获得性</span>
+          <span class="ok-tag">✓ 范围/边界/验收已冻结</span>
+          <span class="ok-tag">✓ 开发/测试/验证已明确</span>
+          <span class="ok-tag">✓ 业务技术对齐</span>
+        </div>
+        <div class="quality-item">
+          <strong>缺口：</strong><br>
+          <span class="gap-tag">MCP接口开发排期</span>
+          <span class="gap-tag">知识库初始内容</span>
+          <span class="gap-tag">企微模板设计</span>
+          <span class="gap-tag">原型实际结果</span>
+        </div>
+        <div class="quality-item">
+          <strong>推断项：</strong><br>
+          <span class="infer-tag">两轮原型发现和修改</span>
+          <span class="infer-tag">迭代节奏6周</span>
+          <span class="infer-tag">知识库初始内容优先级</span>
+        </div>
+      </div>
+    </aside>
+
+    <section id="local-notes" contenteditable="true"></section>
+
+    <script type="application/json" id="canvas-data">
+    {
+      "module": "M4",
+      "project": "今麦郎AI应用·干部岗复盘归因Agent",
+      "group": "第1组",
+      "version": 1,
+      "status": "draft",
+      "page_type": "module-detail",
+      "headline": "3个Agent（数据查询/归因分析/改进跟踪）+干部+FD团队组成Agent Team，8步骤工作流已冻结，进入两轮原型验证与开发筹备。",
+      "agent_team": [
+        {"role": "数据查询Agent", "boundary": "只能查ES已有数据，不做归因"},
+        {"role": "归因分析Agent", "boundary": "出初稿供人审，不自主决定归因结论"},
+        {"role": "改进跟踪Agent", "boundary": "自动预警升级，不自主决定升级给谁"},
+        {"role": "干部（部门长/总监）", "boundary": "最终决策权"},
+        {"role": "FD团队", "boundary": "归因对错判断权"}
+      ],
+      "collaboration": {"auto": 3, "hybrid": 2, "human": 3},
+      "workflow_final": {"steps": 8, "frozen": true, "rules": 5},
+      "knowledge_types": ["报表结构", "历史归因模型", "改进案例库", "迭代知识"],
+      "resolved_disputes": [
+        "数据源ES中间层", "4入口嵌入", "初期60-70%归因", "部门长/总监先行",
+        "OA/邮件+清单跟踪", "Agent Team 3+2角色", "人机协作3模式"
+      ],
+      "gaps": ["MCP接口开发排期", "知识库初始内容清单", "企微审批模板", "两轮原型实际结果"],
+      "inferences": ["两轮原型发现和修改", "迭代节奏6周", "知识库初始内容优先级"]
+    }
+    </script>
+  </main>
+</body>
+</html>

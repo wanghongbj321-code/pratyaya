@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>M3 Canvas | 今麦郎AI应用 · 闭环目标定义与HMW拆解</title>
+  <style>
+    :root{--a:#7b1fa2;--s:#f3e5f5;--ink:#17233a;--muted:#667085;--line:#d6dce7}
+    *{box-sizing:border-box}
+    body{margin:0;background:#edf1f7;color:var(--ink);font-family:Inter,"Microsoft YaHei",Arial,sans-serif;line-height:1.5}
+    main{max-width:1500px;margin:auto;padding:28px 18px 45px}
+    .head{display:flex;justify-content:space-between;align-items:end;gap:20px;margin-bottom:18px;flex-wrap:wrap}
+    .head h1{font-size:clamp(26px,3vw,42px);margin:5px 0}
+    .head p{margin:0;color:var(--muted)}
+    .eyebrow{font-size:11px;font-weight:800;letter-spacing:.18em;color:#52647b}
+    .draft-badge{border:1px solid #e0a030;background:#fff7e0;color:#8a5a00;border-radius:99px;padding:9px 14px;font-weight:800;font-size:13px}
+    .canvas{background:white;border:1px solid #c7ceda;border-radius:12px;padding:13px;box-shadow:0 18px 50px #22314c1f}
+    .title{display:flex;align-items:center;gap:15px;color:white;padding:17px 20px;border-radius:7px}
+    .title small{opacity:.7;letter-spacing:.14em;font-size:11px}
+    .title h1{margin:3px 0;font-size:clamp(21px,2.2vw,34px)}
+    .title p{margin:0;opacity:.85;font-size:13px}
+    .summary{margin:10px 0;padding:12px 15px;background:var(--s);border-left:4px solid var(--a);font-size:14px}
+    section{border:1.5px solid color-mix(in srgb,var(--a) 62%,#ccd4e1);border-radius:8px;overflow:hidden;margin-bottom:9px}
+    section>h2{margin:0;padding:9px 12px;font-size:18px;color:var(--a);background:linear-gradient(90deg,var(--s),white)}
+    section>h2 b{display:inline-grid;place-items:center;width:25px;height:25px;margin-right:8px;border-radius:50%;background:var(--a);color:white;font-size:14px}
+    .block{padding:11px 13px}
+    .block+.block{border-top:1px solid var(--line)}
+    h3{margin:0 0 7px;font-size:14px;color:var(--a)}
+    p,li{font-size:12.5px;line-height:1.55}
+    ul{margin:5px 0;padding-left:18px}li{margin:4px 0}
+    table{width:100%;border-collapse:collapse;font-size:12px}
+    th{background:var(--a);color:white;padding:9px 7px;text-align:left}
+    td{padding:9px 7px;border:1px solid var(--line);vertical-align:top;line-height:1.4}
+    td:first-child{font-weight:800;color:var(--a)}
+    .ok-tag{display:inline-block;background:#d4edda;color:#155724;border-radius:4px;padding:2px 6px;font-size:11px;font-weight:800;margin:2px 4px 2px 0}
+    .gap-tag{display:inline-block;background:#fff3cd;color:#856404;border-radius:4px;padding:2px 6px;font-size:11px;font-weight:800;margin:2px 4px 2px 0}
+    .infer-tag{display:inline-block;background:#e8daef;color:#6c3483;border-radius:4px;padding:2px 6px;font-size:11px;font-weight:800;margin:2px 4px 2px 0}
+    .quality-panel{margin-top:10px;border:1.5px dashed #aab5c5;border-radius:8px;padding:15px 18px;background:#f8f9fb}
+    .quality-panel h3{font-size:14px;margin-bottom:10px}
+    .quality-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .quality-item{font-size:12.5px}
+    .quality-item strong{color:var(--a)}
+    .back-btn{display:inline-flex;align-items:center;gap:6px;background:var(--a);color:white;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:700;font-size:14px;box-shadow:0 4px 12px rgba(123,31,162,0.3);transition:all 0.2s;white-space:nowrap}
+    .back-btn:hover{background:#4a148c;transform:translateY(-2px)}
+    .back-btn::before{content:"\2190";font-size:18px;font-weight:900}
+    section#local-notes{margin-top:10px;border:1px dashed #aab5c5;border-radius:8px;padding:12px 16px;background:#fffef5;font-size:12px;min-height:60px;outline:none}
+    section#local-notes:empty::before{content:"\70B9\51FB\6B64\5904\6DFB\52A0\672C\5730\6279\6CE8\FF08\4EC5\6D4F\89C8\5668\5B58\50A8\FF0C\4E0D\8986\76D6\4E8B\5B9E\6E90\FF09";color:var(--muted)}
+    .evidence-card{margin:6px 0;padding:8px 12px;border-left:3px solid var(--a);background:#f7f9fc;border-radius:0 6px 6px 0;font-size:12px}
+    .evidence-card strong{color:var(--a)}
+    .node-auto{background:#e3f2fd;color:#1565c0}
+    .node-human{background:#fff3e0;color:#e65100}
+    .node-hybrid{background:#f3e5f5;color:#7b1fa2}
+    .node-type-tag{display:inline-block;border-radius:4px;padding:2px 8px;font-size:10px;font-weight:800;margin:1px 2px}
+    .hmw-card{background:var(--s);border:1px solid color-mix(in srgb,var(--a) 40%,#e0d6e8);border-radius:8px;padding:10px 12px;margin:6px 0}
+    .hmw-card h4{color:var(--a);margin:0 0 4px;font-size:13px}
+    .hmw-card p{margin:0 0 4px;font-size:12px}
+    .hmw-card small{color:var(--muted);font-size:11px}
+    .arch-diagram{background:#f8f9fa;border:1px solid var(--line);border-radius:8px;padding:16px;margin:8px 0;font-family:"Courier New",monospace;font-size:11px;line-height:1.8;white-space:pre}
+    .workflow-flow{display:flex;gap:10px;overflow-x:auto;padding:12px 0;align-items:stretch}
+    .wf-step{flex:1;min-width:135px;border:2px solid var(--line);border-radius:8px;padding:10px;position:relative;background:white}
+    .wf-step.auto{border-color:#1565c0;background:#e3f2fd}
+    .wf-step.human{border-color:#e65100;background:#fff3e0}
+    .wf-step.hybrid{border-color:#7b1fa2;background:#f3e5f5}
+    .wf-step:not(:last-child)::after{content:"\2192";position:absolute;right:-14px;top:40%;color:var(--a);font-size:18px;font-weight:900}
+    .wf-step strong{display:block;font-size:11px;color:var(--a);margin-bottom:4px}
+    .wf-step .node-type-badge{display:inline-block;border-radius:4px;padding:1px 5px;font-size:9px;font-weight:800;margin-bottom:4px}
+    .wf-step.auto .node-type-badge{background:#1565c0;color:white}
+    .wf-step.human .node-type-badge{background:#e65100;color:white}
+    .wf-step.hybrid .node-type-badge{background:#7b1fa2;color:white}
+    .wf-step em{display:block;font-size:10px;color:var(--muted);font-style:normal;margin-top:4px}
+    .conclusion-table th{background:var(--a)}
+    .evidence-table th{background:var(--a)}
+    .resolution-card{margin:5px 0;padding:7px 10px;border-left:3px solid #28a745;background:#d4edda;border-radius:0 5px 5px 0;font-size:12px}
+    .resolution-card strong{color:#155724}
+    .pending-card{margin:5px 0;padding:7px 10px;border-left:3px solid #ffc107;background:#fff3cd;border-radius:0 5px 5px 0;font-size:12px}
+    .pending-card strong{color:#856404}
+    @media(max-width:900px){.workflow-flow{flex-direction:column}.wf-step:not(:last-child)::after{display:none}.quality-grid{grid-template-columns:1fr}}
+    @media(max-width:700px){main{padding:16px 9px}table{display:block;overflow-x:auto}.head{flex-direction:column;align-items:start}}
+    @media print{body{background:white}main{padding:0}.head,.quality-panel{display:none}.canvas{box-shadow:none;border:0}}
+  </style>
+</head>
+<body data-mode="draft" data-page-type="module-detail" data-module="M3" data-version="1">
+  <header class="head">
+    <div>
+      <span class="eyebrow">MVL CANVAS · 第1组</span>
+      <h1>M3 Canvas | 今麦郎AI应用 · 闭环目标定义与HMW拆解</h1>
+    </div>
+    <span class="draft-badge">⚠ 草稿 / 未确认</span>
+    <a href="./mvl-canvas-summary.html" class="back-btn">返回总览首页</a>
+  </header>
+  <main>
+    <section id="module-summary">
+      <h2>M3: 闭环目标定义、HMW拆解与方案方向锁定</h2>
+      <div id="module-summary-headline">
+        <div style="background:var(--s);border-left:4px solid var(--a);padding:12px 16px;border-radius:6px;margin:8px 0">
+          <strong>一句话结论：</strong>通过MCP+ES中间层架构，将AI Agent嵌入4个入口，实现数据获取（2分钟）、归因分析（60-70%初期准确率）、改进闭环（50%目标）的完整复盘链路。
+        </div>
+      </div>
+      <div id="module-summary-overview" style="padding:5px 0 10px">
+        <p>M3承接M1/M2成果，在目标对齐和用户拆解基础上，完成闭环目标定义、3条HMW拆解、方案方向锁定和工作流草案设计。模块输出8个必填字段已填充，3个待确认项（MCP排期/知识库内容/企微模板）进入M4处理。</p>
+      </div>
+    </section>
+    <section id="module-outputs">
+      <h2><b>1</b>模块输出 · M3</h2>
+
+      <div class="block" id="m3-hmw">
+        <h3>HMW (How Might We)</h3>
+        <div class="hmw-card">
+          <h4>HMW 1：数据获取</h4>
+          <p><strong>我们如何能让干部在收到复盘任务后，快速拿到所有需要的数据？</strong></p>
+          <small>用户时刻：干部收到复盘任务后，需要登录多个系统手动导数据 &nbsp;|&nbsp; 张力：想要一键获取 → 现实是2小时手动操作 &nbsp;|&nbsp; 解法：网点通/BI开放接口→MCP封装→Agent查询；报表结构入知识库</small>
+        </div>
+        <div class="hmw-card">
+          <h4>HMW 2：归因定位</h4>
+          <p><strong>我们如何能让干部在发现销量波动后，快速定位是促销、缺货还是竞品的问题？</strong></p>
+          <small>用户时刻：干部看到销量异常，不知道根因 &nbsp;|&nbsp; 张力：想要快速定位 → 现实是人工多因素交叉分析做不了 &nbsp;|&nbsp; 解法：提取历史归因模型入知识库；知识库迭代推演新模型</small>
+        </div>
+        <div class="hmw-card">
+          <h4>HMW 3：改进闭环</h4>
+          <p><strong>我们如何能让每次复盘的改进措施都有人负责、有人跟踪，并与下次复盘自动关联？</strong></p>
+          <small>用户时刻：复盘结束写了改进措施，事后无人跟进 &nbsp;|&nbsp; 张力：想要措施落地 → 现实是闭环率仅5% &nbsp;|&nbsp; 解法：接入OA/企微工作流+建立跟进清单/数据库</small>
+        </div>
+      </div>
+
+      <div class="block" id="m3-loop-goal">
+        <h3>MVL核心目标 (Loop Goal)</h3>
+        <div style="background:var(--s);border-left:4px solid var(--a);padding:10px 14px;border-radius:6px;margin:6px 0">
+          <p style="margin:0"><strong>闭环：</strong>从"收到复盘任务"到"改进措施落地并被验证"形成完整闭环。</p>
+          <p style="margin:6px 0 0;font-size:11px;color:var(--muted)">触发：复盘任务下达 / 数据异常预警 &nbsp;|&nbsp; 完成：改进措施被分配、被跟踪、下次复盘自动关联验证</p>
+        </div>
+      </div>
+
+      <div class="block" id="m3-capability-metrics">
+        <h3>能力指标 (Capability Metrics)</h3>
+        <table>
+          <thead><tr><th>指标</th><th>基线</th><th>目标</th><th>衡量方式</th></tr></thead>
+          <tbody>
+            <tr><td>数据获取时间</td><td>2小时</td><td>2分钟</td><td>触发到数据就绪</td></tr>
+            <tr><td>归因覆盖率</td><td>人工经验</td><td>60%~70%（初期）</td><td>归因模型命中率</td></tr>
+            <tr><td>改进闭环率</td><td>5%</td><td>50%</td><td>措施被跟踪完成</td></tr>
+            <tr><td>重复问题率</td><td>10%</td><td>2%~3%</td><td>同类问题再现</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="block" id="m3-acceptance">
+        <h3>验收标准 (Acceptance Criteria)</h3>
+        <table>
+          <thead><tr><th>编号</th><th>标准</th><th>验证方式</th></tr></thead>
+          <tbody>
+            <tr><td>AC1</td><td>干部能在2分钟内获取复盘所需数据</td><td>实际操作计时</td></tr>
+            <tr><td>AC2</td><td>Agent能基于知识库给出归因分析（初期60%~70%准确率，持续迭代）</td><td>Agent vs 人工对比</td></tr>
+            <tr><td>AC3</td><td>改进措施自动进入跟踪清单，下次复盘自动关联</td><td>模拟完整闭环</td></tr>
+            <tr><td>AC4</td><td>通过网点通/BI/OA/企微任一入口均可调用AI功能</td><td>入口可用性测试</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="block" id="m3-boundary">
+        <h3>边界 (Boundary)</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div style="border:1px solid #c6e0c6;border-radius:6px;padding:8px 10px;background:#f0faf0">
+            <strong style="color:#2e7d32;font-size:12px">In Scope（初期聚焦）</strong>
+            <ul style="margin:4px 0 0">
+              <li>部门长/总监级别</li>
+              <li>ES中间层数据获取</li>
+              <li>初期归因60-70%准确率</li>
+            </ul>
+          </div>
+          <div style="border:1px solid #f5c6cb;border-radius:6px;padding:8px 10px;background:#fef2f2">
+            <strong style="color:#c62828;font-size:12px">Out of Scope</strong>
+            <ul style="margin:4px 0 0">
+              <li>一线员工岗AI场景</li>
+              <li>生产系统直连</li>
+              <li>VP级以上全局战略智能体</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="block" id="m3-solution-direction">
+        <h3>方案方向 (Solution Direction)</h3>
+        <div class="arch-diagram">网点通系统 ─┐
+BI系统 ────┤── API/MCP ──→ ES中间层 ──→ Agent ──→ HTML+H5组件
+OA系统 ────┤                                    ↓
+企微 ──────┘                          嵌入4个入口</div>
+        <p style="margin:6px 0 0;font-size:12px"><strong>核心组件：</strong>① MCP数据层 ② 知识库（报表结构+历史归因模型+会议记录）③ HTML+H5嵌入组件 ④ 跟踪系统（OA工作流/邮件+清单/数据库）</p>
+      </div>
+
+      <div class="block" id="m3-workflow-draft">
+        <h3>工作流草案 (Workflow Draft)</h3>
+        <table style="font-size:11.5px">
+          <thead><tr><th>步骤</th><th>输入</th><th>输出</th><th>节点类型</th><th>执行说明</th><th>流向/规则</th></tr></thead>
+          <tbody>
+            <tr><td>1. 触发复盘</td><td>复盘任务/异常预警</td><td>复盘指令</td><td><span class="node-type-tag node-human">人工操作</span></td><td>干部收到任务或系统预警</td><td>→ 步骤2</td></tr>
+            <tr><td>2. 数据获取</td><td>复盘指令</td><td>结构化数据</td><td><span class="node-type-tag node-auto">自动化</span></td><td>Agent通过MCP从ES查询数据</td><td>→ 步骤3</td></tr>
+            <tr><td>3. 数据审核</td><td>结构化数据</td><td>确认数据</td><td><span class="node-type-tag node-human">人工确认</span></td><td>干部审核数据完整性</td><td>通过→4；退回→2</td></tr>
+            <tr><td>4. 归因分析</td><td>确认数据+知识库</td><td>归因报告初稿</td><td><span class="node-type-tag node-hybrid">人审+Agent</span></td><td>Agent基于知识库生成归因</td><td>→ 步骤5</td></tr>
+            <tr><td>5. 归因确认</td><td>归因报告</td><td>确认归因</td><td><span class="node-type-tag node-human">人工确认</span></td><td>干部审核归因合理性</td><td>通过→6；反馈→4</td></tr>
+            <tr><td>6. 改进措施</td><td>归因+建议</td><td>改进清单</td><td><span class="node-type-tag node-hybrid">人审+Agent</span></td><td>Agent生成建议，干部确认</td><td>→ 步骤7</td></tr>
+            <tr><td>7. 任务推送</td><td>改进措施+责任人</td><td>推送通知</td><td><span class="node-type-tag node-auto">自动化</span></td><td>通过OA/企微/邮件推送</td><td>→ 步骤8</td></tr>
+            <tr><td>8. 跟踪闭环</td><td>措施清单+进度</td><td>闭环状态</td><td><span class="node-type-tag node-auto">自动化</span></td><td>跟踪进度，下次复盘关联</td><td>完成→归档；未完成→预警</td></tr>
+          </tbody>
+        </table>
+        <div class="workflow-flow" style="margin-top:8px">
+          <div class="wf-step human"><span class="node-type-badge">人工操作</span><strong>1. 触发复盘</strong><em>干部收到任务</em></div>
+          <div class="wf-step auto"><span class="node-type-badge">自动化</span><strong>2. 数据获取</strong><em>MCP查询ES</em></div>
+          <div class="wf-step human"><span class="node-type-badge">人工确认</span><strong>3. 数据审核</strong><em>干部审核</em></div>
+          <div class="wf-step hybrid"><span class="node-type-badge">人审+Agent</span><strong>4. 归因分析</strong><em>Agent生成归因</em></div>
+          <div class="wf-step human"><span class="node-type-badge">人工确认</span><strong>5. 归因确认</strong><em>干部审核</em></div>
+          <div class="wf-step hybrid"><span class="node-type-badge">人审+Agent</span><strong>6. 改进措施</strong><em>Agent建议+确认</em></div>
+          <div class="wf-step auto"><span class="node-type-badge">自动化</span><strong>7. 任务推送</strong><em>OA/企微/邮件</em></div>
+          <div class="wf-step auto"><span class="node-type-badge">自动化</span><strong>8. 跟踪闭环</strong><em>跟踪+关联</em></div>
+        </div>
+        <p style="font-size:11px;color:var(--muted);margin-top:6px">
+          <span class="node-auto" style="padding:2px 8px;border-radius:3px;font-size:10px">自动化 ×3</span>
+          <span class="node-human" style="padding:2px 8px;border-radius:3px;font-size:10px">人工 ×3</span>
+          <span class="node-hybrid" style="padding:2px 8px;border-radius:3px;font-size:10px">人审+Agent ×2</span>
+          &nbsp;&nbsp;5条关键规则（R1不碰生产/R2人工确认归因/R3措施必带责任人/R4自动关联/R5错误入知识库）
+        </p>
+      </div>
+
+      <div class="block" id="m3-validation-dimensions">
+        <h3>分层验证维度 (Validation Dimensions)</h3>
+        <table>
+          <thead><tr><th>轮次</th><th>验证对象</th><th>方法</th></tr></thead>
+          <tbody>
+            <tr><td>第一轮</td><td>数据获取+报告生成</td><td>基层干部实际使用，验证2分钟出数据</td></tr>
+            <tr><td>第二轮</td><td>归因分析准确性</td><td>Agent归因vs人工归因对比，FD团队反馈</td></tr>
+            <tr><td>第三轮</td><td>改进措施闭环</td><td>跟踪改进措施落地率，验证自动关联</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="block" id="m3-agent-team">
+        <h3>Agent Team（人 + Agent）</h3>
+        <table>
+          <thead><tr><th>角色</th><th>职责</th><th>步骤</th><th>分工</th></tr></thead>
+          <tbody>
+            <tr><td>数据查询Agent</td><td>通过MCP从ES查询网点通/BI数据</td><td>2</td><td><span class="node-type-tag node-auto">全自动</span></td></tr>
+            <tr><td>归因分析Agent</td><td>基于知识库生成归因报告初稿</td><td>4</td><td><span class="node-type-tag node-hybrid">人审+Agent</span></td></tr>
+            <tr><td>改进跟踪Agent</td><td>推送任务至OA/企微/邮件，跟踪进度，关联下次复盘</td><td>7-8</td><td><span class="node-type-tag node-auto">全自动</span></td></tr>
+            <tr><td>干部（人）</td><td>触发复盘、审核数据、确认归因、分配改进措施</td><td>1/3/5/6</td><td><span class="node-type-tag node-human">决策+确认</span></td></tr>
+          </tbody>
+        </table>
+        <div style="margin-top:6px">
+          <p style="font-size:12px;margin:4px 0"><strong>人机协作边界：</strong>Agent自主执行（数据获取/推送/跟踪），人审Agent输出（归因报告/改进建议），人工决策（触发/审核/确认）</p>
+          <p style="font-size:12px;margin:4px 0"><strong>嵌入入口：</strong>网点通系统 / BI系统 / 内部OA / 企业微信 — HTML+H5组件作为独立组件插入4个现有入口</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="module-conclusions">
+      <h3>结论登记表</h3>
+      <table class="conclusion-table">
+        <thead><tr><th>编号</th><th>结论</th><th>依据</th></tr></thead>
+        <tbody>
+          <tr><td>M3-C01</td><td>数据源方案：ES中间层隔离，MCP封装接口</td><td><span class="ok-tag">已解决</span></td></tr>
+          <tr><td>M3-C02</td><td>入口方案：HTML+H5组件嵌入4个入口（网点通/BI/OA/企微）</td><td><span class="ok-tag">已解决</span></td></tr>
+          <tr><td>M3-C03</td><td>归因准确度：初期60-70%，通过与FD团队复盘持续迭代</td><td><span class="ok-tag">已解决</span></td></tr>
+          <tr><td>M3-C04</td><td>用户分层：部门长/总监级别为主，VP+后续定制</td><td><span class="ok-tag">已解决</span></td></tr>
+          <tr><td>M3-C05</td><td>改进跟踪：有OA接OA，无OA用邮件+清单/数据库</td><td><span class="ok-tag">已解决</span></td></tr>
+          <tr><td>M3-P01</td><td>MCP接口开发排期：IT供应商/内部IT确认中</td><td><span class="gap-tag">待确认</span></td></tr>
+          <tr><td>M3-P02</td><td>知识库初始内容清单：哪些报表、哪些归因模型需业务方提供</td><td><span class="gap-tag">待确认</span></td></tr>
+          <tr><td>M3-P03</td><td>企微审批模板设计：需设计审批流程</td><td><span class="gap-tag">待确认</span></td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="module-evidence">
+      <h3>证据索引</h3>
+      <div class="evidence-card"><strong>E1｜HMW来源于M2已确认问题：</strong>导数据2小时、归因不准、闭环率5%、重复问题10%等痛点驱动HMW拆解</div>
+      <div class="evidence-card"><strong>E2｜闭环目标定义：</strong>从"收到复盘任务"到"改进措施落地并被验证"完整闭环，触发和完成条件明确</div>
+      <div class="evidence-card"><strong>E3｜能力指标基线：</strong>数据获取2h→2min（60×提升）、闭环率5%→50%（10×提升）、重复问题率10%→2-3%</div>
+      <div class="evidence-card"><strong>E4｜方案方向锁定：</strong>所有HMW的解法方向均指向MCP+ES架构、知识库、4入口嵌入，技术方案收敛</div>
+      <div class="evidence-card"><strong>E5｜5个已解决争议：</strong>数据源、入口、归因准确度、用户分层、改进跟踪均已达成共识</div>
+    </section>
+
+    <section id="module-gaps">
+      <h3>缺口与推断</h3>
+      <div id="gaps-table">
+        <h4 style="font-size:13px;color:var(--a)">缺口</h4>
+        <table>
+          <thead><tr><th>编号</th><th>缺口</th><th>严重度</th><th>说明</th></tr></thead>
+          <tbody>
+            <tr><td>G1</td><td>MCP接口开发排期</td><td><span class="gap-tag">Minor</span></td><td>IT供应商/内部IT确认具体开发排期</td></tr>
+            <tr><td>G2</td><td>知识库初始内容清单</td><td><span class="gap-tag">Minor</span></td><td>需业务方提供Top5报表+Top10归因案例优先级</td></tr>
+            <tr><td>G3</td><td>企微审批模板设计</td><td><span class="gap-tag">Minor</span></td><td>需设计审批流程模板</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="inferences-table" style="margin-top:10px">
+        <h4 style="font-size:13px;color:var(--a)">推断</h4>
+        <table>
+          <thead><tr><th>编号</th><th>推断</th><th>验证方式</th></tr></thead>
+          <tbody>
+            <tr><td>I1</td><td>网点通/BI系统已有或可快速开发API</td><td><span class="infer-tag">需验证</span></td></tr>
+            <tr><td>I2</td><td>报表结构和归因模型可标准化提取</td><td><span class="infer-tag">需验证</span></td></tr>
+            <tr><td>I3</td><td>干部愿意在现有入口使用AI组件</td><td><span class="infer-tag">需验证</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <aside class="quality-panel">
+      <h3>质量与对齐</h3>
+      <div class="quality-grid">
+        <div class="quality-item">
+          <strong>版本：</strong>v1（草稿）<br>
+          <strong>确认人：</strong>待确认<br>
+          <strong>确认时间：</strong>待确认<br>
+          <strong>结论：</strong>5已解决 + 3待确认
+        </div>
+        <div class="quality-item">
+          <strong>放行检查：</strong><br>
+          <span class="ok-tag">✓ HMW来自M2已确认问题</span>
+          <span class="ok-tag">✓ 闭环有明确触发和完成条件</span>
+          <span class="ok-tag">✓ 指标与验收标准可判定</span>
+          <span class="ok-tag">✓ 工作流体现AI应用</span>
+          <span class="ok-tag">✓ 三类节点均已明确</span>
+          <span class="ok-tag">✓ 方案方向已锁定</span>
+          <span class="ok-tag">✓ 业务技术对齐</span>
+        </div>
+        <div class="quality-item">
+          <strong>缺口：</strong><br>
+          <span class="gap-tag">MCP接口开发排期</span>
+          <span class="gap-tag">知识库初始内容清单</span>
+          <span class="gap-tag">企微审批模板设计</span>
+        </div>
+        <div class="quality-item">
+          <strong>已解决争议：</strong><br>
+          <span class="ok-tag">✓ 数据源方案（ES中间层）</span>
+          <span class="ok-tag">✓ 入口方案（4入口嵌入）</span>
+          <span class="ok-tag">✓ 归因准确度（初期60-70%）</span>
+          <span class="ok-tag">✓ 用户分层（部门长/总监先行）</span>
+          <span class="ok-tag">✓ 改进跟踪（OA/邮件+清单）</span>
+        </div>
+      </div>
+    </aside>
+
+    <section id="local-notes" contenteditable="true"></section>
+
+    <script type="application/json" id="canvas-data">
+    {
+      "module": "M3",
+      "project": "今麦郎AI应用·干部岗复盘归因Agent",
+      "group": "第1组",
+      "version": 1,
+      "status": "draft",
+      "page_type": "module-detail",
+      "headline": "通过MCP+ES中间层架构，将AI Agent嵌入4个入口，实现数据获取（2分钟）、归因分析（60-70%初期准确率）、改进闭环（50%目标）的完整复盘链路。",
+      "loop_goal": "干部在复盘场景中，从'收到复盘任务'到'改进措施落地并被验证'形成完整闭环。",
+      "capability_metrics": [
+        {"metric": "数据获取时间", "baseline": "2小时", "target": "2分钟", "method": "触发到数据就绪"},
+        {"metric": "归因覆盖率", "baseline": "人工经验", "target": "60%~70%（初期）", "method": "归因模型命中率"},
+        {"metric": "改进闭环率", "baseline": "5%", "target": "50%", "method": "措施被跟踪完成"},
+        {"metric": "重复问题率", "baseline": "10%", "target": "2%~3%", "method": "同类问题再现"}
+      ],
+      "hmw": [
+        {"question": "我们如何能让干部在收到复盘任务后，快速拿到所有需要的数据？", "tension": "想要一键获取 vs 2小时手动操作", "solution": "MCP封装+Agent查询"},
+        {"question": "我们如何能让干部在发现销量波动后，快速定位是促销、缺货还是竞品的问题？", "tension": "想要快速定位 vs 人工做不了", "solution": "历史归因模型入知识库"},
+        {"question": "我们如何能让每次复盘的改进措施都有人负责、有人跟踪，并与下次复盘自动关联？", "tension": "想要措施落地 vs 闭环率仅5%", "solution": "OA/企微工作流+数据库"}
+      ],
+      "solution_direction": "网点通/BI → MCP → ES中间层 → Agent → HTML+H5组件 → 4入口嵌入",
+      "workflow_draft": {"steps": 8, "auto": 3, "human": 3, "hybrid": 2, "rules": 5},
+      "resolved_disputes": [
+        "数据源方案：ES中间层隔离",
+        "入口方案：4入口嵌入",
+        "归因准确度：初期60-70%",
+        "用户分层：部门长/总监先行",
+        "改进跟踪：OA/邮件+清单"
+      ],
+      "gaps": ["MCP接口开发排期", "知识库初始内容清单", "企微审批模板设计"]
+    }
+    </script>
+  </main>
+</body>
+</html>

@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>M1 Canvas | 今麦郎AI应用 · 干部岗复盘归因Agent</title>
+  <style>
+    :root{--a:#17468f;--s:#edf4ff;--ink:#17233a;--muted:#667085;--line:#d6dce7}
+    *{box-sizing:border-box}
+    body{margin:0;background:#edf1f7;color:var(--ink);font-family:Inter,"Microsoft YaHei",Arial,sans-serif;line-height:1.5}
+    main{max-width:1500px;margin:auto;padding:28px 18px 45px}
+    .head{display:flex;justify-content:space-between;align-items:end;gap:20px;margin-bottom:18px;flex-wrap:wrap}
+    .head h1{font-size:clamp(26px,3vw,42px);margin:5px 0}
+    .head p{margin:0;color:var(--muted)}
+    .eyebrow{font-size:11px;font-weight:800;letter-spacing:.18em;color:#52647b}
+    .draft-badge{border:1px solid #e0a030;background:#fff7e0;color:#8a5a00;border-radius:99px;padding:9px 14px;font-weight:800;font-size:13px}
+    .canvas{background:white;border:1px solid #c7ceda;border-radius:12px;padding:13px;box-shadow:0 18px 50px #22314c1f}
+    .title{display:flex;align-items:center;gap:15px;color:white;background:linear-gradient(110deg,var(--a),#172b55);padding:17px 20px;border-radius:7px}
+    .title small{opacity:.7;letter-spacing:.14em;font-size:11px}
+    .title h1{margin:3px 0;font-size:clamp(21px,2.2vw,34px)}
+    .title p{margin:0;opacity:.85;font-size:13px}
+    .summary{margin:10px 0;padding:12px 15px;background:var(--s);border-left:4px solid var(--a);font-size:14px}
+    section{border:1.5px solid color-mix(in srgb,var(--a) 62%,#ccd4e1);border-radius:8px;overflow:hidden;margin-bottom:9px}
+    section>h2{margin:0;padding:9px 12px;font-size:18px;color:var(--a);background:linear-gradient(90deg,var(--s),white)}
+    section>h2 b{display:inline-grid;place-items:center;width:25px;height:25px;margin-right:8px;border-radius:50%;background:var(--a);color:white;font-size:14px}
+    .block{padding:11px 13px}
+    .block+.block{border-top:1px solid var(--line)}
+    h3{margin:0 0 7px;font-size:14px;color:var(--a)}
+    p,li{font-size:12.5px;line-height:1.55}
+    ul{margin:5px 0;padding-left:18px}li{margin:4px 0}
+    table{width:100%;border-collapse:collapse;font-size:12px}
+    th{background:var(--a);color:white;padding:9px 7px;text-align:left}
+    td{padding:9px 7px;border:1px solid var(--line);vertical-align:top;line-height:1.4}
+    .ok-tag{display:inline-block;background:#d4edda;color:#155724;border-radius:4px;padding:2px 6px;font-size:11px;font-weight:800}
+    .gap-tag{display:inline-block;background:#fff3cd;color:#856404;border-radius:4px;padding:2px 6px;font-size:11px;font-weight:800}
+    .infer-tag{display:inline-block;background:#e8daef;color:#6c3483;border-radius:4px;padding:2px 6px;font-size:11px;font-weight:800}
+    .quality-panel{margin-top:10px;border:1.5px dashed #aab5c5;border-radius:8px;padding:15px 18px;background:#f8f9fb}
+    .quality-panel h3{font-size:14px;margin-bottom:10px}
+    .back-btn{display:inline-flex;align-items:center;gap:6px;background:var(--a);color:white;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:700;font-size:14px;box-shadow:0 4px 12px rgba(23,70,143,0.3);transition:all 0.2s}
+    .back-btn:hover{background:#172b55;transform:translateY(-2px)}
+    .back-btn::before{content:"←";font-size:18px;font-weight:900}
+    section#local-notes{margin-top:10px;border:1px dashed #aab5c5;border-radius:8px;padding:12px 16px;background:#fffef5;font-size:12px;min-height:60px;outline:none}
+    section#local-notes:empty::before{content:"点击此处添加本地批注（仅浏览器存储，不覆盖事实源）";color:var(--muted)}
+    .conclusion-table td:first-child{font-weight:800;color:var(--a)}
+    .evidence-card{margin:6px 0;padding:8px 12px;border-left:3px solid var(--a);background:#f7f9fc;border-radius:0 6px 6px 0;font-size:12px}
+    .evidence-card strong{color:var(--a)}
+    .metric-table td:last-child{font-weight:800;color:#1a7a3a}
+    .value-table td:nth-child(2){color:#17468f}
+    @media(max-width:700px){main{padding:16px 9px}.head{flex-direction:column;align-items:start}table{display:block;overflow-x:auto}}
+    @media print{body{background:white}main{padding:0}.head,.quality-panel{display:none}.canvas{box-shadow:none;border:0}}
+  </style>
+</head>
+<body data-mode="draft" data-page-type="module-detail" data-module="M1" data-version="1">
+<header class="head">
+  <div>
+    <span class="eyebrow">MVL CANVAS · 第1组</span>
+    <h1>今麦郎AI应用 · 干部岗复盘归因Agent</h1>
+    <p>M1 · 战略对齐、项目分组与闭环证据准备 · 第一天上午</p>
+  </div>
+  <span class="draft-badge">⚠ 草稿 / 未确认</span>
+  <a href="./mvl-canvas-summary.html" class="back-btn">返回总览首页</a>
+</header>
+<main>
+  <article class="canvas">
+    <div class="title">
+      <div>
+        <small>MVL CANVAS · M1 · DRAFT</small>
+        <h1>干部岗复盘归因Agent</h1>
+        <p>战略对齐 · 模拟环境概念验证原型，非生产级系统</p>
+      </div>
+    </div>
+
+    <div class="summary">
+      <b>一句话结论：</b>让区域营业干部从"不会复盘"到"跟着AI就能高质量复盘"，突破部门墙，缩短复盘周期（2小时→2分钟），形成经营闭环。
+    </div>
+
+    <!-- ====== 模块概要 ====== -->
+    <section id="module-summary">
+      <h2><b>1</b>M1: 战略对齐、项目分组与闭环证据准备</h2>
+      <div class="block" id="module-summary-headline">
+        <h3>模块结论</h3>
+        <p>复盘是当前干部岗的核心痛点场景，聚焦干部岗复盘优化环节，基于MAF框架开发概念验证原型。已识别4项成功指标（含基线/目标值），明确边界（聚焦干部岗复盘、排除其他四个经营环节及一线员工岗），完成第1组人员角色框架搭建。</p>
+      </div>
+      <div class="block" id="module-summary-overview">
+        <h3>模块概览</h3>
+        <p>M1是MVL工作坊的起点模块，负责对齐项目目标、设定成功指标、明确边界范围、搭建项目团队。本模块产出了场景挑战陈述定稿、4项可量化成功指标、边界声明和角色分组框架。</p>
+      </div>
+    </section>
+
+    <!-- ====== 模块产出 ====== -->
+    <section id="module-outputs">
+      <h2><b>2</b>模块产出</h2>
+
+      <div class="block" id="m1-goal">
+        <h3>◎ 核心业务目标</h3>
+        <p>让区域营业干部从"不会复盘"到"跟着AI就能高质量复盘"，实现从数据研判到改进跟踪的经营闭环，突破部门墙，缩短复盘周期，沉淀复盘案例库为组织资产。</p>
+        <div class="evidence-card">
+          <strong>不解决的影响：</strong>
+          复盘流于形式 → 已发现问题重复出现 → 执行力偏差无法及时修正 → 战略与执行持续脱节
+        </div>
+      </div>
+
+      <div class="block" id="m1-value">
+        <h3>◇ 价值与受益对象</h3>
+        <table class="value-table">
+          <thead><tr><th>价值类型</th><th>内容</th><th>受益对象</th></tr></thead>
+          <tbody>
+            <tr><td>效率价值</td><td>复盘准备时间：2小时→2分钟（60倍提升）；覆盖率：30%~40%→90%</td><td>基层干部</td></tr>
+            <tr><td>质量价值</td><td>跨部门归因成为可能；避免层层上报信息失真</td><td>中层干部 / 高层领导</td></tr>
+            <tr><td>业务价值</td><td>改进闭环率：5%→50%；重复问题发生率：10%→2%~3%</td><td>整个组织</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="block" id="m1-success-metrics">
+        <h3>↗ 成功指标</h3>
+        <table class="metric-table">
+          <thead><tr><th>指标</th><th>基线（现状）</th><th>目标值</th><th>衡量方式</th></tr></thead>
+          <tbody>
+            <tr><td>复盘准备时间</td><td>2小时（需导数据）</td><td>2分钟</td><td>数据获取到报告生成总时长</td></tr>
+            <tr><td>复盘覆盖率</td><td>30%~40%</td><td>90%</td><td>AI覆盖分析维度占比</td></tr>
+            <tr><td>改进措施闭环率</td><td>~5%</td><td>50%</td><td>改进完成数 / 改进总数</td></tr>
+            <tr><td>重复问题发生率</td><td>10%</td><td>2%~3%</td><td>同类问题再次出现频率</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="block" id="m1-evidence">
+        <h3>📊 核心证据</h3>
+        <h3 style="font-size:12px;margin:5px 0 3px;color:var(--muted)">业务数据证据</h3>
+        <ul>
+          <li>干部日常经营旅程六大环节：目标承接 → 数据研判 → 驻点早会 → 市场推进 → <strong>复盘优化</strong></li>
+          <li>复盘准备需手动导数据，耗时约2小时</li>
+          <li>多维报表覆盖率仅30%~40%，容易看漏</li>
+        </ul>
+        <h3 style="font-size:12px;margin:5px 0 3px;color:var(--muted)">流程痛点证据</h3>
+        <div class="evidence-card"><strong>方法论层面：</strong>不会复盘（变"念报表"）、归因不准（多因素交叉）、流于形式（结论空泛）</div>
+        <div class="evidence-card"><strong>组织层面：</strong>部门墙阻碍（各付各的盘）、层层上报失真（信息被过滤美化）、战略落地脱节（一线需求难上传）</div>
+        <div class="evidence-card"><strong>效率层面：</strong>数据分析耗时长、改进措施无跟踪（闭环率仅5%）</div>
+        <h3 style="font-size:12px;margin:5px 0 3px;color:var(--muted)">用户案例证据</h3>
+        <p class="gap-tag">待补充：至少1个成功案例 + 2个失败案例</p>
+      </div>
+
+      <div class="block" id="m1-boundary">
+        <h3>⊞ 边界声明</h3>
+        <p><strong>本次MVL聚焦范围：</strong></p>
+        <ul>
+          <li>干部岗复盘优化场景（不涉及其他四个环节）</li>
+          <li>三层角色分层设计（基层/中层/高层）</li>
+          <li>基于MAF框架开发概念验证原型</li>
+          <li>模拟环境数据验证</li>
+        </ul>
+        <p><strong>明确不包含：</strong></p>
+        <ul>
+          <li>一线员工岗的AI场景</li>
+          <li>其他四个经营环节的详细AI方案</li>
+          <li>生产环境部署和数据接入</li>
+          <li>完整的跨部门系统对接</li>
+        </ul>
+      </div>
+
+      <div class="block" id="m1-acceptance">
+        <h3>✓ 校验标准</h3>
+        <ul>
+          <li><strong>学会复盘：</strong>基层干部使用AI Agent能完成结构化复盘，输出质量高于人工</li>
+          <li><strong>突破部门墙：</strong>AI能进行跨部门KPI相关性分析和归因</li>
+          <li><strong>缩短周期：</strong>复盘准备时间从天级到分钟级</li>
+          <li><strong>闭环形成：</strong>从数据研判到改进跟踪的闭环能跑通</li>
+          <li><strong>案例沉淀：</strong>复盘案例能被沉淀和检索复用</li>
+        </ul>
+      </div>
+
+      <div class="block" id="m1-grouping">
+        <h3>👥 项目分组</h3>
+        <p><strong>第1组：</strong>今麦郎AI应用</p>
+        <table>
+          <thead><tr><th>角色类型</th><th>姓名</th><th>职责</th></tr></thead>
+          <tbody>
+            <tr><td>场景Owner</td><td>待确认</td><td>对MVL成败负责，有拍板权</td></tr>
+            <tr><td>业务方代表</td><td>待确认</td><td>提需求、给约束、判价值</td></tr>
+            <tr><td>一线用户×2-3</td><td>待确认</td><td>真实操作者，原型测试主角</td></tr>
+            <tr><td>技术·数据代表</td><td>待确认</td><td>判数据就绪度与系统边界</td></tr>
+            <tr><td>主持·记录员</td><td>待确认</td><td>守时间盒、留痕版本</td></tr>
+            <tr><td>导师</td><td>待确认</td><td>巡回提问不代答</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ====== 结论登记表 ====== -->
+    <section id="module-conclusions">
+      <h2><b>3</b>结论登记表</h2>
+      <div id="conclusions-table">
+        <table class="conclusion-table">
+          <thead><tr><th>决策项</th><th>结论</th><th>状态</th><th>确认人</th></tr></thead>
+          <tbody>
+            <tr><td>核心业务目标</td><td>让干部从"不会复盘"到"跟着AI高质量复盘"</td><td><span class="ok-tag">已确认</span></td><td>待确认</td></tr>
+            <tr><td>场景挑战陈述</td><td>区域营业干部在复盘准备时因手动导数据、覆盖率低、闭环率低，导致无法提前预警</td><td><span class="ok-tag">已定稿</span></td><td>待确认</td></tr>
+            <tr><td>成功指标基线</td><td>2h/30~40%/5%/10%</td><td><span class="ok-tag">已确认</span></td><td>待确认</td></tr>
+            <tr><td>边界范围</td><td>聚焦干部岗复盘场景，排除其他环节</td><td><span class="ok-tag">已确认</span></td><td>待确认</td></tr>
+            <tr><td>分层设计</td><td>基层/中层/高层三层设计</td><td><span class="ok-tag">已确认</span></td><td>待确认</td></tr>
+            <tr><td>技术框架</td><td>基于MAF框架开发</td><td><span class="ok-tag">已确认</span></td><td>待确认</td></tr>
+            <tr><td>项目角色卡</td><td>六类角色框架，人员待确认</td><td><span class="gap-tag">待确认人员</span></td><td>待确认</td></tr>
+            <tr><td>复盘方法论模型</td><td>PDCA/GRAI/结果-过程-根因，待业务方确认</td><td><span class="gap-tag">待确认</span></td><td>待确认</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ====== 证据索引 ====== -->
+    <section id="module-evidence">
+      <h2><b>4</b>证据索引</h2>
+      <div id="evidence-list">
+        <div class="evidence-card">
+          <strong>证据1 - 场景挑战陈述：</strong>
+          区域营业干部，在区域复盘会议或月报/周报准备时，因为需要手动导数据（耗时2小时）、多维报表容易看漏（覆盖率仅30%~40%）、改进措施事后难以追踪（闭环率仅5%），导致无法提前预警可能发生的问题。
+        </div>
+        <div class="evidence-card">
+          <strong>证据2 - 经营旅程定位：</strong>
+          复盘位于干部日常经营六大环节的第五环节（目标承接→数据研判→驻点早会→市场推进→复盘优化），承接前四个环节的产出。
+        </div>
+        <div class="evidence-card">
+          <strong>证据3 - 方法论痛点：</strong>
+          基层干部缺乏系统复盘方法论，不知道从何入手，复盘变成"念报表"；归因不准（销量波动涉及多因素）；流于形式。
+        </div>
+        <div class="evidence-card">
+          <strong>证据4 - 组织痛点：</strong>
+          部门墙阻碍跨部门KPI相关性分析；层层上报信息失真；战略落地脱节，一线需求难上传。
+        </div>
+        <div class="evidence-card">
+          <strong>证据5 - 效率数据：</strong>
+          数据分析占用大量时间，改进措施无跟踪（闭环率仅5%），已复盘问题重复出现。
+        </div>
+        <div class="evidence-card" style="border-left-color:#e0a030">
+          <strong>待补充 - 用户案例：</strong>
+          至少1个成功案例 + 2个失败案例，一线用户原话痛点，3个月脱敏样本数据。
+        </div>
+      </div>
+    </section>
+
+    <!-- ====== 缺口与推断 ====== -->
+    <section id="module-gaps">
+      <h2><b>5</b>缺口与推断</h2>
+      <div id="gaps-table">
+        <h3>缺口清单</h3>
+        <table>
+          <thead><tr><th>缺口项</th><th>说明</th><th>严重度</th></tr></thead>
+          <tbody>
+            <tr><td>真实案例</td><td>缺少至少1个成功案例和2个失败案例</td><td><span class="gap-tag">Minor</span></td></tr>
+            <tr><td>一线原话痛点</td><td>缺少基层/中层干部的真实原话采集</td><td><span class="gap-tag">Minor</span></td></tr>
+            <tr><td>角色卡人员</td><td>六类角色人员姓名未确认</td><td><span class="gap-tag">Minor</span></td></tr>
+            <tr><td>复盘方法论模型</td><td>PDCA/GRAI/结果-过程-根因三层拆解，具体框架待确认</td><td><span class="gap-tag">Minor</span></td></tr>
+            <tr><td>校验标准确认</td><td>具体标准需技术方确认"可实现"程度</td><td><span class="gap-tag">Minor</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="inferences-table" style="margin-top:10px">
+        <h3>推断（需验证）</h3>
+        <table>
+          <thead><tr><th>推断</th><th>验证方式</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>基层干部"不会复盘"是因为缺乏方法论，而非没时间/没数据</td>
+              <td>现场访谈验证：真的不会，还是有方法但没条件执行？</td>
+            </tr>
+            <tr>
+              <td>跨部门归因需要AI访问多系统数据</td>
+              <td>问技术方：数据就绪度如何？哪些数据可访问？</td>
+            </tr>
+            <tr>
+              <td>高层需要"一杆子插到底"看真实数据</td>
+              <td>问高层：需要全量穿透还是异常钻取？</td>
+            </tr>
+            <tr>
+              <td>干部最在意"提前预警"而非"做完报告"</td>
+              <td>现场问干部：你最想通过系统得到什么？</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </article>
+
+  <!-- ====== 质量面板 ====== -->
+  <aside id="quality-panel">
+    <div class="quality-panel">
+      <h3>质量与对齐</h3>
+      <table>
+        <thead><tr><th>维度</th><th>状态</th></tr></thead>
+        <tbody>
+          <tr><td>版本</td><td>v1（草稿）</td></tr>
+          <tr><td>确认人</td><td>待确认</td></tr>
+          <tr><td>确认时间</td><td>待确认</td></tr>
+          <tr><td>结论数量</td><td>6项已识别（目标、价值、指标、边界、校验、分组）</td></tr>
+          <tr>
+            <td>放行检查</td>
+            <td>
+              <span class="ok-tag">✓ 目标为业务结果</span>
+              <span class="ok-tag">✓ 价值对象明确</span>
+              <span class="ok-tag">✓ 成功指标含基线/目标</span>
+              <span class="ok-tag">✓ 校验标准可判定</span>
+              <span class="gap-tag">⚠ 真实案例待补充</span>
+              <span class="gap-tag">⚠ 一线原话待采集</span>
+              <span class="gap-tag">⚠ 角色卡待确认</span>
+            </td>
+          </tr>
+          <tr>
+            <td>缺口（Minor）</td>
+            <td>
+              <span class="gap-tag">真实案例（至少1成功2失败）</span>
+              <span class="gap-tag">一线用户原话痛点</span>
+              <span class="gap-tag">角色卡六类人到场</span>
+              <span class="gap-tag">复盘方法论待确认</span>
+            </td>
+          </tr>
+          <tr>
+            <td>已接受风险</td>
+            <td>
+              <span class="gap-tag">跨部门数据访问权限边界未定</span>
+              <span class="gap-tag">AI归因准确度预期待对齐</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </aside>
+
+  <!-- ====== 本地批注 ====== -->
+  <section id="local-notes" contenteditable="true"></section>
+
+  <!-- ====== 画布数据 ====== -->
+  <script type="application/json" id="canvas-data">
+  {
+    "module": "M1",
+    "project": "今麦郎AI应用",
+    "group": "第1组",
+    "version": 1,
+    "status": "draft",
+    "headline": "让区域营业干部从不会复盘到跟着AI就能高质量复盘，突破部门墙，缩短复盘周期（2小时→2分钟），形成经营闭环。",
+    "overview": "M1是MVL工作坊的起点模块，负责对齐项目目标、设定成功指标、明确边界范围、搭建项目团队。",
+    "intent": {
+      "goal": "让区域营业干部从不会复盘到跟着AI就能高质量复盘，实现从数据研判到改进跟踪的经营闭环，突破部门墙，缩短复盘周期，沉淀复盘案例库为组织资产。",
+      "value": [
+        {"type": "效率价值", "content": "复盘准备时间：2小时→2分钟；覆盖率：30%~40%→90%", "beneficiary": "基层干部"},
+        {"type": "质量价值", "content": "跨部门归因成为可能；避免层层上报信息失真", "beneficiary": "中层干部/高层领导"},
+        {"type": "业务价值", "content": "改进闭环率：5%→50%；重复问题发生率：10%→2%~3%", "beneficiary": "整个组织"}
+      ],
+      "success_metrics": [
+        {"metric": "复盘准备时间", "baseline": "2小时", "target": "2分钟", "method": "数据获取到报告生成总时长"},
+        {"metric": "复盘覆盖率", "baseline": "30%~40%", "target": "90%", "method": "AI覆盖分析维度占比"},
+        {"metric": "改进措施闭环率", "baseline": "~5%", "target": "50%", "method": "改进完成数/改进总数"},
+        {"metric": "重复问题发生率", "baseline": "10%", "target": "2%~3%", "method": "同类问题再次出现频率"}
+      ]
+    },
+    "boundary": {
+      "in_scope": ["干部岗复盘优化场景", "三层角色分层设计", "MAF框架概念验证原型", "模拟环境数据验证"],
+      "out_of_scope": ["一线员工岗AI场景", "其他四个经营环节", "生产环境部署", "完整跨部门系统对接"]
+    },
+    "acceptance": [
+      "基层干部使用AI Agent完成结构化复盘",
+      "AI能进行跨部门KPI相关性分析和归因",
+      "复盘准备时间从天级到分钟级",
+      "从数据研判到改进跟踪的闭环能跑通",
+      "复盘案例能被沉淀和检索复用"
+    ],
+    "grouping": {
+      "group_name": "第1组：今麦郎AI应用",
+      "roles": [
+        {"role": "场景Owner", "person": "待确认", "duty": "对MVL成败负责，有拍板权"},
+        {"role": "业务方代表", "person": "待确认", "duty": "提需求、给约束、判价值"},
+        {"role": "一线用户×2-3", "person": "待确认", "duty": "真实操作者，原型测试主角"},
+        {"role": "技术·数据代表", "person": "待确认", "duty": "判数据就绪度与系统边界"},
+        {"role": "主持·记录员", "person": "待确认", "duty": "守时间盒、留痕版本"},
+        {"role": "导师", "person": "待确认", "duty": "巡回提问不代答"}
+      ]
+    },
+    "conclusions": [
+      {"item": "核心业务目标", "conclusion": "让干部从不会复盘到跟着AI高质量复盘", "status": "confirmed"},
+      {"item": "场景挑战陈述", "conclusion": "区域营业干部在复盘准备时因手动导数据/覆盖率低/闭环率低导致无法提前预警", "status": "confirmed"},
+      {"item": "成功指标基线", "conclusion": "2h/30~40%/5%/10%", "status": "confirmed"},
+      {"item": "边界范围", "conclusion": "聚焦干部岗复盘场景", "status": "confirmed"},
+      {"item": "分层设计", "conclusion": "基层/中层/高层三层设计", "status": "confirmed"},
+      {"item": "技术框架", "conclusion": "基于MAF框架开发", "status": "confirmed"}
+    ],
+    "gaps": ["真实案例待补充", "一线用户原话待采集", "角色卡待确认", "复盘方法论待确认"],
+    "inferences": [
+      {"inference": "基层干部不会复盘是因为缺乏方法论", "verify": "现场访谈验证"},
+      {"inference": "跨部门归因需要AI访问多系统数据", "verify": "问技术方数据就绪度"},
+      {"inference": "高层需要一杆子插到底看真实数据", "verify": "问高层需要全量穿透还是异常钻取"},
+      {"inference": "干部最在意提前预警而非做完报告", "verify": "现场问干部最想得到什么"}
+    ],
+    "risks": ["跨部门数据访问权限边界未定", "AI归因准确度预期待对齐"]
+  }
+  </script>
+</main>
+</body>
+</html>

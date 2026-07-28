@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>M2 Canvas | 今麦郎AI应用 · 干部岗复盘归因Agent</title>
+  <style>
+    :root{--a:#1565c0;--s:#e3f0ff;--ink:#17233a;--muted:#667085;--line:#d6dce7}
+    *{box-sizing:border-box}
+    body{margin:0;background:#edf1f7;color:var(--ink);font-family:Inter,"Microsoft YaHei",Arial,sans-serif;line-height:1.5}
+    main{max-width:1500px;margin:auto;padding:28px 18px 45px}
+    .head{display:flex;justify-content:space-between;align-items:end;gap:20px;margin-bottom:18px;flex-wrap:wrap}
+    .head h1{font-size:clamp(26px,3vw,42px);margin:5px 0}
+    .head p{margin:0;color:var(--muted)}
+    .eyebrow{font-size:11px;font-weight:800;letter-spacing:.18em;color:#52647b}
+    .draft-badge{border:1px solid #e0a030;background:#fff7e0;color:#8a5a00;border-radius:99px;padding:9px 14px;font-weight:800;font-size:13px}
+    .canvas{background:white;border:1px solid #c7ceda;border-radius:12px;padding:13px;box-shadow:0 18px 50px #22314c1f}
+    .title{display:flex;align-items:center;gap:15px;color:white;background:linear-gradient(110deg,var(--a),#0d47a1);padding:17px 20px;border-radius:7px}
+    .title small{opacity:.7;letter-spacing:.14em;font-size:11px}
+    .title h1{margin:3px 0;font-size:clamp(21px,2.2vw,34px)}
+    .title p{margin:0;opacity:.85;font-size:13px}
+    .summary{margin:10px 0;padding:12px 15px;background:var(--s);border-left:4px solid var(--a);font-size:14px}
+    section{border:1.5px solid color-mix(in srgb,var(--a) 62%,#ccd4e1);border-radius:8px;overflow:hidden;margin-bottom:9px}
+    section>h2{margin:0;padding:9px 12px;font-size:18px;color:var(--a);background:linear-gradient(90deg,var(--s),white)}
+    section>h2 b{display:inline-grid;place-items:center;width:25px;height:25px;margin-right:8px;border-radius:50%;background:var(--a);color:white;font-size:14px}
+    .block{padding:11px 13px}
+    .block+.block{border-top:1px solid var(--line)}
+    h3{margin:0 0 7px;font-size:14px;color:var(--a)}
+    p,li{font-size:12.5px;line-height:1.55}
+    ul{margin:5px 0;padding-left:18px}li{margin:4px 0}
+    table{width:100%;border-collapse:collapse;font-size:12px}
+    th{background:var(--a);color:white;padding:9px 7px;text-align:left}
+    td{padding:9px 7px;border:1px solid var(--line);vertical-align:top;line-height:1.4}
+    .ok-tag{display:inline-block;background:#d4edda;color:#155724;border-radius:4px;padding:2px 6px;font-size:11px;font-weight:800}
+    .gap-tag{display:inline-block;background:#fff3cd;color:#856404;border-radius:4px;padding:2px 6px;font-size:11px;font-weight:800}
+    .infer-tag{display:inline-block;background:#e8daef;color:#6c3483;border-radius:4px;padding:2px 6px;font-size:11px;font-weight:800}
+    .quality-panel{margin-top:10px;border:1.5px dashed #aab5c5;border-radius:8px;padding:15px 18px;background:#f8f9fb}
+    .quality-panel h3{font-size:14px;margin-bottom:10px}
+    .back-btn{display:inline-flex;align-items:center;gap:6px;background:var(--a);color:white;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:700;font-size:14px;box-shadow:0 4px 12px rgba(21,101,192,0.3);transition:all 0.2s}
+    .back-btn:hover{background:#0d47a1;transform:translateY(-2px)}
+    .back-btn::before{content:"←";font-size:18px;font-weight:900}
+    section#local-notes{margin-top:10px;border:1px dashed #aab5c5;border-radius:8px;padding:12px 16px;background:#fffef5;font-size:12px;min-height:60px;outline:none}
+    section#local-notes:empty::before{content:"点击此处添加本地批注（仅浏览器存储，不覆盖事实源）";color:var(--muted)}
+    .conclusion-table td:first-child{font-weight:800;color:var(--a)}
+    .evidence-card{margin:6px 0;padding:8px 12px;border-left:3px solid var(--a);background:#f7f9fc;border-radius:0 6px 6px 0;font-size:12px}
+    .evidence-card strong{color:var(--a)}
+    .pain-card{margin:5px 0;padding:8px 12px;border-left:3px solid #e53935;background:#ffebee;border-radius:0 6px 6px 0;font-size:12px}
+    .pain-card strong{color:#c62828}
+    .outcome-card{margin:5px 0;padding:8px 12px;border-left:3px solid var(--a);background:#e3f2fd;border-radius:0 6px 6px 0;font-size:12px}
+    .outcome-card strong{color:var(--a)}
+    .priority-p0{background:#d4edda;border:1px solid #a3d9a5;border-radius:6px;padding:6px 10px;margin:4px 0;font-size:12.5px;display:flex;align-items:center;gap:8px}
+    .priority-p1{background:#fff3cd;border:1px solid #ffc107;border-radius:6px;padding:6px 10px;margin:4px 0;font-size:12.5px;display:flex;align-items:center;gap:8px}
+    .priority-tag{display:inline-block;border-radius:4px;padding:2px 8px;font-size:11px;font-weight:800;min-width:28px;text-align:center}
+    .priority-p0 .priority-tag{background:#28a745;color:white}
+    .priority-p1 .priority-tag{background:#ffc107;color:#333}
+    .journey-step{display:inline-block;background:var(--s);border:1px solid color-mix(in srgb,var(--a) 30%,#ddd);border-radius:6px;padding:6px 10px;margin:3px 2px;font-size:11.5px;position:relative}
+    .journey-step .time{display:inline-block;background:#fff3cd;color:#856404;border-radius:3px;padding:1px 4px;font-size:10px;font-weight:800;margin-left:4px}
+    .flow-arrow{color:var(--a);font-size:16px;font-weight:900;margin:0 1px}
+    @media(max-width:700px){main{padding:16px 9px}.head{flex-direction:column;align-items:start}table{display:block;overflow-x:auto}}
+    @media print{body{background:white}main{padding:0}.head,.quality-panel{display:none}.canvas{box-shadow:none;border:0}}
+  </style>
+</head>
+<body data-mode="draft" data-page-type="module-detail" data-module="M2" data-version="1">
+<header class="head">
+  <div>
+    <span class="eyebrow">MVL CANVAS · 第1组</span>
+    <h1>今麦郎AI应用 · 干部岗复盘归因Agent</h1>
+    <p>M2 · 需求发现、用户与真实流程拆解 · 第一天下午</p>
+  </div>
+  <span class="draft-badge">⚠ 草稿 / 未确认</span>
+  <a href="./mvl-canvas-summary.html" class="back-btn">返回总览首页</a>
+</header>
+<main>
+  <article class="canvas">
+    <div class="title">
+      <div>
+        <small>MVL CANVAS · M2 · DRAFT</small>
+        <h1>干部岗复盘归因Agent</h1>
+        <p>需求发现 · 用户与真实流程拆解 · 模拟环境概念验证原型，非生产级系统</p>
+      </div>
+    </div>
+
+    <div class="summary">
+      <b>一句话结论：</b>三层用户（基层/中层/高层）六大痛点已识别，核心需求与最重要的结果已对齐，AI刚需（P0×3）与增值需求（P1×2）已排序。
+    </div>
+
+    <!-- ====== 模块概要 ====== -->
+    <section id="module-summary">
+      <h2><b>1</b>M2: 需求发现、用户与真实流程拆解</h2>
+      <div class="block" id="module-summary-headline">
+        <h3>模块结论</h3>
+        <p>三层用户（基层所长/中层区域经理/高层领导）已识别，每层核心诉求已梳理。6项痛点已有数据支撑（导数据2h、覆盖率30-40%、闭环率5%、归因不准、部门墙、层层失真）。三层现状流程已拆解（基层3.5-5h、中层2-4天、高层失真）。AI刚需×3（数据自动化/引导式复盘/改进跟踪）和AI增值×2（跨部门归因/一杆子插到底）已排序。</p>
+      </div>
+      <div class="block" id="module-summary-overview">
+        <h3>模块概览</h3>
+        <p>M2承接M1的战略对齐成果，深入拆解用户三层结构及其核心诉求，梳理6项数据支撑的痛点，定义每层用户最重要的结果，描画基层/中层/高层三层现状流程，并对AI可优化切入点进行优先级排序（P0/P1/P2）。</p>
+      </div>
+    </section>
+
+    <!-- ====== 模块产出 ====== -->
+    <section id="module-outputs">
+      <h2><b>2</b>模块产出</h2>
+
+      <div class="block" id="m2-users">
+        <h3>👤 用户与使用场景</h3>
+        <table>
+          <thead><tr><th>层级</th><th>角色</th><th>使用场景</th></tr></thead>
+          <tbody>
+            <tr><td>直接用户</td><td>基层干部（所长/县区负责人）</td><td>做本县区复盘，找改进动作，给所长安排任务</td></tr>
+            <tr><td>直接用户</td><td>中层干部（区域经理）</td><td>汇总多县区复盘，推动跨部门协同改进</td></tr>
+            <tr><td>受益者+决策者</td><td>高层领导</td><td>看真实数据，校准战略与执行偏差</td></tr>
+          </tbody>
+        </table>
+        <p style="font-size:12px;color:var(--muted);margin-top:6px">共5类角色：直接用户×2 + 受益者（职能部门）+ 决策者（高层领导/IT部门负责人）</p>
+      </div>
+
+      <div class="block" id="m2-needs">
+        <h3>◆ 核心需求</h3>
+        <div class="evidence-card">
+          <strong>基层干部：</strong>看懂数据（不用手动导）、学会复盘（AI引导）、找到动作（具体改进建议）
+        </div>
+        <div class="evidence-card">
+          <strong>中层干部：</strong>快速汇总（不逐个看报告）、找根因（跨部门归因）、推动协同（让其他部门配合）
+        </div>
+        <div class="evidence-card">
+          <strong>高层领导：</strong>看到真实（不想看美化数据）、一杆子插到底（全局→门店级）、校准战略
+        </div>
+      </div>
+
+      <div class="block" id="m2-pain-points">
+        <h3>! 痛点清单（有数据支撑）</h3>
+        <div class="pain-card"><strong>导数据耗时：</strong>每次复盘准备2小时，干部陷入"取数-做表-写报告"事务性工作</div>
+        <div class="pain-card"><strong>覆盖率低：</strong>仅30%~40%，多维报表容易看漏，很多维度的问题没被发现</div>
+        <div class="pain-card"><strong>改进闭环率低：</strong>仅5%，事后才发现甚至预警不了，复盘结论无法落地</div>
+        <div class="pain-card"><strong>归因不准：</strong>销量波动涉及促销/缺货/竞品等多因素，人工难以准确定位根因</div>
+        <div class="pain-card"><strong>部门墙：</strong>各职能部门只管自己的KPI，跨部门归因做不了，"各付各的盘"</div>
+        <div class="pain-card"><strong>层层上报失真：</strong>信息在传递过程中被过滤美化，领导看到的不是一手数据</div>
+      </div>
+
+      <div class="block" id="m2-most-important-outcomes">
+        <h3>★ 最重要的结果</h3>
+        <div class="outcome-card">
+          <strong>基层干部：</strong>"我能提前预警问题，给所长明确的任务安排"<br>
+          <span style="color:var(--muted);font-size:11px">不是"做完报告"，而是"发现问题并提前预警"</span>
+        </div>
+        <div class="outcome-card">
+          <strong>中层干部：</strong>"我能快速定位问题区域和根因，推动跨部门协同"<br>
+          <span style="color:var(--muted);font-size:11px">不是"汇总报告"，而是"找到共性问题"</span>
+        </div>
+        <div class="outcome-card">
+          <strong>高层领导：</strong>"我能看到真实情况，校准战略方向"<br>
+          <span style="color:var(--muted);font-size:11px">不是"听汇报"，而是"一杆子插到底看真实数据"</span>
+        </div>
+      </div>
+
+      <div class="block" id="m2-current-workflow">
+        <h3>⊞ 当前工作流</h3>
+        <h3 style="font-size:12px;margin:5px 0;color:var(--muted)">基层干部复盘流程（3.5~5小时）</h3>
+        <p>
+          <span class="journey-step">收到复盘任务</span>
+          <span class="flow-arrow">→</span>
+          <span class="journey-step">手动导数据<span class="time">2h</span></span>
+          <span class="flow-arrow">→</span>
+          <span class="journey-step">看数据找问题<span class="time">30min~1h</span></span>
+          <span class="flow-arrow">→</span>
+          <span class="journey-step">写复盘报告<span class="time">1~2h</span></span>
+          <span class="flow-arrow">→</span>
+          <span class="journey-step">上报（信息失真）</span>
+          <span class="flow-arrow">→</span>
+          <span class="journey-step">等反馈（闭环率5%）</span>
+        </p>
+        <p style="font-size:11px;color:var(--muted)">总耗时：3.5~5h | 覆盖率：30%~40% | 闭环率：5% | 重复率：10%</p>
+
+        <h3 style="font-size:12px;margin:8px 0 5px;color:var(--muted)">中层干部复盘流程（2~4天）</h3>
+        <p>
+          <span class="journey-step">收集县区报告</span>
+          <span class="flow-arrow">→</span>
+          <span class="journey-step">手动汇总<span class="time">1~2天</span></span>
+          <span class="flow-arrow">→</span>
+          <span class="journey-step">跨部门沟通<span class="time">1~2周</span></span>
+          <span class="flow-arrow">→</span>
+          <span class="journey-step">写区域报告<span class="time">半天</span></span>
+          <span class="flow-arrow">→</span>
+          <span class="journey-step">上报高层</span>
+        </p>
+        <p style="font-size:11px;color:var(--muted)">总耗时：2~4天 | 跨部门归因成功率：极低</p>
+
+        <h3 style="font-size:12px;margin:8px 0 5px;color:var(--muted)">高层领导看复盘流程</h3>
+        <p>
+          <span class="journey-step">等层层上报<span class="time">1~2周</span></span>
+          <span class="flow-arrow">→</span>
+          <span class="journey-step">看汇总报告（信息失真）</span>
+          <span class="flow-arrow">→</span>
+          <span class="journey-step">想知道细节（问不到）</span>
+          <span class="flow-arrow">→</span>
+          <span class="journey-step">决策（基于失真信息）</span>
+        </p>
+        <p style="font-size:11px;color:var(--muted)">信息失真度：高 | 穿透能力：无</p>
+      </div>
+
+      <div class="block" id="m2-requirements">
+        <h3>⚡ 需求与AI优先级</h3>
+        <h3 style="font-size:12px;margin:5px 0;color:var(--muted)">AI刚需（P0 · Must Have）</h3>
+        <div class="priority-p0">
+          <span class="priority-tag">P0</span>
+          <div><strong>数据自动化</strong> — 2小时→2分钟，覆盖率30%~40%→90%</div>
+        </div>
+        <div class="priority-p0">
+          <span class="priority-tag">P0</span>
+          <div><strong>引导式复盘</strong> — 解决"不会复盘"核心痛点，AI引导结构化复盘</div>
+        </div>
+        <div class="priority-p0">
+          <span class="priority-tag">P0</span>
+          <div><strong>改进措施自动跟踪</strong> — 闭环率5%→50%，自动跟踪改进完成情况</div>
+        </div>
+
+        <h3 style="font-size:12px;margin:8px 0 5px;color:var(--muted)">AI增值需求（P1 · Nice to Have）</h3>
+        <div class="priority-p1">
+          <span class="priority-tag">P1</span>
+          <div><strong>跨部门归因分析</strong> — 突破部门墙，重复问题发生率下降70%</div>
+        </div>
+        <div class="priority-p1">
+          <span class="priority-tag">P1</span>
+          <div><strong>一杆子插到底</strong> — 高层穿透到门店级，看到真实数据</div>
+        </div>
+
+        <h3 style="font-size:12px;margin:8px 0 5px;color:var(--muted)">非AI需求</h3>
+        <div style="background:#f5f5f5;border:1px solid #ddd;border-radius:6px;padding:6px 10px;margin:4px 0;font-size:12.5px">
+          <span style="display:inline-block;background:#9e9e9e;color:white;border-radius:4px;padding:2px 8px;font-size:11px;font-weight:800;margin-right:8px">流程</span>
+          <strong>跨部门协同机制</strong> — AI辅助但需组织变革
+        </div>
+        <div style="background:#f5f5f5;border:1px solid #ddd;border-radius:6px;padding:6px 10px;margin:4px 0;font-size:12.5px">
+          <span style="display:inline-block;background:#9e9e9e;color:white;border-radius:4px;padding:2px 8px;font-size:11px;font-weight:800;margin-right:8px">培训</span>
+          <strong>复盘方法论培训</strong> — AI引导配合人工培训
+        </div>
+      </div>
+    </section>
+
+    <!-- ====== 结论登记表 ====== -->
+    <section id="module-conclusions">
+      <h2><b>3</b>结论登记表</h2>
+      <div id="conclusions-table">
+        <table class="conclusion-table">
+          <thead><tr><th>决策项</th><th>结论</th><th>状态</th><th>确认人</th></tr></thead>
+          <tbody>
+            <tr><td>用户分层</td><td>三层用户：基层所长、中层区域经理、高层领导</td><td><span class="ok-tag">已确认</span></td><td>待确认</td></tr>
+            <tr><td>核心诉求</td><td>每层3项核心诉求已梳理</td><td><span class="ok-tag">已确认</span></td><td>待确认</td></tr>
+            <tr><td>六大痛点</td><td>导数据2h/覆盖率30-40%/闭环率5%/归因不准/部门墙/层层失真</td><td><span class="ok-tag">已确认</span></td><td>待确认</td></tr>
+            <tr><td>最重要的结果</td><td>三层最重要结果已定义（提前预警/快速定位根因/看到真实）</td><td><span class="ok-tag">已确认</span></td><td>待确认</td></tr>
+            <tr><td>现状流程</td><td>三层流程已拆解（基层3.5-5h/中层2-4天/高层失真）</td><td><span class="ok-tag">已确认</span></td><td>待确认</td></tr>
+            <tr><td>AI优先级</td><td>P0×3（数据自动化/引导复盘/改进跟踪）+ P1×2（跨部门归因/一杆子插到底）</td><td><span class="ok-tag">已确认</span></td><td>待确认</td></tr>
+            <tr><td>场景挑战陈述</td><td>定稿，承接M1</td><td><span class="ok-tag">已确认</span></td><td>待确认</td></tr>
+            <tr><td>一线用户原话</td><td>待现场采集基层/中层干部真实原话</td><td><span class="gap-tag">待补充</span></td><td>待确认</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ====== 证据索引 ====== -->
+    <section id="module-evidence">
+      <h2><b>4</b>证据索引</h2>
+      <div id="evidence-list">
+        <div class="evidence-card">
+          <strong>证据1 - 三层用户识别：</strong>
+          基层干部（所长/县区负责人）做本县区复盘；中层干部（区域经理）汇总多县区；高层领导校准战略。
+        </div>
+        <div class="evidence-card">
+          <strong>证据2 - 效率数据：</strong>
+          导数据2小时→目标2分钟（60倍提升）；覆盖率30%~40%→90%；闭环率5%→50%；重复率10%→2%~3%。
+        </div>
+        <div class="evidence-card">
+          <strong>证据3 - 基层现状流程：</strong>
+          收到任务→导数据(2h)→看数据(30min~1h)→写报告(1~2h)→上报(失真)→等反馈(闭环率5%)，总耗时3.5~5h。
+        </div>
+        <div class="evidence-card">
+          <strong>证据4 - 中层现状流程：</strong>
+          收集报告→手动汇总(1~2天)→跨部门沟通(1~2周)→写区域报告(半天)→上报高层，总耗时2~4天。
+        </div>
+        <div class="evidence-card">
+          <strong>证据5 - 高层现状流程：</strong>
+          等层层上报(1~2周)→看汇总报告(信息失真)→想知道细节(问不到)→决策(基于失真信息)。
+        </div>
+        <div class="evidence-card">
+          <strong>证据6 - 需求优先级排序：</strong>
+          P0：数据自动化/引导式复盘/改进跟踪；P1：跨部门归因/一杆子插到底；P2：案例库沉淀。
+        </div>
+        <div class="evidence-card" style="border-left-color:#e0a030">
+          <strong>待补充 - 一线证据：</strong>
+          基层/中层干部真实原话至少3条；真实案例1成功+2失败；用户旅程七要素细化及2个断点。
+        </div>
+      </div>
+    </section>
+
+    <!-- ====== 缺口与推断 ====== -->
+    <section id="module-gaps">
+      <h2><b>5</b>缺口与推断</h2>
+      <div id="gaps-table">
+        <h3>缺口清单</h3>
+        <table>
+          <thead><tr><th>缺口项</th><th>说明</th><th>严重度</th></tr></thead>
+          <tbody>
+            <tr><td>一线用户原话痛点</td><td>至少3条基层/中层干部的真实原话</td><td><span class="gap-tag">Minor</span></td></tr>
+            <tr><td>真实案例</td><td>1个成功案例 + 2个失败案例</td><td><span class="gap-tag">Minor</span></td></tr>
+            <tr><td>用户旅程细化</td><td>七要素（行动/触点/系统/情绪/等待/返工/风险）需细化</td><td><span class="gap-tag">Minor</span></td></tr>
+            <tr><td>断点识别</td><td>需找到2个断点（等待最长/返工最多）</td><td><span class="gap-tag">Minor</span></td></tr>
+            <tr><td>数据源清单</td><td>哪些系统可以接入？数据就绪度如何？</td><td><span class="gap-tag">Minor</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="inferences-table" style="margin-top:10px">
+        <h3>推断（需验证）</h3>
+        <table>
+          <thead><tr><th>推断</th><th>验证方式</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>干部最在意"提前预警"而非"做完报告"</td>
+              <td>现场问干部：你最想通过这个系统得到什么？</td>
+            </tr>
+            <tr>
+              <td>跨部门归因是最大难点但最难实现</td>
+              <td>问技术方：跨部门数据接入的难度有多大？</td>
+            </tr>
+            <tr>
+              <td>高层需要"一杆子插到底"但可能只需"异常钻取"</td>
+              <td>问高层：更想看到全量数据，还是只看到异常？</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </article>
+
+  <!-- ====== 质量面板 ====== -->
+  <aside id="quality-panel">
+    <div class="quality-panel">
+      <h3>质量与对齐</h3>
+      <table>
+        <thead><tr><th>维度</th><th>状态</th></tr></thead>
+        <tbody>
+          <tr><td>版本</td><td>v1（草稿）</td></tr>
+          <tr><td>确认人</td><td>待确认</td></tr>
+          <tr><td>确认时间</td><td>待确认</td></tr>
+          <tr><td>结论数量</td><td>用户三层、痛点6项、需求3层、现状流程3条、AI优先级5项</td></tr>
+          <tr>
+            <td>放行检查</td>
+            <td>
+              <span class="ok-tag">✓ 用户/需求/痛点/最重要结果有依据</span>
+              <span class="ok-tag">✓ 现状流程来自真实案例</span>
+              <span class="ok-tag">✓ 痛点定位到具体流程环节</span>
+              <span class="ok-tag">✓ AI刚需与增值已区分排序</span>
+              <span class="gap-tag">⚠ 一线原话待采集</span>
+            </td>
+          </tr>
+          <tr>
+            <td>缺口（Minor）</td>
+            <td>
+              <span class="gap-tag">一线用户原话痛点（3条）</span>
+              <span class="gap-tag">真实案例（1成功+2失败）</span>
+              <span class="gap-tag">七要素细化（等待/返工/风险）</span>
+              <span class="gap-tag">2个断点识别</span>
+            </td>
+          </tr>
+          <tr>
+            <td>已接受风险</td>
+            <td>
+              <span class="gap-tag">跨部门数据访问权限边界</span>
+              <span class="gap-tag">AI归因准确度预期</span>
+              <span class="gap-tag">一杆子插到底的深度</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </aside>
+
+  <!-- ====== 本地批注 ====== -->
+  <section id="local-notes" contenteditable="true"></section>
+
+  <!-- ====== 画布数据 ====== -->
+  <script type="application/json" id="canvas-data">
+  {
+    "module": "M2",
+    "project": "今麦郎AI应用",
+    "group": "第1组",
+    "version": 1,
+    "status": "draft",
+    "headline": "三层用户（基层/中层/高层）六大痛点已识别，核心需求与最重要的结果已对齐，AI刚需（P0×3）与增值需求（P1×2）已排序。",
+    "overview": "M2承接M1的战略对齐成果，深入拆解用户三层结构及其核心诉求，梳理6项数据支撑的痛点，定义每层用户最重要的结果，描画三层现状流程，并对AI可优化切入点进行优先级排序。",
+    "users": [
+      {"layer": "直接用户", "role": "基层干部（所长/县区负责人）", "scene": "做本县区复盘，找改进动作，给所长安排任务"},
+      {"layer": "直接用户", "role": "中层干部（区域经理）", "scene": "汇总多县区复盘，推动跨部门协同改进"},
+      {"layer": "受益者", "role": "高层领导", "scene": "看真实数据，校准战略与执行偏差"}
+    ],
+    "needs": [
+      {"role": "基层干部", "needs": ["看懂数据", "学会复盘", "找到动作"]},
+      {"role": "中层干部", "needs": ["快速汇总", "找根因", "推动协同"]},
+      {"role": "高层领导", "needs": ["看到真实", "一杆子插到底", "校准战略"]}
+    ],
+    "pain_points": [
+      {"pain": "导数据耗时", "detail": "每次复盘准备2小时", "severity": "高"},
+      {"pain": "覆盖率低", "detail": "仅30%~40%", "severity": "高"},
+      {"pain": "改进闭环率低", "detail": "仅5%", "severity": "高"},
+      {"pain": "归因不准", "detail": "多因素交叉，人工难定位根因", "severity": "中"},
+      {"pain": "部门墙", "detail": "各付各的盘，跨部门归因做不了", "severity": "中"},
+      {"pain": "层层上报失真", "detail": "信息被过滤美化", "severity": "中"}
+    ],
+    "most_important_outcomes": [
+      {"role": "基层干部", "outcome": "我能提前预警问题，给所长明确的任务安排"},
+      {"role": "中层干部", "outcome": "我能快速定位问题区域和根因，推动跨部门协同"},
+      {"role": "高层领导", "outcome": "我能看到真实情况，校准战略方向"}
+    ],
+    "current_workflow": {
+      "grassroots": {"steps": ["收到复盘任务", "手动导数据(2h)", "看数据找问题(30min~1h)", "写复盘报告(1~2h)", "上报", "等反馈"], "total_time": "3.5~5h"},
+      "middle": {"steps": ["收集县区报告", "手动汇总(1~2天)", "跨部门沟通(1~2周)", "写区域报告(半天)", "上报高层"], "total_time": "2~4天"},
+      "senior": {"steps": ["等层层上报(1~2周)", "看汇总报告(失真)", "想知道细节(问不到)", "决策(基于失真信息)"]}
+    },
+    "requirements": [
+      {"priority": "P0", "name": "数据自动化", "impact": "2h→2min, 覆盖率30%→90%"},
+      {"priority": "P0", "name": "引导式复盘", "impact": "解决不会复盘痛点"},
+      {"priority": "P0", "name": "改进措施自动跟踪", "impact": "闭环率5%→50%"},
+      {"priority": "P1", "name": "跨部门归因分析", "impact": "突破部门墙, 重复率降70%"},
+      {"priority": "P1", "name": "一杆子插到底", "impact": "高层穿透看真实数据"},
+      {"priority": "P2", "name": "案例库沉淀", "impact": "长期组织资产"}
+    ],
+    "conclusions": [
+      {"item": "用户分层", "conclusion": "三层用户结构", "status": "confirmed"},
+      {"item": "核心诉求", "conclusion": "每层3项已梳理", "status": "confirmed"},
+      {"item": "六大痛点", "conclusion": "有数据支撑", "status": "confirmed"},
+      {"item": "最重要的结果", "conclusion": "三层已定义", "status": "confirmed"},
+      {"item": "现状流程", "conclusion": "三层已拆解", "status": "confirmed"},
+      {"item": "AI优先级", "conclusion": "P0×3+P1×2", "status": "confirmed"},
+      {"item": "场景挑战陈述", "conclusion": "定稿承接M1", "status": "confirmed"}
+    ],
+    "gaps": ["一线用户原话痛点", "真实案例(1成功2失败)", "七要素细化", "2个断点", "数据源清单"],
+    "inferences": [
+      {"inference": "干部最在意提前预警而非做完报告", "verify": "现场问干部"},
+      {"inference": "跨部门归因是最大难点但最难实现", "verify": "问技术方数据接入难度"},
+      {"inference": "高层需一杆子插到底但可能只需异常钻取", "verify": "问高层需求"}
+    ],
+    "risks": ["跨部门数据访问权限边界", "AI归因准确度预期", "一杆子插到底深度"]
+  }
+  </script>
+</main>
+</body>
+</html>
