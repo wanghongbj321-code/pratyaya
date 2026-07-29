@@ -9,23 +9,30 @@
 3. **同语法扩展**：模板缺少当前 Canvas 小模块时，在同一设计语言中补布局，不引入另一套风格。
 4. **浏览器预览**：在桌面、窄屏和打印视图中检查阅读顺序、溢出、遮挡、链接和编辑功能。
 5. **离线交付**：CSS、JavaScript、数据和必要图标保留在单个 HTML 内，本地双击即可打开。
-6. **结构审计**：正式交付前运行 `scripts/audit_canvas_html.py`。
+6. **结构自检**：正式交付前 LLM 按 `SKILL.md` 的"渲染自检"清单逐项确认（已替代阶段一移除的 `scripts/audit_canvas_html.py`）。
 
-## 四个可选外壳
+## 可选外壳清单
 
-| 模板 ID | 视觉系统 | 版式 | 适用场景 |
-|---|---|---|---|
-| `blue-professional-balanced` | Blue Professional | 均衡总览 | 内部方案、管理层总览 |
-| `blue-professional-flow` | Blue Professional | 流程决策 | 流程评审、职责与决策边界 |
-| `signal-balanced` | Signal | 均衡总览 | 正式领导审阅、机构型汇报 |
-| `signal-flow` | Signal | 流程决策 | 管理层流程、风险与控制点 |
+`html-templates/index.json` 当前登记 9 个模板，覆盖 7 种视觉系统 × 2 种版式（balanced / flow）。完整字段见 index.json 的 `templates` 数组，本表是速查：
 
-用户已指定风格或模板时直接使用，不重复追问。用户未指定时，按用途、信息密度和正式程度选择最接近的一项；无法判断时默认 `blue-professional-balanced`。一个输出必须保持单一视觉系统，不混搭 Blue Professional 与 Signal。
+| 模板 ID | 视觉系统 | 版式 | 正式度 | 信息密度 |
+|---|---|---|---|---|
+| `blue-professional-balanced` | Blue Professional | balanced | medium-high | medium |
+| `blue-professional-flow` | Blue Professional | flow | medium-high | medium-high |
+| `signal-balanced` | Signal | balanced | high | medium-high |
+| `signal-flow` | Signal | flow | high | high |
+| `mckinsey-blue-conclusion` | McKinsey Blue | balanced | high | medium |
+| `accenture-red-grey-institutional` | Accenture Red-Grey | balanced | high | medium-high |
+| `bain-red-action` | Bain Red | balanced | high | medium |
+| `bcg-green-matrix` | BCG Green | balanced | high | medium |
+| `roland-berger-orange` | Roland Berger Orange | balanced | high | medium |
+
+每个模板的 `best_for` 字段（见 index.json）描述适用场景。模板选择由主 agent 步骤 7 的 LLM 自行决定推荐 1-2 个候选，再由用户拍板；**本 skill 不自动选择**。一个输出必须保持单一视觉系统，不混搭 Blue Professional 与 Signal，也不混搭咨询公司模板的强品牌色。
 
 ## 模板只是视觉外壳
 
 - 不得复制模板示例内容，包括标题、品牌、角色、数字、指标、结论和敏感信息。
-- 所有业务内容只能来自本次已确认、同版本的模块 JSON。
+- 所有业务内容只能来自本次已确认、同版本的 `modules/Mx-v{N}.md`。
 - 必须用当前规范的完整大模块、小模块、质量元数据和稳定锚点替换模板结构。
 - 模板没有的区块可以新增，但必须沿用所选模板的设计语法。
 - `模块化智能体画布-3个脱敏模板.html` 是历史组合预览，不属于可选模板，不得作为正式输出的起点。
@@ -43,11 +50,7 @@
 2. 窄屏下，卡片按合理顺序堆叠，表格可横向滚动，不出现文字裁切。
 3. 打印视图包含结论、版本、确认信息和风险状态，并隐藏非必要编辑控件。
 4. 本地 `file://` 双击打开时不请求网络、不调用 `fetch()`、不嵌入 iframe。
-5. 编辑只写入明确标记的“本地批注”，不覆盖已确认事实。
-6. 运行审计：
+5. 编辑只写入明确标记的"本地批注"，不覆盖已确认事实。
+6. 按 `SKILL.md` 的"渲染自检"清单逐项确认（数据源 / DOM / 共享结构 / 离线安全 / 打印 / 草稿标记 / 视觉系统 7 项）。
 
-   ```powershell
-   python skills/canvas-render/scripts/audit_canvas_html.py output/module-1-canvas.html
-   ```
-
-审计通过仍不替代人工视觉检查；二者都完成后才可交付正式 HTML。
+自检通过仍不替代人工视觉检查；二者都完成后才可交付正式 HTML。
