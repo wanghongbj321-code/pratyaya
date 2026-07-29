@@ -22,3 +22,6 @@ tests/
 
 # 临时文件
 tmp/
+
+# Codebuddy 项目数据（本机记忆，不入库）
+.codebuddy/
