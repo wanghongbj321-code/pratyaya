@@ -1,62 +1,78 @@
-# 开发者与维护者指南（DEVELOPMENT）
+# 维护者文档
 
-本文件面向**维护专家包的人**和**运行时的 AI 助教**，不面向工作坊助教。工作坊助教的使用说明见 `README.md`。
+> 面向维护专家包的人和运行时的 AI 助教。**不面向**工作坊用户（用户文档见 [docs/user-guide.md](./docs/user-guide.md)）。
 
-## 质量闸门命令
+## 1. 文档定位
 
-对某一个模块的记录运行确定性闸门：
+本文件说明维护专家包所需的命令、流程约束和工具链。完整架构与不变量见 [DESIGN.md](./DESIGN.md)；工作坊用户使用流程见 [docs/user-guide.md](./docs/user-guide.md)；专家包元数据以 `.codebuddy-plugin/plugin.json` 为权威。
 
-```powershell
-python skills/module-conclusion-gate/scripts/check_gate.py examples/module-record-ready.json
+## 2. 质量闸门（LLM 自检）
+
+v2.0 起，模块结论闸门（Gate）由 LLM 评估替代 v1.x 的 Python 脚本（`check_gate.py` 已删除）。执行流程：
+
+1. LLM 读取 `modules/Mx-v{N}.md`（确认包 Markdown）
+2. 对照 `skills/module-conclusion-gate/SKILL.md` 的判定规则
+3. 输出 Markdown 判定报告 `gate-policy/Mx-gate.md`，含 `render_allowed` 字段
+
+详细规则、缺口等级、推断术语、版本绑定的完整定义见 [skills/module-conclusion-gate/SKILL.md](./skills/module-conclusion-gate/SKILL.md)。
+
+## 3. HTML 渲染（LLM 自检）
+
+v2.0 起，HTML 渲染审计由 LLM 自检替代 v1.x 的 Python 脚本（`audit_canvas_html.py` 已删除）。正式交付前 7 项检查清单：
+
+1. 数据源一致（HTML 内嵌 `canvas-data` 与 `Mx-v{N}.md` 同版本）
+2. DOM 结构（对照 `render-contract.md` 章节 A/B）
+3. 共享结构（`quality-panel` / `alignment-section` / `local-notes`）
+4. 离线安全（无 `fetch("file...")`、无 iframe、无外部网络资源）
+5. 打印规则（`@media print` 隐藏编辑控件）
+6. 草稿标记（草稿模式顶部与打印版含"草稿/未确认"字样）
+7. 视觉系统单一（仅一种 `visual_system`，不混搭）
+
+详细自检依据、DOM 映射表、共享结构、离线约束、数据完整性见 [skills/canvas-render/SKILL.md](./skills/canvas-render/SKILL.md) 与 [skills/canvas-render/references/render-contract.md](./skills/canvas-render/references/render-contract.md)。
+
+## 4. 模块工作流
+
+四阶段管线（数据源与闸门）：
+
+```text
+Key Points (Mx-keypoints.md) → 提炼 (Mx-v{N}.md) → Gate (Mx-gate.md) → 渲染 (HTML)
 ```
 
-退出码：
+每个阶段的输入/输出/状态变化由对应 Skill 定义，详见 [skills/mvl-distill/SKILL.md](./skills/mvl-distill/SKILL.md) / [skills/module-conclusion-gate/SKILL.md](./skills/module-conclusion-gate/SKILL.md) / [skills/canvas-render/SKILL.md](./skills/canvas-render/SKILL.md)。
 
-- `0`：允许正式渲染（`render_allowed=true`）
-- `2`：业务质量闸门未通过（`render_allowed=false`，`reasons` 列出阻断项）
-- `1`：输入文件无效（无法解析或不符合 Schema）
+## 5. 版本与发布
 
-闸门检查项（详见 `skills/module-conclusion-gate/references/gate-policy.md`）：
+专家包版本号遵循 SemVer（语义化版本），定义在 `.codebuddy-plugin/plugin.json` 的 `version` 字段：
 
-- 关键结论都有 `evidence_refs`；
-- blocker / major 缺口已关闭；
-- minor 缺口已解决或由确认人接受风险（`accepted_risk`）；
-- 核心推断已接受或拒绝；
-- 人工确认版本与当前模块版本一致；
-- **对齐闸门**：无 `open` 的 blocker / major 分歧；如分歧以 `accepted_risk` 关闭，接受人必须出现在 `approval` 中；
-- 对齐对象 `alignment` 为必填，且 `consensus` / `divergences` / `decisions` 均按要求填写。
+- **MAJOR**：破坏性变更（数据源切换、状态机调整、Skill 重写等）
+- **MINOR**：新增功能（新增 Skill 子任务、新增文档章节等）
+- **PATCH**：Bug 修复、措辞调整
 
-## 回归验证
+当前版本：v2.0.0。
 
-仓库**不发布 `tests/` 目录**（回归测试依赖本地 Python 环境，仅用于维护期）。在本地克隆或开发副本上运行：
+发布流程（按 workbuddy 指导第十节"修改已有专家"5 步）：
 
-```powershell
-python -m unittest discover -s tests -v
-```
+1. **定位** — 确认改动范围（在哪个文件、影响哪些 Skill/Agent/模板）
+2. **确认范围** — 评估是否需要同步 docs/、DEVELOPMENT.md、DESIGN.md
+3. **执行修改** — 改完代码与文档
+4. **校验** — `python3 -c "import json; json.load(open('.codebuddy-plugin/plugin.json'))"` 验证 plugin.json 是合法 JSON；运行 `scripts/validate_expert.py`（如存在）
+5. **重新注册** — WorkBuddy 重启加载（详见 [docs/installation.md §4](./docs/installation.md#4-安装后必须重启)）
 
-示例记录：
+严禁修改（按 workbuddy 指导）：`name` 字段（kebab-case 唯一标识）、`agentName` 字段、专家目录名、agents/ 下的 .md 文件名。这些字段的修改会导致专家丢失。
 
-- `examples/module-record-ready.json`：已确认、可放行（闸门返回 `0`）
-- `examples/module-record-blocked.json`：含 blocker、核心推断和缺失确认，必须阻断（闸门返回 `2`）
+## 6. 命令速查
 
-## 本地 HTML 约束（渲染层）
+| 命令 | 用途 |
+|---|---|
+| `git log --oneline` | 查看 commit 历史 |
+| `git diff` | 查看当前未提交变更 |
+| `python3 -c "import json; json.load(open('.codebuddy-plugin/plugin.json'))"` | 验证 plugin.json 合法 |
+| `python3 -c "import json; json.load(open('html-templates/index.json'))"` | 验证 templates 合法 |
+| `grep -rn "check_gate.py\|audit_canvas_html.py" .` | 检查旧脚本引用残留 |
+| `grep -rn "module-N\.json" .` | 检查旧 JSON 引用残留 |
+| `wc -l README.md DEVELOPMENT.md DESIGN.md docs/*.md` | 检查文档行数是否符合 v2.0 约束 |
 
-生成的 HTML 必须单文件离线可用。约束（详见 `skills/canvas-render/references/render-contract.md`）：
+---
 
-- 不要通过 `fetch()` 读取本地 JSON；
-- 不要用 `iframe` 嵌套兄弟 HTML；
-- 全局 Canvas 使用普通相对链接进入模块详情，避免浏览器的 `file:` 唯一安全源错误；
-- 四个模板只提供布局与视觉语法，正式内容必须来自通过闸门的同版本 JSON。
-
-生成后运行离线审计：
-
-```powershell
-python skills/canvas-render/scripts/audit_canvas_html.py output/module-1-canvas.html
-```
-
-审计检查单文件离线结构（六大画布锚点、质量面板内的对齐锚点、本地批注、JSON 数据块等）。缺失必要结构或存在不安全引用时返回非零退出码。
-
-## 版本与发布
-
-- 任何影响闸门、Schema、渲染契约或行为的改动，需升级 `plugins/mvl-workshop-facilitator` 的 `plugin.json` 版本号后再覆盖安装；
-- 升级后需在 WorkBuddy 中覆盖安装并完全重启，使新专家生效。
+**版本**：v2.0.0
+**配套文档**：[DESIGN.md](./DESIGN.md) / [docs/installation.md](./docs/installation.md) / [docs/user-guide.md](./docs/user-guide.md)

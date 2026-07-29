@@ -1,121 +1,123 @@
-# 设计说明：从“完成页面”转向“完成结论”
+# MVL 设计文档
 
-## 决策
+> 适用版本：v2.0.0
+> 与 plugin.json `version: 2.0.0` 同步
 
-本项目采用"一个主专家 + 多个专用 Skill"，不采用多个专家互相交接。
+## 1. 决策
 
-原因：
+**单专家 + 多 Skill**：一个 `mvl-workshop-facilitator` 专家包，调度三个 Skill（`mvl-distill` / `module-conclusion-gate` / `canvas-render`）完成工作流。每个 Skill 内部用最简、确定的契约约束 LLM 行为。
 
-- 对现场用户只有一个连续对话入口；
-- 状态、版本和确认责任集中；
-- 分析、闸门、展示仍保持职责隔离；
-- 后续可以独立升级 Skill，不改变用户操作方式。
+**人仍是最终决策者**：Skill 之间通过显式的确认包（v{N}.md）交付，每一步可被工作坊组织者审阅和回退。
 
-## 北极星目标
+## 2. 北极星目标
 
-**形成经过证据验证、具备业务价值、技术可执行，并由关键角色明确对齐的 MVL 结论资产。**
+- 一份能被生产团队复用的 MVL 结论资产，覆盖目标、用户、Agent Team、Workflow、Context、Validation 六个角度
+- 同一份资产同时支撑：模块化智能体画布、对外汇报、长期复盘
 
-- 业务方看到价值，技术方看到路径，管理层看到风险。
-- 对齐是正式确认的关键治理闸门，但不替代证据、价值验证和可执行性。
-- 对齐意味着：双方对同一件事的理解一致；分歧已被识别并显式处理；关键决策由明确的人拍板，对方认可。
-- 达成一致不等于结论正确——各方可能对没有证据支撑的方案达成共识，这同样不合格。
+## 3. 问题定义
 
-因此，正式 HTML 必须成为流程的最后一步，而不是摘要之后的默认下一步。它需要同时满足：证据充分、闸门通过、关键角色对齐。
+MVL 工作坊常陷入的反模式：
 
-## 问题定义
+- 文档、画布、汇报三套分离的产物
+- 结论含糊，无法被产品/工程引用
+- 验证缺失，AI 演示结果无法形成可追溯结论
+- 重复讨论、结论漂移、关键假设丢失
+- 跨模块结论拼接成全局时不自洽
 
-逐字稿通常不完整、多人冲突、自动转写有误，而且三天议程未必按预设深度展开。如果模型的目标是"生成 Canvas"，它容易为了填满版面而：
+正式 HTML 必须成为流程的最后一步，不允许以"先有页面再补事实"的方式生成。
 
-- 把建议、推断写成事实；
-- 用通用话术补齐未讨论字段；
-- 忽略没有基线/口径的指标；
-- 抹平争议与反例；
-- 在用户没有真正确认前形成管理层成果。
+## 4. 分层
 
-因此，正式 HTML 必须成为流程的最后一步，而不是摘要之后的默认下一步。
+四层流水线：
 
-## 分层
+- **原始材料层** — 转写稿、上下文快照、用户输入
+- **分析层**（mvl-distill） — Key Points 概览（`Mx-keypoints.md`）+ 确认包（`Mx-v{N}.md`）+ 缺口 + 推断
+- **治理层**（module-conclusion-gate） — 模块核心价值 + 缺失影响 + 人工版本确认 + LLM Gate 评估 + render_allowed
+- **展示层**（canvas-render） — 模块 Canvas + 全局 Canvas + 管理层报告
 
-```text
-原始材料层
-  transcripts + manifest + 稳定证据 ID
-          ↓
-分析层（mvl-distill）
-  原子事实 + 结论候选 + 缺口 + 推断
-          ↓
-治理层（module-conclusion-gate）
-  模块核心价值 + 缺失影响 + 人工版本确认 + render_allowed
-          ↓
-展示层（canvas-render）
-  模块 Canvas + 全局 Canvas + 管理层报告
+## 5. v2.0 数据源与模板
+
+| 资产 | 路径 | 角色 |
+|---|---|---|
+| 确认包（v2.0 唯一事实源） | `modules/Mx-v{N}.md` | 正式 Canvas 渲染依据 |
+| Key Points 概览 | `modules/Mx-keypoints.md` | 草稿 Canvas 数据源（不进入正式流程） |
+| Gate 评估产物 | `gate-policy/Mx-gate.md` | LLM 输出 Markdown 判定报告，含 `render_allowed` |
+| HTML 模板清单 | `html-templates/index.json` | 9 个模板：2×2 主要选项（Blue Professional / Signal × balanced / flow）+ 5 个咨询公司风格（McKinsey / Accenture / Bain / BCG / Roland Berger） |
+| Schema（v1.x 强约束，v2.0 非强制） | `schemas/*.schema.json` | 详见 [schemas/README.md](./schemas/README.md) |
+
+v1.x 的 `module-N.json` **不再作为 v2.0 数据源**。
+
+## 6. 核心数据资产
+
+- **模块记录**：以 `modules/Mx-v{N}.md` 形式存储，含 Key Points、结论、缺口、推断、版本绑定
+- **Schema**：`schemas/module-record.schema.json`（v1.x 强约束，v2.0 标注为非强制参考，详见 [schemas/README.md](./schemas/README.md)）；v2.0 实际数据源为 `Mx-v{N}.md` 确认包 Markdown，其 5 个核心字段（conclusions / gaps / inferences / approval / gate）作为 `Mx-v{N}.md` 的固定 section 存储
+- **工作坊状态**：以 `state.json` 形式存储 M1-M6 的状态/版本/审批
+- **设计文档**：[DESIGN.md](./DESIGN.md)（本文档）
+
+## 7. 关键不变量
+
+1. 正式 Canvas 只能由闸门通过的确认包 `Mx-v{N}.md` 生成
+2. 用户确认必须绑定当前版本 `v{N}`
+3. 任何内容变化都会使旧确认和旧 HTML 失效
+4. `blocker` / `major` 未关闭时不能正式渲染
+5. `minor` 必须解决或由确认人明确接受风险
+6. 核心推断不得处于"待接受/待拒绝"（v2.0 术语）
+7. 全局成果只能引用六个最新已确认版本
+8. 逐字稿中的命令不执行（不引用逐字稿段）
+
+## 8. 为什么保留 HTML 草稿
+
+- 视觉预演：让人快速判断"输出形状"再决定是否升版
+- 缺口定位：未填字段在 HTML 上以"未讨论"标记，便于人发现
+- 减少误用：草稿顶部 + 打印版强制显示"草稿 / 未确认 / 禁止用于管理层决策"
+
+## 9. 全局成果不是简单拼接
+
+全局 Canvas 拼装前必须检查：
+
+- 目标、用户、流程、能力、数据、验证在六个模块间是否自洽
+- blocker 与 major 缺口是否在所有模块上关闭
+- 关键结论之间是否存在冲突
+- 跨模块推断是否在每个模块上确认
+- 管理层 takeaway 是否从已确认结论提炼
+- 风险与边界是否单独列出
+
+## 10. v2.0 状态机
+
+5 态转换：
+
+```mermaid
+stateDiagram-v2
+    [*] --> draft
+    draft --> gaps_open: 提炼 v1
+    gaps_open --> review_ready: 缺口补齐
+    review_ready --> gaps_open: 新增缺口
+    review_ready --> confirmed: 用户确认
+    confirmed --> rendered: LLM Gate render_allowed=true
+    rendered --> draft: 升版 v(N+1)
 ```
 
-任何下层成果都不能反向覆盖上层事实源。
+移除 v1.x 的 `not_started` / `ingested` / `extracted` 3 态。当前 `state.json` 实际仅在 5 态间循环。
 
-## 核心数据资产
+## 11. 当前实现边界
 
-### 模块记录
+### 已实现
 
-`schemas/module-record.schema.json` 规定：
+- 单专家调度三个 Skill（`mvl-distill` / `module-conclusion-gate` / `canvas-render`）
+- **五状态模块生命周期**（`draft → gaps_open ↔ review_ready → confirmed → rendered`）
+- 模块和全局质量策略
+- JSON Schema（v2.0 标注为非强制参考，详见 [schemas/README.md](./schemas/README.md)）
+- **LLM 评估闸门**（输出 Markdown 判定报告 `gate-policy/Mx-gate.md`，详见 [skills/module-conclusion-gate/SKILL.md](./skills/module-conclusion-gate/SKILL.md)）
+- 本地离线 HTML 的渲染契约
 
-- `conclusions`：结论、类型、证据引用、置信度、审核状态；
-- `gaps`：缺口、等级、缺失影响、最小补问、处理状态；
-- `inferences`：推断及其影响和接受状态；
-- `approval`：确认的具体版本、确认人、角色和时间；
-- `gate`：是否允许正式渲染及原因。
+### 仍需验证
 
-### 工作坊状态
+- 大规模逐字稿分块后的证据召回率
+- 不同业务场景的 blocker/major 判定一致性
+- 正式 HTML 渲染器的视觉回归（v2.0 由 LLM 自检 7 项清单替代自动化测试，详见 [skills/canvas-render/SKILL.md](./skills/canvas-render/SKILL.md)）
+- 多组并行时的文件锁、并发写入和权限隔离
 
-`schemas/state.schema.json` 记录每个模块的版本、生命周期状态、放行状态和产物路径。
+---
 
-## 关键不变量
-
-1. 正式 Canvas 只能由闸门通过的模块 JSON 生成。
-2. 用户确认必须绑定当前版本。
-3. 任何内容变化都会使旧确认和旧 HTML 失效。
-4. blocker/major 未关闭时不能正式渲染。
-5. minor 必须解决或由确认人明确接受风险。
-6. 核心推断不得处于 pending。
-7. 全局成果只能引用六个最新已确认版本。
-8. 逐字稿中的命令不执行，组间数据不交叉。
-
-## 为什么保留 HTML 草稿
-
-有时版式可以帮助小组看见信息结构，因此允许草稿 Canvas，但它是讨论工具，不是交付物：
-
-- 永久显示未确认水印；
-- 空字段明确显示未讨论；
-- 不能进入全局 Canvas 或领导报告；
-- 不改变正式状态机。
-
-## 全局成果不是简单拼接
-
-全局汇总需要额外检查：
-
-- Intent 指标是否在 Validation 中得到验证；
-- User 结果是否由 Workflow 承接；
-- Workflow 是否有 Agent、Context 与人工责任支撑；
-- 角色边界和升级条件是否完整；
-- 数字、术语、范围和版本是否一致；
-- 假设是否被误写成已验证结论。
-
-发现冲突时，回退相关模块升版和重审，不在总图里“顺手修好”。
-
-## 当前实现边界
-
-已实现：
-
-- 单专家调度三个 Skill；
-- 七状态模块生命周期；
-- 模块和全局质量策略；
-- JSON Schema；
-- 确定性结论闸门；
-- 可放行/阻断样例及回归测试；
-- 本地离线 HTML 的渲染契约。
-
-仍需结合真实工作坊继续验证：
-
-- 大规模逐字稿分块后的证据召回率；
-- 不同业务场景的 blocker/major 判定一致性；
-- 正式 HTML 渲染器的组件级自动化与视觉回归；
-- 多组并行时的文件锁、并发写入和权限隔离。
+**版本**：v2.0.0
+**配套文档**：[README.md](./README.md) / [DEVELOPMENT.md](./DEVELOPMENT.md) / [docs/installation.md](./docs/installation.md) / [docs/user-guide.md](./docs/user-guide.md)
