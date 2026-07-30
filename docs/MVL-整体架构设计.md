@@ -336,13 +336,35 @@ flowchart TB
 
 ### 4.3 升版规则（内容变更协议）
 
-任何业务内容变更必须：
+确认包版本受两类写入影响：**业务内容变化**触发升版；**仅治理元数据写入**不触发升版。
+
+#### 4.3.1 业务内容变化（必须升版）
+
+任何第 1–11 节业务内容（含结论、缺口、推断、引用、决策、必展项）变更必须：
 
 1. `version + 1`（vN → vN+1）
-2. 清空旧 `approval`（确认人和确认时间清空）
-3. 状态回到 `draft` 或 `gaps_open`
-4. 旧 HTML 标记为过期
-5. 重新确认后再渲染
+2. `gate_recommendation=pending`
+3. `render_authorized=false`
+4. `confirmation_mode=null`
+5. 清空当前版本 `override_audit`
+6. 状态回到 `draft` 或 `gaps_open`
+7. 旧 HTML 标记为过期
+8. 重新跑 Gate、等待用户决策并渲染
+
+#### 4.3.2 仅治理元数据写入（不触发升版）
+
+仅修改确认包**第 12 节"Gate 与用户决策"**（Gate 报告摘要、用户决策、Override 审计）不触发升版：
+
+- 业务版本号 `v{N}` 保持不变
+- 不重跑 Gate（已是当前评估结果）
+- 不重置授权（这是当前版本的授权写入）
+- `state.json` 同步更新 `gate_recommendation` / `render_authorized` / `confirmation_mode` / `override_audit`
+
+#### 4.3.3 历史版本审计
+
+- 旧版本归档为 `modules/Mx-v{N}.md.previous`，**不清空**
+- 旧版本的第 12 节（包括历史 override 审计）随旧版确认包完整保留，用于追溯
+- 全局 Canvas 与管理层摘要扫描 caveat 时只读取**当前版本**第 12 节；历史版本审计仅供审计回溯
 
 > 旧版本归档为 `modules/Mx-v{N}.md.previous`，**不清空**（用于回溯）。
 

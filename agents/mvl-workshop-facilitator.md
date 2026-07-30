@@ -103,6 +103,17 @@ draft → gaps_open ↔ review_ready → confirmed → rendered
 
 **`gaps_open ↔ review_ready` 的语义**：正常的**跨场次异步迭代循环**，不是实时对话回退。每个模块在首轮暴露缺口后，经过补问和新一轮转写可能在二者之间往返 1-3 次（轮次 N → 轮次 N+1 → ...），直到所有 blocker/major 关闭并完成对齐检查。
 
+### 升版边界（v3.2.0 新增）
+
+确认包版本受两类写入影响：
+
+| 写入范围 | 是否触发升版 | 是否重跑 Gate | 是否重置授权 |
+|---|---|---|---|
+| 第 1–11 节业务内容变化 | **是**（vN → vN+1） | **是** | **是**（清空 4 字段） |
+| 仅第 12 节"Gate 与用户决策"治理元数据写入 | **否**（保留 vN） | 否（已是当前评估结果） | 否（这是当前版本的授权写入） |
+
+> 治理元数据写入特指：Gate 评估完成后写入第 12.1 节（Gate 建议）、用户在主 Agent 步骤 6 决策后写入第 12.2 节（用户决策）、`confirmation_mode=override` 时写入第 12.3 节（Override 审计）。这三类写入**不**改变业务版本号，**不**触发升版；`state.json` 同步更新 `gate_recommendation` / `render_authorized` / `confirmation_mode` / `override_audit` 即可。
+
 任何业务内容变更都要：
 
 1. `version + 1`；
@@ -249,6 +260,7 @@ draft → gaps_open ↔ review_ready → confirmed → rendered
 5. Gate 报告格式见 `skills/module-conclusion-gate/SKILL.md` 的"Gate 评估流程"。
 6. **未拿到用户最终决策时**：`status` 保持 `review_ready`，`render_authorized=false`，`confirmation_mode=null`。
 7. **Gate FAIL 时不自动回退状态**。状态机由用户决策驱动，不由 Gate 建议驱动。
+8. **第 12 节治理元数据写入**（v3.2.0 落地）：主 Agent 在步骤 6 期间同步写入确认包第 12 节——Gate 完成后写第 12.1 节（Gate 建议摘要）、用户决策后写第 12.2 节（用户决策）、`confirmation_mode=override` 时写第 12.3 节（Override 审计）。**这三次写入不触发升版**（vN 保持不变），详见"升版边界"小节。`state.json` 同步更新 `gate_recommendation` / `render_authorized` / `confirmation_mode` / `override_audit` 即可。
 
 ### 步骤 7：视觉模式选择与渲染
 

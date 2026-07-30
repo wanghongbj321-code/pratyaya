@@ -129,9 +129,11 @@ Stage 2 完成后交给主 agent 触发闸门（`module-conclusion-gate`），�
 
 > 模块：M{N} — {模块名}
 > 版本：v{N}（基于第 X 轮 Key Points）
-> 状态：待用户确认
+> 状态：{draft / gaps_open / review_ready / confirmed / rendered}
+> 生成时间：{ISO 8601 datetime，由 skill 生成时写入}
 > 确认人：{待填写}
-> 确认时间：{待填写}
+> 确认人角色（可选）：{业务方 / 技术方 / 管理层 / 其他}
+> 确认时间：{待填写，ISO 8601 datetime}
 
 ---
 
@@ -153,9 +155,9 @@ Stage 2 完成后交给主 agent 触发闸门（`module-conclusion-gate`），�
 
 ### 4. 缺口速览
 
-- blocker：x
-- major：x
-- minor：x
+- blocker：x（open / closed / accepted_risk）
+- major：x（open / closed / accepted_risk）
+- minor：x（open / closed / accepted_risk）
 
 ### 5. 待确认版本
 
@@ -186,13 +188,18 @@ v{N}
 
 ### 8. 缺口表
 
-| ID | 等级 | 描述 | 缺失影响 | 最少补问 |
-|---|---|---|---|---|
-| M{N}-G01 | blocker | ... | ... | ... |
-| M{N}-G02 | major | ... | ... | ... |
-| M{N}-G03 | minor | ... | ... | ... |
+| ID | 等级 | 状态 | 描述 | 缺失影响 | 最少补问 |
+|---|---|---|---|---|---|
+| M{N}-G01 | blocker | open / closed / accepted_risk | ... | ... | ... |
+| M{N}-G02 | major | open / closed / accepted_risk | ... | ... | ... |
+| M{N}-G03 | minor | open / closed / accepted_risk | ... | ... | ... |
 
 > 等级定义：blocker = 使核心产出/Canvas 模块无法成立；major = 显著改变范围/方案/验证判断；minor = 不改变核心结论，可后续补齐或明确接受风险。
+> 状态定义：
+> - `open`：未关闭；Gate 评估时仍按等级计入 PASS/FAIL。
+> - `closed`：已解决；可作为关闭依据进入下一轮或当前轮评估。
+> - `accepted_risk`：用户/确认人已显式接受风险；属治理元数据，由用户在确认环节写入，不由本 skill 写入。
+> `open` 状态的 blocker/major 缺口使 Gate 输出 `gate_recommendation=fail`；`accepted_risk` 视为已处置（仍按等级计入风险，不影响 override 路径判断）。
 
 ### 9. 推断表
 
@@ -211,9 +218,45 @@ v{N}
 - M{N} 覆盖度初判：{section} {状态}
 - M{N} 缺口表 G{XX}（如已在本表登记）
 
-### 11. 待用户确认
+### 11. 待用户决策
 
-> 请回复"**确认 v{N}**"以放行闸门并生成画布，或指出需要修正的内容。
+> 请在以下三项中任选其一回复：
+> - **确认 v{N}**：Gate 已通过，希望对当前版本作最终确认并授权渲染。
+> - **override**：Gate 报告含 `business_risk` FAIL，我已阅读影响并接受该风险；请补充 override 理由、确认人、确认时间，可选角色与补救措施。
+> - **补问 / 修订**：当前版本存在需要补问的问题或需修改的业务内容，请回到工作流对应步骤。
+
+---
+
+## 12. Gate 与用户决策
+
+> **本节属于治理元数据**，由 Gate 流程与主 Agent 在用户决策后写入。
+> **业务内容变化**（第 1–11 节任何字段）必须升版 + 重跑 Gate + 重新确认；**仅修改本节不触发业务版本升版**。
+> 旧版本本节审计信息随旧版确认包保留，用于历史追溯。
+
+### 12.1 Gate 建议
+
+- `gate_recommendation`：`pending` / `pass` / `fail`
+- Gate 评估时间：{ISO 8601 datetime}
+- Gate 报告摘要：{见 `../module-conclusion-gate/SKILL.md` 报告结构；本字段可写评估项 PASS/FAIL 数与最关键 1–2 项摘要}
+
+### 12.2 用户决策
+
+- `confirmation_mode`：`待决策` / `gate_pass` / `override`
+- `render_authorized`：`false` / `true`
+- 确认人：{用户填写}
+- 确认人角色（可选）：{用户填写}
+- 确认时间：{ISO 8601 datetime}
+
+### 12.3 Override 审计（仅 `confirmation_mode=override` 时填写）
+
+| Gate 项 ID | 来源 ID | 分类 | 风险等级 | 影响 |
+|---|---|---|---|---|
+| M{N}-GATE-0X | M{N}-{section} | business_risk | low / medium / high | ... |
+
+> - **Override 理由**：{用户填写的影响确认 + 业务上下文}
+> - **补救措施**：{用户填写的后续动作与验收条件}
+> - **核心约束**：仅 `category=business_risk` 项可进入 override；`information_integrity` 失败不接受 override，必须返回补问或修订。
+> - **审计完整性**：`override_audit.items` 非空且每项 `category=business_risk`，否则 Canvas 渲染前置检查阻断。
 ```
 
 **约束**：
@@ -224,6 +267,30 @@ v{N}
 - 不调用 Canvas 渲染、不执行闸门判定。
 - 状态写入由主 agent 在"确认 vN"后执行，不在本 skill 内部。
 - 版本号管理：升版时 vN → vN+1，旧版本归档为 `modules/Mx-v{N}.md.previous`，不清空。
+- **缺口表必须含 `状态` 列**（`open` / `closed` / `accepted_risk`），其中 `accepted_risk` 由确认人在确认环节写入，不由本 skill 写入。
+- **元数据必须包含**：`模块` / `版本` / `状态` / `生成时间`（ISO 8601 datetime，skill 生成时自动写入） / `确认人` / `确认人角色（可选）` / `确认时间`（用户填写）。
+- **第 12 节"Gate 与用户决策"由 Gate 流程与主 Agent 在用户决策后写入**；本 skill 不写第 12 节。本 skill 只负责在模板中预留该节结构。
+
+## 升版边界（v3.2.0 新增）
+
+确认包版本受两类写入影响：
+
+| 写入范围 | 是否触发升版 | 是否重跑 Gate | 是否重置授权 |
+|---|---|---|---|
+| 第 1–11 节业务内容（含结论、缺口、推断、引用、决策）变化 | **是**（vN → vN+1） | **是** | **是**（清空 `gate_recommendation` / `render_authorized` / `confirmation_mode` / `override_audit`） |
+| 仅第 12 节"Gate 与用户决策"治理元数据写入（Gate 报告、用户决策、Override 审计） | **否**（保留 vN） | 否（已是当前评估结果） | 否（这是当前版本的授权写入） |
+
+**规则**：
+
+- **业务内容变化**：必须 `version + 1` + `gate_recommendation=pending` + `render_authorized=false` + `confirmation_mode=null` + 清空当前版本 `override_audit`；旧版本确认包归档为 `Mx-v{N}.md.previous`，旧版第 12 节审计随旧版保留。
+- **治理元数据写入**（仅第 12 节）：不触发升版；Gate 报告摘要与用户授权属于当前版本的元数据补充。
+- **历史版本审计**不得清空：旧版 `Mx-v{N}.md.previous` 的第 12 节（包括历史 override 审计）必须完整保留，用于追溯。
+
+## 元数据生成时间字段
+
+- `生成时间`（`Mx-v{N}.md` 顶部）由本 skill 在 Stage 2 生成确认包时按系统真实时间写入（ISO 8601 datetime）。
+- `确认时间`由主 Agent 在用户决策后写入；不得使用 skill 生成时间。
+- 禁止在文件名、文档标题、报告标识中编造时间戳（见 `MEMORY.md` 工具使用规范）。
 
 ## 模块索引
 
