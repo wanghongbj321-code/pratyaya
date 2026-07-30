@@ -22,7 +22,7 @@
 |---|---|---|
 | 状态 | `state.json`（按 state.schema.json） | `state.json`（结构同 v1.x，但不强校验） |
 | 模块中间产物 | `modules/module-N.json`（按 module-record.schema.json） | `modules/Mx-keypoints.md` + `modules/Mx-v{N}.md` |
-| 闸门判定 | `module-conclusion-gate` 调 `check_gate.py` | LLM 阅读 `Mx-v{N}.md` + `gate-policy/Mx-gate.md`，输出 Markdown 判定报告 |
+| 闸门判定 | `module-conclusion-gate` LLM 自检 | LLM 阅读 `Mx-v{N}.md` + `../skills/module-conclusion-gate/references/Mx-gate.md`，输出 Markdown 判定报告 |
 | 事实源 | module-N.json | `Mx-v{N}.md`（唯一事实源） |
 
 ## 后续评估

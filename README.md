@@ -53,4 +53,4 @@ mvl-workshop-facilitator/
 
 ## 专家版本
 
-v3.0.0（2026-07-30）。与 `.codebuddy-plugin/plugin.json` 的 `version` 字段同步。
+v3.1.0（2026-07-30）。与 `.codebuddy-plugin/plugin.json` 的 `version` 字段同步。

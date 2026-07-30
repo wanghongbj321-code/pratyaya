@@ -1,4 +1,4 @@
 interface:
   display_name: "模块结论闸门"
   short_description: "评估 MVL 模块确认包，决定是否允许生成正式 Canvas。"
-  default_prompt: "读取 modules/Mx-v{N}.md 确认包与 gate-policy/Mx-gate.md 闸门策略，逐项评估后输出 Gate 判定报告（Markdown），含 render_allowed: true/false。"
+  default_prompt: "读取 modules/Mx-v{N}.md 确认包与 ../references/Mx-gate.md 闸门策略，逐项评估后输出 Gate 判定报告（Markdown），含 render_allowed: true/false。"

@@ -18,7 +18,7 @@ description: 审核 MVL 工作坊单模块的确认包（Mx-v{N}.md），评估�
 **输入**：
 
 - `modules/Mx-v{N}.md`（确认包，Markdown 格式，唯一事实源）
-- `gate-policy/Mx-gate.md`（本模块的最低可用结论与常见 blocker）
+- `references/Mx-gate.md`（本模块的最低可用结论与常见 blocker，位于本 Skill 的 `references/` 子目录）
 - 当前状态（来自主 agent 维护的 `state.json`）
 
 **输出**：
@@ -32,7 +32,7 @@ description: 审核 MVL 工作坊单模块的确认包（Mx-v{N}.md），评估�
 **触发**：主 agent 步骤 6（用户回复"确认 vN"后调用）。
 
 1. 读取 `modules/Mx-v{N}.md`（确认包）；
-2. 读取 `gate-policy/Mx-gate.md`（本模块的最低可用结论与常见 blocker）；
+2. 读取 `references/Mx-gate.md`（本模块的最低可用结论与常见 blocker）；
 3. 逐项对照评估，输出 Gate 判定报告（Markdown）：
 
 ```markdown
@@ -122,7 +122,7 @@ render_allowed: true / false
 
 确认时必须让用户看到：
 
-1. 当前模块固定 section（参见 `gate-policy/Mx-gate.md`）；
+1. 当前模块固定 section（参见 `references/Mx-gate.md`）；
 2. 结论及共识状态；
 3. 缺口和缺失影响；
 4. 推断及接受/拒绝状态；

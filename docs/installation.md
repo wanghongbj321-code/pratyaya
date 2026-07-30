@@ -1,8 +1,8 @@
 # 安装指南
 
-> 适用版本：v3.0.0
+> 适用版本：v3.1.0
 > 适用工具：WorkBuddy
-> 与 plugin.json `version: 3.0.0` 同步
+> 与 plugin.json `version: 3.1.0` 同步
 
 > **TL;DR**：把 [第三节](#3-给-workbuddy-的一键安装提示词) 的提示词**完整复制**到 WorkBuddy 的"专家导入"入口。安装后**必须重启** WorkBuddy。
 
@@ -36,12 +36,12 @@
 请按 plugin.json 的字段读取专业名称、描述、快速指令集和标签。
 专家包内的 agents/mvl-workshop-facilitator.md 是主 Agent 入口。
 安装完成后请重启 WorkBuddy 并验证。
-本专家包版本：v3.0.0（与 plugin.json version 字段同步）。
+本专家包版本：v3.1.0（与 plugin.json version 字段同步）。
 ```
 
 > **关键信息**：
 > - 提示词内已含"专家仓库路径""plugin.json 路径""主 Agent 路径"三个核心路径
-> - 版本号 v3.0.0 与 plugin.json `version` 字段保持一致
+> - 版本号 v3.1.0 与 plugin.json `version` 字段保持一致
 > - 安装失败时请把 WorkBuddy 错误信息回传
 
 ## 4. 安装后必须重启
@@ -119,6 +119,6 @@ draft → gaps_open ↔ review_ready → confirmed → rendered
 
 ---
 
-**版本**：v3.0.0
+**版本**：v3.1.0
 **适用平台**：WorkBuddy
 **配套文档**：[用户指南](./user-guide.md) / [DEVELOPMENT.md](../DEVELOPMENT.md) / [DESIGN.md](../DESIGN.md)

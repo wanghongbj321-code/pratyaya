@@ -12,7 +12,7 @@ v2.0 起，模块结论闸门（Gate）由 LLM 评估替代 v1.x 的 Python 脚�
 
 1. LLM 读取 `modules/Mx-v{N}.md`（确认包 Markdown）
 2. 对照 `skills/module-conclusion-gate/SKILL.md` 的判定规则
-3. 输出 Markdown 判定报告 `gate-policy/Mx-gate.md`，含 `render_allowed` 字段
+3. 输出 Markdown 判定报告 `skills/module-conclusion-gate/references/Mx-gate.md`，含 `render_allowed` 字段
 
 详细规则、缺口等级、推断术语、版本绑定的完整定义见 [skills/module-conclusion-gate/SKILL.md](./skills/module-conclusion-gate/SKILL.md)。
 
@@ -62,7 +62,7 @@ Key Points (Mx-keypoints.md) → 提炼 (Mx-v{N}.md) → Gate (Mx-gate.md) → �
 - **MINOR**：新增功能（新增 Skill 子任务、新增文档章节等）
 - **PATCH**：Bug 修复、措辞调整
 
-当前版本：v3.0.0。
+当前版本：v3.1.0。
 
 发布流程（按 workbuddy 指导第十节"修改已有专家"5 步）：
 
@@ -89,5 +89,5 @@ Key Points (Mx-keypoints.md) → 提炼 (Mx-v{N}.md) → Gate (Mx-gate.md) → �
 
 ---
 
-**版本**：v3.0.0
+**版本**：v3.1.0
 **配套文档**：[DESIGN.md](./DESIGN.md) / [docs/installation.md](./docs/installation.md) / [docs/user-guide.md](./docs/user-guide.md)

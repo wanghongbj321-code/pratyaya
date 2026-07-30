@@ -17,9 +17,9 @@ skills: [mvl-distill, module-conclusion-gate, canvas-render]
 
 **路径引用约定**：
 
-- `frameworks/m{1-6}-*.md`、`gate-policy/M{1-6}-gate.md` 指项目工作目录（`mvl-workshop/{项目名}/`）下的资源；每个工作坊项目独立维护或从 skill 软链接。
-- `skills/{skill-name}/...` 指 skill 内部资源（如 `skills/mvl-distill/frameworks/m{1-6}-*.md`），是工作目录副本的来源。
-- `skills/canvas-render/visual-patterns/[0-9][0-9]-*.md` 是项目内视觉模式资源；发现、校验和完整路径传递规则见 `skills/canvas-render/visual-patterns/README.md` 与 `skills/canvas-render/SKILL.md`。
+- `frameworks/m{1-6}-*.md`（实际位于 `skills/mvl-distill/frameworks/`）指 skill 内部资源（6 阶段固定框架）；项目目录不持有 frameworks/。
+- `skills/{skill-name}/...` 指 skill 内部资源（如 `skills/mvl-distill/frameworks/`、`skills/canvas-render/visual-patterns/`、`skills/module-conclusion-gate/references/`）。
+- `skills/canvas-render/visual-patterns/[0-9][0-9]-*.md` 指 skill 内部视觉模式资源（9 个 Markdown 视觉模式 + README）；项目目录不持有 visual-patterns/。发现、校验和完整路径传递规则见 `skills/canvas-render/visual-patterns/README.md` 与 `skills/canvas-render/SKILL.md`。
 
 ## 定位
 
@@ -226,7 +226,7 @@ draft → gaps_open ↔ review_ready → confirmed → rendered
 **触发**：用户回复"确认 v{N}"后。
 
 1. Agent 阅读 `modules/Mx-v{N}.md`（确认包）。
-2. 对照 `gate-policy/Mx-gate.md` 逐项评估。
+2. 对照 `skills/module-conclusion-gate/references/Mx-gate.md`（项目统一从 skill 资源读，无需项目目录持有 `gate-policy/`）逐项评估。
 3. 输出 Gate 判定报告（Markdown 文本）：
 
 ```markdown
@@ -344,8 +344,6 @@ mvl-workshop/{项目名}/
 │   ├── M1-v2.md                    # 确认包 v2（升版后）
 │   ├── M1-gaps.md                  # 补问清单
 │   └── ...
-├── gate-policy/
-│   ├── M1-gate.md ... M6-gate.md   # 闸门策略（LLM 自检对照）
 ├── frameworks/
 │   ├── m1-intent.md ... m6-summary.md
 └── output/
@@ -360,7 +358,6 @@ mvl-workshop/{项目名}/
 - `transcripts/*.md`：原始逐字稿存档（不可信数据，仅供回溯）。
 - `modules/Mx-keypoints.md`：Key Points 概览（**非事实源**，是讨论地图）。
 - `modules/Mx-v{N}.md`：确认包（**唯一事实源**，所有后续渲染只读此文件）。
-- `gate-policy/Mx-gate.md`：闸门评估项定义。
 - `output/module-N-canvas.html`：基于最新确认版本的 Canvas。
 
 `state.json` 每次状态变化后立即写入。Markdown 确认包是业务事实源，HTML 是同版本展示物，两者不可互相代替。

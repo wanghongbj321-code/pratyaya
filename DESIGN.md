@@ -1,7 +1,7 @@
 # MVL 设计文档
 
-> 适用版本：v3.0.0
-> 与 plugin.json `version: 3.0.0` 同步
+> 适用版本：v3.1.0
+> 与 plugin.json `version: 3.1.0` 同步
 
 ## 1. 决策
 
@@ -41,7 +41,7 @@ MVL 工作坊常陷入的反模式：
 |---|---|---|
 | 确认包（唯一事实源） | `modules/Mx-v{N}.md` | 正式 Canvas 渲染依据 |
 | Key Points 概览 | `modules/Mx-keypoints.md` | 草稿 Canvas 数据源（不进入正式流程） |
-| Gate 评估产物 | `gate-policy/Mx-gate.md` | LLM 输出 Markdown 判定报告，含 `render_allowed` |
+| Gate 评估产物 | `skills/module-conclusion-gate/references/Mx-gate.md` | LLM 输出 Markdown 判定报告，含 `render_allowed` |
 | Markdown 视觉模式 | `skills/canvas-render/visual-patterns/NN-{id}.md` | 9 个可扫描模式；frontmatter 用于推荐，六节正文定义色板、字体、网格、组件及边界 |
 | Schema（v1.x 强约束，v2.0 非强制） | `schemas/*.schema.json` | 详见 [schemas/README.md](./schemas/README.md) |
 
@@ -107,7 +107,7 @@ stateDiagram-v2
 - **五状态模块生命周期**（`draft → gaps_open ↔ review_ready → confirmed → rendered`）
 - 模块和全局质量策略
 - JSON Schema（当前标注为非强制参考，详见 [schemas/README.md](./schemas/README.md)）
-- **LLM 评估闸门**（输出 Markdown 判定报告 `gate-policy/Mx-gate.md`，详见 [skills/module-conclusion-gate/SKILL.md](./skills/module-conclusion-gate/SKILL.md)）
+- **LLM 评估闸门**（输出 Markdown 判定报告 `skills/module-conclusion-gate/references/Mx-gate.md`，详见 [skills/module-conclusion-gate/SKILL.md](./skills/module-conclusion-gate/SKILL.md)）
 - 本地离线 HTML 的渲染契约
 
 ### 仍需验证
@@ -119,5 +119,5 @@ stateDiagram-v2
 
 ---
 
-**版本**：v3.0.0
+**版本**：v3.1.0
 **配套文档**：[README.md](./README.md) / [DEVELOPMENT.md](./DEVELOPMENT.md) / [docs/installation.md](./docs/installation.md) / [docs/user-guide.md](./docs/user-guide.md)

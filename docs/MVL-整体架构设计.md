@@ -1,6 +1,6 @@
 # MVL 工作坊助教 — 整体功能架构设计
 
-> 版本：v3.0.0（与 `.codebuddy-plugin/plugin.json` 同步）
+> 版本：v3.1.0（与 `.codebuddy-plugin/plugin.json` 同步）
 > 编写时间：2026-07-30
 > 适用范围：架构师 / 维护者 / 二次开发者
 > 配套文档：[DESIGN.md](../../../DESIGN.md)（设计要点） / [README.md](../../../README.md)（门面） / [DEVELOPMENT.md](../../../DEVELOPMENT.md)（命令清单） / [docs/user-guide.md](../../../docs/user-guide.md)（用户视角）
@@ -87,7 +87,7 @@ flowchart TB
 
     subgraph L4["L4 · 资产层"]
         FW["frameworks/m1-m6-*.md<br/>6 阶段固定框架"]
-        GP["gate-policy/M1-M6-gate.md<br/>6 阶段闸门策略"]
+        GP["skills/module-conclusion-gate/references/M1-M6-gate.md<br/>6 阶段闸门策略"]
         RC["canvas-render/references/<br/>render-contract.md<br/>mvl-canvas-spec.md"]
         VP["canvas-render/visual-patterns/<br/>9 个 Markdown 视觉模式 + 6 字段"]
         EX["examples/modules/<br/>Key Points / 确认包模板"]
@@ -234,7 +234,7 @@ flowchart LR
 | ------------------ | -------------------------------------------------------- |
 | **触发**     | 用户回复"确认 vN"                                        |
 | **执行者**   | 主 Agent 调用`module-conclusion-gate`                  |
-| **输入**     | `Mx-v{N}.md` + `gate-policy/Mx-gate.md`              |
+| **输入**     | `Mx-v{N}.md` + `skills/module-conclusion-gate/references/Mx-gate.md`              |
 | **输出**     | Gate 判定报告（Markdown）+`render_allowed: true/false` |
 | **状态更新** | true →`confirmed` / false → `gaps_open`            |
 
@@ -494,7 +494,7 @@ flowchart TB
     subgraph SKILL["Skill 资源（项目仓库）"]
         direction TB
         FW["frameworks/<br/>m1-intent.md ... m6-summary.md"]
-        GATE["gate-policy/<br/>M1-gate.md ... M6-gate.md"]
+        GATE["skills/module-conclusion-gate/references/<br/>M1-gate.md ... M6-gate.md"]
         RC["canvas-render/references/<br/>render-contract.md<br/>mvl-canvas-spec.md"]
         VP["canvas-render/visual-patterns/<br/>README.md + 9 个 NN-id.md"]
     end
@@ -523,7 +523,7 @@ flowchart TB
 | ---------- | ----------------------------------------------- | ------------------------- | ----------- |
 | 确认包     | `modules/Mx-v{N}.md`                          | **唯一事实源** | 4           |
 | Key Points | `modules/Mx-keypoints.md`                     | 草稿 Canvas 数据源        | 1 → 4 草稿 |
-| Gate 报告  | `gate-policy/Mx-gate.md`                      | 闸门判定（LLM 输出）      | 3           |
+| Gate 报告  | `skills/module-conclusion-gate/references/Mx-gate.md`                      | 闸门判定（LLM 输出）      | 3           |
 | 阶段框架   | `frameworks/m{1-6}-*.md`                      | 引导问题 + 最低结论       | 0 / 2       |
 | 视觉模式   | `skills/canvas-render/visual-patterns/NN-{id}.md` | 9 模式 / 六字段 + 六节正文 | 4           |
 | 渲染契约   | `canvas-render/references/render-contract.md` | DOM + section 映射        | 4           |
@@ -613,7 +613,7 @@ flowchart LR
 | 增加新模式（如 D 复盘） | 主 Agent 步骤 0                                                  | 全局工作流                       |
 | 新增必填 section        | `skills/mvl-distill/references/workshop-canvas-map.md`         | MVL Canvas 渲染契约              |
 | 新增视觉模式            | `skills/canvas-render/visual-patterns/README.md` + 新 `NN-{id}.md` | 候选扫描、六字段、六节正文及品牌证据 |
-| 新增闸门评估项          | `gate-policy/Mx-gate.md` + `module-conclusion-gate/SKILL.md` | Gate 流程                        |
+| 新增闸门评估项          | `skills/module-conclusion-gate/references/Mx-gate.md` + `module-conclusion-gate/SKILL.md` | Gate 流程                        |
 | 改 5 态状态机           | **不建议** — 8 条不变量依赖此结构                         | 重大破坏性变更                   |
 | 替换逐字稿为其他源      | 主 Agent 步骤 1 输入                                             | 工作流可保留，引用层级需重新审视 |
 
@@ -655,7 +655,7 @@ flowchart LR
 | --------------------- | ----------------------------------------------------------------------- |
 | 主 Agent 的完整工作流 | `agents/mvl-workshop-facilitator.md`                                  |
 | 提炼的具体流程        | `skills/mvl-distill/SKILL.md`                                         |
-| 闸门评估的具体规则    | `skills/module-conclusion-gate/SKILL.md` + `gate-policy/Mx-gate.md` |
+| 闸门评估的具体规则    | `skills/module-conclusion-gate/SKILL.md` + `skills/module-conclusion-gate/references/Mx-gate.md` |
 | 渲染的具体契约        | `skills/canvas-render/SKILL.md` + `references/render-contract.md`   |
 | 不变量 / 关键约束     | §6 +[DESIGN.md](../../../DESIGN.md) §7                                 |
 | 用户怎么用            | [docs/user-guide.md](../../../docs/user-guide.md)                        |
@@ -696,7 +696,7 @@ flowchart TB
 
     subgraph ASSETS["资产层"]
         FW["frameworks/m1-m6"]
-        GP["gate-policy/M1-M6"]
+        GP["skills/module-conclusion-gate/references/M1-M6"]
         VP["visual-patterns (9 个 Markdown 模式)"]
         RC["render-contract.md"]
     end
@@ -738,7 +738,7 @@ flowchart TB
 
 ---
 
-**版本**：v3.0.0
+**版本**：v3.1.0
 **配套**：[DESIGN.md](../../../DESIGN.md)（设计要点） / [README.md](../../../README.md)（门面） / [DEVELOPMENT.md](../../../DEVELOPMENT.md)（命令清单） / [docs/installation.md](./installation.md)（部署） / [docs/user-guide.md](./user-guide.md)（用户视角）
 
 ---
@@ -747,6 +747,7 @@ flowchart TB
 
 | 版本 | 日期 | 作者 | 变更说明 |
 |---|---|---|---|
+| v3.1.0 | 2026-07-30 | Shaq | 文档失修修复（19 处路径引用：SKILL.md 自指 3 处、openai.yaml 1 处、DESIGN.md 2 处、DEVELOPMENT.md 1 处、schemas/README.md 1 处含已删的 `check_gate.py` 清理、架构文档 7 处）+ 方案 C 数据源统一（gate-policy/ 从项目目录移除，frameworks/ 与 visual-patterns/ 同步统一为纯 skill 资源读）；同步 plugin.json 3.0.0 → 3.1.0（MINOR，§8.2）|
 | v3.0.0 | 2026-07-30 | Shaq | Canvas 视觉资源由预制 HTML 与集中登记册切换为 9 个 Markdown 视觉模式；主 Agent 扫描 frontmatter、用户选定后传递完整路径；同步企业配色、运行契约与发布文档 |
 | v2.0.0 | 2026-07-30 | Shaq | 首版发布。整合 v2.0 重构成果（1 主 Agent + 3 Skill + 5 态状态机 + 4 阶段管线），新增整体架构视角，9 个 mermaid 图覆盖系统分层 / 数据流 / 状态机 / 部署 / 一页式架构图 |
 | v2.0.0-mermaid-fix | 2026-07-30 | Shaq | 修复 11 处 mermaid 节点语法问题：`{N}` / `{项目名}` / `{1-6}` 等花括号占位符改为纯文本；圆柱形节点 `[(...)]` 统一为矩形 `["..."]` 避免形状特殊字符叠加 |
