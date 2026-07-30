@@ -2,6 +2,8 @@
 
 > M2 模块（需求发现、用户与真实流程拆解）的最低可用结论与常见 blocker。本文件由 `module-conclusion-gate` 在 Gate 评估时读取。
 
+> **v3.2.0 更新**：每条放行条件增加稳定 ID、分类（`information_integrity` / `business_risk`）和风险等级，供 Gate 报告与 override 审计引用。
+
 ## 必填 section
 
 参见 `../../mvl-distill/references/workshop-canvas-map.md` 中"M2 必填 section"：
@@ -35,10 +37,31 @@
 
 ## 放行条件
 
+每条放行条件拥有稳定 ID、分类和风险等级，供 Gate 报告与 `override_audit.items` 引用。
+
+| ID | 条件 | 分类 | 风险等级 | 来源 |
+|---|---|---|---|---|
+| `M2-GATE-01` | 6 个必填 section 全部有内容或显式标为缺口 | `information_integrity` | low | M2 必填 section 表 |
+| `M2-GATE-02` | users 至少包含一个具体用户角色 + 场景 + 行为链路 | `information_integrity` | low | M2-users |
+| `M2-GATE-03` | pain_points 每项痛点可追溯到 current_workflow 中的具体环节 | `information_integrity` | low | M2-pain_points, M2-current_workflow |
+| `M2-GATE-04` | requirements 明确区分 AI 刚需与增值需求，并标注优先级 | `information_integrity` | low | M2-requirements |
+| `M2-GATE-05` | most_important_outcomes 由业务方明确认可（共识状态非"待确认"） | `information_integrity` | low | M2-most_important_outcomes |
+
+**详细说明**：
+
 满足以下全部条件才可放行：
 
-1. 6 个必填 section 全部有内容或显式标为缺口；
-2. users 至少包含一个具体用户角色 + 场景 + 行为链路；
-3. pain_points 每项痛点可追溯到 current_workflow 中的具体环节；
-4. requirements 明确区分 AI 刚需与增值需求，并标注优先级；
-5. most_important_outcomes 由业务方明确认可（共识状态非"待确认"）。
+1. `M2-GATE-01`：6 个必填 section 全部有内容或显式标为缺口。
+2. `M2-GATE-02`：users 至少包含一个具体用户角色 + 场景 + 行为链路。
+3. `M2-GATE-03`：pain_points 每项痛点可追溯到 current_workflow 中的具体环节。
+4. `M2-GATE-04`：requirements 明确区分 AI 刚需与增值需求，并标注优先级。
+5. `M2-GATE-05`：most_important_outcomes 由业务方明确认可（共识状态非"待确认"）。
+
+> **分类说明**：M2 五条放行条件均为 `information_integrity`，任一 FAIL 均不可 override；用户必须返回补问或修订。
+
+## 来源 ID 约定
+
+- `M2-{section}`：对应必填 section（如 `M2-users`、`M2-requirements`）。
+- `M2-Gxx`：本模块缺口 ID。
+- `M2-Ixx`：本模块推断 ID。
+- `M2-Cxx`：本模块结论 ID。

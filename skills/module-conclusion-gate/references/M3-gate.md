@@ -2,6 +2,8 @@
 
 > M3 模块（闭环目标定义、HMW 拆解与方案方向锁定）的最低可用结论与常见 blocker。本文件由 `module-conclusion-gate` 在 Gate 评估时读取。
 
+> **v3.2.0 更新**：每条放行条件增加稳定 ID、分类（`information_integrity` / `business_risk`）和风险等级，供 Gate 报告与 override 审计引用。
+
 ## 必填 section
 
 参见 `../../mvl-distill/references/workshop-canvas-map.md` 中"M3 必填 section"：
@@ -38,10 +40,31 @@ HMW、闭环目标、能力指标、验收标准、边界、AI 方案方向、�
 
 ## 放行条件
 
+每条放行条件拥有稳定 ID、分类和风险等级，供 Gate 报告与 `override_audit.items` 引用。
+
+| ID | 条件 | 分类 | 风险等级 | 来源 |
+|---|---|---|---|---|
+| `M3-GATE-01` | 8 个必填 section 全部有内容或显式标为缺口 | `information_integrity` | low | M3 必填 section 表 |
+| `M3-GATE-02` | workflow_draft 含 trigger / steps / completion_condition 三个核心要素 | `information_integrity` | low | M3-workflow_draft |
+| `M3-GATE-03` | workflow_draft 三类节点至少各 1 项 | `information_integrity` | low | M3-workflow_draft |
+| `M3-GATE-04` | 闭环目标 loop_goal 由业务方与技术方共同确认 | `information_integrity` | low | M3-loop_goal |
+| `M3-GATE-05` | solution_direction 已锁定（无悬而未决的备选方向） | `information_integrity` | low | M3-solution_direction |
+
+**详细说明**：
+
 满足以下全部条件才可放行：
 
-1. 8 个必填 section 全部有内容或显式标为缺口；
-2. workflow_draft 含 trigger / steps / completion_condition 三个核心要素；
-3. workflow_draft 三类节点至少各 1 项；
-4. 闭环目标 loop_goal 由业务方与技术方共同确认；
-5. solution_direction 已锁定（无悬而未决的备选方向）。
+1. `M3-GATE-01`：8 个必填 section 全部有内容或显式标为缺口。
+2. `M3-GATE-02`：workflow_draft 含 trigger / steps / completion_condition 三个核心要素。
+3. `M3-GATE-03`：workflow_draft 三类节点至少各 1 项。
+4. `M3-GATE-04`：闭环目标 loop_goal 由业务方与技术方共同确认。
+5. `M3-GATE-05`：solution_direction 已锁定（无悬而未决的备选方向）。
+
+> **分类说明**：M3 五条放行条件均为 `information_integrity`，任一 FAIL 均不可 override；用户必须返回补问或修订。
+
+## 来源 ID 约定
+
+- `M3-{section}`：对应必填 section（如 `M3-loop_goal`、`M3-workflow_draft`）。
+- `M3-Gxx`：本模块缺口 ID。
+- `M3-Ixx`：本模块推断 ID。
+- `M3-Cxx`：本模块结论 ID。

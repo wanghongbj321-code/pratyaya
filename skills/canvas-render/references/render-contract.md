@@ -28,24 +28,24 @@
     </section>
     <section id="agent-team">
       <div id="agent-team-roles">...</div>
-      <div id="agent-team-collaboration">...</div>
+      <div id="agent-team-collaboration"></div>
     </section>
     <section id="workflow">
       <div id="workflow-steps">...</div>
       <div id="workflow-automation">...</div>
-      <div id="workflow-human-checkpoints">...</div>
-      <div id="workflow-human-agent-nodes">...</div>
-      <div id="workflow-rules">...</div>
+      <div id="workflow-human-checkpoints"></div>
+      <div id="workflow-human-agent-nodes"></div>
+      <div id="workflow-rules"></div>
     </section>
     <section id="context">
       <div id="context-knowledge">...</div>
-      <div id="context-data-sources">...</div>
-      <div id="context-tools-skills">...</div>
+      <div id="context-data-sources"></div>
+      <div id="context-tools-skills"></div>
     </section>
     <section id="validation">
       <div id="validation-executable">...</div>
       <div id="validation-value">...</div>
-      <div id="validation-evolution">...</div>
+      <div id="validation-evolution"></div>
     </section>
   </main>
   <aside id="quality-panel">...</aside>
@@ -184,10 +184,15 @@
 ```html
 <aside id="quality-panel">
   <h3>质量与对齐</h3>
-  <div id="quality-version">...</div>
-  <div id="quality-approval">...</div>
-  <div id="quality-gaps">...</div>
-  <div id="quality-risks">...</div>
+  <div id="quality-version">v{N}</div>
+  <div id="quality-approval">
+    <!-- gate_recommendation / render_authorized / confirmation_mode -->
+  </div>
+  <div id="quality-gaps">缺口摘要</div>
+  <div id="quality-risks">风险摘要</div>
+  <div id="quality-caveat" hidden>
+    <!-- 仅 override 时显示，含 override 项数量、高风险项数量、风险详情 -->
+  </div>
   <section id="alignment-section">
     <h4>对齐状态</h4>
     <div id="alignment-consensus">...</div>
@@ -196,8 +201,38 @@
   </section>
 </aside>
 <section id="local-notes" contenteditable="true">...</section>
-<script type="application/json" id="canvas-data">...</script>
+<script type="application/json" id="canvas-data">
+  {
+    "version": "v{N}",
+    "module": "M{N}",
+    "sections": { ...确认包 section 映射... },
+    "auth": {
+      "gate_recommendation": "pass | fail",
+      "render_authorized": true,
+      "confirmation_mode": "gate_pass | override",
+      "override_audit": { ...完整 override_audit 数据，仅 override 时存在... }
+    }
+  }
+</script>
 ```
+
+### Caveat 状态标识（v3.2.0 新增）
+
+模块详情页头部必须根据 `confirmation_mode` 显示对应状态：
+
+- `confirmation_mode=gate_pass`：显示"已确认"。
+- `confirmation_mode=override`：显示"**已确认 · 带保留意见**"。
+
+`#quality-caveat` 仅在 `confirmation_mode=override` 时可见（移除 `hidden`），内容必须包含：
+
+- Gate 建议（pass / fail）
+- 最终渲染授权（true）
+- override 项数量
+- 高风险项数量
+- override 理由、确认人、确认时间、补救措施
+- 每项的 Gate 项 ID、来源 ID、影响、风险等级
+
+打印版必须保留以上 caveat 内容；不得因 `@media print` 隐藏。
 
 ## 本地离线约束
 
@@ -212,6 +247,7 @@
 - 输出页的 `data-version` 必须等于确认包版本 `v{N}`。
 - 页面内嵌数据必须来自同一次读取，不允许手工复制后再改写。
 - HTML 中的结论 ID、缺口 ID、引用标识与确认包 Markdown 保持一致。
+- `canvas-data` 的 `auth` 字段必须与 `state.json` 同模块记录完全一致；不得手工改写。
 - 内容变更后必须升版（vN → vN+1），并把状态退回 `draft` 或 `gaps_open`；旧 HTML 视为过期。
 - 引用层级遵循 `../mvl-distill/SKILL.md` 的"不引用逐字稿段落"立场：仅引用 Key Points 与确认包自身的 section。
 
@@ -227,10 +263,12 @@
 
 ## 打印与管理层阅读
 
-- `@media print` 隐藏编辑控件，保留版本、确认和风险状态。
+- `@media print` 隐藏编辑控件，保留版本、确认、风险状态、结论和 override caveat。
 - 结论与关键指标优先，证据细节折叠但可打印附录。
-- `blocker` 和 `major` 不应出现在正式页面；若历史记录需要展示，明确标记"已解决"及证据。
+- 正常确认的模块（`confirmation_mode=gate_pass`）不显示 caveat 标识。
+- override 模块（`confirmation_mode=override`）必须保留 caveat 标识与风险详情。
+- 全局 Canvas 管理层摘要分开呈现：无保留确认结论 / 带保留意见的结论 / 未验证假设 / 关键风险 / 补救动作（Owner + 日期）。
 
 ## 交付前自检
 
-阶段一已移除 `scripts/audit_canvas_html.py`。结构审计由 `SKILL.md` 的"渲染自检"清单执行（数据源一致 / DOM 结构 / 共享结构 / 离线安全 / 打印规则 / 草稿标记 / 视觉系统单一 7 项）。审计通过仍不替代人工浏览器预览；二者都完成后才可交付正式 HTML。
+阶段一已移除 `scripts/audit_canvas_html.py`。结构审计由 `SKILL.md` 的"渲染自检"清单执行（数据源一致 / 授权元数据 / DOM 结构 / 共享结构 / 离线安全 / 打印规则 / 草稿标记 / 视觉系统单一 / 模式一致 / Caveat 显示 10 项）。审计通过仍不替代人工浏览器预览；二者都完成后才可交付正式 HTML。
