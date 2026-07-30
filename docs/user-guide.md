@@ -1,6 +1,6 @@
 # 用户指南
 
-> 适用版本：v2.0.0
+> 适用版本：v3.0.0
 > 配套文档：[安装指南](./installation.md) / [DEVELOPMENT.md](../DEVELOPMENT.md) / [DESIGN.md](../DESIGN.md)
 
 > **TL;DR**：5 步快速开始（见 §1），遇到问题查 §6 异常处理指引。
@@ -21,9 +21,9 @@
 |---|---|---|
 | **A 引导模式** | 第一次做 MVL 工作坊 | 聊天对话（无转写稿） |
 | **B 转写模式** | 有会议录音/转写稿 | `transcripts/module-N-TXX-raw.md` |
-| **C 覆盖检查模式** | v1.x 项目迁移到 v2.0 | 旧的 `module-N.json`（已弃用） |
+| **C 覆盖检查模式** | v1.x 旧项目迁移 | 旧的 `module-N.json`（已弃用） |
 
-> **不推荐 C**：v2.0 不再读取 `module-N.json`。如需迁移，请用 B 模式重新提炼。
+> **不推荐 C**：当前版本不再读取 `module-N.json`。如需迁移，请用 B 模式重新提炼。
 
 ## 3. 用户决策分支
 
@@ -95,12 +95,13 @@
 - 列出 blocker 和 major 缺口
 - 选择"补问"或"升版到 vN+1"重做
 
-### 6.3 模板缺失
+### 6.3 视觉模式资源异常
 
-如 Canvas 渲染时报"模板未选择"：
+如 Canvas 渲染时报“视觉模式目录缺失”“模式未选择”或“文件名与 ID 不一致”：
 
-- 回到主 Agent 步骤 7 重新选模板
-- 参考 §5 指令速查："选择模板 [2×2 选项]"
+- 检查 `skills/canvas-render/visual-patterns/` 是否包含 9 个编号 Markdown 模式
+- 回到主 Agent 步骤 7，重新扫描候选并选择视觉模式
+- 选择时使用主 Agent 给出的候选名称；主 Agent 会向渲染 Skill 传递完整路径
 
 ### 6.4 状态回退
 
@@ -124,12 +125,12 @@
 |---|---|---|
 | 顶部字样 | 草稿 / 未确认 / 禁止用于管理层决策 | MVL Canvas + 版本号 |
 | 数据源 | `Mx-keypoints.md`（非确认包） | `Mx-v{N}.md`（确认包） |
-| 模板来源 | `html-templates/index.json` | `html-templates/index.json` |
+| 视觉来源 | 用户选定的 `visual-patterns/NN-{id}.md` | 用户选定的 `visual-patterns/NN-{id}.md` |
 | 视觉系统 | 用户选定 | 用户选定 |
 | 状态变化 | 不改变模块状态 | 模块状态改为 `rendered` |
 | 适用范围 | 辅助继续讨论 | 演示报告 + 领导汇报 |
 
 ---
 
-**版本**：v2.0.0
+**版本**：v3.0.0
 **反馈**：在本仓库开 issue

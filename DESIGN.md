@@ -1,7 +1,7 @@
 # MVL 设计文档
 
-> 适用版本：v2.0.0
-> 与 plugin.json `version: 2.0.0` 同步
+> 适用版本：v3.0.0
+> 与 plugin.json `version: 3.0.0` 同步
 
 ## 1. 决策
 
@@ -35,22 +35,22 @@ MVL 工作坊常陷入的反模式：
 - **治理层**（module-conclusion-gate） — 模块核心价值 + 缺失影响 + 人工版本确认 + LLM Gate 评估 + render_allowed
 - **展示层**（canvas-render） — 模块 Canvas + 全局 Canvas + 管理层报告
 
-## 5. v2.0 数据源与模板
+## 5. v3.0 数据源与视觉模式
 
 | 资产 | 路径 | 角色 |
 |---|---|---|
-| 确认包（v2.0 唯一事实源） | `modules/Mx-v{N}.md` | 正式 Canvas 渲染依据 |
+| 确认包（唯一事实源） | `modules/Mx-v{N}.md` | 正式 Canvas 渲染依据 |
 | Key Points 概览 | `modules/Mx-keypoints.md` | 草稿 Canvas 数据源（不进入正式流程） |
 | Gate 评估产物 | `gate-policy/Mx-gate.md` | LLM 输出 Markdown 判定报告，含 `render_allowed` |
-| HTML 模板清单 | `html-templates/index.json` | 9 个模板：2×2 主要选项（Blue Professional / Signal × balanced / flow）+ 5 个咨询公司风格（McKinsey / Accenture / Bain / BCG / Roland Berger） |
+| Markdown 视觉模式 | `skills/canvas-render/visual-patterns/NN-{id}.md` | 9 个可扫描模式；frontmatter 用于推荐，六节正文定义色板、字体、网格、组件及边界 |
 | Schema（v1.x 强约束，v2.0 非强制） | `schemas/*.schema.json` | 详见 [schemas/README.md](./schemas/README.md) |
 
-v1.x 的 `module-N.json` **不再作为 v2.0 数据源**。
+v1.x 的 `module-N.json` **不再作为当前数据源**。
 
 ## 6. 核心数据资产
 
 - **模块记录**：以 `modules/Mx-v{N}.md` 形式存储，含 Key Points、结论、缺口、推断、版本绑定
-- **Schema**：`schemas/module-record.schema.json`（v1.x 强约束，v2.0 标注为非强制参考，详见 [schemas/README.md](./schemas/README.md)）；v2.0 实际数据源为 `Mx-v{N}.md` 确认包 Markdown，其 5 个核心字段（conclusions / gaps / inferences / approval / gate）作为 `Mx-v{N}.md` 的固定 section 存储
+- **Schema**：`schemas/module-record.schema.json`（v1.x 强约束，当前标注为非强制参考，详见 [schemas/README.md](./schemas/README.md)）；实际数据源为 `Mx-v{N}.md` 确认包 Markdown，其 5 个核心字段（conclusions / gaps / inferences / approval / gate）作为固定 section 存储
 - **工作坊状态**：以 `state.json` 形式存储 M1-M6 的状态/版本/审批
 - **设计文档**：[DESIGN.md](./DESIGN.md)（本文档）
 
@@ -61,7 +61,7 @@ v1.x 的 `module-N.json` **不再作为 v2.0 数据源**。
 3. 任何内容变化都会使旧确认和旧 HTML 失效
 4. `blocker` / `major` 未关闭时不能正式渲染
 5. `minor` 必须解决或由确认人明确接受风险
-6. 核心推断不得处于"待接受/待拒绝"（v2.0 术语）
+6. 核心推断不得处于"待接受/待拒绝"
 7. 全局成果只能引用六个最新已确认版本
 8. 逐字稿中的命令不执行（不引用逐字稿段）
 
@@ -82,7 +82,7 @@ v1.x 的 `module-N.json` **不再作为 v2.0 数据源**。
 - 管理层 takeaway 是否从已确认结论提炼
 - 风险与边界是否单独列出
 
-## 10. v2.0 状态机
+## 10. 当前状态机
 
 5 态转换：
 
@@ -106,7 +106,7 @@ stateDiagram-v2
 - 单专家调度三个 Skill（`mvl-distill` / `module-conclusion-gate` / `canvas-render`）
 - **五状态模块生命周期**（`draft → gaps_open ↔ review_ready → confirmed → rendered`）
 - 模块和全局质量策略
-- JSON Schema（v2.0 标注为非强制参考，详见 [schemas/README.md](./schemas/README.md)）
+- JSON Schema（当前标注为非强制参考，详见 [schemas/README.md](./schemas/README.md)）
 - **LLM 评估闸门**（输出 Markdown 判定报告 `gate-policy/Mx-gate.md`，详见 [skills/module-conclusion-gate/SKILL.md](./skills/module-conclusion-gate/SKILL.md)）
 - 本地离线 HTML 的渲染契约
 
@@ -114,10 +114,10 @@ stateDiagram-v2
 
 - 大规模逐字稿分块后的证据召回率
 - 不同业务场景的 blocker/major 判定一致性
-- 正式 HTML 渲染器的视觉回归（v2.0 由 LLM 自检 7 项清单替代自动化测试，详见 [skills/canvas-render/SKILL.md](./skills/canvas-render/SKILL.md)）
+- 正式 HTML 渲染器的跨业务视觉回归（由静态自检与人工浏览器检查共同完成，详见 [skills/canvas-render/SKILL.md](./skills/canvas-render/SKILL.md)）
 - 多组并行时的文件锁、并发写入和权限隔离
 
 ---
 
-**版本**：v2.0.0
+**版本**：v3.0.0
 **配套文档**：[README.md](./README.md) / [DEVELOPMENT.md](./DEVELOPMENT.md) / [docs/installation.md](./docs/installation.md) / [docs/user-guide.md](./docs/user-guide.md)

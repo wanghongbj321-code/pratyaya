@@ -52,12 +52,12 @@ description: 审核 MVL 工作坊单模块的确认包（Mx-v{N}.md），评估�
 render_allowed: true / false
 
 {若 false：列出未通过项及补问建议}
-{若 true：「闸门通过。请告诉我你想用哪个模板生成画布？」}
+{若 true：「闸门通过。请从推荐的视觉模式中选择一个生成画布。」}
 ```
 
 4. 状态更新规则（由主 agent 执行，不在本 skill 内部）：
    - `render_allowed = false` → 状态回到 `gaps_open`，输出未通过项及补问建议
-   - `render_allowed = true` → 状态改为 `confirmed`，触发模板选择
+   - `render_allowed = true` → 状态改为 `confirmed`，触发视觉模式扫描、推荐与用户选择
 
 ## 评估项详解
 

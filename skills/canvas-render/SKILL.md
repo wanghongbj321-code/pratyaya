@@ -1,125 +1,149 @@
 ---
 name: canvas-render
-description: 把已通过 Gate 评估的 MVL 模块确认包（Mx-v{N}.md）渲染为可编辑、可追溯、离线可打开的 HTML Canvas，并在六模块完成后生成可下钻的全局 Canvas。模板选择由 LLM 基于 index.json 自行决定推荐后用户拍板，渲染数据源是 Markdown 而非 JSON。用户要求生成模块画布、全局画布或管理层汇报页面时使用。
+description: 把通过 Gate 的 MVL 模块确认包（Mx-v{N}.md）按用户选定的 Markdown 视觉模式渲染为可编辑、可追溯、离线可打开的 HTML Canvas，并在六模块完成后生成可下钻的全局 Canvas。主 Agent 扫描 visual-patterns frontmatter、推荐候选并传递完整模式路径；本 Skill 不自动选模式。用户要求生成模块画布、全局画布或管理层汇报页面时使用。
 ---
 
 # Canvas 渲染
 
-这个 Skill 是展示层，不是分析层。只把已确认的 Markdown 事实源（`modules/Mx-v{N}.md`）转成 HTML，不从转写直接提炼，也不为了填满页面新增、润色或补齐业务结论。
+本 Skill 是展示层，不是分析层。只把已确认的 Markdown 事实源转成 HTML；不得从转写直接提炼，不得为填满页面新增、润色或补齐业务结论。
 
-渲染前读取 `../mvl-distill/references/workshop-canvas-map.md` 和 `../mvl-distill/references/mvl-canvas-spec.md`。它们定义唯一允许的全局 Canvas 大/小模块及模块详情产出。
+执行前按需读取：
 
-同时读取 `references/html-slides-adaptation.md` 和仓库 `html-templates/index.json`。前者把 `html-slides` 中适用于 Canvas 的能力收敛为模板选择、设计系统继承、浏览器预览、打印和离线交付规则；后者登记批准使用的全部视觉外壳清单。
+- `../mvl-distill/references/workshop-canvas-map.md`：全局 Canvas 大小模块映射。
+- `../mvl-distill/references/mvl-canvas-spec.md`：模块产出规范。
+- `references/render-contract.md`：DOM、共享结构、离线、数据完整性和打印契约。
+- `visual-patterns/README.md`：视觉模式的发现、命名、字段、正文结构和阻断规则。
+
+视觉候选只能来自 `visual-patterns/` 的 Markdown 规格；不得从集中登记册或预制 HTML 推断候选与视觉 token。
+
+## 输入契约
+
+正式渲染和模块详情渲染必须同时收到：
+
+1. 确认包路径：按主 Agent 已确定的当前项目工作目录解析 `modules/Mx-v{N}.md`，不得跨项目搜索。
+2. Gate 判定：同版本 `render_allowed = true`。
+3. 用户选定模式的完整仓库相对路径，例如：
+
+   ```text
+   skills/canvas-render/visual-patterns/01-blue-professional-balanced.md
+   ```
+
+草稿模式的数据源改为当前最新 `modules/Mx-keypoints.md`，但仍必须收到用户选定模式的完整路径。
+
+收到模式路径后必须校验：
+
+- 路径位于 `skills/canvas-render/visual-patterns/` 内。
+- 文件存在，且文件名满足 `NN-{id}.md`。
+- frontmatter 恰好包含 `id / visual_system / layout / formality / density / best_for`。
+- 文件名 `{id}` 与 frontmatter `id` 一致。
+- 正文按顺序包含“色板 token / 字体 / 网格 / 组件库 / 适用场景 / 反例”六节。
+
+任一项失败时阻断并报告具体路径和失败项。不得猜测路径、拼接 ID、静默回退到其他模式或使用其他视觉资产替代。
 
 ## 正式渲染前置条件
 
-1. 读取 `modules/Mx-v{N}.md`（确认包），不要以聊天上下文或转写作为事实源。
-2. 该模块当前状态必须是 `confirmed`，且渲染的版本与确认包 `v{N}` 一致。
-3. 该模块必须已经通过 `module-conclusion-gate` 评估（`render_allowed = true`）。
-   - Gate 评估由主 agent 步骤 6 调用 `module-conclusion-gate` 后完成，输出 Markdown 格式的 Gate 判定报告。
-   - 本 skill 不重新执行 Gate，只读取其结论。
-4. 模板已由用户在主 agent 步骤 7 中选定（见下文"视觉外壳选择"）。
-5. 条件不满足时返回阻断原因，不得生成没有水印的正式页面。
+1. 读取确认包文件，不以聊天上下文、Key Points 或转写作为正式事实源。
+2. 模块状态为 `confirmed`，且输出版本等于确认包 `v{N}`。
+3. 同版本 Gate 已通过；本 Skill 只读取判定，不重新评估。
+4. 用户已在主 Agent 步骤 7 中明确选定视觉模式。
+5. 条件不满足时返回阻断原因，不生成无水印正式页面。
 
 ## 三种模式
 
 ### 正式模式（全局 Canvas）
 
-- 输入只能是全部 M1-M6 都已 `rendered`，且所有版本与各模块 `Mx-v{N}.md` 一致。
+- 输入只能是全部 M1–M6 都已 `rendered`，且均指向最新确认版本。
 - 输出 `output/maau-global-canvas.html`。
-- 展示六大板块（Intent / User / Agent Team / Workflow / Context / Validation）的汇总视图。
-- 页面显示版本、确认人/时间、剩余 minor 缺口和最后更新时间。
-- 保留结论 ID，支持从结论下钻到证据摘要（链接到各模块详情 Canvas）。
-- 通过 `<a href="./module-N-canvas.html">` 链接下钻到各模块详情 Canvas。
+- 展示 Intent / User / Agent Team / Workflow / Context / Validation 六大板块。
+- 显示版本、确认人和时间、剩余 minor 缺口、风险及最后更新时间。
+- 保留结论 ID，并用普通相对链接下钻到模块详情 Canvas。
 
-### 模块详情模式（单模块产物）
+### 模块详情模式
 
-- **每个模块确认后必须立即生成**，不是等全局汇总时才出。
-- 输入只能是该模块 `confirmed` 状态或已通过 Gate 的同版本确认包 `modules/Mx-v{N}.md`。
-- 输出 `output/module-N-canvas.html`，完成后该模块状态改为 `rendered`。
-- 展示该模块的**全部讨论产出**（M1-M6 各自的固定 section，对照 `render-contract.md` 的字段映射表），不是全局 Canvas 的子板块。
-- 页面显示版本、确认人/时间、剩余 minor 缺口和最后更新时间。
-- 保留结论 ID，支持从结论下钻到证据摘要。
-- 用户说"查看 Mx 产物"或"生成 Mx 模块画布"时，应该生成/展示这个页面。
+- 模块确认且同版本 Gate 通过后立即生成。
+- 输出 `output/module-N-canvas.html`；只有静态自检和浏览器预览都通过后才算成功，并将状态改为 `rendered`。
+- 展示该模块在 `render-contract.md` 中规定的全部专属 section，不复刻全局六板块。
+- 显示版本、确认、缺口、风险、结论 ID 和证据摘要。
 
 ### 草稿模式
 
-- 仅在用户明确要求"用草稿辅助继续讨论"时生成。
-- 数据源：当前最新 Key Points 文件 `modules/Mx-keypoints.md`（**非确认包**，因为尚未确认）。
-- 页面顶部和打印版都必须显示"草稿 / 未确认 / 禁止用于管理层决策"。
-- 空字段显示"未讨论"或"待确认"，不得自动补写。
-- 草稿不得进入全局 Canvas、演示报告或领导汇报。
-- 草稿生成不改变模块状态（仍为 `draft` 或 `gaps_open`）。
+- 仅在用户明确要求“用草稿辅助继续讨论”时生成。
+- 数据源只能是当前最新 `modules/Mx-keypoints.md`。
+- 页面顶部和打印版永久显示“草稿 / 未确认 / 禁止用于管理层决策”。
+- 空字段显示“未讨论”或“待确认”，不得补写。
+- 不进入全局 Canvas、管理层报告，也不改变模块状态。
 
-## 视觉外壳选择（用户驱动）
+## 视觉模式实现
 
-正式模式与模块详情模式的模板由用户从主 agent 步骤 7 给出的候选中选择。**本 skill 不自动选择模板**。
+本 Skill 不选择模式，只实现主 Agent 传入的已选路径。
 
-**主 agent 步骤 7 的选择流程**（本 skill 仅依赖其结果）：
+1. 读取模式 frontmatter 和六节正文。
+2. 按“色板 token / 字体 / 网格 / 组件库”实现内联 CSS 与组件。
+3. 用“适用场景”校准信息层级，用“反例”检查禁用混搭和错误实现。
+4. 按 `render-contract.md` 把确认包 section 映射到稳定 HTML 锚点。
+5. 模式未单独描述的业务 section 仍必须补齐，但只复用同一模式的 token 和组件语法。
+6. 一个输出只允许一个 `visual_system`。
 
-1. 读取 `html-templates/index.json` 获取全部候选模板。
-2. LLM 基于以下字段自行判断内容特征，**自行决定**向用户推荐 1-2 个最匹配的模板：
-   - `visual_system`（Blue Professional / Signal / McKinsey Blue / Accenture Red-Grey / Bain Red / BCG Green / Roland Berger Orange）
-   - `layout`（balanced / flow）
-   - `formality`（medium-high / high）
-   - `density`（medium / medium-high / high）
-   - `best_for`（文字描述）
-3. 展示时给出推荐理由（哪条 `best_for` / 视觉系统与当前内容匹配）。
-4. 用户选定后主 agent 调用本 skill 渲染。
-5. 用户未回应风格选择时，**主 agent**（非本 skill）按主 agent 步骤 7 的安全默认处理。
-
-**本 skill 收到模板选定后的职责**：
-
-1. 读取选定的 HTML 模板 `html-templates/{template-file}.html`。
-2. 提取其视觉系统（字体、色板、网格、间距、组件语法），不复制其示例内容。
-3. 按 `render-contract.md` 的"Mx-v{N}.md 固定 section → HTML 锚点"映射表，把确认包中的 section 映射到 HTML 锚点。
-4. 模板缺少当前规范的 section 时，**在同一视觉系统内补齐**，不删减正式 Canvas 的结构。
-5. 完成后做浏览器预览（桌面/窄屏/打印），并执行渲染自检（见下文）。
+视觉模式只提供设计语法，不提供业务内容。不得复制模式文档之外的示例标题、角色、数字、指标、结论和品牌内容。
 
 ## 内容与数据契约
 
-- 页面数据来自 `modules/Mx-v{N}.md`（确认包）；不得把业务内容硬编码进组件逻辑。
-- 全局页面只能使用映射文件规定的六个大模块及其小模块，不得增加其他方法板块。
-- Workflow 必须呈现 AI 应用的完整流向，并分别展示自动化节点（Agent 执行）、人工操作/确认节点、人审 + Agent 执行节点；不能把普通业务流程直接当成最终 Workflow。
-- 模块详情页展示该次日程的固定产出（见 `render-contract.md` 的 M1-M6 section 映射）；全局页不塞入 HMW、原型记录、验证明细等过程材料，只提供下钻入口。
-- 在 HTML 中嵌入 `<script type="application/json" id="canvas-data">` 保存同版本结构化数据（从确认包 Markdown 提取并整理为 JSON）。
-- 每个模块和结论使用稳定锚点，如 `module-M1`、`conclusion-M1-C01`。
-- 必须保留事实、决策、假设、建议的视觉区分；推断不能伪装成已确认事实。
-- 无外部网络依赖，双击 `file://` 即可打开；不要用 `fetch()` 读取本地文件，不要用 iframe 串联本地 HTML。
-- 详细实现契约见 `references/render-contract.md`。
+- 正式页面内容只来自同版本 `modules/Mx-v{N}.md`。
+- 全局页只使用规定的六大板块；过程材料留在模块详情页并提供下钻入口。
+- Workflow 必须分别呈现 Agent 执行、人工操作 / 确认、人审 + Agent 执行三类节点。
+- 内嵌 `<script type="application/json" id="canvas-data">`，内容与本次读取的确认包一致。
+- 每个模块、结论、缺口和共享区域使用 `render-contract.md` 规定的稳定锚点。
+- 必须区分事实、决策、假设和建议；推断不得伪装成确认事实。
+- 不使用 `fetch()`、iframe、外部字体、外部脚本或外部网络资源。
+- 全局下钻只使用普通相对链接。
 
-## 渲染自检（替代旧 audit 脚本）
+## 编辑边界
 
-阶段一已移除 `scripts/audit_canvas_html.py`，结构审计职责转为本 skill 的 LLM 自检步骤。正式交付前按以下清单逐项确认：
+- 只有明确标记的“本地批注”可编辑。
+- 编辑内容只写入浏览器 `localStorage`，不得覆盖确认包内容、稳定锚点或 `canvas-data`。
+- 筛选、展开 / 折叠和打印可以使用内联 JavaScript；不得引入幻灯片分页或演示运行时。
 
-1. **数据源一致**：HTML 内嵌的 `canvas-data` 与 `modules/Mx-v{N}.md` 内容一致（同版本号、同 section 标题）。
-2. **DOM 结构**：对照 `render-contract.md` 章节 A/B 与 M1-M6 section 映射表，全部规定锚点存在。
-3. **共享结构**：质量面板 `quality-panel`、对齐 section `alignment-section`、本地批注 `local-notes` 均存在。
-4. **离线安全**：无 `fetch("file...")`、无 iframe、无外部网络资源。
-5. **打印规则**：`@media print` 隐藏编辑控件，保留版本、确认和风险状态。
-6. **草稿标记**：草稿模式下页面顶部与打印版均含"草稿 / 未确认 / 禁止用于管理层决策"字样。
-7. **视觉系统单一**：仅继承一种 `visual_system`，不混搭。
+## 浏览器预览
 
-任一检查不通过则阻断交付，输出未通过项与建议。
+正式交付前必须完成人工可见的浏览器检查：
+
+1. 桌面 `1440 × 900`：阅读顺序清晰，无溢出、遮挡、断链。
+2. 窄屏 `390 × 844`：卡片合理堆叠，表格和高密度 flow 在自身容器滚动，文字不裁切。
+3. 打印：保留结论、版本、确认、风险和质量状态，隐藏编辑提示与操作控件。
+4. 离线：本地打开不产生业务网络请求，不使用 `fetch()` 或 iframe。
+5. 编辑：本地批注写入、刷新恢复，不影响确认事实。
+
+浏览器检查不能被静态自检替代；两者都通过后才能交付正式 HTML。
+
+## 渲染自检
+
+正式交付前逐项确认：
+
+1. **数据源一致**：`canvas-data` 与确认包同版本、同 section、同 ID。
+2. **DOM 结构**：规定的大模块、模块详情 section 和稳定锚点齐全。
+3. **共享结构**：`quality-panel`、`alignment-section`、`local-notes`、`canvas-data` 齐全。
+4. **离线安全**：无 `fetch()`、iframe 和外部网络资源。
+5. **打印规则**：隐藏编辑控件，保留版本、确认、风险、质量状态和结论。
+6. **草稿标记**：草稿页面及打印版包含永久未确认标记。
+7. **视觉系统单一**：只实现选定模式的 `visual_system`。
+8. **模式一致**：实际色板、字体、网格、组件及专属组件符合选定模式，未触发其反例。
+
+任一项失败时阻断交付，列出失败项、证据和修订建议。模块状态保持 `confirmed`；不得提前标记为 `rendered`。
 
 ## 全局 Canvas
 
 全局汇总前：
 
-1. M1-M6 全部是 `rendered`，并且指向各自最新确认版本。
-2. 按主 agent 阶段 2（全局汇总）的跨模块一致性清单检查目标、用户、流程、能力、数据和验证是否闭合。
-3. 若有冲突，回到对应模块升版、重新确认并重新渲染。
-4. 全局页面通过普通 `<a href="./module-N-canvas.html#module-MN">` 下钻，不用 iframe。
-5. 管理层摘要只呈现已确认结论；未知项与风险单独列出。
-6. 标题统一使用"MVL Canvas"；页面明确"模拟环境概念验证原型，非生产级系统"。
+1. 确认 M1–M6 全部为 `rendered` 且版本最新。
+2. 检查目标、用户、流程、能力、数据和验证的跨模块闭合。
+3. 有冲突时回到对应模块升版、确认和重新渲染，不在全局页静默修正。
+4. 管理层摘要只呈现已确认结论；未知项、假设和风险分开列出。
+5. 标题统一使用“MVL Canvas”，并标明“模拟环境概念验证原型，非生产级系统”。
 
-## 视觉要求
+## 明确排除
 
-采用专业商务风，蓝色或低饱和机构色为主，避免大面积高反差色块。信息优先级为：
-
-1. 核心结论与价值判断；
-2. 验证状态与关键指标；
-3. 决策边界、风险和缺口；
-4. 证据与追溯详情。
-
-可以参考仓库 `html-templates/` 的布局和组件，但必须遵守事实源、闸门和离线打开约束。完整适配边界见 `references/html-slides-adaptation.md`。
+- 不读取预制 HTML 作为运行时视觉来源。
+- 不使用集中模板登记册进行推荐。
+- 不要求候选标题页、幻灯片分页、键盘翻页或演示运行时。
+- 不以页数替代 Canvas 的完整模块覆盖。
+- 不因视觉适配改变工作坊映射、结论状态、版本或质量 Gate。

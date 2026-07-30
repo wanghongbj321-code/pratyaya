@@ -13,12 +13,12 @@
 ### `module-record.schema.json`
 
 - **原用途**：校验 `modules/module-N.json`（模块 JSON，含 canvas_fields、conclusions、gaps、inferences、alignment、approval、gate）。
-- **当前状态**：保留作为**非强制参考**。`modules/Mx-v{N}.md`（确认包 Markdown）是 v2.0 的唯一事实源。
+- **当前状态**：保留作为**非强制参考**。`modules/Mx-v{N}.md`（确认包 Markdown）是当前唯一事实源。
 - **不删除原因**：旧项目可能仍有 `module-N.json` 资产；Schema 仍可作 v1.x 项目的回退校验。
 
-## v2.0 时代的实际数据源
+## 当前实际数据源
 
-| 资产 | v1.x | v2.0 |
+| 资产 | v1.x | 当前（v3.0） |
 |---|---|---|
 | 状态 | `state.json`（按 state.schema.json） | `state.json`（结构同 v1.x，但不强校验） |
 | 模块中间产物 | `modules/module-N.json`（按 module-record.schema.json） | `modules/Mx-keypoints.md` + `modules/Mx-v{N}.md` |
@@ -27,5 +27,5 @@
 
 ## 后续评估
 
-- v2.1 可评估是否完全移除 `module-record.schema.json`（当无 v1.x 存量项目时）。
-- `state.schema.json` 视 v2.0 状态机稳定性再决定（当前结构与 v1.x 完全一致，无删除紧迫性）。
+- 后续 MAJOR 版本可评估是否完全移除 `module-record.schema.json`（当无 v1.x 存量项目时）。
+- `state.schema.json` 视当前 5 态状态机的兼容需求再决定，无删除紧迫性。

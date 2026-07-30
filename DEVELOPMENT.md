@@ -18,7 +18,7 @@ v2.0 起，模块结论闸门（Gate）由 LLM 评估替代 v1.x 的 Python 脚�
 
 ## 3. HTML 渲染（LLM 自检）
 
-v2.0 起，HTML 渲染审计由 LLM 自检替代 v1.x 的 Python 脚本（`audit_canvas_html.py` 已删除）。正式交付前 7 项检查清单：
+v2.0 起，HTML 渲染审计由 LLM 自检替代 v1.x 的 Python 脚本（`audit_canvas_html.py` 已删除）。v3.0 正式交付前执行 7 项 render-contract 检查，并增加视觉模式一致性，共 8 项：
 
 1. 数据源一致（HTML 内嵌 `canvas-data` 与 `Mx-v{N}.md` 同版本）
 2. DOM 结构（对照 `render-contract.md` 章节 A/B）
@@ -27,10 +27,24 @@ v2.0 起，HTML 渲染审计由 LLM 自检替代 v1.x 的 Python 脚本（`audit
 5. 打印规则（`@media print` 隐藏编辑控件）
 6. 草稿标记（草稿模式顶部与打印版含"草稿/未确认"字样）
 7. 视觉系统单一（仅一种 `visual_system`，不混搭）
+8. 模式一致（色板、字体、网格、组件及专属组件符合选定 Markdown 模式）
 
 详细自检依据、DOM 映射表、共享结构、离线约束、数据完整性见 [skills/canvas-render/SKILL.md](./skills/canvas-render/SKILL.md) 与 [skills/canvas-render/references/render-contract.md](./skills/canvas-render/references/render-contract.md)。
 
-## 4. 模块工作流
+## 4. Canvas 视觉模式维护
+
+v3.0 起，Canvas 视觉系统由 `skills/canvas-render/visual-patterns/` 下的 Markdown 规格定义，不再使用预制 HTML 外壳或集中登记册。
+
+- 候选文件固定匹配 `[0-9][0-9]-*.md`，当前基线恰好 9 个。
+- 文件名必须为 `NN-{id}.md`，并与 frontmatter `id` 一致；序号和 ID 均唯一。
+- frontmatter 恰好包含 `id / visual_system / layout / formality / density / best_for`。
+- 正文固定包含“色板 token / 字体 / 网格 / 组件库 / 适用场景 / 反例”六节。
+- 新增或修改公司命名模式时，必须记录当前官方色值证据；一个模式只有一个结构主色。
+- 主 Agent 扫描并推荐 1–2 个候选，用户选择后传递完整仓库相对路径；不得用 ID 猜路径或静默回退。
+
+维护入口见 [视觉模式 README](./skills/canvas-render/visual-patterns/README.md)。
+
+## 5. 模块工作流
 
 四阶段管线（数据源与闸门）：
 
@@ -40,7 +54,7 @@ Key Points (Mx-keypoints.md) → 提炼 (Mx-v{N}.md) → Gate (Mx-gate.md) → �
 
 每个阶段的输入/输出/状态变化由对应 Skill 定义，详见 [skills/mvl-distill/SKILL.md](./skills/mvl-distill/SKILL.md) / [skills/module-conclusion-gate/SKILL.md](./skills/module-conclusion-gate/SKILL.md) / [skills/canvas-render/SKILL.md](./skills/canvas-render/SKILL.md)。
 
-## 5. 版本与发布
+## 6. 版本与发布
 
 专家包版本号遵循 SemVer（语义化版本），定义在 `.codebuddy-plugin/plugin.json` 的 `version` 字段：
 
@@ -48,11 +62,11 @@ Key Points (Mx-keypoints.md) → 提炼 (Mx-v{N}.md) → Gate (Mx-gate.md) → �
 - **MINOR**：新增功能（新增 Skill 子任务、新增文档章节等）
 - **PATCH**：Bug 修复、措辞调整
 
-当前版本：v2.0.0。
+当前版本：v3.0.0。
 
 发布流程（按 workbuddy 指导第十节"修改已有专家"5 步）：
 
-1. **定位** — 确认改动范围（在哪个文件、影响哪些 Skill/Agent/模板）
+1. **定位** — 确认改动范围（在哪个文件、影响哪些 Skill、Agent 或视觉模式）
 2. **确认范围** — 评估是否需要同步 docs/、DEVELOPMENT.md、DESIGN.md
 3. **执行修改** — 改完代码与文档
 4. **校验** — `python3 -c "import json; json.load(open('.codebuddy-plugin/plugin.json'))"` 验证 plugin.json 是合法 JSON；运行 `scripts/validate_expert.py`（如存在）
@@ -60,19 +74,20 @@ Key Points (Mx-keypoints.md) → 提炼 (Mx-v{N}.md) → Gate (Mx-gate.md) → �
 
 严禁修改（按 workbuddy 指导）：`name` 字段（kebab-case 唯一标识）、`agentName` 字段、专家目录名、agents/ 下的 .md 文件名。这些字段的修改会导致专家丢失。
 
-## 6. 命令速查
+## 7. 命令速查
 
 | 命令 | 用途 |
 |---|---|
 | `git log --oneline` | 查看 commit 历史 |
 | `git diff` | 查看当前未提交变更 |
 | `python3 -c "import json; json.load(open('.codebuddy-plugin/plugin.json'))"` | 验证 plugin.json 合法 |
-| `python3 -c "import json; json.load(open('html-templates/index.json'))"` | 验证 templates 合法 |
+| `find skills/canvas-render/visual-patterns -maxdepth 1 -type f -name '[0-9][0-9]-*.md' \| sort` | 列出视觉模式候选 |
+| `rg -n '^id:|^visual_system:|^layout:|^formality:|^density:|^best_for:' skills/canvas-render/visual-patterns/*.md` | 复核选择元数据 |
 | `grep -rn "check_gate.py\|audit_canvas_html.py" .` | 检查旧脚本引用残留 |
 | `grep -rn "module-N\.json" .` | 检查旧 JSON 引用残留 |
-| `wc -l README.md DEVELOPMENT.md DESIGN.md docs/*.md` | 检查文档行数是否符合 v2.0 约束 |
+| `wc -l README.md DEVELOPMENT.md DESIGN.md docs/*.md` | 检查现行文档规模 |
 
 ---
 
-**版本**：v2.0.0
+**版本**：v3.0.0
 **配套文档**：[DESIGN.md](./DESIGN.md) / [docs/installation.md](./docs/installation.md) / [docs/user-guide.md](./docs/user-guide.md)

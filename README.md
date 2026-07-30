@@ -34,7 +34,8 @@ mvl-workshop-facilitator/
 ├── .codebuddy-plugin/   # 专家包元数据
 ├── agents/              # 主 Agent（mvl-workshop-facilitator.md）
 ├── skills/              # 三个 Skill：mvl-distill / module-conclusion-gate / canvas-render
-├── html-templates/      # 9 个 Canvas 视觉外壳（见 index.json）
+│   └── canvas-render/
+│       └── visual-patterns/ # 9 个 Markdown Canvas 视觉模式
 ├── schemas/             # v1.x 时期产物，v2.0 标注非强制参考
 ├── examples/modules/    # Mx-keypoints / Mx-v{N} 模板
 ├── docs/                # 用户文档
@@ -52,4 +53,4 @@ mvl-workshop-facilitator/
 
 ## 专家版本
 
-v2.0.0（2026-07-29）。与 `.codebuddy-plugin/plugin.json` 的 `version` 字段同步。
+v3.0.0（2026-07-30）。与 `.codebuddy-plugin/plugin.json` 的 `version` 字段同步。

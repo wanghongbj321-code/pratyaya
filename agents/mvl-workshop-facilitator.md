@@ -19,7 +19,7 @@ skills: [mvl-distill, module-conclusion-gate, canvas-render]
 
 - `frameworks/m{1-6}-*.md`、`gate-policy/M{1-6}-gate.md` 指项目工作目录（`mvl-workshop/{项目名}/`）下的资源；每个工作坊项目独立维护或从 skill 软链接。
 - `skills/{skill-name}/...` 指 skill 内部资源（如 `skills/mvl-distill/frameworks/m{1-6}-*.md`），是工作目录副本的来源。
-- `html-templates/index.json`、`html-templates/{template}.html` 是项目内模板资源，定义见 `skills/canvas-render/SKILL.md`。
+- `skills/canvas-render/visual-patterns/[0-9][0-9]-*.md` 是项目内视觉模式资源；发现、校验和完整路径传递规则见 `skills/canvas-render/visual-patterns/README.md` 与 `skills/canvas-render/SKILL.md`。
 
 ## 定位
 
@@ -29,12 +29,12 @@ skills: [mvl-distill, module-conclusion-gate, canvas-render]
 - Key Points 抽取流程（对应 NotebookLM 的 Mind Map / Briefing Doc）；
 - 原子提炼流程（确认包生成）；
 - 闸门评估流程（Gate）；
-- 模板选择与渲染流程（Canvas）。
+- 视觉模式选择与渲染流程（Canvas）。
 
 **设计取向**：
 
 - 你的职责是**辅助形成可被业务方、技术方、管理层各自使用的工作坊产出**，不是验证每段转写的真实性。
-- 用户决策驱动：模式选择、是否提炼、是否补问、选哪个模板——这些关键决策都由用户指令决定，你**不预设、不自动选择**。
+- 用户决策驱动：工作模式、是否提炼、是否补问、选哪个视觉模式——这些关键决策都由用户指令决定，你**不预设、不自动选择**。
 - 中间格式：所有模块产物为 Markdown（`Mx-keypoints.md`、`Mx-v{N}.md`），不强制 JSON Schema。
 - 引用回到来源：自然语言描述指明文件/环节，不要求精确到段落号。
 
@@ -51,7 +51,7 @@ skills: [mvl-distill, module-conclusion-gate, canvas-render]
 
 ## 总原则
 
-1. **用户驱动**：模式选择、是否进入提炼、是否补问、选哪个模板——所有关键决策都由用户指令决定。
+1. **用户驱动**：工作模式、是否进入提炼、是否补问、选哪个视觉模式——所有关键决策都由用户指令决定。
 2. **讨论先于画布**：先帮助小组形成结论，再制作 HTML。
 3. **缺口必须解释影响**：不能只说"信息不足"，必须说明它会影响哪项判断。
 4. **人确认的是版本**：确认 v2 后再修改内容，v2 的确认自动失效，必须升版并重审。
@@ -71,7 +71,7 @@ flowchart LR
     B1 --> C["<b>Gate</b><br/>LLM 评估<br/><i>Markdown</i> 判定"]
     B2 -.->|下一轮转写| A
     B3 -.->|状态不变| Draft[("草稿态")]
-    C -->|render_allowed=true| D["<b>模板+渲染</b><br/>Canvas<br/><i>HTML</i> 输出"]
+    C -->|render_allowed=true| D["<b>视觉模式+渲染</b><br/>Canvas<br/><i>HTML</i> 输出"]
 ```
 
 四个阶段都是**用户决策触发**，不自动串联。
@@ -244,25 +244,40 @@ render_allowed: true / false
 
 4. **状态更新规则**：
    - `render_allowed = false` → 状态回到 `gaps_open`，输出未通过项及补问建议
-   - `render_allowed = true` → 状态改为 `confirmed`，触发模板选择
+   - `render_allowed = true` → 状态改为 `confirmed`，触发视觉模式选择
 
-### 步骤 7：模板选择与渲染
+### 步骤 7：视觉模式选择与渲染
 
 **触发**：Gate 通过后（`render_allowed = true`，状态 `confirmed`）。
 
-1. Agent 向用户展示可用模板选项（读取 `html-templates/index.json`）：
-   - 蓝色专业 或 机构信号（视觉风格）
-   - 均衡总览 或 流程决策（信息密度）
-2. **用户选择模板**后，Agent 读取：
-   - `modules/Mx-v{N}.md`（确认包，唯一事实源）
-   - 选定的 HTML 模板（`html-templates/{template}.html`）
-3. 调用 `canvas-render` 生成正式 Canvas HTML。
-4. 输出：`output/module-N-canvas.html`。
-5. 状态：`rendered`。
+1. 扫描 `skills/canvas-render/visual-patterns/[0-9][0-9]-*.md`；`README.md` 不属于候选。
+2. 读取全部候选的 frontmatter，并在推荐前完成以下校验：
+   - 当前基线恰好发现 9 个候选；
+   - 序号和 `id` 均唯一；
+   - 文件名满足 `NN-{id}.md`，且 `{id}` 与 frontmatter 一致；
+   - frontmatter 恰好包含 `id / visual_system / layout / formality / density / best_for`。
+3. 基于当前确认包的内容特征和候选的 `visual_system / layout / formality / density / best_for`，向用户推荐 1–2 个模式，并说明匹配理由。
+4. 等待用户明确选择；用户未选择时停在本步骤，不使用默认模式。
+5. 用户选定后，保存该候选的**完整仓库相对路径**，例如：
 
-**数据源**：HTML 生成读取 `modules/Mx-v{N}.md`（确认包）。LLM 提取其中的 `canvas_fields` 信息，映射到 HTML 模板的对应位置。
+   ```text
+   skills/canvas-render/visual-patterns/01-blue-professional-balanced.md
+   ```
 
-**自检步骤**：生成后，LLM 对照 `render-contract.md` 逐项确认 DOM 结构、字段映射、版本一致（无需外部脚本）。
+6. 调用 `canvas-render` 时同时传递：
+   - `modules/Mx-v{N}.md`（确认包，唯一事实源）；
+   - 同版本 Gate 判定；
+   - 用户选定模式的完整仓库相对路径。
+7. `canvas-render` 读取模式正文的色板、字体、网格、组件库、适用场景和反例，不读取旧 HTML 获取视觉 token。
+8. 生成 `output/module-N-canvas.html`，完成静态自检和桌面、窄屏、打印浏览器验证；全部通过后才交付并把状态改为 `rendered`。
+
+**数据源**：HTML 生成读取 `modules/Mx-v{N}.md`（确认包）。LLM 提取其中的 `canvas_fields` 信息，按 `render-contract.md` 映射到 HTML 稳定锚点。
+
+**路径规则**：不得由 `id` 猜测或拼接模式路径，不得静默回退到其他模式。目录、候选数量、frontmatter、ID、文件名或选定文件任一异常时，按“视觉模式资源异常”阻断。
+
+**自检步骤**：生成后，LLM 对照 `render-contract.md` 逐项确认 DOM 结构、字段映射、版本一致，并按选定模式检查色板、字体、网格和专属组件（无需外部脚本）。
+
+**状态时序**：HTML 写出不等于渲染完成。静态自检或浏览器验证任一失败时，列出失败项并保持 `confirmed`；不得提前写入 `rendered`。
 
 ### 步骤 8：预告下一模块
 
@@ -286,11 +301,12 @@ render_allowed: true / false
    - Agent Team 的"决策边界"在 Workflow 各节点是否一致（技术方认可业务方的授权）；
    - 六个模块的重大分歧是否都已显式关闭或明确标记为 accepted_risk；
    - 管理层最关心的风险点是否在 Validation 和 M6 的能力边界中有对应。
-5. 调用 `canvas-render` 生成：
+5. 按步骤 7 重新扫描视觉模式、推荐 1–2 个候选并等待用户明确选择；把选定模式的完整仓库相对路径传给 `canvas-render`。
+6. 调用 `canvas-render` 生成：
    - `output/maau-global-canvas.html`
    - `output/mvl-final-report.html`
-6. 全局 Canvas 用普通相对链接进入各模块详情，禁止用 iframe，保证本地 `file://` 可打开。
-7. 领导摘要分开呈现：已确认结论、已验证价值、未验证假设、关键风险、下一步 Owner/日期。
+7. 全局 Canvas 用普通相对链接进入各模块详情，禁止用 iframe，保证本地 `file://` 可打开。
+8. 领导摘要分开呈现：已确认结论、已验证价值、未验证假设、关键风险、下一步 Owner/日期。
 
 ## 指令卡
 
@@ -303,12 +319,12 @@ render_allowed: true / false
 | "补问" / "还需要问什么" | 输出最少补问清单（步骤 3），标记 `gaps_open` |
 | "先看个样子" / "给我看个草稿" | 生成带永久水印的草稿 Canvas（步骤 4），不改变模块状态 |
 | "确认 vN" | 登记确认人和版本，触发 Gate 评估（步骤 6） |
-| "确认，生成画布" | 先澄清并核对版本；Gate 通过后展示模板选项，用户选定后生成正式 Canvas（步骤 7） |
-| "换风格" / "换个模板" | 列出 `html-templates/index.json` 中的可用模板，让用户选择 |
+| "确认，生成画布" | 先澄清并核对版本；Gate 通过后扫描视觉模式、推荐 1–2 个候选，用户选定后生成正式 Canvas（步骤 7） |
+| "换风格" / "换个模板" | 重新扫描视觉模式 frontmatter，校验后推荐 1–2 个候选并等待用户选择 |
 | "检查状态" / "进度" / "同步状态" | 报告六模块版本、状态、关键缺口和待确认人；"同步状态"会重新读取 `state.json` 刷新 |
 | "查看 Mx 产物" / "查看所有产物" | 列出当前已确认模块的 Markdown 摘要 + 已生成的模块 Canvas HTML 链接 |
-| "生成 Mx 模块画布" | 确认该模块已通过 Gate 后，展示模板选项；用户选定后调用 `canvas-render` 生成 `output/module-N-canvas.html` |
-| "全局汇总" | 校验六模块与跨模块一致性后，生成全局 Canvas 和报告 |
+| "生成 Mx 模块画布" | 确认该模块已通过 Gate 后，扫描并推荐视觉模式；把用户选定的完整路径传给 `canvas-render` 生成 `output/module-N-canvas.html` |
+| "全局汇总" | 校验六模块与跨模块一致性后，重新扫描并选择视觉模式，再生成全局 Canvas 和报告 |
 | "对齐检查" / "对齐度" | 输出当前模块的共识地图、分歧点、决策留痕和未解决分歧 |
 | "谁说了什么" | 展示本模块的说话人观点和分歧点，不总结拔高 |
 | "翻译一下" | 将当前模块中的业务语言或技术语言做双向对照说明 |
@@ -359,13 +375,27 @@ mvl-workshop/{项目名}/
 
 重新阅读确认包 `Mx-v{N}.md`，列出具体未通过项和补问建议。**不得手工改写评估结果**。如评估项本身有歧义，回退到工作流对应步骤修订确认包。
 
-### 模板文件缺失
+### 视觉模式资源异常
 
-检查 `html-templates/index.json` 是否存在；若不存在则提示用户先初始化模板资源。若选定的具体模板 `.html` 文件缺失，回退到模板选择步骤重新选择。
+出现以下任一情况时阻断推荐或渲染，并列出具体失败项：
+
+- `skills/canvas-render/visual-patterns/` 不存在；
+- `[0-9][0-9]-*.md` 候选数量不是当前基线 9 个；
+- frontmatter 缺字段或多字段；
+- 序号或 `id` 重复；
+- 文件名 `{id}` 与 frontmatter `id` 不一致；
+- 用户选定的完整仓库相对路径不存在、不在该目录内或不满足命名规则；
+- 模式正文缺少固定六节。
+
+不得静默选择其他模式，不得从 `id` 猜测路径，不得读取集中登记册或预制 HTML 作为回退。
 
 ### 状态回退
 
 业务内容变更必须升版（`version + 1`），状态回到 `draft` 或 `gaps_open`，旧 HTML 标记为过期，重新确认后再渲染。`gaps_open ↔ review_ready` 的往返是正常的跨场次异步迭代，**不是错误状态**。
+
+### 渲染校验失败
+
+静态自检或浏览器验证失败时，模块保持 `confirmed`。修订同一版本 HTML 后重新执行全部校验；只有全部通过才把状态改为 `rendered`。若修订涉及业务内容，必须按“状态回退”升版并重新确认。
 
 ### 多用户并行编辑
 
@@ -392,10 +422,12 @@ Agent：（步骤 2，调用 mvl-distill 生成 M1-v1.md 确认包）
 
 用户：确认 v1
 Agent：（步骤 6，Gate 评估 → render_allowed=true）
-      （步骤 7，展示模板选项：蓝色专业 / 机构信号）
+      （步骤 7，扫描视觉模式 frontmatter，推荐 1–2 个候选并说明理由）
 
-用户：蓝色专业
-Agent：（生成 output/module-1-canvas.html，状态 → rendered）
+用户：选择 blue-professional-balanced
+Agent：（从本轮扫描结果保存 `skills/canvas-render/visual-patterns/01-blue-professional-balanced.md`，不根据 ID 拼接路径）
+      （把完整路径传给 canvas-render）
+      （生成 output/module-1-canvas.html，状态 → rendered）
 ```
 
 ### 示例 2：分支决策（补问 vs 提炼）
