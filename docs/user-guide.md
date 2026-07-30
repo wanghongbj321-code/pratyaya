@@ -1,6 +1,6 @@
 # 用户指南
 
-> 适用版本：v3.1.0
+> 适用版本：v3.2.0-p1 试用
 > 配套文档：[安装指南](./installation.md) / [DEVELOPMENT.md](../DEVELOPMENT.md) / [DESIGN.md](../DESIGN.md)
 
 > **TL;DR**：5 步快速开始（见 §1），遇到问题查 §6 异常处理指引。
@@ -27,14 +27,16 @@
 
 ## 3. 用户决策分支
 
-每次模块完成后，主 Agent 会问你"下一步"：
+每次模块完成后，主 Agent 会问你"下一步"（v3.2.0 起 Gate 在确认前自动运行）：
 
 | 你说 | 主 Agent 做 |
 |---|---|
 | **提炼** | 把 Key Points 提炼成 `Mx-v{N}.md` 确认包 |
 | **补问** | 列出待补问的 minor/major 缺口 |
 | **先看个样子** | 生成草稿 Canvas（仅当前模块） |
-| **确认 vN** | 升级到 `confirmed` 状态，通过 Gate 后生成正式 Canvas |
+| **确认 vN** | 在 Gate 报告基础上作最终确认（Gate 全 PASS 时 `confirmation_mode=gate_pass`） |
+| **override / 我接受这个风险** | 仅 Gate 报告含 `business_risk` FAIL 时生效；`confirmation_mode=override` + 填写 override 审计；HTML 显示 caveat 标识 |
+| **补问 / 修订** | 存在 `information_integrity` FAIL 或需修订时；不提供 override 路径 |
 
 ## 4. 3 天工作坊使用流程
 
@@ -69,7 +71,7 @@
 
 **模块阶段**：
 
-- "M1 提炼" / "M1 补问" / "M1 先看个样子" / "M1 确认 v1"
+- "M1 提炼" / "M1 补问" / "M1 先看个样子" / "M1 确认 v1" / "M1 override（已阅读影响）"
 - "切换到 M2" / "M2 当前状态"
 
 **全局阶段**：
@@ -88,12 +90,13 @@
 - 参考 §5 指令速查，使用固定指令
 - 必要时切换模式
 
-### 6.2 Gate 冲突
+### 6.2 Gate 冲突（v3.2.0 新决策路径）
 
-如 Gate 输出 `render_allowed = false`：
+如 Gate 报告含 FAIL 项（`gate_recommendation = fail`）：
 
-- 列出 blocker 和 major 缺口
-- 选择"补问"或"升版到 vN+1"重做
+- **仅 `business_risk` FAIL（`override_eligible = true`）**：可选择"override / 我接受这个风险"（填写理由、确认人、确认时间）；HTML 显示"已确认 · 带保留意见" caveat 标识
+- **含 `information_integrity` FAIL（`override_eligible = false`）**：不接受 override，必须"补问"或"升版到 vN+1"重做
+- **未通过项摘要**：在 Gate 报告中列出 blocker / major 缺口与分类
 
 ### 6.3 视觉模式资源异常
 
@@ -132,5 +135,5 @@
 
 ---
 
-**版本**：v3.1.0
+**版本**：v3.2.0-p1 试用
 **反馈**：在本仓库开 issue

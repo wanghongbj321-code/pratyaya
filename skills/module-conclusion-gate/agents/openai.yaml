@@ -1,4 +1,4 @@
 interface:
   display_name: "模块结论闸门"
-  short_description: "评估 MVL 模块确认包，决定是否允许生成正式 Canvas。"
-  default_prompt: "读取 modules/Mx-v{N}.md 确认包与 ../references/Mx-gate.md 闸门策略，逐项评估后输出 Gate 判定报告（Markdown），含 render_allowed: true/false。"
+  short_description: "对 MVL 模块确认包做质量建议与风险分级，输出 gate_recommendation 供主 Agent 决策。Gate 只输出建议，不决定最终渲染授权；用户授权由主 Agent 根据 Gate 报告与用户决策写入 state.json 的 render_authorized 与 confirmation_mode 字段。"
+  default_prompt: "读取 modules/Mx-v{N}.md 确认包与 ../references/Mx-gate.md 闸门策略（34 条放行条件 + 稳定 ID + 分类与风险等级），逐项评估后输出 Gate 判定报告（Markdown），含 gate_recommendation: pass/fail/pending 与 override_eligible: true/false。本 skill 不写最终授权，由主 Agent 在用户决策后写入 render_authorized 与 confirmation_mode。"

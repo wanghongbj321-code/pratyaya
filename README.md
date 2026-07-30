@@ -13,11 +13,11 @@ flowchart LR
     C["Gate<br/>LLM 评估"]
     D["渲染<br/>HTML Canvas"]
     A -->|用户决策| B
-    B -->|确认 vN| C
-    C -->|render_allowed=true| D
+    B -->|自动进入| C
+    C -->|用户决策 + render_authorized=true| D
 ```
 
-四阶段管线：先从转写中抽取 Key Points，再提炼成确认包 Markdown，通过 LLM Gate 后渲染为可下钻的 HTML Canvas。
+四阶段管线：先从转写中抽取 Key Points，再提炼成确认包 Markdown，由 LLM Gate 输出建议（v3.2.0 起 Gate 在确认包展示后自动运行），用户决策后由主 Agent 写入 `render_authorized` + `confirmation_mode`，再渲染为可下钻的 HTML Canvas。
 
 ## 模块生命周期
 
@@ -25,7 +25,7 @@ flowchart LR
 draft → gaps_open ↔ review_ready → confirmed → rendered
 ```
 
-5 态转换：草稿在 `gaps_open` 与 `review_ready` 之间反复直到全部缺口解决，然后用户确认升至 `confirmed`，最后渲染为 `rendered`（详见 `agents/mvl-workshop-facilitator.md` 的状态机章节）。
+5 态转换：草稿在 `gaps_open` 与 `review_ready` 之间反复直到全部缺口解决，用户决策（`gate_pass` / `override`）后升至 `confirmed`，最后渲染为 `rendered`（详见 `agents/mvl-workshop-facilitator.md` 的状态机章节）。v3.2.0 起 `confirmation_mode` 是属性（`gate_pass` / `override` / `null`），不是状态；`rendered` 模块若 `confirmation_mode=override` 仍参与跨模块 caveat 检查。
 
 ## 项目结构
 
@@ -53,4 +53,4 @@ mvl-workshop-facilitator/
 
 ## 专家版本
 
-v3.1.0（2026-07-30）。与 `.codebuddy-plugin/plugin.json` 的 `version` 字段同步。
+v3.2.0-p1 试用（2026-07-30）。当前 `plugin.json` 仍 `3.1.0`（P3 阶段 D 升 `3.2.0`）。

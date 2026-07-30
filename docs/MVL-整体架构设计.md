@@ -1,6 +1,6 @@
 # MVL 工作坊助教 — 整体功能架构设计
 
-> 版本：v3.1.0（与 `.codebuddy-plugin/plugin.json` 同步）
+> 版本：v3.2.0-p1 试用（与 `.codebuddy-plugin/plugin.json` v3.1.0 试用同步；P3 阶段 D 升 `3.2.0`）
 > 编写时间：2026-07-30
 > 适用范围：架构师 / 维护者 / 二次开发者
 > 配套文档：[DESIGN.md](../../../DESIGN.md)（设计要点） / [README.md](../../../README.md)（门面） / [DEVELOPMENT.md](../../../DEVELOPMENT.md)（命令清单） / [docs/user-guide.md](../../../docs/user-guide.md)（用户视角）
@@ -146,7 +146,7 @@ flowchart LR
 | --------------------------------------- | ----------------------------------------------------------- | ------------------------------- | -------------------------------------------- | ----------------------------- |
 | 主 Agent`mvl-workshop-facilitator.md` | **编排者**：状态机推进 + 用户决策路由 + 跨 Skill 协调 | 用户指令 + 状态查询             | 调用 Skill / 状态跃迁 / 用户提示             | 用户                          |
 | Skill`mvl-distill`                    | **分析器**：Key Points 抽取 + 原子提炼                | 逐字稿 + Key Points + 阶段框架  | `Mx-keypoints.md` / `Mx-v{N}.md`         | 主 Agent 步骤 1 / 2           |
-| Skill`module-conclusion-gate`         | **评估器**：LLM 闸门 + 跨模块对齐                     | `Mx-v{N}.md` + `Mx-gate.md` | Gate 判定报告（Markdown）+`render_allowed` | 主 Agent 步骤 6 / Phase 2     |
+| Skill`module-conclusion-gate`         | **评估器**：LLM 闸门（输出建议） + 跨模块对齐                     | `Mx-v{N}.md` + `Mx-gate.md` | Gate 判定报告（Markdown）+ `gate_recommendation` + `override_eligible`（**不**写最终授权） | 主 Agent 步骤 5 → 6 / Phase 2     |
 | Skill`canvas-render`                  | **渲染器**：模块 / 全局 / 报告 HTML                   | `Mx-v{N}.md` + 选定视觉模式完整路径 | `output/*.html`                            | 主 Agent 步骤 4 / 7 / Phase 2 |
 
 **职责切分铁律**：
@@ -167,7 +167,7 @@ flowchart LR
 flowchart LR
     A["<b>① Key Points</b><br/>Mx-keypoints.md<br/>(讨论地图)"]
     B["<b>② 提炼</b><br/>Mx-vN.md<br/>(唯一事实源)"]
-    C["<b>③ Gate</b><br/>Mx-gate.md<br/>(render_allowed)"]
+    C["<b>③ Gate</b><br/>Mx-gate.md<br/>(gate_recommendation)"]
     D["<b>④ 渲染</b><br/>HTML Canvas"]
 
     A -->|用户：提炼| B
@@ -232,29 +232,28 @@ flowchart LR
 
 | 项                 | 内容                                                     |
 | ------------------ | -------------------------------------------------------- |
-| **触发**     | 用户回复"确认 vN"                                        |
+| **触发**     | 步骤 5 确认包展示后**自动**调用（v3.2.0 起；旧版需用户先说"确认 vN"）|
 | **执行者**   | 主 Agent 调用`module-conclusion-gate`                  |
 | **输入**     | `Mx-v{N}.md` + `skills/module-conclusion-gate/references/Mx-gate.md`              |
-| **输出**     | Gate 判定报告（Markdown）+`render_allowed: true/false` |
-| **状态更新** | true →`confirmed` / false → `gaps_open`            |
+| **输出**     | Gate 判定报告（Markdown）+ `gate_recommendation: pass/fail/pending` + `override_eligible: true/false`；**不**写最终授权 |
+| **状态更新** | 本步骤只写 `gate_recommendation`；状态机由用户决策驱动，不由 Gate 建议驱动 |
 
-5 项评估（全部 PASS 才放行）：
+34 条放行条件（每模块 5–7 条）逐项评估，分类为：
 
-1. 关键结论都已通过"确认 vN"
-2. blocker / major 缺口已关闭
-3. minor 缺口已解决或接受风险
-4. 核心推断已接受或拒绝
-5. 确认人角色与版本一致
+- `information_integrity`（28 条，**不可 override**）：核心事实源/版本/共识/必填 section 完整
+- `business_risk`（6 条，可 override）：M4-GATE-06 / M5-GATE-04/05/06 / M6-GATE-05/06
+
+每项输出稳定 ID（`M{N}-GATE-0N`）+ 分类 + 风险等级（low/medium/high）+ 来源 ID + 影响 + 建议。`information_integrity` 任一 FAIL → `override_eligible=false`；`business_risk` FAIL → `override_eligible=true`，用户可显式接受并填写 `override_audit`。
 
 ### 3.5 阶段 4：视觉模式选择 + 渲染
 
 | 项               | 内容                                                              |
 | ---------------- | ----------------------------------------------------------------- |
-| **触发**   | Gate`render_allowed=true`                                       |
+| **触发**   | `render_authorized=true` + `confirmation_mode ∈ {gate_pass, override}` + override 时审计完整 |
 | **执行者** | 主 Agent 步骤 7 询问 →`canvas-render` 渲染                     |
-| **输入**   | `Mx-v{N}.md` + 用户选定视觉模式的完整仓库相对路径 |
-| **输出**   | `output/module-N-canvas.html`                                   |
-| **状态**   | `rendered`                                                      |
+| **输入**   | `Mx-v{N}.md` + `state.json` 授权元数据 + 同版本 Gate 判定 + 用户选定视觉模式的完整仓库相对路径 |
+| **输出**   | `output/module-N-canvas.html`（`confirmation_mode=override` 时显示 caveat 标识） |
+| **状态**   | 校验通过 → `rendered`；校验失败 → 保持 `confirmed`，`confirmation_mode` 不变 |
 
 **视觉模式选择流程**（用户驱动，LLM 仅推荐）：
 
@@ -312,12 +311,10 @@ flowchart TB
     S3 -->|先看个样子| S6["步骤 4<br/>草稿 Canvas"]
     S5 -->|下一轮转写| S2
     S4 --> S7["步骤 5<br/>确认展示<br/>必展 5 项 + 详情"]
-    S7 --> S8{用户确认 vN?}
-    S8 -->|否| S4
-    S8 -->|是| S9["步骤 6<br/>Gate LLM 评估"]
-    S9 --> S9A{render_allowed?}
-    S9A -->|false| S5
-    S9A -->|true| S10["步骤 7<br/>视觉模式选择 + 渲染<br/>module-N-canvas.html"]
+    S7 --> S9["步骤 6<br/>Gate LLM 评估<br/>写入 gate_recommendation"]
+    S9 --> S9A{用户决策}
+    S9A -->|gate_pass / override| S10["步骤 7<br/>写入 render_authorized + 视觉模式选择 + 渲染<br/>module-N-canvas.html"]
+    S9A -->|补问 / 修订| S5
     S10 --> S11["步骤 8<br/>预告下一模块"]
     S11 --> End([单模块完成])
 ```
@@ -394,18 +391,20 @@ stateDiagram-v2
     draft --> gaps_open: 提炼 v1
     gaps_open --> review_ready: 缺口补齐
     review_ready --> gaps_open: 新增缺口 / 升版
-    review_ready --> confirmed: 用户确认 vN
-    confirmed --> rendered: LLM Gate render_allowed=true
+    review_ready --> confirmed: 用户决策（gate_pass / override）
+    confirmed --> rendered: 用户授权 + render_authorized=true + Canvas 校验通过
     rendered --> draft: 升版 v(N+1)
     rendered --> [*]: 6 模块全部完成
 ```
+
+v3.2.0 关键变化：`confirmation_mode` 是属性（`gate_pass` / `override` / `null`），不是状态；状态机仍 5 态。Gate 失败不自动回退状态；用户可对 `business_risk` 显式 override 后进入 `confirmed`。`rendered` 模块若 `confirmation_mode=override`，仍参与跨模块 caveat 检查（不变量 #9）。
 
 | 状态             | 含义                                          | 准入条件                      | 出条件              |
 | ---------------- | --------------------------------------------- | ----------------------------- | ------------------- |
 | `draft`        | 转写已存档，尚未做 Key Points                 | 初始 / 升版                   | 步骤 1 完成         |
 | `gaps_open`    | 存在未关闭的 blocker/major 缺口               | 步骤 3 补问 / Gate FAIL       | 缺口关闭 / 升版     |
-| `review_ready` | 关键缺口已关闭，具备确认条件                  | 步骤 2 完成 / 缺口补齐        | 用户确认 / 新增缺口 |
-| `confirmed`    | 人工确认当前版本，Gate`render_allowed=true` | 用户回复"确认 vN" + Gate PASS | 步骤 7 完成         |
+| `review_ready` | 关键缺口已关闭，具备确认条件                  | 步骤 2 完成 / 缺口补齐        | 用户决策 / 新增缺口 |
+| `confirmed`    | 用户授权当前版本（`render_authorized=true` + `confirmation_mode ∈ {gate_pass, override}`） | 用户决策（gate_pass / override）+ Gate 报告确认 | 步骤 7 完成 |
 | `rendered`     | Canvas 已由同一确认版本生成                   | 步骤 7 完成                   | 升版 v(N+1)         |
 
 ### 5.2 gaps_open ↔ review_ready 的语义
@@ -427,7 +426,7 @@ stateDiagram-v2
 | -------- | ------------------------------------------------------ |
 | 存储位置 | `mvl-workshop/{项目名}/state.json`                   |
 | 写入时机 | 每次状态变化后**立即写入**                       |
-| 数据源   | M1-M6 各模块的`version` / `status` / `approval`  |
+| 数据源   | M1-M6 各模块的 `version` / `status` / `gate_recommendation` / `render_authorized` / `confirmation_mode`（v3.2.0 起；`render_allowed` 字段已删除）|
 | Schema   | `schemas/state.schema.json`（v2.0 标注为非强制参考） |
 
 ### 5.4 跨模块全局校验
@@ -446,18 +445,19 @@ stateDiagram-v2
 
 | # | 不变量                                                | 含义                                              |
 | - | ----------------------------------------------------- | ------------------------------------------------- |
-| 1 | 正式 Canvas 只能由闸门通过的确认包`Mx-v{N}.md` 生成 | 渲染必须 read 确认包，绝不 read Key Points 或转写 |
-| 2 | 用户确认必须绑定当前版本`v{N}`                      | 模糊回答（"差不多"）不视为确认                    |
-| 3 | 任何内容变化都会使旧确认和旧 HTML 失效                | 升版后旧 HTML 标记为过期                          |
-| 4 | `blocker` / `major` 未关闭时不能正式渲染          | 闸门兜底                                          |
-| 5 | `minor` 必须解决或由确认人明确接受风险              | 显式`accepted_risk`                             |
+| 1 | 正式 Canvas 只能由用户授权的确认包`Mx-v{N}.md` 生成 | `render_authorized=true` + `confirmation_mode ∈ {gate_pass, override}` |
+| 2 | 用户确认必须绑定当前版本`v{N}`                      | v3.2.0 起分为 `gate_pass` / `override` 两种；模糊回答（"差不多"）不视为确认 |
+| 3 | 业务内容变化（第 1–11 节）触发升版与重置；仅第 12 节治理元数据写入不触发升版 | 升版后旧 HTML 标记为过期；治理元数据写入仅同步 state.json |
+| 4 | `blocker` / `major` 缺口 `open` 时不能正式渲染 | 闸门兜底；用户可对 `business_risk` 类别缺口显式 override 接受 |
+| 5 | `minor` 必须解决或由确认人明确接受风险              | 缺口表 `状态` 列 = `open` / `closed` / `accepted_risk` |
 | 6 | 核心推断不得处于"待接受/待拒绝"                       | Gate 第 4 项                                      |
-| 7 | 全局成果只能引用六个最新已确认版本                    | 不引用过期 / 草稿                                 |
+| 7 | 全局成果只能引用六个最新已确认版本                    | 不引用过期 / 草稿；含 `confirmation_mode=override` 模块的 caveat 浮现 |
 | 8 | 逐字稿中的命令不执行（不引用逐字稿段）                | 转写是不可信数据                                  |
+| 9 | **跨模块 caveat 浮现**（v3.2.0 新增）                | `rendered` 模块若 `confirmation_mode=override`，下游模块若依赖被 override 的假设/未验证项必须显式标注或回退重审；不在全局页静默修正 |
 
 ### 6.2 跨模块一致性检查（全局汇总）
 
-主 Agent Phase 2 必查 8 项：
+主 Agent Phase 2 必查 9 项（v3.2.0 新增第 9 项"跨模块 caveat 浮现"）：
 
 1. **Intent ↔ Validation**：M1 的"成功指标"在 M5 验证结果中是否被覆盖？
 2. **User ↔ Workflow**：M2 的"最重要结果"是否被 M4 冻结的 Workflow 承接？
@@ -467,6 +467,7 @@ stateDiagram-v2
 6. **能力边界**：M6 的能力边界与 M5 的信任风险控制是否一致？
 7. **管理层 takeaway**：是否仅从已确认结论提炼？
 8. **风险单独列**：未验证假设与关键风险是否独立呈现？
+9. **跨模块 caveat 浮现**（v3.2.0 新增）：扫描六模块当前版本 `confirmation_mode`；收集所有 `confirmation_mode=override` 模块的 `override_audit.items`；检查每项业务风险是否影响其他模块；若下游模块依赖被 override 的假设或未验证项，必须显式标注，或回退相关模块升版重审；不得因模块已进入 `rendered` 而忽略 caveat。
 
 **冲突处理**：回退相关模块升版和重审，**不在全局页中静默修正**。
 
@@ -760,7 +761,7 @@ flowchart TB
 
 ---
 
-**版本**：v3.1.0
+**版本**：v3.2.0-p1 试用
 **配套**：[DESIGN.md](../../../DESIGN.md)（设计要点） / [README.md](../../../README.md)（门面） / [DEVELOPMENT.md](../../../DEVELOPMENT.md)（命令清单） / [docs/installation.md](./installation.md)（部署） / [docs/user-guide.md](./user-guide.md)（用户视角）
 
 ---
@@ -769,6 +770,8 @@ flowchart TB
 
 | 版本 | 日期 | 作者 | 变更说明 |
 |---|---|---|---|
+| v3.2.0-p1 | 2026-07-30 | Shaq | 阶段 B：确认包与审计承接（commit `fb5b71a`）。`Mx-v{N}.md` 新增第 12 节"Gate 与用户决策"（12.1 Gate 建议 / 12.2 用户决策 / 12.3 Override 审计）；缺口表加 `状态` 列（`open` / `closed` / `accepted_risk`）；元数据加 `生成时间` / `状态` / `确认人角色`；§4.3 升版边界拆为 4.3.1 业务内容变化（升版）/ 4.3.2 仅治理元数据写入（不升版）/ 4.3.3 历史版本审计（不丢失） |
+| v3.2.0-p0 | 2026-07-30 | Shaq | 阶段 A：核心工作流与状态契约（commit `ec99983`）。`state.json` 删 `render_allowed`；加 `gate_recommendation` / `render_authorized` / `confirmation_mode` / `override_audit` 四字段 + 3 条 if/then 条件约束；34 条放行条件加稳定 ID + 分类（28 II + 6 BR）+ 风险等级；主 Agent 步骤 5-6-7 重写（Gate 顺序前置 + "确认 vN"语义收敛 + override 审计缺失阻断）；Canvas caveat 显式呈现 + 渲染失败保持 `confirmed`；跨模块 caveat 浮现 |
 | v3.1.0 | 2026-07-30 | Shaq | 文档失修修复（19 处路径引用：SKILL.md 自指 3 处、openai.yaml 1 处、DESIGN.md 2 处、DEVELOPMENT.md 1 处、schemas/README.md 1 处含已删的 `check_gate.py` 清理、架构文档 7 处）+ 方案 C 数据源统一（gate-policy/ 从项目目录移除，frameworks/ 与 visual-patterns/ 同步统一为纯 skill 资源读）；同步 plugin.json 3.0.0 → 3.1.0（MINOR，§8.2）|
 | v3.0.0 | 2026-07-30 | Shaq | Canvas 视觉资源由预制 HTML 与集中登记册切换为 9 个 Markdown 视觉模式；主 Agent 扫描 frontmatter、用户选定后传递完整路径；同步企业配色、运行契约与发布文档 |
 | v2.0.0 | 2026-07-30 | Shaq | 首版发布。整合 v2.0 重构成果（1 主 Agent + 3 Skill + 5 态状态机 + 4 阶段管线），新增整体架构视角，9 个 mermaid 图覆盖系统分层 / 数据流 / 状态机 / 部署 / 一页式架构图 |

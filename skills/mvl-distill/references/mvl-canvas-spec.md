@@ -81,7 +81,7 @@ MVL Canvas 是六次工作坊已确认结论的完整展示层。正式页面只
 
 模块详情 Canvas 的要求：
 - 数据版本必须与确认包版本号 `v{N}` 一致
-- 包含质量面板（版本、确认人、确认时间、缺口、对齐状态）
+- 包含质量面板（版本、确认人、确认人角色、确认时间、Gate 建议、`render_authorized`、`confirmation_mode`、缺口、对齐状态；`confirmation_mode=override` 时显示 `quality-caveat` 与风险详情）
 - 结论 ID、缺口 ID 与确认包 Markdown 一致
 - 支持从结论下钻到证据摘要（通过确认包内的"关键证据引用"小节定位）
 - 可独立查看、打印，不依赖全局 Canvas
@@ -106,7 +106,7 @@ MVL Canvas 是六次工作坊已确认结论的完整展示层。正式页面只
 ## 事实源与版本
 
 - 唯一业务事实源：`modules/Mx-v{N}.md`（确认包，Markdown 格式）
-- 正式渲染要求：闸门 `render_allowed=true`
+- 正式渲染要求：`render_authorized=true` + `confirmation_mode ∈ {gate_pass, override}` + override 时审计完整（v3.2.0 起；旧 `render_allowed` 字段已删除）
 - 页面版本、模块版本和确认包版本号 `v{N}` 必须一致
 - 内容修改必须先回写确认包 Markdown、升版和重新确认
 - 缺失 section 不得补写；草稿显示"未讨论/待确认"，正式版由闸门阻断
