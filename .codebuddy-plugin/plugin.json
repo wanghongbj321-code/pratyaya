@@ -27,8 +27,8 @@
   "avatar": "avatars/expert.png",
   "categoryId": "12-IndustryConsultant",
   "defaultInitPrompt": {
-    "zh": "我们是第1组，项目名是【XXX】，开始MVL工作坊第一天上午模块",
-    "en": "We are Group 1, project [XXX]. Start the Day 1 morning module of the MVL workshop."
+    "zh": "我是第[组号]组成员，项目名[项目名]，请引导MVL工作坊M1战略对齐模块",
+    "en": "I'm a member of Group [group_id], project [project_name]. Please guide M1 (Strategic Alignment) of the MVL workshop."
   },
   "plugin": "mvl-workshop-facilitator",
   "tags": [
@@ -47,8 +47,8 @@
   ],
   "quickPrompts": [
     {
-      "en": "We are Group 1, project [XXX]. Start the Day 1 morning module of the MVL workshop.",
-      "zh": "我们是第1组，项目名是【XXX】，开始MVL工作坊第一天上午模块"
+      "en": "I'm a member of Group [group_id], project [project_name]. Please guide M1 (Strategic Alignment) of the MVL workshop.",
+      "zh": "我是第[组号]组成员，项目名[项目名]，请引导MVL工作坊M1战略对齐模块"
     },
     {
       "en": "Here is the transcript. Distill it, audit the module's core value, and prepare the conclusion review pack.",
