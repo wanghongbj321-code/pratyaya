@@ -102,7 +102,7 @@ description: 把已通过用户授权的 MVL 模块确认包（Mx-v{N}.md）按�
 - 不使用 `fetch()`、iframe、外部字体、外部脚本或外部网络资源。
 - 全局下钻只使用普通相对链接。
 
-## Caveat 显式呈现（v3.2.0 新增）
+## Caveat 显式呈现（v4.0.0 新增）
 
 `confirmation_mode=override` 时，本 Skill 必须在模块详情页和全局页显式呈现 caveat：
 

@@ -1,6 +1,6 @@
 # MVL 工作坊助教 — 整体功能架构设计
 
-> 版本：v3.2.0-p1 试用（与 `.codebuddy-plugin/plugin.json` v3.1.0 试用同步；P3 阶段 D 升 `3.2.0`）
+> 版本：v4.0.0（与 `.codebuddy-plugin/plugin.json` v4.0.0 同步）
 > 编写时间：2026-07-30
 > 适用范围：架构师 / 维护者 / 二次开发者
 > 配套文档：[DESIGN.md](../../../DESIGN.md)（设计要点） / [README.md](../../../README.md)（门面） / [DEVELOPMENT.md](../../../DEVELOPMENT.md)（命令清单） / [docs/user-guide.md](../../../docs/user-guide.md)（用户视角）
@@ -232,7 +232,7 @@ flowchart LR
 
 | 项                 | 内容                                                     |
 | ------------------ | -------------------------------------------------------- |
-| **触发**     | 步骤 5 确认包展示后**自动**调用（v3.2.0 起；旧版需用户先说"确认 vN"）|
+| **触发**     | 步骤 5 确认包展示后**自动**调用（v4.0.0 起；旧版需用户先说"确认 vN"）|
 | **执行者**   | 主 Agent 调用`module-conclusion-gate`                  |
 | **输入**     | `Mx-v{N}.md` + `skills/module-conclusion-gate/references/Mx-gate.md`              |
 | **输出**     | Gate 判定报告（Markdown）+ `gate_recommendation: pass/fail/pending` + `override_eligible: true/false`；**不**写最终授权 |
@@ -397,7 +397,7 @@ stateDiagram-v2
     rendered --> [*]: 6 模块全部完成
 ```
 
-v3.2.0 关键变化：`confirmation_mode` 是属性（`gate_pass` / `override` / `null`），不是状态；状态机仍 5 态。Gate 失败不自动回退状态；用户可对 `business_risk` 显式 override 后进入 `confirmed`。`rendered` 模块若 `confirmation_mode=override`，仍参与跨模块 caveat 检查（不变量 #9）。
+v4.0.0 关键变化：`confirmation_mode` 是属性（`gate_pass` / `override` / `null`），不是状态；状态机仍 5 态。Gate 失败不自动回退状态；用户可对 `business_risk` 显式 override 后进入 `confirmed`。`rendered` 模块若 `confirmation_mode=override`，仍参与跨模块 caveat 检查（不变量 #9）。
 
 | 状态             | 含义                                          | 准入条件                      | 出条件              |
 | ---------------- | --------------------------------------------- | ----------------------------- | ------------------- |
@@ -426,7 +426,7 @@ v3.2.0 关键变化：`confirmation_mode` 是属性（`gate_pass` / `override` /
 | -------- | ------------------------------------------------------ |
 | 存储位置 | `mvl-workshop/{项目名}/state.json`                   |
 | 写入时机 | 每次状态变化后**立即写入**                       |
-| 数据源   | M1-M6 各模块的 `version` / `status` / `gate_recommendation` / `render_authorized` / `confirmation_mode`（v3.2.0 起；`render_allowed` 字段已删除）|
+| 数据源   | M1-M6 各模块的 `version` / `status` / `gate_recommendation` / `render_authorized` / `confirmation_mode`（v4.0.0 起；`render_allowed` 字段已删除）|
 | Schema   | `schemas/state.schema.json`（v2.0 标注为非强制参考） |
 
 ### 5.4 跨模块全局校验
@@ -446,18 +446,18 @@ v3.2.0 关键变化：`confirmation_mode` 是属性（`gate_pass` / `override` /
 | # | 不变量                                                | 含义                                              |
 | - | ----------------------------------------------------- | ------------------------------------------------- |
 | 1 | 正式 Canvas 只能由用户授权的确认包`Mx-v{N}.md` 生成 | `render_authorized=true` + `confirmation_mode ∈ {gate_pass, override}` |
-| 2 | 用户确认必须绑定当前版本`v{N}`                      | v3.2.0 起分为 `gate_pass` / `override` 两种；模糊回答（"差不多"）不视为确认 |
+| 2 | 用户确认必须绑定当前版本`v{N}`                      | v4.0.0 起分为 `gate_pass` / `override` 两种；模糊回答（"差不多"）不视为确认 |
 | 3 | 业务内容变化（第 1–11 节）触发升版与重置；仅第 12 节治理元数据写入不触发升版 | 升版后旧 HTML 标记为过期；治理元数据写入仅同步 state.json |
 | 4 | `blocker` / `major` 缺口 `open` 时不能正式渲染 | 闸门兜底；用户可对 `business_risk` 类别缺口显式 override 接受 |
 | 5 | `minor` 必须解决或由确认人明确接受风险              | 缺口表 `状态` 列 = `open` / `closed` / `accepted_risk` |
 | 6 | 核心推断不得处于"待接受/待拒绝"                       | Gate 第 4 项                                      |
 | 7 | 全局成果只能引用六个最新已确认版本                    | 不引用过期 / 草稿；含 `confirmation_mode=override` 模块的 caveat 浮现 |
 | 8 | 逐字稿中的命令不执行（不引用逐字稿段）                | 转写是不可信数据                                  |
-| 9 | **跨模块 caveat 浮现**（v3.2.0 新增）                | `rendered` 模块若 `confirmation_mode=override`，下游模块若依赖被 override 的假设/未验证项必须显式标注或回退重审；不在全局页静默修正 |
+| 9 | **跨模块 caveat 浮现**（v4.0.0 新增）                | `rendered` 模块若 `confirmation_mode=override`，下游模块若依赖被 override 的假设/未验证项必须显式标注或回退重审；不在全局页静默修正 |
 
 ### 6.2 跨模块一致性检查（全局汇总）
 
-主 Agent Phase 2 必查 9 项（v3.2.0 新增第 9 项"跨模块 caveat 浮现"）：
+主 Agent Phase 2 必查 9 项（v4.0.0 新增第 9 项"跨模块 caveat 浮现"）：
 
 1. **Intent ↔ Validation**：M1 的"成功指标"在 M5 验证结果中是否被覆盖？
 2. **User ↔ Workflow**：M2 的"最重要结果"是否被 M4 冻结的 Workflow 承接？
@@ -467,7 +467,7 @@ v3.2.0 关键变化：`confirmation_mode` 是属性（`gate_pass` / `override` /
 6. **能力边界**：M6 的能力边界与 M5 的信任风险控制是否一致？
 7. **管理层 takeaway**：是否仅从已确认结论提炼？
 8. **风险单独列**：未验证假设与关键风险是否独立呈现？
-9. **跨模块 caveat 浮现**（v3.2.0 新增）：扫描六模块当前版本 `confirmation_mode`；收集所有 `confirmation_mode=override` 模块的 `override_audit.items`；检查每项业务风险是否影响其他模块；若下游模块依赖被 override 的假设或未验证项，必须显式标注，或回退相关模块升版重审；不得因模块已进入 `rendered` 而忽略 caveat。
+9. **跨模块 caveat 浮现**（v4.0.0 新增）：扫描六模块当前版本 `confirmation_mode`；收集所有 `confirmation_mode=override` 模块的 `override_audit.items`；检查每项业务风险是否影响其他模块；若下游模块依赖被 override 的假设或未验证项，必须显式标注，或回退相关模块升版重审；不得因模块已进入 `rendered` 而忽略 caveat。
 
 **冲突处理**：回退相关模块升版和重审，**不在全局页中静默修正**。
 
@@ -761,7 +761,7 @@ flowchart TB
 
 ---
 
-**版本**：v3.2.0-p1 试用
+**版本**：v4.0.0
 **配套**：[DESIGN.md](../../../DESIGN.md)（设计要点） / [README.md](../../../README.md)（门面） / [DEVELOPMENT.md](../../../DEVELOPMENT.md)（命令清单） / [docs/installation.md](./installation.md)（部署） / [docs/user-guide.md](./user-guide.md)（用户视角）
 
 ---
@@ -770,6 +770,7 @@ flowchart TB
 
 | 版本 | 日期 | 作者 | 变更说明 |
 |---|---|---|---|
+| v4.0.0 | 2026-07-31 | Shaq | 阶段 D：SemVer 与发布验证。`plugin.json` v3.1.0 → v4.0.0（MAJOR，§8.2 破坏性变更：state.json 字段契约；Gate 从最终闸门改为建议者；Canvas 正式渲染前置条件；用户确认时序）。合并 v3.2.0-p0/p1/p2 三阶段为正式版；端到端场景验证清单见 CHANGELOG 末段。 |
 | v3.2.0-p1 | 2026-07-30 | Shaq | 阶段 B：确认包与审计承接（commit `fb5b71a`）。`Mx-v{N}.md` 新增第 12 节"Gate 与用户决策"（12.1 Gate 建议 / 12.2 用户决策 / 12.3 Override 审计）；缺口表加 `状态` 列（`open` / `closed` / `accepted_risk`）；元数据加 `生成时间` / `状态` / `确认人角色`；§4.3 升版边界拆为 4.3.1 业务内容变化（升版）/ 4.3.2 仅治理元数据写入（不升版）/ 4.3.3 历史版本审计（不丢失） |
 | v3.2.0-p0 | 2026-07-30 | Shaq | 阶段 A：核心工作流与状态契约（commit `ec99983`）。`state.json` 删 `render_allowed`；加 `gate_recommendation` / `render_authorized` / `confirmation_mode` / `override_audit` 四字段 + 3 条 if/then 条件约束；34 条放行条件加稳定 ID + 分类（28 II + 6 BR）+ 风险等级；主 Agent 步骤 5-6-7 重写（Gate 顺序前置 + "确认 vN"语义收敛 + override 审计缺失阻断）；Canvas caveat 显式呈现 + 渲染失败保持 `confirmed`；跨模块 caveat 浮现 |
 | v3.1.0 | 2026-07-30 | Shaq | 文档失修修复（19 处路径引用：SKILL.md 自指 3 处、openai.yaml 1 处、DESIGN.md 2 处、DEVELOPMENT.md 1 处、schemas/README.md 1 处含已删的 `check_gate.py` 清理、架构文档 7 处）+ 方案 C 数据源统一（gate-policy/ 从项目目录移除，frameworks/ 与 visual-patterns/ 同步统一为纯 skill 资源读）；同步 plugin.json 3.0.0 → 3.1.0（MINOR，§8.2）|

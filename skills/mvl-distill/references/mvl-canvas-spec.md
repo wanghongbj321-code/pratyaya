@@ -106,7 +106,7 @@ MVL Canvas 是六次工作坊已确认结论的完整展示层。正式页面只
 ## 事实源与版本
 
 - 唯一业务事实源：`modules/Mx-v{N}.md`（确认包，Markdown 格式）
-- 正式渲染要求：`render_authorized=true` + `confirmation_mode ∈ {gate_pass, override}` + override 时审计完整（v3.2.0 起；旧 `render_allowed` 字段已删除）
+- 正式渲染要求：`render_authorized=true` + `confirmation_mode ∈ {gate_pass, override}` + override 时审计完整（v4.0.0 起；旧 `render_allowed` 字段已删除）
 - 页面版本、模块版本和确认包版本号 `v{N}` 必须一致
 - 内容修改必须先回写确认包 Markdown、升版和重新确认
 - 缺失 section 不得补写；草稿显示"未讨论/待确认"，正式版由闸门阻断

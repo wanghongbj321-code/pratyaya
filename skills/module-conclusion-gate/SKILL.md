@@ -175,7 +175,7 @@ M6-GATE-07
 - 六大模块名称、数字、边界和版本是否一致；
 - 页面是否明确"模拟环境概念验证原型，非生产级系统"。
 
-**跨模块 caveat 检查**（v3.2.0 新增）：
+**跨模块 caveat 检查**（v4.0.0 新增）：
 
 - 扫描六个当前版本的 `confirmation_mode`；
 - 收集所有 `confirmation_mode=override` 模块的 `override_audit.items`；

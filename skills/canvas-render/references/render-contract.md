@@ -216,7 +216,7 @@
 </script>
 ```
 
-### Caveat 状态标识（v3.2.0 新增）
+### Caveat 状态标识（v4.0.0 新增）
 
 模块详情页头部必须根据 `confirmation_mode` 显示对应状态：
 

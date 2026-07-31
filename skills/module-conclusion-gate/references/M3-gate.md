@@ -2,7 +2,7 @@
 
 > M3 模块（闭环目标定义、HMW 拆解与方案方向锁定）的最低可用结论与常见 blocker。本文件由 `module-conclusion-gate` 在 Gate 评估时读取。
 
-> **v3.2.0 更新**：每条放行条件增加稳定 ID、分类（`information_integrity` / `business_risk`）和风险等级，供 Gate 报告与 override 审计引用。
+> **v4.0.0 更新**：每条放行条件增加稳定 ID、分类（`information_integrity` / `business_risk`）和风险等级，供 Gate 报告与 override 审计引用。
 
 ## 必填 section
 

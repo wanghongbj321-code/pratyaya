@@ -18,7 +18,7 @@ v2.0 起，模块结论闸门（Gate）由 LLM 评估替代 v1.x 的 Python 脚�
 
 ## 3. HTML 渲染（LLM 自检）
 
-v2.0 起，HTML 渲染审计由 LLM 自检替代 v1.x 的 Python 脚本（`audit_canvas_html.py` 已删除）。v3.2.0 正式交付前执行 10 项 render-contract 检查（v3.0 8 项 + v3.2.0 新增 2 项）：
+v2.0 起，HTML 渲染审计由 LLM 自检替代 v1.x 的 Python 脚本（`audit_canvas_html.py` 已删除）。v4.0.0 正式交付前执行 10 项 render-contract 检查（v3.0 8 项 + v4.0.0 新增 2 项）：
 
 1. 数据源一致（HTML 内嵌 `canvas-data` 与 `Mx-v{N}.md` 同版本）
 2. DOM 结构（对照 `render-contract.md` 章节 A/B）
@@ -28,8 +28,8 @@ v2.0 起，HTML 渲染审计由 LLM 自检替代 v1.x 的 Python 脚本（`audit
 6. 草稿标记（草稿模式顶部与打印版含"草稿/未确认"字样）
 7. 视觉系统单一（仅一种 `visual_system`，不混搭）
 8. 模式一致（色板、字体、网格、组件及专属组件符合选定 Markdown 模式）
-9. **授权元数据**（v3.2.0 新增）：`canvas-data.auth` 含 `render_authorized` / `confirmation_mode` / `override_audit`（override 时），与 `state.json` 完全一致
-10. **Caveat 显示**（v3.2.0 新增，仅 `confirmation_mode=override` 模块）：页面顶部"已确认 · 带保留意见"状态标识 + `quality-caveat` 锚点 + 风险详情 + 打印版保留 + `canvas-data` 内嵌 override_audit
+9. **授权元数据**（v4.0.0 新增）：`canvas-data.auth` 含 `render_authorized` / `confirmation_mode` / `override_audit`（override 时），与 `state.json` 完全一致
+10. **Caveat 显示**（v4.0.0 新增，仅 `confirmation_mode=override` 模块）：页面顶部"已确认 · 带保留意见"状态标识 + `quality-caveat` 锚点 + 风险详情 + 打印版保留 + `canvas-data` 内嵌 override_audit
 
 详细自检依据、DOM 映射表、共享结构、离线约束、数据完整性见 [skills/canvas-render/SKILL.md](./skills/canvas-render/SKILL.md) 与 [skills/canvas-render/references/render-contract.md](./skills/canvas-render/references/render-contract.md)。
 
@@ -64,7 +64,7 @@ Key Points (Mx-keypoints.md) → 提炼 (Mx-v{N}.md) → Gate (Mx-gate.md) → �
 - **MINOR**：新增功能（新增 Skill 子任务、新增文档章节等）
 - **PATCH**：Bug 修复、措辞调整
 
-当前版本：v3.2.0-p1 试用（`plugin.json` 仍 `3.1.0`，P3 阶段 D 升 `3.2.0`）。
+当前版本：v4.0.0（`plugin.json` v4.0.0 同步）。
 
 发布流程（按 workbuddy 指导第十节"修改已有专家"5 步）：
 
@@ -91,5 +91,5 @@ Key Points (Mx-keypoints.md) → 提炼 (Mx-v{N}.md) → Gate (Mx-gate.md) → �
 
 ---
 
-**版本**：v3.2.0-p1 试用
+**版本**：v4.0.0
 **配套文档**：[DESIGN.md](./DESIGN.md) / [docs/installation.md](./docs/installation.md) / [docs/user-guide.md](./docs/user-guide.md)
