@@ -74,7 +74,9 @@ Key Points (Mx-keypoints.md) → 提炼 (Mx-v{N}.md) → Gate (Mx-gate.md) → �
 4. **校验** — `python3 -c "import json; json.load(open('.codebuddy-plugin/plugin.json'))"` 验证 plugin.json 是合法 JSON；运行 `scripts/validate_expert.py`（如存在）
 5. **重新注册** — WorkBuddy 重启加载（详见 [docs/installation.md §4](./docs/installation.md#4-安装后必须重启)）
 
-严禁修改（按 workbuddy 指导）：`name` 字段（kebab-case 唯一标识）、`agentName` 字段、专家目录名、agents/ 下的 .md 文件名。这些字段的修改会导致专家丢失。
+严禁修改（按 workbuddy 指导）：`name` 字段（kebab-case 唯一标识）、`agentName` 字段、`plugin` 字段、专家目录名、agents/ 下的 .md 文件名。这些字段的修改会导致专家丢失。
+
+**派生关系**：`name` / `agentName` / `plugin` 三个字段值同源（当前均为 `mvl-workshop-facilitator`）。重命名专家包时三个必须一起改；否则专家市场注册信息会与本地配置脱节。
 
 ## 7. 命令速查
 

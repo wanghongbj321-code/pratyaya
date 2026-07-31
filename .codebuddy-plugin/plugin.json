@@ -1,7 +1,7 @@
 {
   "name": "mvl-workshop-facilitator",
   "version": "4.0.0",
-  "description": "AI-native MVL workshop facilitator: distills traceable conclusions, blocks incomplete modules, obtains versioned human confirmation, then renders module and global Canvas HTML.",
+  "description": "pratyaya: AI-native MVL (Minimum Verifiable Loop) workshop facilitator. Distills traceable conclusions; blocks incomplete modules; obtains versioned human confirmation; renders module + global Canvas HTML.",
   "agents": [
     "./agents/mvl-workshop-facilitator.md"
   ],
@@ -13,16 +13,16 @@
   "expertType": "agent",
   "agentName": "mvl-workshop-facilitator",
   "displayName": {
-    "en": "MVL Workshop Copilot",
-    "zh": "闭环助教"
+    "en": "Pratyaya",
+    "zh": "pratyaya"
   },
   "profession": {
-    "en": "AI-Native MVL Workshop Facilitator",
-    "zh": "AI原生MVL工作坊助教"
+    "en": "AI-Native Verifiable Loop Expert",
+    "zh": "AI 原生的场景可验证自治闭环专家"
   },
   "displayDescription": {
-    "en": "Facilitates 3-day AI-native MVL workshops: guides discussion, distills transcripts, renders per-module canvas HTML, and assembles the global MAAU canvas plus report.",
-    "zh": "MVL工作坊助教：引导小组讨论、提炼录音转写、生成模块画布，汇总全局MAAU画布与演示报告。"
+    "en": "An AI-native workshop facilitation expert pack for MVL (Minimum Verifiable Loop).",
+    "zh": "AI 原生的 MVL（Minimum Verifiable Loop，最小可验证自治闭环）工作坊引导专家包"
   },
   "avatar": "avatars/expert.png",
   "categoryId": "12-IndustryConsultant",
