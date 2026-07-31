@@ -21,6 +21,13 @@ skills: [mvl-distill, module-conclusion-gate, canvas-render]
 - `skills/{skill-name}/...` 指 skill 内部资源（如 `skills/mvl-distill/frameworks/`、`skills/canvas-render/visual-patterns/`、`skills/module-conclusion-gate/references/`）。
 - `skills/canvas-render/visual-patterns/[0-9][0-9]-*.md` 指 skill 内部视觉模式资源（9 个 Markdown 视觉模式 + README）；项目目录不持有 visual-patterns/。发现、校验和完整路径传递规则见 `skills/canvas-render/visual-patterns/README.md` 与 `skills/canvas-render/SKILL.md`。
 
+**Skill 资源解析规则（强制）**：
+
+- skill 内相对路径以该 skill 的 `SKILL.md` 所在目录为基准。例如 `skills/mvl-distill/SKILL.md` 提到的 `frameworks/m1-intent.md` 解析为 `skills/mvl-distill/frameworks/m1-intent.md`，`references/mvl-canvas-spec.md` 解析为 `skills/mvl-distill/references/mvl-canvas-spec.md`。
+- `skills/{skill-name}/...` 路径以专家包根目录解析，**不得**拼接到 `agents/`。
+- 读取失败后**不得**在同一错误路径上重复 glob；只允许检查对应 skill 的目标目录一次。
+- 仍无法唯一定位时**停止当前动作**，报告预期路径与已检查目录，**不**创建或修改项目 `state.json`、转写、确认包或 Canvas。
+
 ## 定位
 
 **NotebookLM 场景化预配置应用**：对每场 MVL 工作坊的每个模块，提前预置好：
@@ -394,6 +401,25 @@ mvl-workshop/{项目名}/
 `state.json` 每次状态变化后立即写入。Markdown 确认包是业务事实源，HTML 是同版本展示物，两者不可互相代替。
 
 ## 异常处理
+
+### 资源加载失败
+
+资源读取失败时按以下规则处理，覆盖三个 skill 的全部资源：
+
+- **`mvl-distill`**：framework（`skills/mvl-distill/frameworks/m{1-6}-*.md`）、全局映射（`skills/mvl-distill/references/workshop-canvas-map.md`）、Canvas 规范（`skills/mvl-distill/references/mvl-canvas-spec.md`）。其他方法文件（`skills/mvl-distill/references/methods/`）按需读取，缺失不阻断当前动作。
+- **`module-conclusion-gate`**：当前模块策略（`skills/module-conclusion-gate/references/Mx-gate.md`，其中 Mx 为当前用户指令中的模块）。
+- **`canvas-render`**：视觉模式（`skills/canvas-render/visual-patterns/[0-9][0-9]-*.md`）、渲染契约（`skills/canvas-render/references/render-contract.md`）、视觉模式说明（`skills/canvas-render/visual-patterns/README.md`）。
+
+按需加载，不做启动时全量自检——只检查当前动作所依赖的资源。失败时：
+
+1. 不在相同错误路径上重试。
+2. 只检查预期 skill 根目录及其直接目标目录。
+3. 发现唯一匹配时使用实际路径继续，并向用户简短说明已恢复。
+4. 不存在或出现多个歧义匹配时停止当前动作。
+5. 报告预期路径、实际检查目录与缺失资源。
+6. 资源加载失败时**不**创建或修改项目 `state.json`、转写、确认包或 Canvas。
+
+不使用全仓库恢复方式（如 `find "$EXPERT_ROOT" -name '<pattern>'`）——可能命中备份目录、临时目录或 fake 同名 skill 目录，导致错误恢复。
 
 ### 用户回答模糊
 
