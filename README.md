@@ -1,6 +1,6 @@
 # MVL Workshop Facilitator
 
-MVL（Multi-perspective Value Loop）工作坊引导专家包。3 天工作坊引导 + 转写提炼 + 模块化智能体画布（Canvas）生成。
+MVL（Minimum Verifiable Loop，最小可验证自治闭环）工作坊引导专家包。3 天工作坊引导 + 转写提炼 + 模块化智能体画布（Canvas）生成。
 
 详细专家定位、标签、快速指令以 `.codebuddy-plugin/plugin.json` 为权威来源。
 

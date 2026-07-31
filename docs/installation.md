@@ -8,7 +8,7 @@
 
 ## 1. 概述
 
-`mvl-workshop-facilitator` 是 MVL（Multi-perspective Value Loop）工作坊引导专家包，专为 WorkBuddy 平台设计。核心能力：
+`mvl-workshop-facilitator` 是 MVL（Minimum Verifiable Loop，最小可验证自治闭环）工作坊引导专家包，专为 WorkBuddy 平台设计。核心能力：
 
 - 3 天 MVL 工作坊的引导与转写提炼
 - 模块化智能体画布（Canvas）的生成
