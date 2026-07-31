@@ -1,6 +1,5 @@
 # M1：战略对齐、项目分组与闭环证据准备
 
-> 时间：第一天 09:00–12:00
 > Canvas 贡献：Intent——目标 / 价值 / 成功指标
 > 内容边界：`../references/workshop-canvas-map.md`
 
