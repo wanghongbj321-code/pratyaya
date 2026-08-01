@@ -13,6 +13,7 @@ description: 把已通过用户授权的 MVL 模块确认包（Mx-v{N}.md）按�
 - `../mvl-distill/references/mvl-canvas-spec.md`：模块产出规范。
 - `references/render-contract.md`：DOM、共享结构、离线、数据完整性、打印和 caveat 契约。
 - `visual-patterns/README.md`：视觉模式的发现、命名、字段、正文结构和阻断规则。
+- `../../scripts/audit_canvas_html.py`：确定性 HTML 静态审计；模块锚点顺序直接读取 `render-contract.md`。
 
 视觉候选只能来自 `visual-patterns/` 的 Markdown 规格；不得从集中登记册或预制 HTML 推断候选与视觉 token。
 
@@ -66,7 +67,7 @@ description: 把已通过用户授权的 MVL 模块确认包（Mx-v{N}.md）按�
 ### 模块详情模式
 
 - 模块 `confirmed` 或 `rendered` 且同版本用户授权后立即生成。
-- 输出 `output/module-N-canvas.html`；只有静态自检和浏览器预览都通过后才算成功，并将状态改为 `rendered`。
+- 输出 `output/module-N-canvas.html`；只有 Python 静态审计和精简浏览器视觉验收都通过后才算成功，并将状态改为 `rendered`。
 - 展示该模块在 `render-contract.md` 中规定的全部专属 section，不复刻全局六板块。
 - 显示版本、确认、缺口、风险、结论 ID、证据摘要和 caveat 状态。
 
@@ -119,39 +120,55 @@ description: 把已通过用户授权的 MVL 模块确认包（Mx-v{N}.md）按�
 - 编辑内容只写入浏览器 `localStorage`，不得覆盖确认包内容、稳定锚点或 `canvas-data`。
 - 筛选、展开 / 折叠和打印可以使用内联 JavaScript；不得引入幻灯片分页或演示运行时。
 
-## 浏览器预览
+## Python 静态审计
+
+HTML 写出后先运行静态审计。以下命令以专家包根目录为当前目录；若运行时位于工作坊项目目录，必须先解析专家包根目录并使用脚本的完整路径，不得调用项目目录中的同名文件。正式模块页使用：
+
+```bash
+python3 scripts/audit_canvas_html.py output/module-N-canvas.html \
+  --source modules/Mx-v{N}.md \
+  --state state.json
+```
+
+全局页不绑定单一确认包，运行 `python3 scripts/audit_canvas_html.py output/maau-global-canvas.html`。草稿页没有正式授权元数据，只传 HTML；仍须满足适用的结构、离线和草稿标记检查。
+
+脚本负责检查：
+
+1. 页面类型、模块和版本元数据可识别且一致。
+2. 契约规定的大模块、共享结构和稳定锚点存在且唯一。
+3. 模块锚点在 `#module-outputs` 内的相对顺序与 `render-contract.md` 对应映射表行顺序一致。
+4. `canvas-data` 为合法 JSON；传入确认包和 `state.json` 时，版本、模块及授权元数据一致。
+5. 离线安全、必要打印规则、草稿标记及 override caveat 必需结构符合契约。
+
+脚本返回非零状态时必须阻断，按输出的失败项修订同一版本 HTML 后重跑。不得绕过、删除失败锚点或手工改写审计结果。
+
+## 精简浏览器视觉验收
 
 正式交付前必须完成人工可见的浏览器检查：
 
-1. 桌面 `1440 × 900`：阅读顺序清晰，无溢出、遮挡、断链。
+1. 桌面 `1440 × 900`：视觉阅读顺序与 DOM 一致，无溢出、遮挡、重叠、断链或异常空白。
 2. 窄屏 `390 × 844`：卡片合理堆叠，表格和高密度 flow 在自身容器滚动，文字不裁切。
-3. 打印：保留结论、版本、确认、风险、质量状态和 override caveat，隐藏编辑提示与操作控件。
-4. 离线：本地打开不产生业务网络请求，不使用 `fetch()` 或 iframe。
-5. 编辑：本地批注写入、刷新恢复，不影响确认事实。
-6. **Caveat 视觉**（仅 override 模块）：caveat 标识与风险详情在桌面、窄屏、打印下均可见。
+3. 打印：分页不改变 section 顺序；保留结论、版本、确认、风险、质量状态和 override caveat，隐藏编辑提示与操作控件。
+4. 模式视觉：实际色板、字体、网格、组件及专属组件符合用户选定模式，没有明显混搭或偏离。
+5. **Caveat 视觉**（仅 override 模块）：caveat 标识与风险详情在桌面、窄屏、打印下均可见。
 
-浏览器检查不能被静态自检替代；两者都通过后才能交付正式 HTML。
+浏览器验收不重复检查锚点、JSON、授权字段和离线字符串；这些由 Python 审计负责。Python 审计不能替代真实布局检查，两阶段都通过后才能交付正式 HTML。
 
 ## 渲染自检
 
-正式交付前逐项确认：
+正式交付前确认两阶段结果：
 
-1. **数据源一致**：`canvas-data` 与确认包同版本、同 section、同 ID。
-2. **授权元数据**：`canvas-data` 含 `render_authorized` / `confirmation_mode` / `override_audit`（override 时），与 `state.json` 完全一致。
-3. **DOM 结构**：规定的大模块、模块详情 section 和稳定锚点齐全。
-4. **共享结构**：`quality-panel`、`alignment-section`、`local-notes`、`canvas-data` 齐全。
-5. **离线安全**：无 `fetch()`、iframe 和外部网络资源。
-6. **打印规则**：隐藏编辑控件，保留版本、确认、风险、质量状态、结论和 override caveat。
-7. **草稿标记**：草稿页面及打印版包含永久未确认标记。
-8. **视觉系统单一**：只实现选定模式的 `visual_system`。
-9. **模式一致**：实际色板、字体、网格、组件及专属组件符合选定模式，未触发其反例。
-10. **Caveat 显示**（仅 override）：页面顶部状态标识、`quality-panel`、风险详情、打印版均含 override 信息。
+1. **Python PASS**：保存命令及 PASS 输出；脚本覆盖数据源/版本、授权、DOM/锚点顺序、共享结构、离线安全、打印规则、草稿标记与 caveat 结构。
+2. **桌面 PASS**：阅读顺序、布局和模式视觉正确。
+3. **窄屏 PASS**：堆叠、文字和高密度内容正确。
+4. **打印 PASS**：分页、保留内容和隐藏控件正确。
+5. **Caveat 视觉 PASS**（仅 override）：桌面、窄屏和打印均明确显示保留意见与风险详情。
 
-任一项失败时阻断交付，列出失败项、证据和修订建议。模块状态保持 `confirmed`；不得提前标记为 `rendered`。
+任一阶段失败时阻断交付，列出失败项、证据和修订建议。模块状态保持 `confirmed`；不得提前标记为 `rendered`。
 
 ## 渲染失败时状态保持规则
 
-静态自检或浏览器验证失败时：
+Python 静态审计或浏览器视觉验收失败时：
 
 - 模块状态**保持 `confirmed`**（不得回退到 `gaps_open` 或 `review_ready`，业务授权与 HTML 校验是两层问题）；
 - `confirmation_mode` 保持原值（`gate_pass` 或 `override`），不修改；

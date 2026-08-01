@@ -22,11 +22,13 @@ skills: [mvl-distill, module-conclusion-gate, canvas-render]
 - `frameworks/m{1-6}-*.md`（实际位于 `skills/mvl-distill/frameworks/`）指 skill 内部资源（6 阶段固定框架）；项目目录不持有 frameworks/。
 - `skills/{skill-name}/...` 指 skill 内部资源（如 `skills/mvl-distill/frameworks/`、`skills/canvas-render/visual-patterns/`、`skills/module-conclusion-gate/references/`）。
 - `skills/canvas-render/visual-patterns/[0-9][0-9]-*.md` 指 skill 内部视觉模式资源（9 个 Markdown 视觉模式 + README）；项目目录不持有 visual-patterns/。发现、校验和完整路径传递规则见 `skills/canvas-render/visual-patterns/README.md` 与 `skills/canvas-render/SKILL.md`。
+- `scripts/audit_canvas_html.py` 指专家包根目录内的静态审计脚本，不是当前工作坊项目目录下的脚本；调用时从专家包根目录解析完整路径。
 
 **Skill 资源解析规则（强制）**：
 
 - skill 内相对路径以该 skill 的 `SKILL.md` 所在目录为基准。例如 `skills/mvl-distill/SKILL.md` 提到的 `frameworks/m1-intent.md` 解析为 `skills/mvl-distill/frameworks/m1-intent.md`，`references/mvl-canvas-spec.md` 解析为 `skills/mvl-distill/references/mvl-canvas-spec.md`。
 - `skills/{skill-name}/...` 路径以专家包根目录解析，**不得**拼接到 `agents/`。
+- `scripts/...` 路径同样以专家包根目录解析，**不得**从工作坊项目目录猜测同名脚本。
 - 读取失败后**不得**在同一错误路径上重复 glob；只允许检查对应 skill 的目标目录一次。
 - 仍无法唯一定位时**停止当前动作**，报告预期路径与已检查目录，**不**创建或修改项目 `state.json`、转写、确认包或 Canvas。
 
@@ -83,7 +85,7 @@ flowchart LR
     B3 -.->|状态不变| Draft[("草稿态")]
     C -->|<b>用户决策</b><br/>确认 vN / override / 补问| D1["<b>授权</b><br/>render_authorized<br/>confirmation_mode"]
     D1 --> D2["<b>视觉模式+渲染</b><br/>Canvas<br/><i>HTML</i> 输出"]
-    D2 -->|静态自检 + 浏览器预览通过| E["<b>rendered</b>"]
+    D2 -->|Python 静态审计 + 浏览器视觉验收通过| E["<b>rendered</b>"]
 ```
 
 四个阶段都是**用户决策触发**，不自动串联。Gate 在第 3 阶段只输出建议；最终渲染授权由用户在主 Agent 决策后写入。
@@ -295,15 +297,15 @@ draft → gaps_open ↔ review_ready → confirmed → rendered
    - 同版本 Gate 判定（`gate_recommendation` 与评估项摘要）；
    - 用户选定模式的完整仓库相对路径。
 7. `canvas-render` 读取模式正文的色板、字体、网格、组件库、适用场景和反例，不读取旧 HTML 获取视觉 token。
-8. 生成 `output/module-N-canvas.html`，完成静态自检和桌面、窄屏、打印浏览器验证；全部通过后才交付并把状态改为 `rendered`。
+8. 生成 `output/module-N-canvas.html`，先运行 `scripts/audit_canvas_html.py`（正式模块页同时传入确认包和 `state.json`），Python PASS 后完成桌面、窄屏、打印浏览器视觉验收；全部通过后才交付并把状态改为 `rendered`。
 
 **数据源**：HTML 生成读取 `modules/Mx-v{N}.md`（确认包）。LLM 提取其中的 `canvas_fields` 信息，按 `render-contract.md` 映射到 HTML 稳定锚点。`canvas-data` 必须内嵌同版本授权元数据（`render_authorized` / `confirmation_mode` / `override_audit`）。
 
 **路径规则**：不得由 `id` 猜测或拼接模式路径，不得静默回退到其他模式。目录、候选数量、frontmatter、ID、文件名或选定文件任一异常时，按"视觉模式资源异常"阻断。
 
-**自检步骤**：生成后，LLM 对照 `render-contract.md` 逐项确认 DOM 结构、字段映射、版本一致、授权元数据一致，并按选定模式检查色板、字体、网格和专属组件（无需外部脚本）。`confirmation_mode=override` 时必须额外确认 caveat 状态标识、`quality-caveat` 锚点内容、风险详情、打印版 caveat 保留。
+**自检步骤**：生成后先由 `scripts/audit_canvas_html.py` 对照 `render-contract.md` 检查 DOM/稳定锚点顺序、字段映射、版本、授权元数据、离线约束、打印规则与 caveat 结构；脚本直接读取契约映射表，不使用第二份锚点清单。Python PASS 后，LLM/人工浏览器只检查桌面、窄屏和打印的真实布局与选定模式视觉。`confirmation_mode=override` 时必须额外确认 caveat 状态标识与风险详情在三种视图下可见。
 
-**状态时序**：HTML 写出不等于渲染完成。静态自检或浏览器验证任一失败时，**保持 `confirmed`，`confirmation_mode` 与 `gate_recommendation` 保持原值**；不得提前写入 `rendered`，不得回退到 `gaps_open`。修订同一版本 HTML 后重新执行全部校验；只有全部通过才把状态改为 `rendered`。若修订涉及业务内容，必须按"状态回退"升版并重新确认。
+**状态时序**：HTML 写出不等于渲染完成。Python 静态审计或浏览器视觉验收任一失败时，**保持 `confirmed`，`confirmation_mode` 与 `gate_recommendation` 保持原值**；不得提前写入 `rendered`，不得回退到 `gaps_open`。修订同一版本 HTML 后重新执行全部校验；只有全部通过才把状态改为 `rendered`。若修订涉及业务内容，必须按"状态回退"升版并重新确认。
 
 **Caveat 渲染**：`confirmation_mode=override` 时，模块详情页顶部显示"已确认 · 带保留意见"；`quality-caveat` 显示 Gate 建议、最终渲染授权、override 项数量、高风险项数量、每项的影响/理由/确认人/时间/补救措施；打印版保留以上 caveat 内容。正常通过（`gate_pass`）时不显示 override 提示。
 
@@ -472,7 +474,7 @@ Gate 报告含 `information_integrity` FAIL 时，`override_eligible=false`；�
 
 ### 渲染校验失败
 
-- 静态自检或浏览器验证失败时，模块**保持 `confirmed`**。
+- Python 静态审计或浏览器视觉验收失败时，模块**保持 `confirmed`**。
 - `confirmation_mode` 与 `gate_recommendation` 保持原值，不修改、不回退。
 - 修订同一版本 HTML 后重新执行全部校验；只有全部通过才把状态改为 `rendered`。
 - 若修订涉及业务内容，必须按"状态回退"升版并重新确认。

@@ -647,7 +647,7 @@ flowchart LR
 | LLM 生成补全（幻觉） | mvl-distill / mvl-canvas-spec | 7 条质量红线（"不编造、不拔高、不抹平"）               |
 | Gate 非确定性        | LLM 评估 vs 旧 Python 脚本    | 最终确认权在业务方（"确认 vN"是真正 gate，LLM 仅建议） |
 | 跨模块一致性弱化     | Markdown 失去 JSON diff 效率  | LLM 阅读全部 Markdown 做跨模块对比（Phase 2）          |
-| 视觉规格漂移         | Markdown token 与生成 HTML 不一致 | 模式规格对比 + 渲染自检 + 人工浏览器检查               |
+| 视觉规格漂移         | Markdown token 与生成 HTML 不一致 | Python 静态审计 + 模式规格对比 + 精简浏览器视觉验收    |
 | 多用户并发编辑       | 同一确认包被两人同时改        | 提交时间顺序处理 + 强制升版 + Git 兜底                 |
 | 大规模转写召回       | 长转写拆分后丢失关键段        | 标记为"仍需验证"（DESIGN.md §11 仍需验证项）          |
 
@@ -655,7 +655,7 @@ flowchart LR
 
 - 大规模逐字稿分块后的证据召回率
 - 不同业务场景的 blocker/major 判定一致性
-- 正式 HTML 渲染器的跨业务视觉回归（静态自检与人工浏览器检查）
+- 正式 HTML 渲染器的跨业务视觉回归（Python 静态审计与精简浏览器视觉验收）
 - 多组并行时的文件锁、并发写入和权限隔离
 
 ### 8.6 发布流程（DEVELOPMENT.md §6）

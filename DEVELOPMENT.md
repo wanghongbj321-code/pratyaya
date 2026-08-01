@@ -16,22 +16,40 @@
 
 详细规则、缺口等级、推断术语、版本绑定的完整定义见 [skills/module-conclusion-gate/SKILL.md](./skills/module-conclusion-gate/SKILL.md)。
 
-## 3. HTML 渲染（LLM 自检）
+## 3. HTML 渲染（Python 静态审计 + 浏览器视觉验收）
 
-HTML 渲染审计由 LLM 自检；旧 Python 脚本 `audit_canvas_html.py` 已删除。正式交付前执行 10 项 render-contract 检查：
+正式交付分为两个阶段，任一阶段失败都保持模块 `confirmed`，不得提前标记为 `rendered`。
 
-1. 数据源一致（HTML 内嵌 `canvas-data` 与 `Mx-v{N}.md` 同版本）
-2. DOM 结构（对照 `render-contract.md` 章节 A/B）
-3. 共享结构（`quality-panel` / `alignment-section` / `local-notes`）
-4. 离线安全（无 `fetch("file...")`、无 iframe、无外部网络资源）
-5. 打印规则（`@media print` 隐藏编辑控件，保留版本/确认/风险/质量状态/结论/override caveat）
-6. 草稿标记（草稿模式顶部与打印版含"草稿/未确认"字样）
-7. 视觉系统单一（仅一种 `visual_system`，不混搭）
-8. 模式一致（色板、字体、网格、组件及专属组件符合选定 Markdown 模式）
-9. **授权元数据**：`canvas-data.auth` 含 `render_authorized` / `confirmation_mode` / `override_audit`（override 时），与 `state.json` 完全一致
-10. **Caveat 显示**（仅 `confirmation_mode=override` 模块）：页面顶部"已确认 · 带保留意见"状态标识 + `quality-caveat` 锚点 + 风险详情 + 打印版保留 + `canvas-data` 内嵌 override_audit
+### 3.1 Python 静态审计
 
-详细自检依据、DOM 映射表、共享结构、离线约束、数据完整性见 [skills/canvas-render/SKILL.md](./skills/canvas-render/SKILL.md) 与 [skills/canvas-render/references/render-contract.md](./skills/canvas-render/references/render-contract.md)。
+正式模块页从专家包根目录运行：
+
+```bash
+python3 scripts/audit_canvas_html.py <项目目录>/output/module-N-canvas.html \
+  --source <项目目录>/modules/Mx-v{N}.md \
+  --state <项目目录>/state.json
+```
+
+脚本使用 Python 标准库，负责：
+
+1. 页面类型、模块和版本元数据；
+2. 契约大模块、共享结构、稳定锚点存在且唯一；
+3. `#module-outputs` 内模块锚点顺序与 `render-contract.md` 对应映射表行顺序一致；
+4. `canvas-data` JSON、确认包版本和 `state.json` 授权元数据一致；
+5. 离线安全、必要打印规则、草稿标记和 override caveat 必需结构。
+
+模块锚点顺序直接解析自 `render-contract.md`，不得在脚本中维护第二份 M1–M6 清单。脚本 PASS 返回 0；FAIL 返回非零状态并列出失败项、期望值和实际值。
+
+### 3.2 精简浏览器视觉验收
+
+Python PASS 后再检查：
+
+1. 桌面 `1440 × 900`：阅读顺序、溢出、遮挡、重叠和异常空白；
+2. 窄屏 `390 × 844`：堆叠顺序、文字裁切和高密度内容滚动；
+3. 打印预览：分页顺序、必要内容保留和编辑控件隐藏；
+4. 选定视觉模式的色板、字体、网格、组件及 caveat 视觉结果。
+
+浏览器阶段不重复检查锚点、JSON、授权字段或离线字符串。详细依据见 [skills/canvas-render/SKILL.md](./skills/canvas-render/SKILL.md) 与 [skills/canvas-render/references/render-contract.md](./skills/canvas-render/references/render-contract.md)。
 
 ## 4. Canvas 视觉模式维护
 
@@ -90,7 +108,8 @@ Key Points (Mx-keypoints.md) → 提炼 (Mx-v{N}.md) → Gate (Mx-gate.md) → �
 | `python3 scripts/register_expert.py <expert-dir> --session-id <sid>` | 在 WorkBuddy 工具目录注册或重新注册专家 |
 | `find skills/canvas-render/visual-patterns -maxdepth 1 -type f -name '[0-9][0-9]-*.md' \| sort` | 列出视觉模式候选 |
 | `rg -n '^id:|^visual_system:|^layout:|^formality:|^density:|^best_for:' skills/canvas-render/visual-patterns/*.md` | 复核选择元数据 |
-| `grep -rn "check_gate.py\|audit_canvas_html.py" .` | 检查旧脚本引用残留 |
+| `python3 scripts/audit_canvas_html.py <html> --source <Mx-vN.md> --state <state.json>` | 审计正式模块 Canvas HTML |
+| `grep -rn "check_gate.py" .` | 检查已删除 Gate 脚本引用残留 |
 | `grep -rn "module-N\.json" .` | 检查旧 JSON 引用残留 |
 | `wc -l README.md DEVELOPMENT.md DESIGN.md docs/*.md` | 检查现行文档规模 |
 

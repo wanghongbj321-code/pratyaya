@@ -40,6 +40,7 @@ pratyaya/
 │       └── visual-patterns/ # 9 个 Markdown Canvas 视觉模式
 ├── schemas/             # 非强制参考 Schema
 ├── examples/modules/    # Mx-keypoints / Mx-v{N} 模板
+├── scripts/             # Canvas HTML 确定性静态审计
 ├── docs/                # 用户文档
 ├── README.md            # 本文件（门面）
 ├── DEVELOPMENT.md       # 维护者文档

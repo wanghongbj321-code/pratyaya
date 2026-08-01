@@ -43,6 +43,7 @@ MVL 工作坊常陷入的反模式：
 | Key Points 概览 | `modules/Mx-keypoints.md` | 草稿 Canvas 数据源（不进入正式流程） |
 | Gate 评估产物 | `skills/module-conclusion-gate/references/Mx-gate.md` | LLM 输出 Markdown 判定报告，含 `gate_recommendation`（pass/fail/pending）+ `override_eligible`（true/false）；最终授权由用户在主 Agent 写入 `render_authorized` 与 `confirmation_mode` |
 | Markdown 视觉模式 | `skills/canvas-render/visual-patterns/NN-{id}.md` | 9 个可扫描模式；frontmatter 用于推荐，六节正文定义色板、字体、网格、组件及边界 |
+| HTML 静态审计 | `scripts/audit_canvas_html.py` | 直接读取渲染契约，确定性检查结构、稳定锚点顺序、版本/授权、离线与 caveat 约束 |
 | Schema（非强制参考） | `schemas/*.schema.json` | 详见 [schemas/README.md](./schemas/README.md) |
 
 旧的 `module-N.json` **不作为当前数据源**。
@@ -116,7 +117,7 @@ stateDiagram-v2
 
 - 大规模逐字稿分块后的证据召回率
 - 不同业务场景的 blocker/major 判定一致性
-- 正式 HTML 渲染器的跨业务视觉回归（由静态自检与人工浏览器检查共同完成，详见 [skills/canvas-render/SKILL.md](./skills/canvas-render/SKILL.md)）
+- 正式 HTML 渲染器的跨业务视觉回归（由 Python 静态审计与精简浏览器视觉验收共同完成，详见 [skills/canvas-render/SKILL.md](./skills/canvas-render/SKILL.md)）
 - 多组并行时的文件锁、并发写入和权限隔离
 
 ---
