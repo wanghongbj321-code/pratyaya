@@ -1,6 +1,6 @@
 # Pratyaya MVL Expert — 整体功能架构设计
 
-> 版本：v1.0.0（与 `.codebuddy-plugin/plugin.json` 1.0.0 同步）
+> 版本：v1.0.1（与 `.codebuddy-plugin/plugin.json` 1.0.1 同步）
 > 编写时间：2026-07-30
 > 适用范围：架构师 / 维护者 / 二次开发者
 > 配套文档：[DESIGN.md](../../../DESIGN.md)（设计要点） / [README.md](../../../README.md)（门面） / [DEVELOPMENT.md](../../../DEVELOPMENT.md)（命令清单） / [docs/user-guide.md](../../../docs/user-guide.md)（用户视角）
@@ -761,7 +761,7 @@ flowchart TB
 
 ---
 
-**版本**：v1.0.0
+**版本**：v1.0.1
 **配套**：[DESIGN.md](../../../DESIGN.md)（设计要点） / [README.md](../../../README.md)（门面） / [DEVELOPMENT.md](../../../DEVELOPMENT.md)（命令清单） / [docs/installation.md](./installation.md)（部署） / [docs/user-guide.md](./user-guide.md)（用户视角）
 
 **作者**：Shaq

@@ -82,7 +82,7 @@ Key Points (Mx-keypoints.md) → 提炼 (Mx-v{N}.md) → Gate (Mx-gate.md) → �
 - **MINOR**：新增功能（新增 Skill 子任务、新增文档章节等）
 - **PATCH**：Bug 修复、措辞调整
 
-当前版本：v1.0.0（`plugin.json` 1.0.0 同步）。
+当前版本：v1.0.1（`plugin.json` 1.0.1 同步）。
 
 发布流程（按 workbuddy 指导执行）：
 
@@ -168,5 +168,5 @@ Key Points (Mx-keypoints.md) → 提炼 (Mx-v{N}.md) → Gate (Mx-gate.md) → �
 
 ---
 
-**版本**：v1.0.0
+**版本**：v1.0.1
 **配套文档**：[DESIGN.md](./DESIGN.md) / [docs/installation.md](./docs/installation.md) / [docs/user-guide.md](./docs/user-guide.md)

@@ -56,7 +56,7 @@ pratyaya/
 
 ## 专家版本
 
-v1.0.0（2026-08-01）。当前 `plugin.json` `version: 1.0.0` 同步。
+v1.0.1（2026-08-01）。当前 `plugin.json` `version: 1.0.1` 同步。
 
 ## 致谢
 

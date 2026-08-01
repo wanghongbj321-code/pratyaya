@@ -3,6 +3,12 @@
 > 本文件记录 Pratyaya 专家的正式版本变更。
 > 完整 SemVer 与架构说明见 [`README.md`](./README.md) / [`DESIGN.md`](./DESIGN.md) / [`docs/MVL-整体架构设计.md`](./docs/MVL-整体架构设计.md)。
 
+## [v1.0.1] - 2026-08-01
+
+### 措辞调整
+
+- 精简 `displayDescription.zh` 至开发指导要求的 40-50 字区间。原 49 字符的"AI 原生的 MVL（Minimum Verifiable Loop，最小可验证自治闭环）工作坊引导专家包"过长，按 `workbuddy-expert-开发指导.md` §10.1 硬约束改为 30 字符的"AI 原生的 MVL 工作坊引导专家，蒸馏转写、卡模块结论、生成画布"。仅一处文件一处字段的措辞变更，不影响功能与契约。
+
 ## [v1.0.0] - 2026-08-01
 
 ### 初始版本

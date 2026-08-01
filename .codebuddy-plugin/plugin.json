@@ -1,6 +1,6 @@
 {
   "name": "pratyaya",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "pratyaya: AI-native MVL (Minimum Verifiable Loop) workshop facilitator. Distills traceable conclusions; blocks incomplete modules; obtains versioned human confirmation; renders module + global Canvas HTML.",
   "agents": [
     "./agents/pratyaya.md"
