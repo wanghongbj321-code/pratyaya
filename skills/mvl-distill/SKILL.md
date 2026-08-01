@@ -9,7 +9,7 @@ description: 把 MVL 工作坊讨论产物提炼为模块化 Markdown 资产。�
 
 ## 定位
 
-**NotebookLM 场景化提炼流程**：本 skill 是 MVL 助教的"提炼与确认包生成"能力。完整的 MVL 工作流由主 agent 编排（见 `agents/mvl-workshop-facilitator.md`），本 skill 不编排主流程，只在被调用时执行以下两个独立 Stage：
+**NotebookLM 场景化提炼流程**：本 skill 是 Pratyaya MVL Expert 的"提炼与确认包生成"能力。完整的 MVL 工作流由主 agent 编排（见 `agents/pratyaya.md`），本 skill 不编排主流程，只在被调用时执行以下两个独立 Stage：
 
 - **Stage 1：Key Points 抽取** — 输入转写，输出 `modules/Mx-keypoints.md`（讨论地图，30 秒浏览）。
 - **Stage 2：原子提炼** — 输入转写 + Key Points + 阶段框架，输出 `modules/Mx-v{N}.md`（确认包，唯一事实源）。
@@ -271,7 +271,7 @@ v{N}
 - **元数据必须包含**：`模块` / `版本` / `状态` / `生成时间`（ISO 8601 datetime，skill 生成时自动写入） / `确认人` / `确认人角色（可选）` / `确认时间`（用户填写）。
 - **第 12 节"Gate 与用户决策"由 Gate 流程与主 Agent 在用户决策后写入**；本 skill 不写第 12 节。本 skill 只负责在模板中预留该节结构。
 
-## 升版边界（v4.0.0 新增）
+## 升版边界
 
 确认包版本受两类写入影响：
 

@@ -9,7 +9,7 @@ description: 对 MVL 工作坊单模块的确认包（Mx-v{N}.md）做质量建�
 
 ## 定位
 
-**NotebookLM 场景化质量建议器**：本 skill 是 MVL 助教的"质量建议"能力。完整工作流由主 agent 编排（见 `agents/mvl-workshop-facilitator.md` 步骤 5–7），本 skill 不编排主流程，只在被调用时输出 Gate 建议报告（Markdown）。
+**NotebookLM 场景化质量建议器**：本 skill 是 Pratyaya MVL Expert 的"质量建议"能力。完整工作流由主 agent 编排（见 `agents/pratyaya.md` 步骤 5–7），本 skill 不编排主流程，只在被调用时输出 Gate 建议报告（Markdown）。
 
 本 skill 不调用 Canvas 渲染；Gate 报告输出后由主 Agent 展示给用户，等待用户决策并触发 `canvas-render`。
 
@@ -175,7 +175,7 @@ M6-GATE-07
 - 六大模块名称、数字、边界和版本是否一致；
 - 页面是否明确"模拟环境概念验证原型，非生产级系统"。
 
-**跨模块 caveat 检查**（v4.0.0 新增）：
+**跨模块 caveat 检查**：
 
 - 扫描六个当前版本的 `confirmation_mode`；
 - 收集所有 `confirmation_mode=override` 模块的 `override_audit.items`；

@@ -1,14 +1,14 @@
 # 安装指南
 
-> 适用版本：v4.0.0
+> 适用版本：v1.0.0
 > 适用工具：WorkBuddy
-> 与 plugin.json `version: 3.1.0` 试用同步（plugin.json 待 P3 阶段 D 升 `3.2.0`）
+> 与 plugin.json `version: 1.0.0` 同步
 
 > **TL;DR**：把 [第三节](#3-给-workbuddy-的一键安装提示词) 的提示词**完整复制**到 WorkBuddy 的"专家导入"入口。安装后**必须重启** WorkBuddy。
 
 ## 1. 概述
 
-`mvl-workshop-facilitator` 是 MVL（Minimum Verifiable Loop，最小可验证自治闭环）工作坊引导专家包，专为 WorkBuddy 平台设计。核心能力：
+**Pratyaya MVL Expert**（专家标识 `pratyaya`）是 MVL（Minimum Verifiable Loop，最小可验证自治闭环）工作坊引导专家包，专为 WorkBuddy 平台设计。核心能力：
 
 - 3 天 MVL 工作坊的引导与转写提炼
 - 模块化智能体画布（Canvas）的生成
@@ -21,36 +21,37 @@
 在运行 WorkBuddy 的机器上准备：
 
 - WorkBuddy（最新版）
-- 仓库目录：`my-codes/mvl-workshop-facilitator`
+- 仓库目录：`my-codes/pratyaya`
 - Git 命令行（用于 clone/拉取）
 
 > **注**：专家包是项目仓库的子目录（`.codebuddy-plugin/`），不是独立安装包。请先把仓库 clone 到本地。
 
 ## 3. 给 WorkBuddy 的一键安装提示词
 
-将以下代码块**完整复制**到 WorkBuddy 的"专家导入"入口（一键粘贴即可完成安装）：
+将以下代码块**完整复制**到 WorkBuddy 的"专家导入"入口（一键粘贴即可完成注册与安装）：
 
 ```text
-请帮我安装本地的 MVL 工作坊引导专家，仓库路径为 ./mvl-workshop-facilitator/。
+请帮我安装本地的 MVL 工作坊引导专家（Pratyaya MVL Expert），仓库路径为 ./pratyaya/。
 该专家包由本仓库的 .codebuddy-plugin/plugin.json 描述。
 请按 plugin.json 的字段读取专业名称、描述、快速指令集和标签。
-专家包内的 agents/mvl-workshop-facilitator.md 是主 Agent 入口。
+专家包内的 agents/pratyaya.md 是主 Agent 入口。
 安装完成后请重启 WorkBuddy 并验证。
-本专家包版本：v4.0.0（`plugin.json` v4.0.0 同步）。
+本专家包版本：v1.0.0（`plugin.json` 1.0.0 同步）。
 ```
 
 > **关键信息**：
 > - 提示词内已含"专家仓库路径""plugin.json 路径""主 Agent 路径"三个核心路径
-> - 版本号 v4.0.0与 plugin.json `version: 4.0.0` 同步
+> - 版本号 v1.0.0 与 plugin.json `version: 1.0.0` 同步
+> - 专家导入必须成功完成注册写入；重启只负责重新加载，不能替代注册
 > - 安装失败时请把 WorkBuddy 错误信息回传
 
 ## 4. 安装后必须重启
 
-WorkBuddy 在第一次发现新专家后必须重启才能完整加载 agent、skill、avatar 和视觉模式资源：
+WorkBuddy 完成专家注册后必须重启，才能完整加载 agent、skill、avatar 和视觉模式资源：
 
 1. 关闭 WorkBuddy
 2. 重新打开 WorkBuddy
-3. 进入"我的专家"页面，验证 mvl-workshop-facilitator 已出现
+3. 进入"我的专家"页面，验证 “Pratyaya MVL Expert” 已出现
 
 不重启可能导致：专家已安装但 Agent 加载失败、Skill 路径不识别、avatar 缺失等异常。
 
@@ -79,14 +80,14 @@ WorkBuddy 在第一次发现新专家后必须重启才能完整加载 agent、s
 
 > "请告诉我 M1 模块的当前状态机"
 
-预期回答（v4.0.0 5 态 + `confirmation_mode` 属性）：
+预期回答（5 态 + `confirmation_mode` 属性）：
 
 ```text
 状态：draft → gaps_open ↔ review_ready → confirmed → rendered
 confirmation_mode：gate_pass / override / null（属性，不是状态）
 ```
 
-> v1.x 是 7 态（含 not_started/ingested/extracted）；自 v2.0 起统一为当前 5 态。v4.0.0 起 `confirmation_mode` 是属性（不是状态）；用户可对 `business_risk` 显式 override 后进入 `confirmed`，并触发 caveat 显式呈现。
+> `confirmation_mode` 是属性（不是状态）；用户可对 `business_risk` 显式 override 后进入 `confirmed`，并触发 caveat 显式呈现。
 
 ## 6. 常见问题排查
 
@@ -94,12 +95,12 @@ confirmation_mode：gate_pass / override / null（属性，不是状态）
 
 - 确认 `.codebuddy-plugin/plugin.json` 文件存在
 - 确认 WorkBuddy 已重启
-- 确认 plugin.json 的 `name` 字段是 `mvl-workshop-facilitator`（kebab-case，按 workbuddy 指导该字段不可修改）
+- 确认 plugin.json 的 `name` 字段是 `pratyaya`
 
 ### 6.2 专家出现但 Agent 加载失败
 
-- 检查 `agents/mvl-workshop-facilitator.md` 文件存在且未被修改
-- 文件名严格为 `mvl-workshop-facilitator.md`（按 workbuddy 指导不可改）
+- 检查 `agents/pratyaya.md` 文件存在且未被修改
+- 文件名严格为 `pratyaya.md`，并与 plugin.json 的 `agentName` 一致
 
 ### 6.3 标签或快速指令显示异常
 
@@ -120,6 +121,6 @@ confirmation_mode：gate_pass / override / null（属性，不是状态）
 
 ---
 
-**版本**：v4.0.0
+**版本**：v1.0.0
 **适用平台**：WorkBuddy
 **配套文档**：[用户指南](./user-guide.md) / [DEVELOPMENT.md](../DEVELOPMENT.md) / [DESIGN.md](../DESIGN.md)

@@ -8,7 +8,7 @@
 
 ## 2. 质量闸门（LLM 自检）
 
-v2.0 起，模块结论闸门（Gate）由 LLM 评估替代 v1.x 的 Python 脚本（`check_gate.py` 已删除）。执行流程：
+模块结论闸门（Gate）由 LLM 评估；旧 Python 脚本 `check_gate.py` 已删除。执行流程：
 
 1. LLM 读取 `modules/Mx-v{N}.md`（确认包 Markdown）
 2. 对照 `skills/module-conclusion-gate/SKILL.md` 的判定规则（34 条放行条件 + 稳定 ID + 分类与风险等级）
@@ -18,7 +18,7 @@ v2.0 起，模块结论闸门（Gate）由 LLM 评估替代 v1.x 的 Python 脚�
 
 ## 3. HTML 渲染（LLM 自检）
 
-v2.0 起，HTML 渲染审计由 LLM 自检替代 v1.x 的 Python 脚本（`audit_canvas_html.py` 已删除）。v4.0.0 正式交付前执行 10 项 render-contract 检查（v3.0 8 项 + v4.0.0 新增 2 项）：
+HTML 渲染审计由 LLM 自检；旧 Python 脚本 `audit_canvas_html.py` 已删除。正式交付前执行 10 项 render-contract 检查：
 
 1. 数据源一致（HTML 内嵌 `canvas-data` 与 `Mx-v{N}.md` 同版本）
 2. DOM 结构（对照 `render-contract.md` 章节 A/B）
@@ -28,14 +28,14 @@ v2.0 起，HTML 渲染审计由 LLM 自检替代 v1.x 的 Python 脚本（`audit
 6. 草稿标记（草稿模式顶部与打印版含"草稿/未确认"字样）
 7. 视觉系统单一（仅一种 `visual_system`，不混搭）
 8. 模式一致（色板、字体、网格、组件及专属组件符合选定 Markdown 模式）
-9. **授权元数据**（v4.0.0 新增）：`canvas-data.auth` 含 `render_authorized` / `confirmation_mode` / `override_audit`（override 时），与 `state.json` 完全一致
-10. **Caveat 显示**（v4.0.0 新增，仅 `confirmation_mode=override` 模块）：页面顶部"已确认 · 带保留意见"状态标识 + `quality-caveat` 锚点 + 风险详情 + 打印版保留 + `canvas-data` 内嵌 override_audit
+9. **授权元数据**：`canvas-data.auth` 含 `render_authorized` / `confirmation_mode` / `override_audit`（override 时），与 `state.json` 完全一致
+10. **Caveat 显示**（仅 `confirmation_mode=override` 模块）：页面顶部"已确认 · 带保留意见"状态标识 + `quality-caveat` 锚点 + 风险详情 + 打印版保留 + `canvas-data` 内嵌 override_audit
 
 详细自检依据、DOM 映射表、共享结构、离线约束、数据完整性见 [skills/canvas-render/SKILL.md](./skills/canvas-render/SKILL.md) 与 [skills/canvas-render/references/render-contract.md](./skills/canvas-render/references/render-contract.md)。
 
 ## 4. Canvas 视觉模式维护
 
-v3.0 起，Canvas 视觉系统由 `skills/canvas-render/visual-patterns/` 下的 Markdown 规格定义，不再使用预制 HTML 外壳或集中登记册。
+Canvas 视觉系统由 `skills/canvas-render/visual-patterns/` 下的 Markdown 规格定义，不使用预制 HTML 外壳或集中登记册。
 
 - 候选文件固定匹配 `[0-9][0-9]-*.md`，当前基线恰好 9 个。
 - 文件名必须为 `NN-{id}.md`，并与 frontmatter `id` 一致；序号和 ID 均唯一。
@@ -64,19 +64,20 @@ Key Points (Mx-keypoints.md) → 提炼 (Mx-v{N}.md) → Gate (Mx-gate.md) → �
 - **MINOR**：新增功能（新增 Skill 子任务、新增文档章节等）
 - **PATCH**：Bug 修复、措辞调整
 
-当前版本：v4.0.0（`plugin.json` v4.0.0 同步）。
+当前版本：v1.0.0（`plugin.json` 1.0.0 同步）。
 
-发布流程（按 workbuddy 指导第十节"修改已有专家"5 步）：
+发布流程（按 workbuddy 指导执行）：
 
 1. **定位** — 确认改动范围（在哪个文件、影响哪些 Skill、Agent 或视觉模式）
 2. **确认范围** — 评估是否需要同步 docs/、DEVELOPMENT.md、DESIGN.md
 3. **执行修改** — 改完代码与文档
-4. **校验** — `python3 -c "import json; json.load(open('.codebuddy-plugin/plugin.json'))"` 验证 plugin.json 是合法 JSON；运行 `scripts/validate_expert.py`（如存在）
-5. **重新注册** — WorkBuddy 重启加载（详见 [docs/installation.md §4](./docs/installation.md#4-安装后必须重启)）
+4. **校验** — `python3 -c "import json; json.load(open('.codebuddy-plugin/plugin.json'))"` 验证 plugin.json 是合法 JSON；再从 WorkBuddy 工具目录运行 `python3 scripts/validate_expert.py <expert-dir>`
+5. **注册** — 从 WorkBuddy 工具目录运行 `python3 scripts/register_expert.py <expert-dir> --session-id <sid>`；通过 WorkBuddy“专家导入”入口安装时，须确认导入流程已完成等价的注册写入
+6. **重新加载** — 注册成功后重启 WorkBuddy（详见 [docs/installation.md §4](./docs/installation.md#4-安装后必须重启)）
 
-严禁修改（按 workbuddy 指导）：`name` 字段（kebab-case 唯一标识）、`agentName` 字段、`plugin` 字段、专家目录名、agents/ 下的 .md 文件名。这些字段的修改会导致专家丢失。
+已发布专家严禁原地修改（按 workbuddy 指导）：`name` 字段（kebab-case 唯一标识）、`agentName` 字段、`plugin` 字段、专家目录名、agents/ 下的 .md 文件名。如需新名称，应创建并注册新的专家身份。
 
-**派生关系**：`name` / `agentName` / `plugin` 三个字段值同源（当前均为 `mvl-workshop-facilitator`）。重命名专家包时三个必须一起改；否则专家市场注册信息会与本地配置脱节。
+**派生关系**：`name` / `agentName` / `plugin` 三个字段值同源（当前均为 `pratyaya`）。创建专家身份时三个必须一致；否则专家市场注册信息会与本地配置脱节。
 
 ## 7. 命令速查
 
@@ -85,6 +86,8 @@ Key Points (Mx-keypoints.md) → 提炼 (Mx-v{N}.md) → Gate (Mx-gate.md) → �
 | `git log --oneline` | 查看 commit 历史 |
 | `git diff` | 查看当前未提交变更 |
 | `python3 -c "import json; json.load(open('.codebuddy-plugin/plugin.json'))"` | 验证 plugin.json 合法 |
+| `python3 scripts/validate_expert.py <expert-dir>` | 在 WorkBuddy 工具目录运行官方专家校验 |
+| `python3 scripts/register_expert.py <expert-dir> --session-id <sid>` | 在 WorkBuddy 工具目录注册或重新注册专家 |
 | `find skills/canvas-render/visual-patterns -maxdepth 1 -type f -name '[0-9][0-9]-*.md' \| sort` | 列出视觉模式候选 |
 | `rg -n '^id:|^visual_system:|^layout:|^formality:|^density:|^best_for:' skills/canvas-render/visual-patterns/*.md` | 复核选择元数据 |
 | `grep -rn "check_gate.py\|audit_canvas_html.py" .` | 检查旧脚本引用残留 |
@@ -93,5 +96,5 @@ Key Points (Mx-keypoints.md) → 提炼 (Mx-v{N}.md) → Gate (Mx-gate.md) → �
 
 ---
 
-**版本**：v4.0.0
+**版本**：v1.0.0
 **配套文档**：[DESIGN.md](./DESIGN.md) / [docs/installation.md](./docs/installation.md) / [docs/user-guide.md](./docs/user-guide.md)

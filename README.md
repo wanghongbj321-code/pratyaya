@@ -19,7 +19,7 @@ flowchart LR
     C -->|用户决策 + render_authorized=true| D
 ```
 
-四阶段管线：先从转写中抽取 Key Points，再提炼成确认包 Markdown，由 LLM Gate 输出建议（v4.0.0 起 Gate 在确认包展示后自动运行），用户决策后由主 Agent 写入 `render_authorized` + `confirmation_mode`，再渲染为可下钻的 HTML Canvas。
+四阶段管线：先从转写中抽取 Key Points，再提炼成确认包 Markdown；确认包展示后自动运行 LLM Gate，由用户决策，主 Agent 写入 `render_authorized` + `confirmation_mode`，再渲染为可下钻的 HTML Canvas。
 
 ## 模块生命周期
 
@@ -27,18 +27,18 @@ flowchart LR
 draft → gaps_open ↔ review_ready → confirmed → rendered
 ```
 
-5 态转换：草稿在 `gaps_open` 与 `review_ready` 之间反复直到全部缺口解决，用户决策（`gate_pass` / `override`）后升至 `confirmed`，最后渲染为 `rendered`（详见 `agents/mvl-workshop-facilitator.md` 的状态机章节）。v4.0.0 起 `confirmation_mode` 是属性（`gate_pass` / `override` / `null`），不是状态；`rendered` 模块若 `confirmation_mode=override` 仍参与跨模块 caveat 检查。
+5 态转换：草稿在 `gaps_open` 与 `review_ready` 之间反复直到全部缺口解决，用户决策（`gate_pass` / `override`）后升至 `confirmed`，最后渲染为 `rendered`（详见 `agents/pratyaya.md` 的状态机章节）。`confirmation_mode` 是属性（`gate_pass` / `override` / `null`），不是状态；`rendered` 模块若 `confirmation_mode=override` 仍参与跨模块 caveat 检查。
 
 ## 项目结构
 
 ```text
-mvl-workshop-facilitator/
+pratyaya/
 ├── .codebuddy-plugin/   # 专家包元数据
-├── agents/              # 主 Agent（mvl-workshop-facilitator.md）
+├── agents/              # 主 Agent（pratyaya.md）
 ├── skills/              # 三个 Skill：mvl-distill / module-conclusion-gate / canvas-render
 │   └── canvas-render/
 │       └── visual-patterns/ # 9 个 Markdown Canvas 视觉模式
-├── schemas/             # v1.x 时期产物，v2.0 标注非强制参考
+├── schemas/             # 非强制参考 Schema
 ├── examples/modules/    # Mx-keypoints / Mx-v{N} 模板
 ├── docs/                # 用户文档
 ├── README.md            # 本文件（门面）
@@ -55,7 +55,7 @@ mvl-workshop-facilitator/
 
 ## 专家版本
 
-v4.0.0（2026-07-30）。当前 `plugin.json` `version: 4.0.0` 同步。
+v1.0.0（2026-08-01）。当前 `plugin.json` `version: 1.0.0` 同步。
 
 ## 致谢
 

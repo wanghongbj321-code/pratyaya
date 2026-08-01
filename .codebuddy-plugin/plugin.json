@@ -1,9 +1,9 @@
 {
-  "name": "mvl-workshop-facilitator",
-  "version": "4.0.0",
+  "name": "pratyaya",
+  "version": "1.0.0",
   "description": "pratyaya: AI-native MVL (Minimum Verifiable Loop) workshop facilitator. Distills traceable conclusions; blocks incomplete modules; obtains versioned human confirmation; renders module + global Canvas HTML.",
   "agents": [
-    "./agents/mvl-workshop-facilitator.md"
+    "./agents/pratyaya.md"
   ],
   "skills": [
     "./skills/mvl-distill",
@@ -11,10 +11,10 @@
     "./skills/canvas-render"
   ],
   "expertType": "agent",
-  "agentName": "mvl-workshop-facilitator",
+  "agentName": "pratyaya",
   "displayName": {
-    "en": "Pratyaya",
-    "zh": "pratyaya"
+    "en": "Pratyaya MVL Expert",
+    "zh": "Pratyaya MVL Expert"
   },
   "profession": {
     "en": "AI-Native Verifiable Loop Expert",
@@ -30,7 +30,7 @@
     "zh": "我是第[组号]组成员，项目名[项目名]，请引导MVL工作坊M1战略对齐模块",
     "en": "I'm a member of Group [group_id], project [project_name]. Please guide M1 (Strategic Alignment) of the MVL workshop."
   },
-  "plugin": "mvl-workshop-facilitator",
+  "plugin": "pratyaya",
   "tags": [
     {
       "en": "Workshop Facilitation",

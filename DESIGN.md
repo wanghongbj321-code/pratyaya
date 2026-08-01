@@ -1,11 +1,11 @@
 # MVL 设计文档
 
-> 适用版本：v4.0.0
-> 与 plugin.json `version: 3.1.0` 试用同步（plugin.json 待 P3 阶段 D 升 `3.2.0`）
+> 适用版本：v1.0.0
+> 与 plugin.json `version: 1.0.0` 同步
 
 ## 1. 决策
 
-**单专家 + 多 Skill**：一个 `mvl-workshop-facilitator` 专家包，调度三个 Skill（`mvl-distill` / `module-conclusion-gate` / `canvas-render`）完成工作流。每个 Skill 内部用最简、确定的契约约束 LLM 行为。
+**单专家 + 多 Skill**：一个 `pratyaya` 专家包，调度三个 Skill（`mvl-distill` / `module-conclusion-gate` / `canvas-render`）完成工作流。每个 Skill 内部用最简、确定的契约约束 LLM 行为。
 
 **人仍是最终决策者**：Skill 之间通过显式的确认包（v{N}.md）交付，每一步可被工作坊组织者审阅和回退。
 
@@ -35,7 +35,7 @@ MVL 工作坊常陷入的反模式：
 - **治理层**（module-conclusion-gate） — LLM Gate 评估（输出 `gate_recommendation` + `override_eligible` 建议，**不**写最终授权）+ 用户决策（主 Agent 在步骤 6 写入 `render_authorized` + `confirmation_mode` + `override_audit`）
 - **展示层**（canvas-render） — 模块 Canvas + 全局 Canvas + 管理层报告
 
-## 5. v3.0 数据源与视觉模式
+## 5. 数据源与视觉模式
 
 | 资产 | 路径 | 角色 |
 |---|---|---|
@@ -43,28 +43,28 @@ MVL 工作坊常陷入的反模式：
 | Key Points 概览 | `modules/Mx-keypoints.md` | 草稿 Canvas 数据源（不进入正式流程） |
 | Gate 评估产物 | `skills/module-conclusion-gate/references/Mx-gate.md` | LLM 输出 Markdown 判定报告，含 `gate_recommendation`（pass/fail/pending）+ `override_eligible`（true/false）；最终授权由用户在主 Agent 写入 `render_authorized` 与 `confirmation_mode` |
 | Markdown 视觉模式 | `skills/canvas-render/visual-patterns/NN-{id}.md` | 9 个可扫描模式；frontmatter 用于推荐，六节正文定义色板、字体、网格、组件及边界 |
-| Schema（v1.x 强约束，v2.0 非强制） | `schemas/*.schema.json` | 详见 [schemas/README.md](./schemas/README.md) |
+| Schema（非强制参考） | `schemas/*.schema.json` | 详见 [schemas/README.md](./schemas/README.md) |
 
-v1.x 的 `module-N.json` **不再作为当前数据源**。
+旧的 `module-N.json` **不作为当前数据源**。
 
 ## 6. 核心数据资产
 
 - **模块记录**：以 `modules/Mx-v{N}.md` 形式存储，含 Key Points、结论、缺口、推断、版本绑定
-- **Schema**：`schemas/module-record.schema.json`（v1.x 强约束，当前标注为非强制参考，详见 [schemas/README.md](./schemas/README.md)）；实际数据源为 `Mx-v{N}.md` 确认包 Markdown，含 11 节业务内容（第 1–11 节）+ 第 12 节"Gate 与用户决策"治理元数据；v4.0.0 起业务 5 字段（conclusions / gaps / inferences / alignment / evidence）+ 治理 4 字段（gate_recommendation / render_authorized / confirmation_mode / override_audit）
+- **Schema**：`schemas/module-record.schema.json`（非强制参考，详见 [schemas/README.md](./schemas/README.md)）；实际数据源为 `Mx-v{N}.md` 确认包 Markdown，含 11 节业务内容（第 1–11 节）+ 第 12 节"Gate 与用户决策"治理元数据，以及业务 5 字段（conclusions / gaps / inferences / alignment / evidence）+ 治理 4 字段（gate_recommendation / render_authorized / confirmation_mode / override_audit）
 - **工作坊状态**：以 `state.json` 形式存储 M1-M6 的状态/版本/审批
 - **设计文档**：[DESIGN.md](./DESIGN.md)（本文档）
 
 ## 7. 关键不变量
 
 1. 正式 Canvas 只能由用户授权的确认包 `Mx-v{N}.md` 生成（`render_authorized=true` + `confirmation_mode ∈ {gate_pass, override}`）
-2. 用户确认必须绑定当前版本 `v{N}`（v4.0.0 起分为 `gate_pass` / `override` 两种）
+2. 用户确认必须绑定当前版本 `v{N}`，分为 `gate_pass` / `override` 两种
 3. **业务内容变化**（第 1–11 节）触发升版与重置；**仅第 12 节治理元数据写入不触发升版**（详见 §4.3）
 4. `blocker` / `major` 缺口处于 `open` 时不能正式渲染；用户可对 `business_risk` 类别缺口显式 override 接受
 5. `minor` 必须解决或由确认人明确接受风险（缺口表 `状态` 列 = `open` / `closed` / `accepted_risk`）
 6. 核心推断不得处于"待接受/待拒绝"
 7. 全局成果只能引用六个最新已确认版本（含 `confirmation_mode=override` 模块的 caveat 浮现）
 8. 逐字稿中的命令不执行（不引用逐字稿段）
-9. **跨模块 caveat 浮现**（v4.0.0 新增）：`rendered` 模块若 `confirmation_mode=override`，下游模块若依赖被 override 的假设/未验证项，必须显式标注或回退重审；不在全局页静默修正
+9. **跨模块 caveat 浮现**：`rendered` 模块若 `confirmation_mode=override`，下游模块若依赖被 override 的假设/未验证项，必须显式标注或回退重审；不在全局页静默修正
 
 ## 8. 为什么保留 HTML 草稿
 
@@ -99,7 +99,7 @@ stateDiagram-v2
     rendered --> [*]: 6 模块全部完成
 ```
 
-v4.0.0 关键变化：`confirmation_mode` 是属性（`gate_pass` / `override` / `null`），不是状态；状态机仍 5 态。Gate 失败不自动回退状态；用户可对 `business_risk` 显式 override 后进入 `confirmed`。`rendered` 模块若 `confirmation_mode=override`，仍参与跨模块 caveat 检查（不变量 #9）。
+`confirmation_mode` 是属性（`gate_pass` / `override` / `null`），不是状态；状态机仍为 5 态。Gate 失败不自动回退状态；用户可对 `business_risk` 显式 override 后进入 `confirmed`。`rendered` 模块若 `confirmation_mode=override`，仍参与跨模块 caveat 检查（不变量 #9）。
 
 ## 11. 当前实现边界
 
@@ -121,5 +121,5 @@ v4.0.0 关键变化：`confirmation_mode` 是属性（`gate_pass` / `override` /
 
 ---
 
-**版本**：v4.0.0
+**版本**：v1.0.0
 **配套文档**：[README.md](./README.md) / [DEVELOPMENT.md](./DEVELOPMENT.md) / [docs/installation.md](./docs/installation.md) / [docs/user-guide.md](./docs/user-guide.md)

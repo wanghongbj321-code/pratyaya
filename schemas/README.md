@@ -1,31 +1,29 @@
 # MVL Schemas（非强制参考）
 
-本目录下的 JSON Schema 是 v1.x 阶段的强约束产物。v2.0 起，**模块产物的唯一中间格式是 Markdown**（`modules/Mx-keypoints.md`、`modules/Mx-v{N}.md`），JSON Schema 不再被强制校验。
+本目录下的 JSON Schema 仅作为非强制参考。**模块产物的唯一中间格式是 Markdown**（`modules/Mx-keypoints.md`、`modules/Mx-v{N}.md`），运行时不强制执行 JSON Schema 校验。
 
 ## 文件说明
 
 ### `state.schema.json`
 
-- **原用途**：校验 `state.json`（项目状态、模块版本/状态/审批）。
-- **当前状态**：保留作为**非强制参考**。`state.json` 仍按其结构组织（M1-M6 状态/版本/审批），但 LLM 不强制调用校验器。
-- **不删除原因**：保留向后兼容，且状态机结构与 v1.x 兼容，便于既有用户平滑迁移。
+- **用途**：描述 `state.json` 的项目状态、模块版本、状态与审批结构。
+- **当前状态**：保留作为**非强制参考**；LLM 不强制调用校验器。
 
 ### `module-record.schema.json`
 
-- **原用途**：校验 `modules/module-N.json`（模块 JSON，含 canvas_fields、conclusions、gaps、inferences、alignment、approval、gate）。
+- **用途**：参考旧 `modules/module-N.json` 的模块字段结构（canvas_fields、conclusions、gaps、inferences、alignment、approval、gate）。
 - **当前状态**：保留作为**非强制参考**。`modules/Mx-v{N}.md`（确认包 Markdown）是当前唯一事实源。
-- **不删除原因**：旧项目可能仍有 `module-N.json` 资产；Schema 仍可作 v1.x 项目的回退校验。
 
 ## 当前实际数据源
 
-| 资产 | v1.x | 当前（v3.0） |
-|---|---|---|
-| 状态 | `state.json`（按 state.schema.json） | `state.json`（结构同 v1.x，但不强校验） |
-| 模块中间产物 | `modules/module-N.json`（按 module-record.schema.json） | `modules/Mx-keypoints.md` + `modules/Mx-v{N}.md` |
-| 闸门判定 | `module-conclusion-gate` LLM 自检 | LLM 阅读 `Mx-v{N}.md` + `../skills/module-conclusion-gate/references/Mx-gate.md`，输出 Markdown 判定报告 |
-| 事实源 | module-N.json | `Mx-v{N}.md`（唯一事实源） |
+| 资产 | 当前实现 |
+|---|---|
+| 状态 | `state.json`（参考 state.schema.json，不强制校验） |
+| 模块中间产物 | `modules/Mx-keypoints.md` + `modules/Mx-v{N}.md` |
+| 闸门判定 | LLM 阅读 `Mx-v{N}.md` + `../skills/module-conclusion-gate/references/Mx-gate.md`，输出 Markdown 判定报告 |
+| 事实源 | `Mx-v{N}.md`（唯一事实源） |
 
 ## 后续评估
 
-- 后续 MAJOR 版本可评估是否完全移除 `module-record.schema.json`（当无 v1.x 存量项目时）。
+- 后续 MAJOR 版本可评估是否完全移除 `module-record.schema.json`。
 - `state.schema.json` 视当前 5 态状态机的兼容需求再决定，无删除紧迫性。
