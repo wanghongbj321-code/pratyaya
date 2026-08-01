@@ -19,3 +19,9 @@ __pycache__/
 
 # 回归测试（依赖本地 Python 环境，不随专家包发布到 Gitee）
 tests/
+
+# 临时文件
+tmp/
+
+# Codebuddy 项目数据（本机记忆，不入库）
+.codebuddy/

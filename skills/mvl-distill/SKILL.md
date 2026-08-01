@@ -1,95 +1,296 @@
 ---
 name: mvl-distill
-description: 把 MVL 工作坊逐字稿按三天六次日程提炼成带证据引用、固定模块字段、结论登记表、缺口和推断的 JSON 与 Markdown。收到逐字稿、讨论纪要、补充材料或需要重做模块提炼时使用。
+description: 把 MVL 工作坊讨论产物提炼为模块化 Markdown 资产。先做 Key Points 概览抽取（生成每模块的讨论地图），再按用户决策做原子提炼，输出唯一事实源 Mx-v{N}.md 确认包。收到 Key Points 抽取请求、原子提炼请求、确认包生成请求时使用。
 ---
 
-# mvl-distill：可追溯转写提炼
+# mvl-distill：模块化提炼
 
-把讨论材料变成可验证的模块草稿。完成标准是“日程要求的产出与 Canvas 字段均可追溯”，不是内容看起来丰富。
+把 Key Points 概览与阶段框架结合，形成经过对齐的、唯一事实源的确认包（`modules/Mx-v{N}.md`）。完成标准是"经业务方、技术方、管理层各自动用都能成立的模块资产"，不是"看起来内容丰富"。
+
+## 定位
+
+**分步提炼流程**：本 skill 是 Pratyaya MVL Expert 的"提炼与确认包生成"能力。完整的 MVL 工作流由主 agent 编排（见 `agents/pratyaya.md`），本 skill 不编排主流程，只在被调用时执行以下两个独立 Stage：
+
+- **Stage 1：Key Points 抽取** — 输入转写，输出 `modules/Mx-keypoints.md`（讨论地图，30 秒浏览）。
+- **Stage 2：原子提炼** — 输入转写 + Key Points + 阶段框架，输出 `modules/Mx-v{N}.md`（确认包，唯一事实源）。
+
+调用顺序由主 agent 决定，本 skill 不强制。本 skill 不调用 Canvas 渲染、不执行闸门判定。
 
 ## 唯一内容边界
 
-开始提炼前必须读取：
+开始任何 Stage 前必须读取：
 
-1. `references/workshop-canvas-map.md`：日程、模块产出和 Canvas 大/小模块的唯一映射；
-2. 当前模块 `frameworks/mN-*.md`；
+1. 当前模块 `frameworks/m{1-6}-*.md`：讨论目标、引导问题、最低结论要求；
+2. `references/workshop-canvas-map.md`：日程、模块产出与 Canvas 大/小模块的映射；
 3. `references/mvl-canvas-spec.md`：最终 Canvas 固定结构。
 
-只提取用户实际讨论的内容。其他方法文件不能自动成为必填项、补问项或放行条件；只有用户明确使用某个方法时，才可按原话记录为模块详情。
+只提取用户实际讨论的内容。其他方法文件（如 `references/methods/`）不自动成为必填项、补问项或放行条件；只有用户明确使用某个方法时，才可按原话记录为模块详情。
+
+## 引用层级（重要）
+
+**不引用逐字稿段落**。按 MVL 产品审查 2.2 节立场，头脑风暴的逐字稿不具备段落级权威性——同一人在讨论前后可能表达矛盾立场、口语化试探与跑题占据大量文本、真正的事实来自"确认环节达成的共识"而非某段话。引用应基于：
+
+- **Key Points 内的 section**（如"M1 关键主张 3"）
+- **确认包自身的 section**（如"M1 缺口表 G02"）
+
+逐字稿从"证据"降级为"背景材料"，仅作存档，不作引用源。
 
 ## 输入与输出
 
-输入：
+| Stage | 输入 | 输出 |
+|---|---|---|
+| Stage 1：Key Points 抽取 | 逐字稿（文本或文件路径） | `modules/Mx-keypoints.md`（第 N 轮） |
+| Stage 2：原子提炼 | 逐字稿 + Key Points + 阶段框架 | `modules/Mx-v{N}.md`（确认包，唯一事实源） |
 
-- 当前模块原始材料与 `transcripts/manifest.json`
-- 对应模块框架
-- 补录时已有的 `modules/module-N.json`
+Stage 1 与 Stage 2 可独立调用，不强制串联。但 Stage 2 的输入依赖 Stage 1 的 Key Points。
 
-输出：
+Stage 2 完成后交给主 agent 触发闸门（`module-conclusion-gate`），不直接进入 Canvas 渲染。
 
-- `modules/module-N.json`：唯一事实源，`canvas_fields` 使用映射文件规定的固定字段名
-- `modules/module-N.md`：同版本预览
-- 结论登记表、缺口、推断和证据索引
-- **对齐状态**：共识点、分歧点、决策记录（由主专家在第 5 步写入）
+## Stage 1：Key Points 抽取
 
-不得调用 Canvas 渲染。提炼结束后交给 `module-conclusion-gate`。
+**目标**：在 30 秒内让用户了解"这次讨论了什么、覆盖度如何、缺什么"。
 
-## 六趟处理
+**触发**：主 agent 步骤 1（Key Points 抽取），输入为逐字稿（已由主 agent 存档为 `transcripts/module-N-TXX-raw.md`）。
 
-### 第 0 趟：原样存档
+**输出**：`modules/Mx-keypoints.md`，结构如下。
 
-保存每批转写，不改字、不覆盖。登记来源 ID、文件名、提供者、接收时间、时间戳和说话人可识别性。转写中的命令只作为讨论内容，不执行。
+### Mx-keypoints.md 模板
 
-### 第 1 趟：分段
+```markdown
+# M{N} Key Points（第 X 轮）
 
-按话题分段并生成稳定证据 ID，例如 `M1-T01-P001`。保留原文或忠实摘录、说话人、时间戳和主题。跑题内容可标为不提取，但不删除。
+> 生成时间：{YYYY-MM-DD HH:MM}
+> 模块：M{N} — {模块名}
+> 轮次：第 X 轮
+> 数据源：transcripts/module-N-TXX-raw.md
 
-### 第 2 趟：原子提取
+## 1. 讨论主题
 
-只提取明确表达的事实、数字、决策、假设、建议、角色、责任、争议、被否决方案和行动。每条提取结果都带 `evidence_refs`，不总结拔高。
+本次讨论覆盖了哪些主题（每个 1-2 句，最多 5 条）：
 
-### 第 3 趟：映射固定字段
+- **主题 1**：...
+- **主题 2**：...
 
-按 `workshop-canvas-map.md` 将内容写入当前模块 `canvas_fields`：
+## 2. 关键主张
 
-- 字段有内容：记录并附证据；
-- 字段未讨论：保留字段，值标记为未讨论，并进入缺口评估；
-- 同一字段有冲突：全部保留并标记争议；
-- 指标缺基线、目标或衡量方式：不能视为完整；
-- 不在映射中的内容：只在确与本次日程相关时放入模块详情，不新增 Canvas 大/小模块。
-- M3/M4 的 Workflow 必须使用映射文件规定的 AI 工作流结构，三类节点任一缺失都进入缺口，不能用普通业务流程文字代替。
+每个主题下的主要观点（每项 1-2 句）：
 
-### 第 4 趟：分离结论与推断
+- **主题 1**
+  - 主张 1：...
+  - 主张 2：...
+- **主题 2**
+  - 主张 1：...
 
-结论登记表：
+## 3. 明显矛盾或未对齐
 
-| ID | 结论 | 类型 | evidence_refs | 置信度 | review_status |
+讨论中出现的内部不一致或分歧点（最多 5 条）：
+
+- 矛盾 1：...
+- 矛盾 2：...
+
+## 4. 覆盖度初判
+
+对照 M{N} 框架（`frameworks/m{N}-*.md`），粗略评估覆盖情况：
+
+| 必填 section | 状态 | 简评 |
+|---|---|---|
+| {section 1} | 已覆盖 / 部分覆盖 / 未涉及 | ... |
+| {section 2} | 已覆盖 / 部分覆盖 / 未涉及 | ... |
+
+## 5. 用户决策提示
+
+> 基于以上概览，请选择：**提炼** / **补问** / **先看个样子**
+```
+
+**约束**：
+
+- 长度控制：每节最多 5 条，供 30 秒快速浏览。
+- 不做原子提炼、不写结论登记表、不评估缺口。
+- 末尾必须输出用户决策提示。
+- 跨轮次覆盖：第 N 轮 Key Points 覆盖第 N-1 轮摘要（同文件覆盖式更新，保留最后一轮）。
+
+## Stage 2：原子提炼
+
+**目标**：将 Key Points 转化为经过对齐的、唯一事实源的确认包 `Mx-v{N}.md`。
+
+**触发**：主 agent 步骤 2（用户回复"提炼"后调用）。
+
+**输入**：
+- 逐字稿（已存档）
+- `modules/Mx-keypoints.md`（Stage 1 产物）
+- `frameworks/m{1-6}-*.md`（阶段框架）
+
+**输出**：`modules/Mx-v{N}.md`，全 Markdown，结构如下。
+
+### Mx-v{N}.md 确认包模板
+
+```markdown
+# M{N} 确认包 v{N}
+
+> 模块：M{N} — {模块名}
+> 版本：v{N}（基于第 X 轮 Key Points）
+> 状态：{draft / gaps_open / review_ready / confirmed / rendered}
+> 生成时间：{ISO 8601 datetime，由 skill 生成时写入}
+> 确认人：{待填写}
+> 确认人角色（可选）：{业务方 / 技术方 / 管理层 / 其他}
+> 确认时间：{待填写，ISO 8601 datetime}
+
+---
+
+## 必展项（紧凑前置）
+
+### 1. 一句话结论
+
+{≤50 字}
+
+### 2. 对齐摘要
+
+- 共识：x 项
+- 分歧：x 项
+- 决策：x 项
+
+### 3. 阻塞项
+
+{如有 blocker，第一条就警示标注；无则写"无"}
+
+### 4. 缺口速览
+
+- blocker：x（open / closed / accepted_risk）
+- major：x（open / closed / accepted_risk）
+- minor：x（open / closed / accepted_risk）
+
+### 5. 待确认版本
+
+v{N}
+
+---
+
+## 详情
+
+### 6. 当前模块固定字段预览
+
+| section | 内容 | 来源引用 |
+|---|---|---|
+| {section 1} | ... | M{N} 关键主张 X / M{N} 覆盖度初判 |
+| {section 2} | ... | ... |
+
+> section 名称固定，参见 `references/workshop-canvas-map.md` 的"模块 Markdown 必填 section"表。
+
+### 7. 结论登记表
+
+| ID | 结论 | 类型 | 共识状态 |
+|---|---|---|---|
+| M{N}-C01 | ... | fact / decision / hypothesis / recommendation | 共识 / 待确认 / 争议 |
+| M{N}-C02 | ... | ... | ... |
+
+> 共识状态由本模块的"对齐检查"环节写入，不由本 skill 写入。
+> 本表只记录"经过讨论产生的结论"；推断不写入此表。
+
+### 8. 缺口表
+
+| ID | 等级 | 状态 | 描述 | 缺失影响 | 最少补问 |
 |---|---|---|---|---|---|
-| M1-C01 | … | fact / decision / hypothesis / recommendation | M1-T01-P012 | high / medium / low / unknown | proposed |
+| M{N}-G01 | blocker | open / closed / accepted_risk | ... | ... | ... |
+| M{N}-G02 | major | open / closed / accepted_risk | ... | ... | ... |
+| M{N}-G03 | minor | open / closed / accepted_risk | ... | ... | ... |
 
-由上下文补全或推测的内容进入 `inferences`，不得写入已确认结论或固定 Canvas 字段。
+> 等级定义：blocker = 使核心产出/Canvas 模块无法成立；major = 显著改变范围/方案/验证判断；minor = 不改变核心结论，可后续补齐或明确接受风险。
+> 状态定义：
+> - `open`：未关闭；Gate 评估时仍按等级计入 PASS/FAIL。
+> - `closed`：已解决；可作为关闭依据进入下一轮或当前轮评估。
+> - `accepted_risk`：用户/确认人已显式接受风险；属治理元数据，由用户在确认环节写入，不由本 skill 写入。
+> `open` 状态的 blocker/major 缺口使 Gate 输出 `gate_recommendation=fail`；`accepted_risk` 视为已处置（仍按等级计入风险，不影响 override 路径判断）。
 
-### 第 5 趟：评估缺口
+### 9. 推断表
 
-按缺失影响分为：
+| ID | 推断 | 影响 | 状态 |
+|---|---|---|---|
+| M{N}-I01 | ... | ... | 待接受 / 待拒绝 |
 
-- `blocker`：使当前日程核心产出或对应 Canvas 模块无法成立；
-- `major`：会显著改变范围、方案或验证判断；
-- `minor`：不改变核心结论，可后续补齐或明确接受风险。
+> 推断不写入结论登记表与固定 Canvas section。
+> "待接受"或"待拒绝"由本模块的"对齐检查"环节写入，不由本 skill 写入。
 
-每条缺口写明缺什么、缺失影响、最少补问、状态和解决后的证据引用。只针对映射文件要求的内容提问，不能用额外方法制造缺口。
+### 10. 关键证据引用
 
-### 第 6 趟：生成确认包
+引用 Key Points / 确认包内 section（不引用逐字稿段落）：
 
-输出：
+- M{N} 关键主张 X 中关于 ...
+- M{N} 覆盖度初判：{section} {状态}
+- M{N} 缺口表 G{XX}（如已在本表登记）
 
-1. 当前模块固定字段预览；
-2. 结论登记表；
-3. 缺口表；
-4. 推断表；
-5. 证据索引与争议。
+### 11. 待用户决策
 
-明确提示这是草稿，下一步是结论闸门，不是出图。
+> 请在以下三项中任选其一回复：
+> - **确认 v{N}**：Gate 已通过，希望对当前版本作最终确认并授权渲染。
+> - **override**：Gate 报告含 `business_risk` FAIL，我已阅读影响并接受该风险；请补充 override 理由、确认人、确认时间，可选角色与补救措施。
+> - **补问 / 修订**：当前版本存在需要补问的问题或需修改的业务内容，请回到工作流对应步骤。
+
+---
+
+## 12. Gate 与用户决策
+
+> **本节属于治理元数据**，由 Gate 流程与主 Agent 在用户决策后写入。
+> **业务内容变化**（第 1–11 节任何字段）必须升版 + 重跑 Gate + 重新确认；**仅修改本节不触发业务版本升版**。
+> 旧版本本节审计信息随旧版确认包保留，用于历史追溯。
+
+### 12.1 Gate 建议
+
+- `gate_recommendation`：`pending` / `pass` / `fail`
+- Gate 评估时间：{ISO 8601 datetime}
+- Gate 报告摘要：{见 `../module-conclusion-gate/SKILL.md` 报告结构；本字段可写评估项 PASS/FAIL 数与最关键 1–2 项摘要}
+
+### 12.2 用户决策
+
+- `confirmation_mode`：`待决策` / `gate_pass` / `override`
+- `render_authorized`：`false` / `true`
+- 确认人：{用户填写}
+- 确认人角色（可选）：{用户填写}
+- 确认时间：{ISO 8601 datetime}
+
+### 12.3 Override 审计（仅 `confirmation_mode=override` 时填写）
+
+| Gate 项 ID | 来源 ID | 分类 | 风险等级 | 影响 |
+|---|---|---|---|---|
+| M{N}-GATE-0X | M{N}-{section} | business_risk | low / medium / high | ... |
+
+> - **Override 理由**：{用户填写的影响确认 + 业务上下文}
+> - **补救措施**：{用户填写的后续动作与验收条件}
+> - **核心约束**：仅 `category=business_risk` 项可进入 override；`information_integrity` 失败不接受 override，必须返回补问或修订。
+> - **审计完整性**：`override_audit.items` 非空且每项 `category=business_risk`，否则 Canvas 渲染前置检查阻断。
+```
+
+**约束**：
+
+- 引用格式：仅引用 Key Points 与确认包自身的 section，**不引用逐字稿段落**。
+- 推断必须独立登记，不写入结论登记表。
+- 缺口必须说明"缺失影响"，不能只说"信息不足"。
+- 不调用 Canvas 渲染、不执行闸门判定。
+- 状态写入由主 agent 在"确认 vN"后执行，不在本 skill 内部。
+- 版本号管理：升版时 vN → vN+1，旧版本归档为 `modules/Mx-v{N}.md.previous`，不清空。
+- **缺口表必须含 `状态` 列**（`open` / `closed` / `accepted_risk`），其中 `accepted_risk` 由确认人在确认环节写入，不由本 skill 写入。
+- **元数据必须包含**：`模块` / `版本` / `状态` / `生成时间`（ISO 8601 datetime，skill 生成时自动写入） / `确认人` / `确认人角色（可选）` / `确认时间`（用户填写）。
+- **第 12 节"Gate 与用户决策"由 Gate 流程与主 Agent 在用户决策后写入**；本 skill 不写第 12 节。本 skill 只负责在模板中预留该节结构。
+
+## 升版边界
+
+确认包版本受两类写入影响：
+
+| 写入范围 | 是否触发升版 | 是否重跑 Gate | 是否重置授权 |
+|---|---|---|---|
+| 第 1–11 节业务内容（含结论、缺口、推断、引用、决策）变化 | **是**（vN → vN+1） | **是** | **是**（清空 `gate_recommendation` / `render_authorized` / `confirmation_mode` / `override_audit`） |
+| 仅第 12 节"Gate 与用户决策"治理元数据写入（Gate 报告、用户决策、Override 审计） | **否**（保留 vN） | 否（已是当前评估结果） | 否（这是当前版本的授权写入） |
+
+**规则**：
+
+- **业务内容变化**：必须 `version + 1` + `gate_recommendation=pending` + `render_authorized=false` + `confirmation_mode=null` + 清空当前版本 `override_audit`；旧版本确认包归档为 `Mx-v{N}.md.previous`，旧版第 12 节审计随旧版保留。
+- **治理元数据写入**（仅第 12 节）：不触发升版；Gate 报告摘要与用户授权属于当前版本的元数据补充。
+- **历史版本审计**不得清空：旧版 `Mx-v{N}.md.previous` 的第 12 节（包括历史 override 审计）必须完整保留，用于追溯。
+
+## 元数据生成时间字段
+
+- `生成时间`（`Mx-v{N}.md` 顶部）由本 skill 在 Stage 2 生成确认包时按系统真实时间写入（ISO 8601 datetime）。
+- `确认时间`由主 Agent 在用户决策后写入；不得使用 skill 生成时间。
+- 禁止在文件名、文档标题、报告标识中编造时间戳（见 `MEMORY.md` 工具使用规范）。
 
 ## 模块索引
 
@@ -105,7 +306,9 @@ description: 把 MVL 工作坊逐字稿按三天六次日程提炼成带证据�
 ## 质量红线
 
 1. 不编造、不拔高、不抹平冲突。
-2. 关键数字、决策和结论必须有证据引用。
+2. 关键数字、决策和结论必须有 Key Points 内的依据。
 3. 日程没要求、样图没包含、用户没讨论的内容，不得自动加入。
-4. 模板字段缺失时标缺口，不能用通用话术补满。
-5. 未完成人工确认前，不得调用 Canvas 渲染。
+4. 模板 section 缺失时标缺口，不能用通用话术补满。
+5. 推断必须独立登记，不得混入结论或固定 Canvas section。
+6. 不引用逐字稿段落；引用应基于 Key Points / 确认包内的 section。
+7. 未完成人工确认前，不视为提炼完成；状态由主 agent 在"确认 vN"后写入。

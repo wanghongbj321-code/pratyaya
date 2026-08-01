@@ -1,6 +1,5 @@
 # M2：需求发现、用户与真实流程拆解
 
-> 时间：第一天 14:00–17:30
 > Canvas 贡献：User——用户 / 需求 / 痛点 / 最重要的结果；为 Workflow 提供现状流程
 > 内容边界：`../references/workshop-canvas-map.md`
 

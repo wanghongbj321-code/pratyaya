@@ -1,6 +1,5 @@
 # M6：终极打磨、方案择优、成果演示与闭环总结
 
-> 时间：第三天 14:00–17:30
 > Canvas 贡献：Validation——能否持续进化；顶部一句话概括；底部一句话总结
 > 内容边界：`../references/workshop-canvas-map.md`
 

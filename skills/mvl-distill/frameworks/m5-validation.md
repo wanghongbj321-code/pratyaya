@@ -1,6 +1,5 @@
 # M5：三轮验证、交互优化与信任控制校验
 
-> 时间：第三天 09:00–12:00
 > Canvas 贡献：Validation——能否执行 / 能否创造价值；信任与风险控制
 > 内容边界：`../references/workshop-canvas-map.md`
 

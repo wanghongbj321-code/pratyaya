@@ -1,6 +1,5 @@
 # M4：闭环冻结、原型两轮迭代与开发筹备
 
-> 时间：第二天 14:00–17:30
 > Canvas 贡献：Workflow 冻结版、Agent Team、Context
 > 内容边界：`../references/workshop-canvas-map.md`
 

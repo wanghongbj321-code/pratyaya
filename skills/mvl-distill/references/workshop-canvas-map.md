@@ -5,12 +5,12 @@
 1. 三天工作坊正式日程；
 2. 已确认样图中的 Canvas 大模块与小模块。
 
-不得把其他方法、术语或通用咨询框架自动变成必填字段。用户在讨论中主动采用的其他方法，只按原话留在模块详情中，不能因此改变全局 Canvas 结构，也不能成为放行条件。
+不得把其他方法、术语或通用咨询框架自动变成必填 section。用户在讨论中主动采用的其他方法，只按原话留在模块详情中，不能因此改变全局 Canvas 结构，也不能成为放行条件。
 
 ## 统一术语
 
 - 全程使用 **MVL（Minimum Verifiable Loop，最小可验证自治闭环）**。
-- 样图仅作为 Canvas 结构参考；标题统一写“MVL Canvas”。
+- 样图仅作为 Canvas 结构参考；标题统一写"MVL Canvas"。
 - 最终交付是**模拟环境概念验证原型**，属于**非生产级系统**。
 
 ## 全局 Canvas 固定结构
@@ -37,11 +37,11 @@
 | M5 | 三轮验证、交互优化与信任控制校验 | 第一轮自治流程可用性；第二轮交互优化和用户习惯适配；第三轮信任与风险控制；每轮方法、发现、修改、结果；问题整改 | Validation：能否执行、能否创造价值；信任与风险控制 |
 | M6 | 终极打磨、方案择优、成果演示与闭环总结 | 最终方案；多方案三维对比；演示结论；三轮验证数据、问题整改和经验复盘；能力边界；适配场景；优化空间；可复用资产；后续迭代、规模化复制、生产化建议与推进计划；两句总结 | Validation：能否持续进化；顶部一句话概括；底部一句话总结 |
 
-## 模块 JSON 必填字段
+## 模块 Markdown 必填 section
 
-以下字段放入 `canvas_fields`，名称必须固定。
+以下 section 写入 `modules/Mx-v{N}.md` 确认包，名称必须固定：
 
-| 模块 | 必填字段 |
+| 模块 | 必填 section |
 |---|---|
 | M1 | `goal`、`value`、`success_metrics`、`evidence`、`boundary`、`acceptance`、`grouping` |
 | M2 | `users`、`needs`、`pain_points`、`most_important_outcomes`、`current_workflow`、`requirements` |
@@ -50,22 +50,22 @@
 | M5 | `validation_rounds`、`can_execute`、`can_create_value`、`trust_risk_controls`、`issues_corrections` |
 | M6 | `final_solution`、`solution_comparison`、`demo_summary`、`validation_review`、`capability_boundary`、`applicable_scenarios`、`optimization_space`、`evolution_assets`、`next_step_plan`、`headline`、`takeaway` |
 
-字段没有讨论到时，不得补写。将它标为缺口并说明对本次模块产出和最终 Canvas 的影响。
+section 没有讨论到时，不得补写。将它标为缺口并说明对本次模块产出和最终 Canvas 的影响。
 
 ## AI 工作流结构契约
 
-Canvas 第 4 板块不是普通业务流程记录，而是本次 MVL 要验证的 **AI 应用工作流**。M3 的 `workflow_draft` 与 M4 的 `workflow_final` 使用同一结构：
+Canvas 第 4 板块不是普通业务流程记录，而是本次 MVL 要验证的 **AI 应用工作流**。M3 的 `workflow_draft` 与 M4 的 `workflow_final` 使用同一结构（写入确认包 Markdown，使用以下固定小节）：
 
-```json
-{
-  "trigger": "闭环触发条件",
-  "steps": ["按流向排列的步骤"],
-  "completion_condition": "闭环完成条件",
-  "agent_execution_nodes": ["自动化节点（Agent 执行）"],
-  "human_operation_confirmation_nodes": ["人工操作/确认节点"],
-  "human_review_agent_execution_nodes": ["人审后由 Agent 执行，或人审与 Agent 联合执行的节点"],
-  "rules": ["决定流向、升级、停止或回退的关键规则"]
-}
+```markdown
+## workflow_draft / workflow_final
+
+- **触发条件（trigger）**：闭环触发条件
+- **步骤（steps）**：按流向排列的步骤（列表）
+- **完成条件（completion_condition）**：闭环完成条件
+- **Agent 执行节点（agent_execution_nodes）**：自动化节点（Agent 执行）
+- **人工操作/确认节点（human_operation_confirmation_nodes）**：人工操作/确认节点
+- **人审 + Agent 执行节点（human_review_agent_execution_nodes）**：人审后由 Agent 执行，或人审与 Agent 联合执行的节点
+- **关键规则（rules）**：决定流向、升级、停止或回退的关键规则
 ```
 
 三类节点都必须由讨论形成且至少有一项。每个节点应能在 `steps` 中定位，并明确输入、输出和流向。若缺少任一类节点，或工作流没有体现 AI 如何参与，就不能形成正式 Workflow；不得拿现状业务流程或通用流程图代替。
@@ -75,4 +75,4 @@ Canvas 第 4 板块不是普通业务流程记录，而是本次 MVL 要验证�
 - 不得强制固定年限的愿景、固定权重评分或固定用户层数。
 - 不得强制特定头脑风暴、角色分层、攻击分类或旅程方法。
 - 不得因为模板有空间而补充新角色、新指标、新系统、新风险或新资产。
-- 不得把“可复用”“规模化”“生产化”扩写为日程没有讨论的实施方案。
+- 不得把"可复用""规模化""生产化"扩写为日程没有讨论的实施方案。

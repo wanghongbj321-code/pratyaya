@@ -1,6 +1,6 @@
 # MVL Canvas 内容与视觉规范
 
-MVL Canvas 是六次工作坊已确认结论的完整展示层。正式页面只能读取通过结论闸门的模块 JSON。内容范围以 `workshop-canvas-map.md` 为准。
+MVL Canvas 是六次工作坊已确认结论的完整展示层。正式页面只能读取通过结论闸门的模块确认包（`modules/Mx-v{N}.md`）。内容范围以 `workshop-canvas-map.md` 为准。
 
 ## 顶部
 
@@ -31,7 +31,7 @@ MVL Canvas 是六次工作坊已确认结论的完整展示层。正式页面只
 - 决策边界
 - 协作模式
 
-“是否 Agent”只按“人 / Agent / 人与 Agent 协作”表达，不额外引入其他角色分层术语。
+"是否 Agent"只按"人 / Agent / 人与 Agent 协作"表达，不额外引入其他角色分层术语。
 
 ## 4. Workflow（工作流）
 
@@ -80,10 +80,10 @@ MVL Canvas 是六次工作坊已确认结论的完整展示层。正式页面只
 | M6 | 最终方案 / 三维对比 / 演示结论 / 能力边界 / 资产 / 后续计划 |
 
 模块详情 Canvas 的要求：
-- 数据版本必须与 `approval.version` 一致
-- 包含质量面板（版本、确认人、确认时间、证据覆盖、缺口、对齐状态）
-- 结论 ID、缺口 ID、证据引用与 JSON 一致
-- 支持从结论下钻到证据摘要
+- 数据版本必须与确认包版本号 `v{N}` 一致
+- 包含质量面板（版本、确认人、确认人角色、确认时间、Gate 建议、`render_authorized`、`confirmation_mode`、缺口、对齐状态；`confirmation_mode=override` 时显示 `quality-caveat` 与风险详情）
+- 结论 ID、缺口 ID 与确认包 Markdown 一致
+- 支持从结论下钻到证据摘要（通过确认包内的"关键证据引用"小节定位）
 - 可独立查看、打印，不依赖全局 Canvas
 
 用户说"查看 Mx 产物"或"查看所有产物"时，应该展示已生成的模块详情 Canvas HTML 链接，而不是只给 Markdown 摘要。
@@ -105,17 +105,26 @@ MVL Canvas 是六次工作坊已确认结论的完整展示层。正式页面只
 
 ## 事实源与版本
 
-- 唯一业务事实源：`modules/module-N.json`
-- 正式渲染要求：`gate.render_allowed=true`
-- 页面版本、模块版本和 `approval.version` 必须一致
-- 内容修改必须先回写 JSON、升版和重新确认
-- 缺失字段不得补写；草稿显示“未讨论/待确认”，正式版由闸门阻断
+- 唯一业务事实源：`modules/Mx-v{N}.md`（确认包，Markdown 格式）
+- 正式渲染要求：`render_authorized=true` + `confirmation_mode ∈ {gate_pass, override}` + override 时审计完整（旧 `render_allowed` 字段已删除）
+- 页面版本、模块版本和确认包版本号 `v{N}` 必须一致
+- 内容修改必须先回写确认包 Markdown、升版和重新确认
+- 缺失 section 不得补写；草稿显示"未讨论/待确认"，正式版由闸门阻断
+
+## 引用层级
+
+按 MVL 产品审查 2.2 节立场，逐字稿从"证据"降级为"背景材料"：
+
+- **不引用逐字稿段落**：不再使用 `M1-T01-P012` 段落级 ID，不再使用"转写中关于 X 的讨论"等自然语言引用。
+- **引用范围**：仅引用 Key Points 与确认包自身的 section（如"M1 关键主张 3"、"M1 缺口表 G02"）。
+- **结论的合法性**：结论登记表的每条结论，其依据是"本模块已通过'确认 vN'"，而不是"某段转写中的话"。
 
 ## HTML 与本地打开
 
 - 单文件、内联 CSS/JS、系统字体、无网络依赖
-- 数据内嵌在 `<script type="application/json" id="canvas-data">`
-- 不用 `fetch()` 读取本地 JSON，不用 iframe 嵌套本地 HTML
+- 数据内嵌在 `<script type="application/json" id="canvas-data">`（canvas-data 由 LLM 读取确认包 Markdown 后生成的结构化数据）
+- 不用 `fetch()` 读取本地 JSON 或 Markdown
+- 不用 iframe 嵌套本地 HTML
 - 全局 Canvas 使用普通相对链接进入模块详情
 - 支持本地双击、打印和导出 PDF
 - 本地编辑只能保存批注，不能覆盖已确认事实
@@ -126,7 +135,7 @@ MVL Canvas 是六次工作坊已确认结论的完整展示层。正式页面只
 - **全局 Canvas**：完整保留六个大模块（Intent / User / Agent Team / Workflow / Context / Validation）及其固定小模块，不新增第七个大模块。
 - **模块详情 Canvas**：使用每个模块的专属章节（见 `../../canvas-render/references/render-contract.md`），不套用六板块结构，也不留空白板块。
 - 核心结论和关键指标优先，详情证据下钻查看。
-- 草稿页显示“草稿 / 未确认 / 禁止用于管理层决策”。
+- 草稿页显示"草稿 / 未确认 / 禁止用于管理层决策"。
 - 正式页面不得出现未关闭的 blocker/major。
 - A3/A4 横向打印保持可读。
 

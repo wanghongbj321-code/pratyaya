@@ -1,6 +1,5 @@
 # M3：闭环目标定义、HMW 拆解与方案方向锁定
 
-> 时间：第二天 09:00–12:00
 > Canvas 贡献：回填 Intent；形成 Workflow 草案
 > 内容边界：`../references/workshop-canvas-map.md`
 

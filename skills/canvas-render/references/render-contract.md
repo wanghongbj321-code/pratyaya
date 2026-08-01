@@ -5,7 +5,9 @@
 - **全局 Canvas 页面**：六板块汇总视图（`maau-global-canvas.html`）
 - **模块详情 Canvas 页面**：M1-M6 各自专属结构（`module-N-canvas.html`）
 
-两者共享头部、质量面板、本地批注区和内嵌数据区。区别在于 `<main>` 内部结构：全局页面用固定的六大板块，模块详情页面用该模块的专属章节。
+两者共享头部、质量面板、本地批注区和内嵌数据区。区别在于 `<main>` 内部结构：全局页面用固定的六大板块，模块详情页面用该模块的专属 section。
+
+数据源是 `modules/Mx-v{N}.md`（确认包，Markdown）；LLM 读取后按本章的 section 映射表，把内容映射到 HTML 锚点。映射的字段名沿用确认包 Markdown 的 section 标题（中文标题与 HTML 锚点 ID 之间的对应见下表）。
 
 ## A. 全局 Canvas 页面结构
 
@@ -26,24 +28,24 @@
     </section>
     <section id="agent-team">
       <div id="agent-team-roles">...</div>
-      <div id="agent-team-collaboration">...</div>
+      <div id="agent-team-collaboration"></div>
     </section>
     <section id="workflow">
       <div id="workflow-steps">...</div>
       <div id="workflow-automation">...</div>
-      <div id="workflow-human-checkpoints">...</div>
-      <div id="workflow-human-agent-nodes">...</div>
-      <div id="workflow-rules">...</div>
+      <div id="workflow-human-checkpoints"></div>
+      <div id="workflow-human-agent-nodes"></div>
+      <div id="workflow-rules"></div>
     </section>
     <section id="context">
       <div id="context-knowledge">...</div>
-      <div id="context-data-sources">...</div>
-      <div id="context-tools-skills">...</div>
+      <div id="context-data-sources"></div>
+      <div id="context-tools-skills"></div>
     </section>
     <section id="validation">
       <div id="validation-executable">...</div>
       <div id="validation-value">...</div>
-      <div id="validation-evolution">...</div>
+      <div id="validation-evolution"></div>
     </section>
   </main>
   <aside id="quality-panel">...</aside>
@@ -56,7 +58,7 @@
 
 ## B. 模块详情 Canvas 页面结构
 
-每个模块详情页面**不使用六板块结构**。它只展示该模块的专属章节，不留空白板块。
+每个模块详情页面**不使用六板块结构**。它只展示该模块的专属 section，不留空白板块。
 
 ```html
 <body data-mode="formal" data-page-type="module-detail" data-module="M3" data-version="1">
@@ -68,7 +70,7 @@
       <div id="module-summary-overview">模块概览</div>
     </section>
     <section id="module-outputs">
-      <!-- 由 canvas_fields 的固定字段驱动，见下方 M1-M6 专属结构 -->
+      <!-- 由 Mx-v{N}.md 的固定 section 驱动，见下方 M1-M6 专属结构 -->
     </section>
     <section id="module-conclusions">
       <h3>结论登记表</h3>
@@ -90,87 +92,90 @@
 </body>
 ```
 
-`<section id="module-outputs">` 内部由 `canvas_fields` 的固定字段驱动。每个模块的专属结构如下：
+`<section id="module-outputs">` 内部由 `Mx-v{N}.md` 的固定 section 驱动（参见 `../mvl-distill/references/workshop-canvas-map.md` 的"模块 Markdown 必填 section"表）。每个模块的专属 HTML 锚点如下：
 
 ### M1 模块详情
 
-| 专属 section | 对应 canvas_fields |
+| HTML 锚点 | Mx-v{N}.md 的固定 section 标题 |
 |---|---|
-| `id="m1-goal"` | `goal` |
-| `id="m1-value"` | `value` |
-| `id="m1-success-metrics"` | `success_metrics` |
-| `id="m1-evidence"` | `evidence` |
-| `id="m1-boundary"` | `boundary` |
-| `id="m1-acceptance"` | `acceptance` |
-| `id="m1-grouping"` | `grouping` |
+| `id="m1-goal"` | 目标（goal） |
+| `id="m1-value"` | 价值（value） |
+| `id="m1-success-metrics"` | 成功指标（success_metrics） |
+| `id="m1-evidence"` | 证据（evidence） |
+| `id="m1-boundary"` | 边界（boundary） |
+| `id="m1-acceptance"` | 验收标准（acceptance） |
+| `id="m1-grouping"` | 项目分组（grouping） |
 
 ### M2 模块详情
 
-| 专属 section | 对应 canvas_fields |
+| HTML 锚点 | Mx-v{N}.md 的固定 section 标题 |
 |---|---|
-| `id="m2-users"` | `users` |
-| `id="m2-needs"` | `needs` |
-| `id="m2-pain-points"` | `pain_points` |
-| `id="m2-most-important-outcomes"` | `most_important_outcomes` |
-| `id="m2-current-workflow"` | `current_workflow` |
-| `id="m2-requirements"` | `requirements` |
+| `id="m2-users"` | 用户（users） |
+| `id="m2-needs"` | 需求（needs） |
+| `id="m2-pain-points"` | 痛点（pain_points） |
+| `id="m2-most-important-outcomes"` | 最重要结果（most_important_outcomes） |
+| `id="m2-current-workflow"` | 现状流程（current_workflow） |
+| `id="m2-requirements"` | 需求（requirements） |
 
 ### M3 模块详情
 
-| 专属 section | 对应 canvas_fields |
+| HTML 锚点 | Mx-v{N}.md 的固定 section 标题 |
 |---|---|
-| `id="m3-hmw"` | `hmw` |
-| `id="m3-loop-goal"` | `loop_goal` |
-| `id="m3-capability-metrics"` | `capability_metrics` |
-| `id="m3-acceptance"` | `acceptance` |
-| `id="m3-boundary"` | `boundary` |
-| `id="m3-solution-direction"` | `solution_direction` |
-| `id="m3-workflow-draft"` | `workflow_draft` |
-| `id="m3-validation-dimensions"` | `validation_dimensions` |
+| `id="m3-hmw"` | HMW 拆解（hmw） |
+| `id="m3-loop-goal"` | 闭环目标（loop_goal） |
+| `id="m3-capability-metrics"` | 能力指标（capability_metrics） |
+| `id="m3-acceptance"` | 验收标准（acceptance） |
+| `id="m3-boundary"` | 边界（boundary） |
+| `id="m3-solution-direction"` | 方案方向（solution_direction） |
+| `id="m3-workflow-draft"` | Workflow 草案（workflow_draft） |
+| `id="m3-validation-dimensions"` | 验证维度（validation_dimensions） |
 
 ### M4 模块详情
 
-| 专属 section | 对应 canvas_fields |
+| HTML 锚点 | Mx-v{N}.md 的固定 section 标题 |
 |---|---|
-| `id="m4-agent-team"` | `agent_team` |
-| `id="m4-collaboration"` | `collaboration_mode` |
-| `id="m4-workflow-final"` | `workflow_final` |
-| `id="m4-knowledge"` | `knowledge` |
-| `id="m4-data-sources"` | `data_sources` |
-| `id="m4-tools-skills"` | `tools_skills` |
-| `id="m4-prototype-rounds"` | `prototype_rounds` |
-| `id="m4-delivery-preparation"` | `delivery_preparation` |
+| `id="m4-agent-team"` | Agent Team（agent_team） |
+| `id="m4-collaboration"` | 协作模式（collaboration_mode） |
+| `id="m4-workflow-final"` | Workflow 冻结（workflow_final） |
+| `id="m4-knowledge"` | Context：知识（knowledge） |
+| `id="m4-data-sources"` | Context：数据源（data_sources） |
+| `id="m4-tools-skills"` | Context：工具与技能（tools_skills） |
+| `id="m4-prototype-rounds"` | 两轮原型（prototype_rounds） |
+| `id="m4-delivery-preparation"` | 交付准备（delivery_preparation） |
 
 ### M5 模块详情
 
-| 专属 section | 对应 canvas_fields |
+| HTML 锚点 | Mx-v{N}.md 的固定 section 标题 |
 |---|---|
-| `id="m5-validation-rounds"` | `validation_rounds` |
-| `id="m5-can-execute"` | `can_execute` |
-| `id="m5-can-create-value"` | `can_create_value` |
-| `id="m5-trust-risk-controls"` | `trust_risk_controls` |
-| `id="m5-issues-corrections"` | `issues_corrections` |
+| `id="m5-validation-rounds"` | 验证记录（validation_rounds） |
+| `id="m5-can-execute"` | 能否执行（can_execute） |
+| `id="m5-can-create-value"` | 能否创造价值（can_create_value） |
+| `id="m5-trust-risk-controls"` | 信任与风控（trust_risk_controls） |
+| `id="m5-issues-corrections"` | 问题与修正（issues_corrections） |
 
 ### M6 模块详情
 
-| 专属 section | 对应 canvas_fields |
+| HTML 锚点 | Mx-v{N}.md 的固定 section 标题 |
 |---|---|
-| `id="m6-final-solution"` | `final_solution` |
-| `id="m6-solution-comparison"` | `solution_comparison` |
-| `id="m6-demo-summary"` | `demo_summary` |
-| `id="m6-validation-review"` | `validation_review` |
-| `id="m6-capability-boundary"` | `capability_boundary` |
-| `id="m6-applicable-scenarios"` | `applicable_scenarios` |
-| `id="m6-optimization-space"` | `optimization_space` |
-| `id="m6-evolution-assets"` | `evolution_assets` |
-| `id="m6-next-step-plan"` | `next_step_plan` |
-| `id="m6-headline"` | `headline` |
-| `id="m6-takeaway"` | `takeaway` |
+| `id="m6-final-solution"` | 最终方案（final_solution） |
+| `id="m6-solution-comparison"` | 三维对比（solution_comparison） |
+| `id="m6-demo-summary"` | 演示结论（demo_summary） |
+| `id="m6-validation-review"` | 验证回顾（validation_review） |
+| `id="m6-capability-boundary"` | 能力边界（capability_boundary） |
+| `id="m6-applicable-scenarios"` | 适用场景（applicable_scenarios） |
+| `id="m6-optimization-space"` | 优化空间（optimization_space） |
+| `id="m6-evolution-assets"` | 进化资产（evolution_assets） |
+| `id="m6-next-step-plan"` | 后续计划（next_step_plan） |
+| `id="m6-headline"` | 一句话价值（headline） |
+| `id="m6-takeaway"` | 管理层 takeaway（takeaway） |
 
 **关键规则**：
 
-- 模块详情页面**没有空白板块**。只显示该模块专属的章节。
+- 模块详情页面**没有空白板块**。只显示该模块专属的 section。
 - 每个 section 的 ID 以模块前缀开头（`m1-`、`m2-`…`m6-`），避免与全局页面的 ID 冲突。
+- `#module-outputs` 内各模块专属稳定锚点的 DOM 相对顺序，必须与本节对应模块映射表的行顺序一致。
+- 桌面、窄屏和打印版的视觉阅读顺序必须与该 DOM 顺序一致；不得通过 CSS `order`、与 DOM 冲突的显式网格定位或 JavaScript 排序将两者解耦。
+- 顺序约束只依赖 `#module-outputs` 与稳定锚点；不要求固定 HTML 标签、编号 class、连续兄弟节点或一致卡片宽度。
 - 已讨论的字段正常展示内容；未讨论的字段显示"未讨论"并标为缺口。
 - 质量面板（quality-panel）的锚点 ID 统一使用 `quality-*` 前缀，两种页面共享。
 - 对齐状态放在 quality-panel 的 `alignment-section` 内，两种页面共享。
@@ -182,10 +187,15 @@
 ```html
 <aside id="quality-panel">
   <h3>质量与对齐</h3>
-  <div id="quality-version">...</div>
-  <div id="quality-approval">...</div>
-  <div id="quality-gaps">...</div>
-  <div id="quality-risks">...</div>
+  <div id="quality-version">v{N}</div>
+  <div id="quality-approval">
+    <!-- gate_recommendation / render_authorized / confirmation_mode -->
+  </div>
+  <div id="quality-gaps">缺口摘要</div>
+  <div id="quality-risks">风险摘要</div>
+  <div id="quality-caveat" hidden>
+    <!-- 仅 override 时显示，含 override 项数量、高风险项数量、风险详情 -->
+  </div>
   <section id="alignment-section">
     <h4>对齐状态</h4>
     <div id="alignment-consensus">...</div>
@@ -194,8 +204,38 @@
   </section>
 </aside>
 <section id="local-notes" contenteditable="true">...</section>
-<script type="application/json" id="canvas-data">...</script>
+<script type="application/json" id="canvas-data">
+  {
+    "version": "v{N}",
+    "module": "M{N}",
+    "sections": { ...确认包 section 映射... },
+    "auth": {
+      "gate_recommendation": "pass | fail",
+      "render_authorized": true,
+      "confirmation_mode": "gate_pass | override",
+      "override_audit": { ...完整 override_audit 数据，仅 override 时存在... }
+    }
+  }
+</script>
 ```
+
+### Caveat 状态标识
+
+模块详情页头部必须根据 `confirmation_mode` 显示对应状态：
+
+- `confirmation_mode=gate_pass`：显示"已确认"。
+- `confirmation_mode=override`：显示"**已确认 · 带保留意见**"。
+
+`#quality-caveat` 仅在 `confirmation_mode=override` 时可见（移除 `hidden`），内容必须包含：
+
+- Gate 建议（pass / fail）
+- 最终渲染授权（true）
+- override 项数量
+- 高风险项数量
+- override 理由、确认人、确认时间、补救措施
+- 每项的 Gate 项 ID、来源 ID、影响、风险等级
+
+打印版必须保留以上 caveat 内容；不得因 `@media print` 隐藏。
 
 ## 本地离线约束
 
@@ -203,14 +243,16 @@
 - 禁止通过 `fetch("file.json")` 加载本地数据；浏览器会因 file origin 拦截。
 - 禁止用 iframe 打开兄弟 HTML；使用普通相对链接。
 - 所有交互在单文件内工作，无网络时仍可展开、筛选、打印和编辑。
-- 可编辑字段保存到浏览器 `localStorage` 时，必须标记为“本地批注”，不能覆盖已确认事实源。
+- 可编辑字段保存到浏览器 `localStorage` 时，必须标记为"本地批注"，不能覆盖已确认事实源。
 
 ## 数据完整性
 
-- 输出页的 `data-version` 必须等于模块记录版本。
+- 输出页的 `data-version` 必须等于确认包版本 `v{N}`。
 - 页面内嵌数据必须来自同一次读取，不允许手工复制后再改写。
-- HTML 中的结论 ID、缺口 ID、证据引用与 JSON 保持一致。
-- 内容变更后必须升版，并把状态退回 `draft` 或 `gaps_open`；旧 HTML 视为过期。
+- HTML 中的结论 ID、缺口 ID、引用标识与确认包 Markdown 保持一致。
+- `canvas-data` 的 `auth` 字段必须与 `state.json` 同模块记录完全一致；不得手工改写。
+- 内容变更后必须升版（vN → vN+1），并把状态退回 `draft` 或 `gaps_open`；旧 HTML 视为过期。
+- 引用层级遵循 `../mvl-distill/SKILL.md` 的"不引用逐字稿段落"立场：仅引用 Key Points 与确认包自身的 section。
 
 ## 全局下钻
 
@@ -224,14 +266,17 @@
 
 ## 打印与管理层阅读
 
-- `@media print` 隐藏编辑控件，保留版本、确认和风险状态。
+- `@media print` 隐藏编辑控件，保留版本、确认、风险状态、结论和 override caveat。
 - 结论与关键指标优先，证据细节折叠但可打印附录。
-- `blocker` 和 `major` 不应出现在正式页面；若历史记录需要展示，明确标记“已解决”及证据。
+- 正常确认的模块（`confirmation_mode=gate_pass`）不显示 caveat 标识。
+- override 模块（`confirmation_mode=override`）必须保留 caveat 标识与风险详情。
+- 全局 Canvas 管理层摘要分开呈现：无保留确认结论 / 带保留意见的结论 / 未验证假设 / 关键风险 / 补救动作（Owner + 日期）。
 
-## 交付前审计
+## 交付前自检
 
-```powershell
-python skills/canvas-render/scripts/audit_canvas_html.py output/module-1-canvas.html
-```
+交付采用两阶段校验：
 
-审计必须确认：六大模块及规定小模块锚点齐全、质量面板与本地批注存在、同版本 JSON 已内嵌、包含打印规则，并且没有 iframe、`fetch()` 或外部网络资源。退出码 `0` 表示结构与离线安全检查通过；它不替代人工浏览器预览。
+1. **Python 静态审计**：运行 `scripts/audit_canvas_html.py`，检查页面/版本元数据、契约结构、稳定锚点存在性与顺序、`canvas-data`、授权一致性、离线安全、打印规则及 caveat 必需结构。模块锚点顺序由脚本直接读取本契约的 M1–M6 映射表，不维护第二份清单。
+2. **精简浏览器视觉验收**：只检查 Python 无法可靠判断的桌面、窄屏和打印实际布局，包括阅读顺序、溢出、遮挡、堆叠、分页、caveat 可见性与选定视觉模式的呈现结果。
+
+Python 审计或浏览器视觉验收任一失败均阻断交付；二者全部通过后才可把模块标记为 `rendered`。浏览器验收不重复检查锚点、JSON、授权字段或离线字符串。
