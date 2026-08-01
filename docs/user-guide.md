@@ -1,6 +1,6 @@
 # 用户指南
 
-> 适用版本：v1.0.1
+> 适用版本：以 `.codebuddy-plugin/plugin.json` `version` 字段为权威
 > 配套文档：[安装指南](./installation.md) / [DEVELOPMENT.md](../DEVELOPMENT.md) / [DESIGN.md](../DESIGN.md)
 
 > **TL;DR**：5 步快速开始（见 §1），遇到问题查 §6 异常处理指引。
@@ -135,5 +135,5 @@
 
 ---
 
-**版本**：v1.0.1
+**版本**：以 `.codebuddy-plugin/plugin.json` 为权威
 **反馈**：在本仓库开 issue

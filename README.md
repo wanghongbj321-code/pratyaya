@@ -56,7 +56,7 @@ pratyaya/
 
 ## 专家版本
 
-v1.0.1（2026-08-01）。当前 `plugin.json` `version: 1.0.1` 同步。
+以 `.codebuddy-plugin/plugin.json` `version` 字段为权威。详细变更见 [CHANGELOG.md](./CHANGELOG.md)。
 
 ## 致谢
 

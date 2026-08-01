@@ -1,6 +1,6 @@
 {
   "name": "pratyaya",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "pratyaya: AI-native MVL (Minimum Verifiable Loop) workshop facilitator. Distills traceable conclusions; blocks incomplete modules; obtains versioned human confirmation; renders module + global Canvas HTML.",
   "agents": [
     "./agents/pratyaya.md"
@@ -17,8 +17,8 @@
     "zh": "Pratyaya MVL Expert"
   },
   "profession": {
-    "en": "AI-Native Verifiable Loop Expert",
-    "zh": "AI 原生的场景可验证自治闭环专家"
+    "en": "Pratyaya MVL Expert",
+    "zh": "Pratyaya MVL Expert"
   },
   "displayDescription": {
     "en": "An AI-native workshop facilitation expert pack for MVL (Minimum Verifiable Loop).",

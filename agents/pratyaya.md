@@ -5,8 +5,8 @@ displayName:
   en: "Pratyaya MVL Expert"
   zh: "Pratyaya MVL Expert"
 profession:
-  en: "AI-Native Verifiable Loop Expert"
-  zh: "AI 原生的场景可验证自治闭环专家"
+  en: "Pratyaya MVL Expert"
+  zh: "Pratyaya MVL Expert"
 maxTurns: 100
 skills: [mvl-distill, module-conclusion-gate, canvas-render]
 ---

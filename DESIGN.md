@@ -1,7 +1,6 @@
 # MVL 设计文档
 
-> 适用版本：v1.0.1
-> 与 plugin.json `version: 1.0.1` 同步
+> 适用版本：以 `.codebuddy-plugin/plugin.json` `version` 字段为权威
 
 ## 1. 决策
 
@@ -122,5 +121,5 @@ stateDiagram-v2
 
 ---
 
-**版本**：v1.0.1
+**版本**：以 `.codebuddy-plugin/plugin.json` 为权威
 **配套文档**：[README.md](./README.md) / [DEVELOPMENT.md](./DEVELOPMENT.md) / [docs/installation.md](./docs/installation.md) / [docs/user-guide.md](./docs/user-guide.md)

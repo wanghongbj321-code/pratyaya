@@ -1,7 +1,17 @@
 # Pratyaya 变更日志
 
 > 本文件记录 Pratyaya 专家的正式版本变更。
-> 完整 SemVer 与架构说明见 [`README.md`](./README.md) / [`DESIGN.md`](./DESIGN.md) / [`docs/MVL-整体架构设计.md`](./docs/MVL-整体架构设计.md)。
+> 完整 SemVer 与架构说明见 [`README.md`](./README.md) / [`DESIGN.md`](./DESIGN.md) / [docs/MVL-整体架构设计.md](./docs/MVL-整体架构设计.md)。
+
+## [v1.0.2] - 2026-08-01
+
+### 字段对齐
+
+- `profession` 的中英文值改为与 `displayName` 一致（统一为 `Pratyaya MVL Expert`），影响 `.codebuddy-plugin/plugin.json` 与 `agents/pratyaya.md` frontmatter。
+
+### 文档去重
+
+- 6 个文档（README / DEVELOPMENT / DESIGN / docs/installation / docs/MVL-整体架构设计 / docs/user-guide）删除重复的"版本：v1.0.X"行，改为指向 `.codebuddy-plugin/plugin.json` `version` 字段为权威。后续升版仅需改 `plugin.json` 与本文件。
 
 ## [v1.0.1] - 2026-08-01
 
