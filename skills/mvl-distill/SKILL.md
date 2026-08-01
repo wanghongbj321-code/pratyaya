@@ -1,6 +1,6 @@
 ---
 name: mvl-distill
-description: 把 MVL 工作坊讨论产物提炼为模块化 Markdown 资产。先做 Key Points 概览抽取（对应 NotebookLM Mind Map / Briefing Doc），再按用户决策做原子提炼，输出唯一事实源 Mx-v{N}.md 确认包。收到 Key Points 抽取请求、原子提炼请求、确认包生成请求时使用。
+description: 把 MVL 工作坊讨论产物提炼为模块化 Markdown 资产。先做 Key Points 概览抽取（生成每模块的讨论地图），再按用户决策做原子提炼，输出唯一事实源 Mx-v{N}.md 确认包。收到 Key Points 抽取请求、原子提炼请求、确认包生成请求时使用。
 ---
 
 # mvl-distill：模块化提炼
@@ -9,7 +9,7 @@ description: 把 MVL 工作坊讨论产物提炼为模块化 Markdown 资产。�
 
 ## 定位
 
-**NotebookLM 场景化提炼流程**：本 skill 是 Pratyaya MVL Expert 的"提炼与确认包生成"能力。完整的 MVL 工作流由主 agent 编排（见 `agents/pratyaya.md`），本 skill 不编排主流程，只在被调用时执行以下两个独立 Stage：
+**分步提炼流程**：本 skill 是 Pratyaya MVL Expert 的"提炼与确认包生成"能力。完整的 MVL 工作流由主 agent 编排（见 `agents/pratyaya.md`），本 skill 不编排主流程，只在被调用时执行以下两个独立 Stage：
 
 - **Stage 1：Key Points 抽取** — 输入转写，输出 `modules/Mx-keypoints.md`（讨论地图，30 秒浏览）。
 - **Stage 2：原子提炼** — 输入转写 + Key Points + 阶段框架，输出 `modules/Mx-v{N}.md`（确认包，唯一事实源）。
