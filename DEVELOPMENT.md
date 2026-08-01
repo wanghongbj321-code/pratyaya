@@ -109,9 +109,62 @@ Key Points (Mx-keypoints.md) → 提炼 (Mx-v{N}.md) → Gate (Mx-gate.md) → �
 | `find skills/canvas-render/visual-patterns -maxdepth 1 -type f -name '[0-9][0-9]-*.md' \| sort` | 列出视觉模式候选 |
 | `rg -n '^id:|^visual_system:|^layout:|^formality:|^density:|^best_for:' skills/canvas-render/visual-patterns/*.md` | 复核选择元数据 |
 | `python3 scripts/audit_canvas_html.py <html> --source <Mx-vN.md> --state <state.json>` | 审计正式模块 Canvas HTML |
+| `python3 scripts/check_contract_consistency.py` | 跑契约一致性检查器（开发辅助，**非 CI 强制**），输出规则化问题清单 |
+| `python3 scripts/check_contract_consistency.py --rules MANIFEST_JSON,GATE_TABLE_PARSE` | 只跑指定规则（逗号分隔 code） |
+| `python3 scripts/check_contract_consistency.py --list` | 列出所有规则 code / category / description |
+| `python3 -m pytest tests/test_contract_consistency.py` | 跑契约一致性检查器的单元测试 |
 | `grep -rn "check_gate.py" .` | 检查已删除 Gate 脚本引用残留 |
 | `grep -rn "module-N\.json" .` | 检查旧 JSON 引用残留 |
 | `wc -l README.md DEVELOPMENT.md DESIGN.md docs/*.md` | 检查现行文档规模 |
+
+## 8. 契约一致性检查器（开发辅助）
+
+`scripts/check_contract_consistency.py` 是本仓库的**契约一致性检查器**。设计依据见
+`tmp/pratyaya-internal/docs/design/契约一致性检查器-206-0801-1003.md`，对应单元测试在
+`tests/test_contract_consistency.py` 与 `tests/fixtures/contract-consistency/`。
+
+> **定位**：开发辅助工具，用于变更前后对比 / 改写前的差异分析 / 一次性 drift 排查。
+> **不是** CI 门禁——本仓库没有 `.github/workflows/`，单人维护 + 未发布阶段的工具复杂度应
+> 远低于被它保护的资产。当前 22 error 中有 5 个是 `v1.0.0` 改造进行中的中间状态（schema 4
+> 字段、路径漂移、DEPRECATED），过早接入会卡死正在做的 PR。
+
+### 8.1 当前覆盖的规则族（31 条）
+
+| 阶段 | 类别 | code |
+|---|---|---|
+| A 最小强门禁 | manifest / 入口 / 版本 | `MANIFEST_JSON` `IDENTITY_MATCH` `ENTRY_EXISTS` `AGENT_ENTRY` `SKILL_ENTRY` `VERSION_FORMAT` `CHANGELOG_VERSION` |
+| A 最小强门禁 | GATE 文件 | `GATE_FILE_SET` `GATE_TABLE_PARSE` `GATE_TABLE_WIDTH` `GATE_ID_FORMAT` `GATE_ID_MODULE` `GATE_ID_UNIQUE` `GATE_CATEGORY` `GATE_RISK` `GATE_SOURCE` |
+| A 最小强门禁 | 视觉模式 | `PATTERN_COUNT` `PATTERN_FILENAME` `PATTERN_SEQUENCE` `PATTERN_ID` `PATTERN_METADATA` `PATTERN_ENUM` |
+| A 最小强门禁 | 文档/链接 | `LOCAL_LINK` `DEPRECATED_TERM` |
+| B 跨契约结构 | section / schema / 状态机 | `GATE_SECTION_SYNC` `RENDER_SECTION_SYNC` `SKILL_TEMPLATE_SYNC` `STATE_ENUM_SYNC` `AUTH_FIELDS` `OVERRIDE_CATEGORY` |
+
+每条规则有唯一的 `<CATEGORY>-<NAME>` 标识。`--list` 查看完整列表；输出含 `code / level / where / message / hint` 五字段。
+
+> **未包含的规则**（设计有但本仓库**暂不**启用，避免误报与越界）：
+> - `GATE_ID_SEQUENCE` / `GATE_COUNT_SYNC`：设计本身允许 GATE 序号跳号（M1-GATE-02 → 03 是设计），规则会与合法跳号冲突
+> - `PATTERN_HEADINGS` / `PATTERN_OFFLINE`：6 个固定标题 / 外部字体检测属于"内容质量"而非"契约一致性"
+> - `AGENT_DISPLAY_SYNC` / `VERSION_SYNC`：检查"agent MD 是否引用了 displayName / 版本号"——属于内容质量检查，**不**是一致性
+> - `CONFIRMATION_MODE`：与 `OVERRIDE_CATEGORY` 重叠
+>
+> 何时重新引入：等到有真实问题驱动时再加（"为造而造"的规则会拉低维护者对门禁的信任）。
+
+### 8.2 运行与退出码
+
+* 默认 `--root` 指向仓库根目录；通过 `--root <dir>` 跑合成仓库（便于单元测试）。
+* 退出码：`0` = 无 error；`1` = 至少 1 条 error；`2` = 参数错误。`--strict` 把 warning 也算 1。
+* 失败项按 code 分组输出：每个 code 下列出所有问题位置和修复建议。
+* `--json` 输出 JSON（无消费者前可省略，但已实现，未来需要时直接可用）。
+* `--rules <code1>,<code2>` 只跑指定规则；`--list` 列出全部 code。
+
+### 8.3 何时考虑接入 CI
+
+**当前不接**。CI 强制化必须满足以下所有条件，缺一不可：
+
+1. **专家包 v2.0+ 正式发布**——v1.0 改造还在进行中（22 error 含 5 个"设计进行中"中间状态）
+2. **多人协作有真实 PR 流程**——当前单人维护，没有 PR 边界
+3. **当前 error 清单已清零**（或被白名单显式接受）——22 个 error 中至少 `LOCAL_LINK` / `AUTH_FIELDS` / `OVERRIDE_CATEGORY` / `DEPRECATED_TERM` 这 4 类需修复
+
+任一条件不满足时，本检查器应保持在"开发辅助"形态，作为改写前/后的差异分析工具使用，而非拦截 PR。
 
 ---
 
