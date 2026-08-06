@@ -1,5 +1,6 @@
 ---
 id: blue-professional-flow
+zh_name: 蓝色专业·流程
 visual_system: Blue Professional
 layout: flow
 formality: medium-high

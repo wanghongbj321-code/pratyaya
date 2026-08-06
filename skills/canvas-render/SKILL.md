@@ -36,7 +36,7 @@ description: 把已通过用户授权的 MVL 模块确认包（Mx-v{N}.md）按�
 
 - 路径位于 `skills/canvas-render/visual-patterns/` 内。
 - 文件存在，且文件名满足 `NN-{id}.md`。
-- frontmatter 恰好包含 `id / visual_system / layout / formality / density / best_for`。
+- frontmatter 恰好包含 `id / zh_name / visual_system / layout / formality / density / best_for`。
 - 文件名 `{id}` 与 frontmatter `id` 一致。
 - 正文按顺序包含"色板 token / 字体 / 网格 / 组件库 / 适用场景 / 反例"六节。
 

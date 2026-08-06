@@ -1,5 +1,6 @@
 ---
 id: accenture-purple-institutional
+zh_name: 埃森哲紫·机构风
 visual_system: Accenture Purple
 layout: balanced
 formality: high

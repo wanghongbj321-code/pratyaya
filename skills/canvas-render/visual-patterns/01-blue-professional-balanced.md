@@ -1,5 +1,6 @@
 ---
 id: blue-professional-balanced
+zh_name: 蓝色专业·均衡
 visual_system: Blue Professional
 layout: balanced
 formality: medium-high

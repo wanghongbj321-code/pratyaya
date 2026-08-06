@@ -1,5 +1,6 @@
 ---
 id: roland-berger-dark-blue-gray
+zh_name: 罗兰贝格深蓝灰
 visual_system: Roland Berger Dark Blue-Gray
 layout: balanced
 formality: high

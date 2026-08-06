@@ -1,6 +1,6 @@
 # Canvas 视觉模式规范
 
-本目录是 `canvas-render` 的视觉规格来源。每个模式文件描述一种可供 Agent 实现为离线 HTML Canvas 的设计系统；模式文件不是业务事实源，也不是可直接交付给用户的 Canvas。
+本目录是 `canvas-render` 的视觉规格来源，所有画布类型（MVL、黄金圈等）均可复用。每个模式文件描述一种可供 Agent 实现为离线 HTML Canvas 的设计系统；模式文件不是业务事实源，也不是可直接交付给用户的 Canvas。
 
 正式业务内容仍只能来自已确认且通过 Gate 的 `modules/Mx-v{N}.md`。HTML 的 DOM、锚点、共享结构、离线和版本约束以 `../references/render-contract.md` 为准。
 
@@ -13,7 +13,7 @@ skills/canvas-render/visual-patterns/[0-9][0-9]-*.md
 ```
 
 - `README.md` 不是候选。
-- 当前基线必须恰好发现 9 个候选。
+- 当前基线必须恰好发现 10 个候选。
 - 不读取仓库其他目录中的同名文件。
 - 不使用集中 JSON 登记册。
 
@@ -25,7 +25,7 @@ skills/canvas-render/visual-patterns/[0-9][0-9]-*.md
 NN-{id}.md
 ```
 
-- `NN`：两位稳定序号，当前为 `01`–`09`。
+- `NN`：两位稳定序号，当前为 `01`–`10`。
 - `{id}`：与 frontmatter 的 `id` 完全相同。
 - 去掉 `NN-` 和 `.md` 后的文件名必须等于 `id`。
 - 序号和 `id` 都必须在目录内唯一。
@@ -45,11 +45,12 @@ id: blue-professional-balanced
 
 ## Frontmatter
 
-每个模式必须包含且只能以以下 6 个字段作为选择元数据：
+每个模式必须包含且只能以以下 7 个字段作为选择元数据：
 
 ```yaml
 ---
 id: blue-professional-balanced
+zh_name: 蓝色专业·均衡
 visual_system: Blue Professional
 layout: balanced
 formality: medium-high
@@ -63,6 +64,7 @@ best_for: 内部方案、管理层均衡总览
 | 字段 | 含义 | 规则 |
 |---|---|---|
 | `id` | 模式稳定标识 | kebab-case；与文件名 `{id}` 一致 |
+| `zh_name` | 中文展示名 | 简洁（4-8 字），用于模式选择时向用户展示；避免与 `id` 或 `visual_system` 重复 |
 | `visual_system` | 视觉系统名称 | 一个输出只能使用一个视觉系统 |
 | `layout` | 主要版式 | 当前使用 `balanced` 或 `flow` |
 | `formality` | 正式度 | 当前使用 `medium-high` 或 `high` |
@@ -150,7 +152,7 @@ best_for: 内部方案、管理层均衡总览
 
 1. 扫描候选路径。
 2. 读取全部候选的 frontmatter。
-3. 校验目录数量、序号、ID、文件名和 6 个字段。
+3. 校验目录数量、序号、ID、文件名和 7 个字段。
 4. 基于 `visual_system / layout / formality / density / best_for` 推荐 1–2 个候选。
 5. 用户选定后，主 Agent 向 `canvas-render` 传递完整仓库相对路径。
 6. `canvas-render` 读取该文件的 6 节正文，并按其中 token 实现 HTML。
@@ -173,7 +175,7 @@ visual-patterns/blue-professional-balanced.md
 出现以下任一情况必须阻断推荐或渲染，并输出具体错误：
 
 - 目录不存在
-- 候选数量不是当前基线要求的 9 个
+- 候选数量不是当前基线要求的 10 个
 - frontmatter 缺字段
 - `id` 或序号重复
 - 文件名 `{id}` 与 frontmatter `id` 不一致
@@ -199,9 +201,18 @@ visual-patterns/blue-professional-balanced.md
 
 1. 分配新的稳定两位序号。
 2. 创建满足 `NN-{id}.md` 的文件。
-3. 填写 6 个 frontmatter 字段和 6 节正文。
+3. 填写 7 个 frontmatter 字段和 6 节正文。
 4. 校验发现、ID 和文件名规则。
 5. 使用统一代表数据完成桌面、窄屏和打印验证。
 6. 更新本目录的当前基线数量及相关现行文档。
 
 参考实现：`01-blue-professional-balanced.md`。
+
+## 默认模式
+
+`10-black-gray-professional`（zh_name: 黑灰专业·打印版）是 pratyaya 的**默认配色方案**。在模式选择阶段，若无明确的画布类型或内容特征指向其他模式，Agent 应优先推荐此模式。使用场景包括：
+
+- 需正式打印的管理层报告
+- 学术场景输出
+- 黑白设备展示
+- 不确定用户偏好的默认回退

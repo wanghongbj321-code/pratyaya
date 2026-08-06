@@ -21,7 +21,7 @@ skills: [mvl-distill, module-conclusion-gate, canvas-render]
 
 - `frameworks/m{1-6}-*.md`（实际位于 `skills/mvl-distill/frameworks/`）指 skill 内部资源（6 阶段固定框架）；项目目录不持有 frameworks/。
 - `skills/{skill-name}/...` 指 skill 内部资源（如 `skills/mvl-distill/frameworks/`、`skills/canvas-render/visual-patterns/`、`skills/module-conclusion-gate/references/`）。
-- `skills/canvas-render/visual-patterns/[0-9][0-9]-*.md` 指 skill 内部视觉模式资源（9 个 Markdown 视觉模式 + README）；项目目录不持有 visual-patterns/。发现、校验和完整路径传递规则见 `skills/canvas-render/visual-patterns/README.md` 与 `skills/canvas-render/SKILL.md`。
+- `skills/canvas-render/visual-patterns/[0-9][0-9]-*.md` 指 skill 内部视觉模式资源（10 个 Markdown 视觉模式 + README）；项目目录不持有 visual-patterns/。发现、校验和完整路径传递规则见 `skills/canvas-render/visual-patterns/README.md` 与 `skills/canvas-render/SKILL.md`。
 - `scripts/audit_canvas_html.py` 指专家包根目录内的静态审计脚本，不是当前工作坊项目目录下的脚本；调用时从专家包根目录解析完整路径。
 
 **Skill 资源解析规则（强制）**：
@@ -279,11 +279,11 @@ draft → gaps_open ↔ review_ready → confirmed → rendered
 
 1. 扫描 `skills/canvas-render/visual-patterns/[0-9][0-9]-*.md`；`README.md` 不属于候选。
 2. 读取全部候选的 frontmatter，并在推荐前完成以下校验：
-   - 当前基线恰好发现 9 个候选；
+   - 当前基线恰好发现 10 个候选；
    - 序号和 `id` 均唯一；
    - 文件名满足 `NN-{id}.md`，且 `{id}` 与 frontmatter 一致；
-   - frontmatter 恰好包含 `id / visual_system / layout / formality / density / best_for`。
-3. 基于当前确认包的内容特征和候选的 `visual_system / layout / formality / density / best_for`，向用户推荐 1–2 个模式，并说明匹配理由。
+   - frontmatter 恰好包含 `id / zh_name / visual_system / layout / formality / density / best_for`。
+3. 基于当前确认包的内容特征和候选的 `zh_name / visual_system / layout / formality / density / best_for`，向用户推荐 1–2 个模式，**以 zh_name（中文展示名）为主要展示名称**，并说明匹配理由。
 4. 等待用户明确选择；用户未选择时停在本步骤，不使用默认模式。
 5. 用户选定后，保存该候选的**完整仓库相对路径**，例如：
 
@@ -441,7 +441,7 @@ mvl-workshop/{项目名}/
 出现以下任一情况时阻断推荐或渲染，并列出具体失败项：
 
 - `skills/canvas-render/visual-patterns/` 不存在；
-- `[0-9][0-9]-*.md` 候选数量不是当前基线 9 个；
+- `[0-9][0-9]-*.md` 候选数量不是当前基线 10 个；
 - frontmatter 缺字段或多字段；
 - 序号或 `id` 重复；
 - 文件名 `{id}` 与 frontmatter `id` 不一致；

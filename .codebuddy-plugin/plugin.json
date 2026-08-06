@@ -1,34 +1,36 @@
 {
   "name": "pratyaya",
-  "version": "1.0.2",
-  "description": "pratyaya: AI-native MVL (Minimum Verifiable Loop) workshop facilitator. Distills traceable conclusions; blocks incomplete modules; obtains versioned human confirmation; renders module + global Canvas HTML.",
+  "version": "2.0.0",
+  "description": "pratyaya: AI-native multi-canvas workshop platform — supports MVL (Minimum Verifiable Loop) and Golden Circle canvases. Distills traceable conclusions; blocks incomplete modules; obtains versioned human confirmation; renders Canvas HTML.",
   "agents": [
     "./agents/pratyaya.md"
   ],
   "skills": [
     "./skills/mvl-distill",
+    "./skills/gc-distill",
     "./skills/module-conclusion-gate",
+    "./skills/gc-gate",
     "./skills/canvas-render"
   ],
   "expertType": "agent",
   "agentName": "pratyaya",
   "displayName": {
-    "en": "Pratyaya MVL Expert",
-    "zh": "Pratyaya MVL Expert"
+    "en": "Pratyaya Canvas Expert",
+    "zh": "Pratyaya Canvas Expert"
   },
   "profession": {
-    "en": "Pratyaya MVL Expert",
-    "zh": "Pratyaya MVL Expert"
+    "en": "Pratyaya Canvas Expert",
+    "zh": "Pratyaya Canvas Expert"
   },
   "displayDescription": {
-    "en": "An AI-native workshop facilitation expert pack for MVL (Minimum Verifiable Loop).",
-    "zh": "AI 原生的 MVL 工作坊引导专家，蒸馏转写、卡模块结论、生成画布"
+    "en": "AI-native multi-canvas workshop platform: MVL (Minimum Verifiable Loop) + Golden Circle canvases.",
+    "zh": "AI 原生多画布工作坊平台：MVL 最小可验证闭环 + 黄金圈法则画布"
   },
   "avatar": "avatars/expert.png",
   "categoryId": "12-IndustryConsultant",
   "defaultInitPrompt": {
-    "zh": "我是第[组号]组成员，项目名[项目名]，请引导MVL工作坊M1战略对齐模块",
-    "en": "I'm a member of Group [group_id], project [project_name]. Please guide M1 (Strategic Alignment) of the MVL workshop."
+    "zh": "我是第[组号]组成员，项目名[项目名]。请问我需要什么画布类型，我会选择 MVL 或黄金圈",
+    "en": "I'm a member of Group [group_id], project [project_name]. Please ask me which canvas type I need: MVL or Golden Circle."
   },
   "plugin": "pratyaya",
   "tags": [
@@ -41,8 +43,8 @@
       "zh": "转写提炼"
     },
     {
-      "en": "MAAU Canvas",
-      "zh": "MAAU画布"
+      "en": "Canvas Generation",
+      "zh": "画布生成"
     }
   ],
   "quickPrompts": [
@@ -55,8 +57,8 @@
       "zh": "这是本模块的讨论转写，请提炼内容、审核核心价值并生成结论确认包"
     },
     {
-      "en": "All six modules are complete. Generate the global MAAU canvas and the presentation report.",
-      "zh": "六个模块已全部完成，请生成全局MAAU画布和演示报告"
+      "en": "Please guide a Golden Circle canvas workshop to help me clarify WHY / HOW / WHAT.",
+      "zh": "请引导黄金圈法则画布工作坊，帮助我梳理 WHY / HOW / WHAT 三层战略"
     }
   ]
 }

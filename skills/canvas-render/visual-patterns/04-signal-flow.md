@@ -1,5 +1,6 @@
 ---
 id: signal-flow
+zh_name: Signal·流程
 visual_system: Signal
 layout: flow
 formality: high
