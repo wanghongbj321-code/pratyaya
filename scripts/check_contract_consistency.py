@@ -67,10 +67,11 @@ MODULE_GATE_SKILL = "skills/module-conclusion-gate/SKILL.md"
 EXAMPLES_MODULES = "examples/modules"
 
 # Phase A 常量
-EXPECTED_VISUAL_PATTERN_COUNT = 9
-EXPECTED_VISUAL_PATTERN_NN_RANGE = tuple(f"{n:02d}" for n in range(1, 10))
+EXPECTED_VISUAL_PATTERN_COUNT = 10
+EXPECTED_VISUAL_PATTERN_NN_RANGE = tuple(f"{n:02d}" for n in range(1, 11))
 EXPECTED_VISUAL_PATTERN_METADATA = (
     "id",
+    "zh_name",
     "visual_system",
     "layout",
     "formality",
@@ -759,7 +760,7 @@ def check_pattern_count(ctx: CheckContext) -> list[Finding]:
                 level="error",
                 where=VISUAL_PATTERNS_DIR,
                 message="缺少 visual-patterns 目录",
-                hint="需在 skills/canvas-render/visual-patterns/ 下放 9 个模式文件 + README",
+                hint="需在 skills/canvas-render/visual-patterns/ 下放 10 个模式文件 + README",
             )
         ]
     readme = base / "README.md"
@@ -781,7 +782,7 @@ def check_pattern_count(ctx: CheckContext) -> list[Finding]:
                 level="error",
                 where=VISUAL_PATTERNS_DIR,
                 message=f"模式文件 {len(files)} 个 ≠ 期望 {EXPECTED_VISUAL_PATTERN_COUNT}",
-                hint="按 visual-patterns/README.md 当前基线维护 9 个模式",
+                hint="按 visual-patterns/README.md 当前基线维护 10 个模式",
             )
         ]
     return []
@@ -822,7 +823,7 @@ def check_pattern_sequence(ctx: CheckContext) -> list[Finding]:
                 level="error",
                 where=VISUAL_PATTERNS_DIR,
                 message=f"模式序号集合 {nn_sorted} ≠ 期望 {list(EXPECTED_VISUAL_PATTERN_NN_RANGE)}",
-                hint="必须使用 01..09；不得跳号或重排已发布序号",
+                hint="必须使用 01..10；不得跳号或重排已发布序号",
             )
         )
     if len(nn_seen) != len(set(nn_seen)):
@@ -1414,9 +1415,9 @@ RULES: tuple[Rule, ...] = (
     Rule("GATE_CATEGORY", "A", "GATE 分类在白名单内", check_gate_category),
     Rule("GATE_RISK", "A", "GATE 风险等级在白名单内", check_gate_risk),
     Rule("GATE_SOURCE", "A", "GATE 来源 ID 必填", check_gate_source),
-    Rule("PATTERN_COUNT", "A", "视觉模式文件数 = 当前基线（9）", check_pattern_count),
+    Rule("PATTERN_COUNT", "A", "视觉模式文件数 = 当前基线（10）", check_pattern_count),
     Rule("PATTERN_FILENAME", "A", "视觉模式文件名 NN-id.md", check_pattern_filename),
-    Rule("PATTERN_SEQUENCE", "A", "视觉模式序号 01..09", check_pattern_sequence),
+    Rule("PATTERN_SEQUENCE", "A", "视觉模式序号 01..10", check_pattern_sequence),
     Rule("PATTERN_ID", "A", "视觉模式 frontmatter id 与文件名一致", check_pattern_id),
     Rule("PATTERN_METADATA", "A", "视觉模式 frontmatter 字段完整", check_pattern_metadata),
     Rule("PATTERN_ENUM", "A", "视觉模式 layout/formality/density 取值在白名单内", check_pattern_enum),

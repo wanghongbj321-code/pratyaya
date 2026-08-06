@@ -1,17 +1,25 @@
-# MVL Workshop Facilitator
+# Pratyaya Canvas Expert
 
 > 品牌：pratyaya
+> 版本：2.0.0
 
-MVL（Minimum Verifiable Loop，最小可验证自治闭环）工作坊引导专家包。3 天工作坊引导 + 转写提炼 + 模块化智能体画布（Canvas）生成。
+多画布工作坊平台——支持 **MVL**（Minimum Verifiable Loop，最小可验证自治闭环）与**黄金圈**（Golden Circle）两种画布类型。对话式引导 + 转写提炼 + 质量门禁 + 模块化智能体画布（Canvas）生成。
 
 详细专家定位、标签、快速指令以 `.codebuddy-plugin/plugin.json` 为权威来源。
+
+## 支持的画布类型
+
+| 画布 | 结构 | 流程 |
+|---|---|---|
+| MVL | M1-M6 六模块 | 转写 → Key Points → 确认包 → Gate → 渲染 |
+| 黄金圈 | WHY/HOW/WHAT 三层 | 同上四阶段管线 |
 
 ## 核心架构
 
 ```mermaid
 flowchart LR
-    A["Key Points<br/>Mx-keypoints.md"]
-    B["提炼<br/>Mx-v{N}.md"]
+    A["Key Points<br/>Mx-keypoints.md / GC-keypoints.md"]
+    B["提炼<br/>Mx-v{N}.md / GC-v{N}.md"]
     C["Gate<br/>LLM 评估"]
     D["渲染<br/>HTML Canvas"]
     A -->|用户决策| B
@@ -27,7 +35,7 @@ flowchart LR
 draft → gaps_open ↔ review_ready → confirmed → rendered
 ```
 
-5 态转换：草稿在 `gaps_open` 与 `review_ready` 之间反复直到全部缺口解决，用户决策（`gate_pass` / `override`）后升至 `confirmed`，最后渲染为 `rendered`（详见 `agents/pratyaya.md` 的状态机章节）。`confirmation_mode` 是属性（`gate_pass` / `override` / `null`），不是状态；`rendered` 模块若 `confirmation_mode=override` 仍参与跨模块 caveat 检查。
+5 态转换（MVL 模块级 / GC 画布级）：草稿在 `gaps_open` 与 `review_ready` 之间反复直到全部缺口解决，用户决策（`gate_pass` / `override`）后升至 `confirmed`，最后渲染为 `rendered`。`confirmation_mode` 是属性（`gate_pass` / `override` / `null`），不是状态；`rendered` 模块若 `confirmation_mode=override` 仍参与跨模块 caveat 检查（仅 MVL）。
 
 ## 项目结构
 
@@ -35,12 +43,16 @@ draft → gaps_open ↔ review_ready → confirmed → rendered
 pratyaya/
 ├── .codebuddy-plugin/   # 专家包元数据
 ├── agents/              # 主 Agent（pratyaya.md）
-├── skills/              # 三个 Skill：mvl-distill / module-conclusion-gate / canvas-render
-│   └── canvas-render/
-│       └── visual-patterns/ # 9 个 Markdown Canvas 视觉模式
-├── schemas/             # 非强制参考 Schema
-├── examples/modules/    # Mx-keypoints / Mx-v{N} 模板
-├── scripts/             # Canvas HTML 确定性静态审计
+├── skills/              # 五个 Skill
+│   ├── mvl-distill/     # MVL 提炼
+│   ├── gc-distill/      # 黄金圈提炼
+│   ├── module-conclusion-gate/  # MVL 门禁
+│   ├── gc-gate/         # 黄金圈门禁
+│   └── canvas-render/   # 统一渲染（画布类型感知）
+│       └── visual-patterns/ # 10 个视觉模式（所有画布复用）
+├── schemas/             # 非强制参考 Schema（v2.0 支持 GC）
+├── examples/modules/    # Key Points / 确认包模板
+├── scripts/             # Canvas HTML 确定性静态审计（支持 --type gc）
 ├── docs/                # 用户文档
 ├── README.md            # 本文件（门面）
 ├── DEVELOPMENT.md       # 维护者文档
@@ -50,13 +62,9 @@ pratyaya/
 ## 文档导航
 
 - [docs/installation.md](./docs/installation.md) — 部署到 WorkBuddy 的完整步骤
-- [docs/user-guide.md](./docs/user-guide.md) — 3 天工作坊使用流程 + 指令速查
+- [docs/user-guide.md](./docs/user-guide.md) — 工作坊使用流程（MVL + 黄金圈）+ 指令速查
 - [DEVELOPMENT.md](./DEVELOPMENT.md) — 维护者与 AI 助教命令清单
-- [DESIGN.md](./DESIGN.md) — 设计文档（架构、不变量、状态机）
-
-## 专家版本
-
-以 `.codebuddy-plugin/plugin.json` `version` 字段为权威。详细变更见 [CHANGELOG.md](./CHANGELOG.md)。
+- [DESIGN.md](./DESIGN.md) — 设计文档（架构、不变量、状态机、黄金圈）
 
 ## 致谢
 
