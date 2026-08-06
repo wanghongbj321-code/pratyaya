@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HMW 问题重构画布 — 干部数据研判</title>
+<style>
+  :root{
+    --page-bg:#f5f5f5; --canvas-bg:#ffffff; --section-bg:#f7f7f7;
+    --accent:#1a1a1a; --accent-deep:#2d2d2d; --accent-soft:#efefef;
+    --ink:#1a1a1a; --muted:#808080; --line:#d4d4d4; --canvas-line:#c8c8c8; --control-line:#d4d4d4;
+    --section-line:#1a1a1a; --section-title-bg:#f0f0f0;
+    --success-soft:#f0f0f0; --success-ink:#2d2d2d; --success-line:#b8b8b8;
+    --risk-soft:#f7f7f7; --risk-ink:#6b6b6b;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{background:var(--page-bg); color:var(--ink); font-family:Inter,"Microsoft YaHei",Arial,sans-serif; font-size:14px; line-height:1.6;}
+  .page{max-width:1280px; margin:auto; padding:28px 18px 45px;}
+  /* Hero */
+  .hero{display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-end; gap:12px; margin-bottom:18px; border-left:4px solid var(--accent); padding-left:16px;}
+  .hero .eyebrow{font-size:11px; font-weight:800; letter-spacing:.18em; color:var(--muted); text-transform:uppercase;}
+  .hero h1{font-size:28px; font-weight:700; line-height:1.3; margin-top:4px;}
+  .hero .sub{color:var(--muted); margin-top:6px; font-size:13px;}
+  .status-pill{display:inline-flex; align-items:center; gap:6px; background:var(--success-soft); color:var(--success-ink); border:1px solid var(--success-line); border-radius:999px; padding:6px 14px; font-weight:700; font-size:12px; white-space:nowrap;}
+  /* Canvas */
+  .canvas{background:var(--canvas-bg); border:1px solid var(--canvas-line); padding:24px;}
+  .titlebar{display:flex; align-items:center; gap:12px; border-bottom:2.5px solid var(--accent); padding-bottom:14px; margin-bottom:16px;}
+  .titlebar h2{font-size:22px; font-weight:700; line-height:1.3; flex:1;}
+  .titlebar .confirm-tag{border:1px solid var(--line); padding:4px 12px; border-radius:999px; font-size:11px; font-weight:700; letter-spacing:.1em; white-space:nowrap; color:var(--muted);}
+  .headline{border-left:3px solid var(--accent); padding:10px 15px; margin-bottom:18px; font-size:15px; font-weight:700; background:var(--section-bg);}
+  /* Statement */
+  .statement{border:1.5px solid var(--accent); background:#fff; padding:18px 20px; margin-bottom:18px;}
+  .statement .tag{font-size:10px; font-weight:700; letter-spacing:.18em; color:var(--muted); text-transform:uppercase; margin-bottom:10px;}
+  .sentence{font-size:17px; line-height:2.1; font-weight:700;}
+  .sentence .field{display:block; font-size:14px; font-weight:400; color:var(--ink); margin:2px 0 4px; padding-left:14px; border-left:2px solid var(--line);}
+  .sentence .field b{display:inline-block; min-width:120px; color:var(--muted); font-weight:700; font-size:12px;}
+  /* Quality grid */
+  .grid-quality{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:18px;}
+  .qcard{border:1px solid var(--line); background:var(--section-bg); padding:13px 15px;}
+  .qcard h4{font-size:12px; font-weight:700; color:var(--muted); letter-spacing:.05em; margin-bottom:7px;}
+  .qcard .verdict{font-size:14px; font-weight:700;}
+  .qcard .verdict.pass{color:var(--success-ink);}
+  .qcard .verdict.fail{color:var(--risk-ink);}
+  /* Idea grid 8 cells */
+  .section-head{display:flex; align-items:center; gap:9px; border-bottom:2px solid var(--accent); padding:8px 2px 8px; margin-bottom:12px;}
+  .section-head h3{font-size:16px; font-weight:600;}
+  .section-head .hint{font-size:11px; color:var(--muted); font-weight:400; margin-left:auto;}
+  .grid-ideas{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:18px;}
+  .idea{border:1px solid var(--line); min-height:110px; padding:11px 13px; display:flex; flex-direction:column; background:#fff;}
+  .idea .no{font-size:10px; font-weight:700; color:var(--muted); letter-spacing:.1em; margin-bottom:6px; display:inline-grid; place-items:center; width:20px; height:20px; border:1.5px solid var(--accent); border-radius:50%; font-size:10px;}
+  .idea .content{font-size:13px; line-height:1.5; flex:1;}
+  .idea .meta{font-size:10.5px; color:var(--muted); margin-top:6px;}
+  .idea.empty .content{color:var(--muted); font-weight:400;}
+  /* Coherence */
+  table{width:100%; border-collapse:collapse; font-size:13px;}
+  thead th{background:var(--section-bg); color:var(--accent); font-weight:700; text-align:left; padding:9px 7px; border:1px solid var(--line);}
+  tbody td{padding:9px 7px; border:1px solid var(--line); vertical-align:top;}
+  tbody td:first-child{font-weight:700;}
+  .table-scroll{overflow-x:auto;}
+  table{min-width:640px;}
+  .block{margin-bottom:18px;}
+  .block > h3{font-size:16px; font-weight:600; border-bottom:2px solid var(--accent); padding-bottom:8px; margin-bottom:12px;}
+  .muted{color:var(--muted);}
+  .tag{display:inline-block; background:var(--accent-soft); color:var(--accent-deep); border:1px solid var(--line); border-radius:4px; padding:1px 8px; font-size:11px; font-weight:700; margin-right:5px;}
+  .tag-risk{background:var(--risk-soft); color:var(--risk-ink);}
+  .tag-ok{background:var(--success-soft); color:var(--success-ink);}
+  /* quality panel */
+  aside#quality-panel{background:var(--section-bg); border:1.5px solid var(--line); margin-top:12px; padding:14px 18px;}
+  aside#quality-panel > h3{font-size:16px; font-weight:600; border-bottom:1px solid var(--line); padding-bottom:8px; margin-bottom:10px;}
+  .qp-body{display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:10px;}
+  .qp-card{border:1px solid var(--line); padding:10px 12px; background:#fff;}
+  .qp-card h4{font-size:11px; font-weight:700; color:var(--muted); letter-spacing:.05em; margin-bottom:5px;}
+  .qp-card .val{font-size:14px; font-weight:700;}
+  .qp-card .val.ok{color:var(--success-ink);} .qp-card .val.warn{color:var(--risk-ink);}
+  #quality-caveat{border:1.5px solid var(--accent); background:#fff; margin:12px 0 0; padding:12px 14px;}
+  /* local notes */
+  #local-notes{border:1.5px dashed var(--control-line); margin-top:14px; padding:13px 15px; min-height:70px; outline:none; background:#fff;}
+  #local-notes:focus{border-color:var(--accent);}
+  #local-notes::before{content:"本地批注（仅保存在本机，不修改确认事实）"; display:block; font-size:11px; font-weight:700; letter-spacing:.1em; color:var(--muted); margin-bottom:6px;}
+  /* footer */
+  .footer{border:1.5px solid var(--accent); padding:12px 16px; margin-top:14px; display:flex; flex-wrap:wrap; justify-content:space-between; gap:8px; align-items:center; font-size:12px; color:var(--muted);}
+  .footer b{font-size:14px; font-weight:700; color:var(--accent);}
+  /* responsive */
+  @media (max-width:1000px){ .grid-quality{grid-template-columns:repeat(2,1fr);} .grid-ideas{grid-template-columns:repeat(2,1fr);} }
+  @media (max-width:700px){
+    .page{padding:16px 9px;}
+    .grid-quality,.grid-ideas{grid-template-columns:1fr;}
+    .titlebar{flex-wrap:wrap;}
+    .table-scroll{overflow-x:auto;} table{min-width:640px;}
+    .footer{flex-direction:column;}
+  }
+  @media print{
+    body{background:#fff;}
+    .page{padding:0;}
+    .hero,.notice,.titlebar .confirm-tag,#local-notes::before{display:none;}
+    .canvas{border:none; padding:0;}
+    .qcard,.idea,thead th{break-inside:avoid;}
+  }
+</style>
+</head>
+<body data-mode="formal" data-page-type="hmw" data-version="1">
+<div class="page">
+
+  <header id="canvas-header" class="hero">
+    <div>
+      <div class="eyebrow">Pratyaya Canvas · HMW 问题重构</div>
+      <h1>HMW 我们如何能 How Might We</h1>
+      <div class="sub">干部数据研判 · 示例项目（验证用确认包 HMW-v1）</div>
+    </div>
+    <span class="status-pill">✓ 已确认 v1</span>
+  </header>
+
+  <div class="canvas">
+    <div class="titlebar">
+      <h2>How Might We 问题重构画布</h2>
+      <span class="confirm-tag">gate_pass · 已确认</span>
+    </div>
+
+    <div id="canvas-headline" class="headline">一句话结论：让干部在早会前 30 分钟内定位异常并给出分析方向，而不是花 2 小时找答案。</div>
+
+    <!-- HMW 陈述 -->
+    <section id="hmw-statement" class="statement">
+      <div class="tag">核心提问 · HMW Statement</div>
+      <div class="sentence">
+        我们如何能让
+        <span id="hmw-situation" class="field"><b>situation · 问题情境</b>干部在早会前 30 分钟拿到前夜经营报表，卡在"哪个指标异常、为什么异常"，需 2 小时人工核对才能定位</span>
+        <span id="hmw-question" class="field"><b>question · 我们可以如何</b>我们如何能让干部在早会前快速定位异常指标并理解原因？</span>
+        <span id="hmw-for" class="field"><b>for · 为 / 给</b>区域干部层（早会决策者）</span>
+        <span id="hmw-sothat" class="field"><b>so_that · 以便</b>早会前完成异常归因，会议直接进入对策讨论（目标：定位时间从 2 小时降至 30 分钟内）</span>
+      </div>
+    </section>
+
+    <!-- 质量鉴别 -->
+    <section id="hmw-quality" class="block">
+      <div class="section-head"><h3>质量鉴别</h3><span class="hint">Quality Check · 4 维度全部通过</span></div>
+      <div class="grid-quality">
+        <div class="qcard"><h4>预设解法 preset_solution</h4><div id="hmw-quality-preset" class="verdict pass">通过</div></div>
+        <div class="qcard"><h4>含糊 vague</h4><div id="hmw-quality-vague" class="verdict pass">通过</div></div>
+        <div class="qcard"><h4>用户时刻 user_moment</h4><div id="hmw-quality-moment" class="verdict pass">通过</div></div>
+        <div class="qcard"><h4>张力 tension</h4><div id="hmw-quality-tension" class="verdict pass">通过</div></div>
+      </div>
+    </section>
+
+    <!-- 想法种子 -->
+    <section id="hmw-ideas" class="block">
+      <div class="section-head"><h3>想法种子</h3><span class="hint">Idea Seeds · 8 固定格，空格为占位</span></div>
+      <div class="grid-ideas">
+        <div id="hmw-idea-1" class="idea"><span class="no">1</span><div class="content">按异常等级自动排序的经营仪表盘</div><div class="meta">功能 · 候选 · 回应 question</div></div>
+        <div id="hmw-idea-2" class="idea"><span class="no">2</span><div class="content">异常根因模板库（常见 10 类问题的自检清单）</div><div class="meta">流程 · 已采纳 · 回应 question</div></div>
+        <div id="hmw-idea-3" class="idea"><span class="no">3</span><div class="content">一线录入自动汇总到干部侧的分析简报</div><div class="meta">机制 · 候选 · 回应 question</div></div>
+        <div id="hmw-idea-4" class="idea empty"><span class="no">4</span><div class="content">未讨论</div></div>
+        <div id="hmw-idea-5" class="idea empty"><span class="no">5</span><div class="content">未讨论</div></div>
+        <div id="hmw-idea-6" class="idea empty"><span class="no">6</span><div class="content">未讨论</div></div>
+        <div id="hmw-idea-7" class="idea empty"><span class="no">7</span><div class="content">未讨论</div></div>
+        <div id="hmw-idea-8" class="idea empty"><span class="no">8</span><div class="content">未讨论</div></div>
+      </div>
+    </section>
+
+    <!-- 想法 ↔ HMW 对应 -->
+    <section id="hmw-coherence" class="block">
+      <div class="section-head"><h3>想法 ↔ HMW 对应</h3><span class="hint">Coherence Map · 数据源：HMW-v1.md 第 6c 节</span></div>
+      <div id="hmw-coherence-map" class="table-scroll">
+        <table>
+          <thead><tr><th>想法 ID</th><th>回应问句</th><th>对应质量维度</th><th>一致性</th></tr></thead>
+          <tbody>
+            <tr><td>HMW-Idea-1</td><td>question（我们可以如何）</td><td>tension</td><td><span class="tag tag-ok">一致</span></td></tr>
+            <tr><td>HMW-Idea-2</td><td>question（我们可以如何）</td><td>user_moment</td><td><span class="tag tag-ok">一致</span></td></tr>
+            <tr><td>HMW-Idea-3</td><td>question（我们可以如何）</td><td>tension</td><td><span class="tag">部分一致</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- 质量与对齐 -->
+  <aside id="quality-panel">
+    <h3>质量与对齐 Quality &amp; Approval</h3>
+    <div class="qp-body">
+      <div class="qp-card"><h4>版本</h4><div id="quality-version" class="val">v1</div></div>
+      <div class="qp-card"><h4>授权状态</h4><div id="quality-approval" class="val ok">已确认 · gate_pass</div></div>
+      <div class="qp-card"><h4>缺口摘要</h4><div id="quality-gaps" class="val warn">major 1 · minor 1</div></div>
+      <div class="qp-card"><h4>风险摘要</h4><div id="quality-risks" class="val">无高风险</div></div>
+    </div>
+    <div id="quality-caveat" hidden></div>
+  </aside>
+
+  <section id="local-notes" contenteditable="true"></section>
+
+  <div class="footer">
+    <span><b>gate_recommendation</b> pass（6/6）</span>
+    <span>确认人：张三（CEO）· 2026-08-06T22:30:00+08:00</span>
+    <span>数据源：HMW-v1.md · 状态 rendered</span>
+  </div>
+
+  <div class="notice" style="display:none"></div>
+</div>
+
+<script type="application/json" id="canvas-data">
+{
+  "version": "v1",
+  "canvas_type": "hmw",
+  "sections": {
+    "canvas-headline": "必展项：一句话结论",
+    "hmw-situation": "6：situation（问题情境）",
+    "hmw-question": "6：question（我们可以如何）",
+    "hmw-for": "6：for（为/给）",
+    "hmw-sothat": "6：so_that（以便）",
+    "hmw-quality-preset": "6a：preset_solution（预设解法）",
+    "hmw-quality-vague": "6a：vague（含糊）",
+    "hmw-quality-moment": "6a：user_moment（用户时刻）",
+    "hmw-quality-tension": "6a：tension（张力）",
+    "hmw-idea-1": "6b：想法种子 1",
+    "hmw-idea-2": "6b：想法种子 2",
+    "hmw-idea-3": "6b：想法种子 3",
+    "hmw-idea-4": "6b：想法种子 4（占位）",
+    "hmw-idea-5": "6b：想法种子 5（占位）",
+    "hmw-idea-6": "6b：想法种子 6（占位）",
+    "hmw-idea-7": "6b：想法种子 7（占位）",
+    "hmw-idea-8": "6b：想法种子 8（占位）",
+    "hmw-coherence-map": "6c：想法 ↔ HMW 对应"
+  },
+  "auth": {
+    "gate_recommendation": "pass",
+    "render_authorized": true,
+    "confirmation_mode": "gate_pass",
+    "override_audit": null
+  }
+}
+</script>
+</body>
+</html>
