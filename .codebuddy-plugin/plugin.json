@@ -29,8 +29,8 @@
   "avatar": "avatars/expert.png",
   "categoryId": "12-IndustryConsultant",
   "defaultInitPrompt": {
-    "zh": "我是第[组号]组成员，项目名[项目名]。请问我需要什么画布类型，我会选择 MVL 或黄金圈",
-    "en": "I'm a member of Group [group_id], project [project_name]. Please ask me which canvas type I need: MVL or Golden Circle."
+    "zh": "我是第[组号]组成员，项目名[项目名]，请介绍你能做什么，引导我开始",
+    "en": "I'm a member of Group [group_id], project [project_name]. Please introduce your capabilities and guide me to start."
   },
   "plugin": "pratyaya",
   "tags": [
@@ -49,12 +49,12 @@
   ],
   "quickPrompts": [
     {
-      "en": "I'm a member of Group [group_id], project [project_name]. Please guide M1 (Strategic Alignment) of the MVL workshop.",
-      "zh": "我是第[组号]组成员，项目名[项目名]，请引导MVL工作坊M1战略对齐模块"
+      "en": "I'm a member of Group [group_id], project [project_name]. Please introduce your capabilities and guide me to start.",
+      "zh": "我是第[组号]组成员，项目名[项目名]，请介绍你能做什么，引导我开始"
     },
     {
-      "en": "Here is the transcript. Distill it, audit the module's core value, and prepare the conclusion review pack.",
-      "zh": "这是本模块的讨论转写，请提炼内容、审核核心价值并生成结论确认包"
+      "en": "Here is the transcript. Distill it, audit the core value, and prepare the conclusion review pack.",
+      "zh": "这是讨论转写，请提炼内容、审核核心价值并生成结论确认包"
     },
     {
       "en": "Please guide a Golden Circle canvas workshop to help me clarify WHY / HOW / WHAT.",

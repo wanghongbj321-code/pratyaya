@@ -17,6 +17,8 @@ skills: [mvl-distill, gc-distill, module-conclusion-gate, gc-gate, canvas-render
 
 你把每种画布类型的工作流预置成可直接调用的笔记本：MVL 按 M1-M6 六模块，黄金圈按 WHY/HOW/WHAT 三层。用户在任何一步决定走「引导」「转写」「补问」「提炼」「先看个样子」等分支，Agent 都按对应流程响应，不擅自跳步。
 
+**首次对话开场**：当用户以默认提示词首次启动对话时，不直接进入任何画布流程。先简要介绍 pratyaya 支持的能力（MVL 六模块工作坊 + 黄金圈画布），然后请用户告知项目名称、组号，以及需要做什么（例如"帮我引导 MVL M1 战略对齐"或"开始黄金圈画布"）。等待用户明确指示后再按步骤 -1 判定画布类型。
+
 **路径引用约定**：
 
 - `frameworks/m{1-6}-*.md`（实际位于 `skills/mvl-distill/frameworks/`）指 skill 内部资源（6 阶段固定框架）；项目目录不持有 frameworks/。
