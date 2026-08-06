@@ -28,6 +28,9 @@ DEFAULT_CONTRACT = (
 GC_CONTRACT = (
     REPO_ROOT / "skills" / "canvas-render" / "references" / "render-contract-gc.md"
 )
+HMW_CONTRACT = (
+    REPO_ROOT / "skills" / "canvas-render" / "references" / "render-contract-hmw.md"
+)
 MODULE_MAIN_IDS = (
     "module-summary",
     "module-outputs",
@@ -43,6 +46,21 @@ GC_ANCHORS = (
     "how-principles", "how-differentiation", "how-methods",
     "what-products", "what-services", "what-evidence",
     "alignment-why-how", "alignment-how-what",
+)
+HMW_MAIN_IDS = (
+    "hmw-statement",
+    "hmw-quality",
+    "hmw-ideas",
+    "hmw-coherence",
+)
+HMW_ANCHORS = (
+    "canvas-headline",
+    "hmw-situation", "hmw-question", "hmw-for", "hmw-sothat",
+    "hmw-quality-preset", "hmw-quality-vague",
+    "hmw-quality-moment", "hmw-quality-tension",
+    "hmw-idea-1", "hmw-idea-2", "hmw-idea-3", "hmw-idea-4",
+    "hmw-idea-5", "hmw-idea-6", "hmw-idea-7", "hmw-idea-8",
+    "hmw-coherence-map",
 )
 SHARED_IDS = (
     "canvas-header",
@@ -258,6 +276,13 @@ def gc_source_identity(path: Path) -> tuple[str | None, str | None]:
     return ("GC", match.group(1)) if match else (None, None)
 
 
+def hmw_source_identity(path: Path) -> tuple[str | None, str | None]:
+    """从 HMW-vN 确认包首行标题中提取画布类型与版本号。"""
+    first_lines = "\n".join(path.read_text(encoding="utf-8").splitlines()[:12])
+    match = re.search(r"^#\s+HMW 确认包\s+(v\d+)\s*$", first_lines, re.MULTILINE)
+    return ("HMW", match.group(1)) if match else (None, None)
+
+
 def audit(
     html_path: Path,
     contract_path: Path = DEFAULT_CONTRACT,
@@ -267,12 +292,19 @@ def audit(
 ) -> list[Finding]:
     """对照 render-contract / state.json / 确认包，审计单个 Canvas HTML 文件。"""
     is_gc = canvas_type == "gc"
+    is_hmw = canvas_type == "hmw"
     findings: list[Finding] = []
     orders: dict[str, list[str]] = {}
     gc_anchors: list[str] = []
+    hmw_anchors: list[str] = []
     if is_gc:
         try:
             gc_anchors = load_gc_anchor_orders(contract_path)
+        except (OSError, ValueError) as exc:
+            return [Finding("CONTRACT", str(exc))]
+    elif is_hmw:
+        try:
+            hmw_anchors = load_gc_anchor_orders(contract_path)
         except (OSError, ValueError) as exc:
             return [Finding("CONTRACT", str(exc))]
     else:
@@ -293,16 +325,20 @@ def audit(
     page_type = html.body_attrs.get("data-page-type")
     module = html.body_attrs.get("data-module")
     body_version = normalize_version(html.body_attrs.get("data-version"))
-    valid_types = {"module-detail", "global"} if not is_gc else {"golden-circle"}
+    valid_types = (
+        {"module-detail", "global"}
+        if not is_gc and not is_hmw
+        else ({"golden-circle"} if is_gc else {"hmw"})
+    )
     if page_type not in valid_types:
         findings.append(Finding("PAGE_TYPE", f"unsupported data-page-type: {page_type!r}"))
     if not body_version:
         findings.append(Finding("VERSION", "body data-version must be an integer or vN"))
 
     required: list[str] = list(SHARED_IDS)
-    if is_gc:
-        required.extend(GC_MAIN_IDS)
-        # GC 契约无 alignment-section（MVL 专属），审计不要求
+    if is_gc or is_hmw:
+        required.extend(GC_MAIN_IDS if is_gc else HMW_MAIN_IDS)
+        # GC / HMW 契约无 alignment-section（MVL 专属），审计不要求
         if "alignment-section" in required:
             required.remove("alignment-section")
     elif page_type == "module-detail":
@@ -320,6 +356,13 @@ def audit(
         if anchor_missing:
             findings.append(
                 Finding("MISSING_ANCHOR", f"GC missing anchors: {', '.join(anchor_missing)}")
+            )
+    elif is_hmw:
+        expected_anchors = list(hmw_anchors)
+        anchor_missing = [anchor for anchor in expected_anchors if counts[anchor] == 0]
+        if anchor_missing:
+            findings.append(
+                Finding("MISSING_ANCHOR", f"HMW missing anchors: {', '.join(anchor_missing)}")
             )
     elif page_type == "module-detail":
         if module not in orders:
@@ -366,6 +409,10 @@ def audit(
             findings.append(
                 Finding("CANVAS_TYPE", f"canvas-data.canvas_type must be 'golden-circle', got {canvas_data.get('canvas_type')!r}")
             )
+        if is_hmw and canvas_data.get("canvas_type") != "hmw":
+            findings.append(
+                Finding("CANVAS_TYPE", f"canvas-data.canvas_type must be 'hmw', got {canvas_data.get('canvas_type')!r}")
+            )
         sections = canvas_data.get("sections")
         if expected_anchors and isinstance(sections, dict):
             section_missing = [anchor for anchor in expected_anchors if anchor not in sections]
@@ -390,8 +437,13 @@ def audit(
     if "@media print" not in lowered:
         findings.append(Finding("PRINT", "missing @media print rule"))
 
-    # Caveat checks (for both MVL module-detail and GC)
-    caveat_page_types = {"module-detail"} if not is_gc else {"golden-circle"}
+    # Caveat checks (for MVL module-detail / GC / HMW single-canvas pages)
+    if is_gc:
+        caveat_page_types = {"golden-circle"}
+    elif is_hmw:
+        caveat_page_types = {"hmw"}
+    else:
+        caveat_page_types = {"module-detail"}
     if canvas_data is not None and page_type in caveat_page_types:
         auth = canvas_data.get("auth")
         if not isinstance(auth, dict):
@@ -418,6 +470,8 @@ def audit(
         try:
             if is_gc:
                 source_module, source_version = gc_source_identity(source_path)
+            elif is_hmw:
+                source_module, source_version = hmw_source_identity(source_path)
             else:
                 source_module, source_version = source_identity(source_path)
         except OSError as exc:
@@ -426,7 +480,7 @@ def audit(
             if source_module is None or source_version is None:
                 findings.append(Finding("SOURCE", "cannot read module/version from confirmation package"))
             else:
-                if not is_gc and module and source_module != module:
+                if not is_gc and not is_hmw and module and source_module != module:
                     findings.append(
                         Finding("SOURCE_MODULE", f"HTML={module!r}, source={source_module!r}")
                     )
@@ -442,6 +496,10 @@ def audit(
                 state_module = state.get("golden_circle")
                 if not isinstance(state_module, dict):
                     raise ValueError("state.json has no golden_circle record")
+            elif is_hmw:
+                state_module = state.get("hmw")
+                if not isinstance(state_module, dict):
+                    raise ValueError("state.json has no hmw record")
             else:
                 modules = state.get("modules", {})
                 state_module = (
@@ -481,8 +539,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     _ = parser.add_argument("--state", type=Path, help="project state.json for auth/version checks")
     _ = parser.add_argument("--source", type=Path, help="confirmation package (Mx-vN.md or GC-vN.md)")
     _ = parser.add_argument(
-        "--type", dest="canvas_type", choices=("mvl", "gc"), default="mvl",
-        help="canvas type: mvl (default) or gc (golden circle)",
+        "--type", dest="canvas_type", choices=("mvl", "gc", "hmw"), default="mvl",
+        help="canvas type: mvl (default), gc (golden circle) or hmw",
     )
     return parser.parse_args(argv)
 
@@ -496,6 +554,8 @@ def main(argv: list[str] | None = None) -> int:
         contract_arg = cast(Path, args.contract)
     elif canvas_type == "gc":
         contract_arg = GC_CONTRACT
+    elif canvas_type == "hmw":
+        contract_arg = HMW_CONTRACT
     else:
         contract_arg = DEFAULT_CONTRACT
     state_arg = cast("Path | None", args.state)
