@@ -29,8 +29,8 @@
   "avatar": "avatars/expert.png",
   "categoryId": "12-IndustryConsultant",
   "defaultInitPrompt": {
-    "zh": "我是第[组号]组成员，项目名[项目名]，请介绍你能做什么，引导我开始",
-    "en": "I'm a member of Group [group_id], project [project_name]. Please introduce your capabilities and guide me to start."
+    "zh": "请介绍一下你能做什么，引导我开始",
+    "en": "Please introduce your capabilities and guide me to start."
   },
   "plugin": "pratyaya",
   "tags": [
@@ -49,8 +49,8 @@
   ],
   "quickPrompts": [
     {
-      "en": "I'm a member of Group [group_id], project [project_name]. Please introduce your capabilities and guide me to start.",
-      "zh": "我是第[组号]组成员，项目名[项目名]，请介绍你能做什么，引导我开始"
+      "en": "Please introduce your capabilities and guide me to start.",
+      "zh": "请介绍一下你能做什么，引导我开始"
     },
     {
       "en": "Here is the transcript. Distill it, audit the core value, and prepare the conclusion review pack.",
