@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pratyaya MVL Expert — 提示词设计与使用模板</title>
+<style>
+  :root {
+    --bg: #f8f9fb;
+    --surface: #ffffff;
+    --border: #e2e6ec;
+    --border-strong: #c9d1da;
+    --text: #1a2332;
+    --text-soft: #4a5568;
+    --text-muted: #8896a8;
+    --accent: #2563eb;
+    --accent-soft: #eff4ff;
+    --accent-border: #bfdbfe;
+    --green: #059669;
+    --green-soft: #ecfdf5;
+    --green-border: #a7f3d0;
+    --amber: #d97706;
+    --amber-soft: #fffbeb;
+    --amber-border: #fde68a;
+    --red: #dc2626;
+    --red-soft: #fef2f2;
+    --red-border: #fecaca;
+    --purple: #7c3aed;
+    --purple-soft: #f5f3ff;
+    --purple-border: #ddd6fe;
+    --code-bg: #f1f5f9;
+    --code-text: #334155;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-lg: 0 10px 30px rgba(0,0,0,0.08), 0 3px 8px rgba(0,0,0,0.04);
+    --radius: 10px;
+    --mono: 'SF Mono', 'Cascadia Code', 'Fira Code', Consolas, monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+  .container { max-width: 980px; margin: 0 auto; padding: 48px 32px 80px; }
+
+  /* Header */
+  .doc-header {
+    text-align: center;
+    margin-bottom: 48px;
+    padding-bottom: 32px;
+    border-bottom: 2px solid var(--border);
+  }
+  .doc-header h1 {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+  }
+  .doc-header .subtitle {
+    font-size: 15px;
+    color: var(--text-soft);
+  }
+  .doc-header .meta {
+    margin-top: 16px;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    background: var(--accent-soft);
+    color: var(--accent);
+    border: 1px solid var(--accent-border);
+  }
+  .badge.green { background: var(--green-soft); color: var(--green); border-color: var(--green-border); }
+  .badge.purple { background: var(--purple-soft); color: var(--purple); border-color: var(--purple-border); }
+
+  /* Section */
+  .section { margin-bottom: 56px; }
+  .section-title {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .section-desc {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-bottom: 24px;
+    margin-left: 42px;
+  }
+
+  /* Cards */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+  .card-header {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .card-header .label {
+    font-size: 14px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .tag.scene { background: var(--accent-soft); color: var(--accent); }
+  .tag.round { background: var(--purple-soft); color: var(--purple); }
+  .tag.tip { background: var(--amber-soft); color: var(--amber); }
+  .tag.danger { background: var(--red-soft); color: var(--red); }
+  .card-body { padding: 16px 20px; }
+
+  /* Prompt box */
+  .prompt-box {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
+    padding: 14px 16px;
+    margin: 10px 0;
+    font-family: var(--mono);
+    font-size: 13.5px;
+    color: var(--code-text);
+    line-height: 1.65;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .prompt-box .placeholder {
+    background: #fff3cd;
+    padding: 1px 6px;
+    border-radius: 3px;
+    color: #856404;
+    font-weight: 600;
+  }
+  .prompt-box .arrow { color: var(--text-muted); }
+  .prompt-box .comment { color: var(--text-muted); font-style: italic; }
+
+  /* Table */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+    margin: 12px 0;
+  }
+  th {
+    text-align: left;
+    padding: 10px 14px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid var(--accent-border);
+  }
+  td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tr:last-child td { border-bottom: none; }
+  td .mono { font-family: var(--mono); font-size: 12.5px; color: var(--accent); }
+  td .step-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--purple-soft);
+    color: var(--purple);
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  /* Flow diagram */
+  .flow {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    margin: 20px 0;
+    flex-wrap: wrap;
+  }
+  .flow-step {
+    flex: 1;
+    min-width: 120px;
+    text-align: center;
+    position: relative;
+    padding: 14px 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin: 0 4px;
+  }
+  .flow-step .step-icon {
+    width: 36px;
+    height: 36px;
+    margin: 0 auto 8px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+  }
+  .flow-step .step-label { font-size: 13px; font-weight: 600; }
+  .flow-step .step-hint { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .flow-arrow {
+    display: flex;
+    align-items: center;
+    color: var(--text-muted);
+    font-size: 18px;
+    padding: 0 2px;
+  }
+
+  /* Callout */
+  .callout {
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 16px 0;
+    font-size: 13.5px;
+    line-height: 1.7;
+  }
+  .callout.info {
+    background: var(--accent-soft);
+    border: 1px solid var(--accent-border);
+    border-left: 3px solid var(--accent);
+  }
+  .callout.warn {
+    background: var(--amber-soft);
+    border: 1px solid var(--amber-border);
+    border-left: 3px solid var(--amber);
+  }
+  .callout.danger {
+    background: var(--red-soft);
+    border: 1px solid var(--red-border);
+    border-left: 3px solid var(--red);
+  }
+  .callout.success {
+    background: var(--green-soft);
+    border: 1px solid var(--green-border);
+    border-left: 3px solid var(--green);
+  }
+  .callout strong { font-weight: 700; }
+
+  /* Template page */
+  .template-page {
+    background: var(--surface);
+    border: 2px solid var(--accent-border);
+    border-radius: 12px;
+    padding: 32px;
+    margin: 16px 0;
+    box-shadow: var(--shadow-lg);
+  }
+  .template-page h3 {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .template-section {
+    margin-bottom: 24px;
+  }
+  .template-section h4 {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .template-section .desc {
+    font-size: 13px;
+    color: var(--text-soft);
+    margin-bottom: 8px;
+  }
+
+  /* Module badges */
+  .module-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin: 16px 0;
+  }
+  .module-card {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+  }
+  .module-card .m-id {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .module-card .m-name {
+    font-size: 13px;
+    font-weight: 600;
+    margin-top: 4px;
+  }
+  .module-card .m-canvas {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .container { padding: 24px 16px; }
+    .module-grid { grid-template-columns: 1fr; }
+    .flow { flex-direction: column; }
+    .flow-arrow { transform: rotate(90deg); justify-content: center; padding: 4px 0; }
+  }
+
+  /* Print */
+  @media print {
+    body { background: #fff; }
+    .container { max-width: 100%; padding: 0; }
+    .card, .template-page { box-shadow: none; page-break-inside: avoid; }
+    .section { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- ========== HEADER ========== -->
+<div class="doc-header">
+  <h1>Pratyaya MVL Expert — 提示词设计与使用模板</h1>
+  <div class="subtitle">MVL（Minimum Verifiable Loop）工作坊引导专家 · 对话提示词完整指南</div>
+  <div class="meta">
+    <span class="badge">版本 v1.0.2</span>
+    <span class="badge green">3 个 Skill</span>
+    <span class="badge purple">6 模块 · 9 视觉模式</span>
+  </div>
+</div>
+
+<!-- ========== SECTION 1: First-Round Prompts ========== -->
+<div class="section">
+  <div class="section-title">
+    <span class="section-num">1</span>
+    第一轮对话提示语
+  </div>
+  <div class="section-desc">根据不同场景选择对应的开场提示词，复制后替换方括号内容即可使用</div>
+
+  <!-- Scenario A -->
+  <div class="card">
+    <div class="card-header">
+      <div class="label">场景 A：全新工作坊启动</div>
+      <span class="tag scene">最常用</span>
+    </div>
+    <div class="card-body">
+      <div class="prompt-box">我是第<span class="placeholder">[组号]</span>组成员，项目名<span class="placeholder">[项目名]</span>，请引导 MVL 工作坊 M1 战略对齐模块</div>
+      <div class="callout info">
+        <strong>适用时机</strong>：第一次打开专家，还没有任何项目数据。<br>
+        <strong>专家响应</strong>：创建 <code>mvl-workshop/{项目名}/</code> 目录，初始化 <code>state.json</code>（M1-M6 全部 draft），加载 M1 框架，输出引导问题。<br>
+        <strong>替换示例</strong>：组号填 <code>3</code>，项目名填 <code>智慧客服MVL</code>。
+      </div>
+    </div>
+  </div>
+
+  <!-- Scenario B -->
+  <div class="card">
+    <div class="card-header">
+      <div class="label">场景 B：继续下一个模块</div>
+      <span class="tag scene">顺序推进</span>
+    </div>
+    <div class="card-body">
+      <div class="prompt-box">M<span class="placeholder">[1-5]</span>已完成，请切换到 M<span class="placeholder">[2-6]</span>，先给我引导问题</div>
+      <div class="callout info">
+        <strong>适用时机</strong>：上一个模块已 <code>rendered</code>，推进到下一模块。<br>
+        <strong>专家响应</strong>：加载下一模块框架，输出引导问题，并带上上一模块影响本模块的已确认结论。<br>
+        <strong>示例</strong>：<code>M1已完成，请切换到M2，先给我引导问题</code>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scenario C -->
+  <div class="card">
+    <div class="card-header">
+      <div class="label">场景 C：中途中断后恢复</div>
+      <span class="tag scene">断点续传</span>
+    </div>
+    <div class="card-body">
+      <div class="prompt-box">检查状态</div>
+      <div class="callout info" style="margin-bottom:12px;">
+        <strong>适用时机</strong>：隔了一段时间回来，不确定进度。<br>
+        <strong>专家响应</strong>：报告六模块版本、状态、Gate 建议、确认模式、关键缺口和待确认人。
+      </div>
+      <div class="prompt-box">继续 M<span class="placeholder">[1-6]</span> 的<span class="placeholder">[提炼 / 补问 / 确认]</span></div>
+      <div class="callout info">
+        <strong>示例</strong>：<code>继续 M3 的提炼</code> — 专家会读取 state.json，从上次中断处继续。
+      </div>
+    </div>
+  </div>
+
+  <!-- Scenario D -->
+  <div class="card">
+    <div class="card-header">
+      <div class="label">场景 D：向他人演示专家</div>
+      <span class="tag scene">Demo</span>
+    </div>
+    <div class="card-body">
+      <div class="prompt-box">请显示你的 3 个快速指令</div>
+      <div class="callout info" style="margin-bottom:12px;">
+        <strong>适用时机</strong>：向团队或客户展示专家能力。<br>
+        <strong>专家响应</strong>：展示 plugin.json 中的 3 个 quickPrompts。
+      </div>
+      <div class="prompt-box">我是第 1 组成员，项目名「Demo项目」，请引导 MVL 工作坊 M1 战略对齐模块</div>
+      <div class="callout info">
+        <strong>演示建议</strong>：用这个指令创建 Demo 项目，走一遍 M1 引导→提交转写→Key Points→提炼→Gate→确认→渲染全流程，让对方直观看到四阶段管线。
+      </div>
+    </div>
+  </div>
+
+  <!-- Scenario E -->
+  <div class="card">
+    <div class="card-header">
+      <div class="label">场景 E：已有转写稿，直接提炼</div>
+      <span class="tag scene">高效模式</span>
+    </div>
+    <div class="card-body">
+      <div class="prompt-box">这是 M<span class="placeholder">[1-6]</span> 的讨论转写，请提炼内容、审核核心价值并生成结论确认包
+
+&lt;粘贴转写文本&gt;</div>
+      <div class="callout info">
+        <strong>适用时机</strong>：会议已结束，有完整的逐字稿，想一步到位。<br>
+        <strong>专家响应</strong>：存档转写 → Key Points 抽取 → 等你回复"提炼" → 生成确认包 → 自动跑 Gate。<br>
+        <strong>注意</strong>：专家不会跳过 Key Points 直接提炼，会先给你 30 秒概览再等你决策。
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SECTION 2: Multi-Round Dialogue ========== -->
+<div class="section">
+  <div class="section-title">
+    <span class="section-num">2</span>
+    多轮对话提示词流程
+  </div>
+  <div class="section-desc">以单个模块（M1 为例）的完整流程为主线，M2-M6 重复同样模式</div>
+
+  <!-- Pipeline overview -->
+  <div class="callout info">
+    <strong>四阶段管线</strong>：Key Points 概览 → 用户决策分支 → Gate 评估 + 用户确认 → Canvas 渲染<br>
+    每一步都是<strong>用户决策触发</strong>，专家不自动串联。
+  </div>
+
+  <!-- Flow diagram -->
+  <div class="flow">
+    <div class="flow-step">
+      <div class="step-icon" style="background:var(--accent);">0</div>
+      <div class="step-label">初始化</div>
+      <div class="step-hint">项目名+组号</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">
+      <div class="step-icon" style="background:var(--accent);">1</div>
+      <div class="step-label">引导问题</div>
+      <div class="step-hint">加载框架</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">
+      <div class="step-icon" style="background:var(--purple);">2</div>
+      <div class="step-label">提交转写</div>
+      <div class="step-hint">Key Points</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">
+      <div class="step-icon" style="background:var(--amber);">3</div>
+      <div class="step-label">分支决策</div>
+      <div class="step-hint">提炼/补问/预览</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">
+      <div class="step-icon" style="background:var(--green);">4</div>
+      <div class="step-label">Gate+确认</div>
+      <div class="step-hint">vN 确认</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">
+      <div class="step-icon" style="background:var(--green);">5</div>
+      <div class="step-label">渲染画布</div>
+      <div class="step-hint">选模式→HTML</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">
+      <div class="step-icon" style="background:var(--accent);">6</div>
+      <div class="step-label">下一模块</div>
+      <div class="step-hint">预告+衔接</div>
+    </div>
+  </div>
+
+  <!-- Detailed rounds -->
+  <table>
+    <thead>
+      <tr>
+        <th style="width:60px;">轮次</th>
+        <th style="width:180px;">阶段</th>
+        <th>用户提示词</th>
+        <th style="width:200px;">专家响应</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="step-num">1</span></td>
+        <td><strong>Phase 0 初始化</strong></td>
+        <td>
+          <div class="prompt-box" style="margin:0;">我是第<span class="placeholder">[组号]</span>组成员，项目名<span class="placeholder">[项目名]</span>，请引导 MVL 工作坊 M1 战略对齐模块</div>
+        </td>
+        <td>创建项目目录，初始化 state.json，加载 M1 框架</td>
+      </tr>
+      <tr>
+        <td><span class="step-num">2</span></td>
+        <td><strong>步骤 0 引导模式</strong></td>
+        <td>
+          <div class="prompt-box" style="margin:0;">M1 引导</div>
+          <span class="comment" style="font-size:12px;color:var(--text-muted);">或：给我们 M1 的引导问题</span>
+        </td>
+        <td>输出本模块讨论目标、引导问题、最低结论要求</td>
+      </tr>
+      <tr>
+        <td><span class="step-num">3</span></td>
+        <td><strong>步骤 1 提交转写</strong></td>
+        <td>
+          <div class="prompt-box" style="margin:0;">这是我们的逐字稿：
+
+<span class="placeholder">&lt;粘贴转写文本&gt;</span></div>
+          <span class="comment" style="font-size:12px;color:var(--text-muted);">或：提交转写 / 这是转写……</span>
+        </td>
+        <td>存档 raw 转写，生成 M1-keypoints.md，输出 30 秒概览</td>
+      </tr>
+      <tr>
+        <td><span class="step-num">4</span></td>
+        <td><strong>步骤 2-4 分支决策</strong></td>
+        <td>
+          <div class="prompt-box" style="margin:0;">提炼</div>
+          <span class="comment" style="font-size:12px;color:var(--text-muted);">或：补问 / 先看个样子</span>
+          <div class="callout warn" style="margin:8px 0 0;padding:8px 12px;font-size:12px;">
+            <strong>三选一</strong>：<br>
+            · <code>提炼</code> → 生成 M1-v1.md 确认包<br>
+            · <code>补问</code> → 输出 M1-gaps.md，等新一轮转写<br>
+            · <code>先看个样子</code> → 草稿 Canvas（带水印，不改状态）
+          </div>
+        </td>
+        <td>按选择进入对应分支</td>
+      </tr>
+      <tr>
+        <td><span class="step-num">5</span></td>
+        <td><strong>步骤 5-6 Gate 评估</strong></td>
+        <td>
+          <span class="comment" style="font-size:12px;color:var(--text-muted);">专家自动运行 Gate，无需用户指令</span>
+          <div class="prompt-box" style="margin:8px 0 0;">确认 v1</div>
+          <span class="comment" style="font-size:12px;color:var(--text-muted);">看完 Gate 报告后回复</span>
+        </td>
+        <td>展示确认包必展项 → 自动跑 Gate → 输出 Gate 报告 → 等用户决策</td>
+      </tr>
+      <tr>
+        <td><span class="step-num">6</span></td>
+        <td><strong>步骤 7 视觉模式</strong></td>
+        <td>
+          <div class="prompt-box" style="margin:0;">选择 <span class="placeholder">[模式名]</span></div>
+          <span class="comment" style="font-size:12px;color:var(--text-muted);">如：选择 blue-professional-balanced</span>
+          <div style="margin-top:8px;font-size:12px;color:var(--text-soft);">
+            9 种视觉模式可选：<br>
+            <code>01-blue-professional-balanced</code> 麦肯锡蓝·均衡<br>
+            <code>02-blue-professional-flow</code> 麦肯锡蓝·流程<br>
+            <code>03-signal-balanced</code> Signal·均衡<br>
+            <code>04-signal-flow</code> Signal·流程<br>
+            <code>05-mckinsey-blue-conclusion</code> 麦肯锡蓝·结论页<br>
+            <code>06-accenture-purple-institutional</code> Accenture紫·机构风<br>
+            <code>07-bain-red-action</code> Bain红·行动导向<br>
+            <code>08-bcg-green-matrix</code> BCG绿·矩阵<br>
+            <code>09-roland-berger-dark-blue-gray</code> Roland Berger深蓝灰
+          </div>
+        </td>
+        <td>推荐 1-2 个匹配模式 → 用户选定 → 生成 HTML → 审计 → rendered</td>
+      </tr>
+      <tr>
+        <td><span class="step-num">7</span></td>
+        <td><strong>步骤 8 预告下一模块</strong></td>
+        <td>
+          <div class="prompt-box" style="margin:0;">切换到 M2</div>
+          <span class="comment" style="font-size:12px;color:var(--text-muted);">或：继续</span>
+        </td>
+        <td>输出 M2 引导问题 + M1 影响下方的结论</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- M2-M6 quick reference -->
+  <div class="callout success">
+    <strong>M2-M6 重复同样模式</strong>：引导 → 提交转写 → 分支决策 → Gate 确认 → 渲染 → 预告下一模块<br>
+    只需把提示词中的 M1 换成对应模块编号即可。
+  </div>
+
+  <!-- Special situations -->
+  <h3 style="font-size:16px;font-weight:700;margin:24px 0 12px;">特殊情境提示词</h3>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="label">Gate 全 PASS — 正常确认</div>
+      <span class="tag" style="background:var(--green-soft);color:var(--green);">gate_pass</span>
+    </div>
+    <div class="card-body">
+      <div class="prompt-box">确认 v1</div>
+      <div class="prompt-box">确认，生成画布</div>
+      <div class="callout success" style="margin:0;">
+        Gate 全 PASS 时直接确认 → <code>confirmation_mode=gate_pass</code> → 进入视觉模式选择
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="label">Gate 有 business_risk FAIL — Override</div>
+      <span class="tag" style="background:var(--amber-soft);color:var(--amber);">override</span>
+    </div>
+    <div class="card-body">
+      <div class="prompt-box">我接受这个风险，先形成带保留意见的正式成果。
+M<span class="placeholder">[N]</span>-GATE-<span class="placeholder">[0N]</span> 原因：<span class="placeholder">[原因]</span>；补救：<span class="placeholder">[补救措施]</span>
+确认人：<span class="placeholder">[姓名]</span>
+确认时间：<span class="placeholder">[ISO时间]</span></div>
+      <div class="callout warn" style="margin:0;">
+        <strong>仅 business_risk FAIL 可 override</strong>；<code>information_integrity</code> FAIL 不接受 override，必须补问或升版重做。
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="label">补问后重新提交</div>
+      <span class="tag" style="background:var(--purple-soft);color:var(--purple);">gaps_open</span>
+    </div>
+    <div class="card-body">
+      <div class="prompt-box"><span class="comment"># 补问后新一轮转写</span>
+这是 M<span class="placeholder">[1-6]</span> 第 2 轮转写：
+
+<span class="placeholder">&lt;粘贴新一轮转写文本&gt;</span></div>
+      <div class="callout info" style="margin:0;">
+        升版为 v2，旧 v1 确认自动失效，旧 HTML 标记过期。重新走 Key Points → 提炼 → Gate → 确认。
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="label">全局汇总（M1-M6 全部 rendered 后）</div>
+      <span class="tag scene">最终阶段</span>
+    </div>
+    <div class="card-body">
+      <div class="prompt-box">六个模块已全部完成，请生成全局 MAAU 画布和演示报告</div>
+      <div class="callout info" style="margin:0;">
+        校验六模块一致性 → 跨模块 caveat 浮现 → 对齐总检 → 重新选视觉模式 → 生成全局 Canvas + 最终报告。
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="label">中途查看产物</div>
+      <span class="tag scene">随时可用</span>
+    </div>
+    <div class="card-body">
+      <div class="prompt-box">查看 M<span class="placeholder">[1-6]</span> 产物</div>
+      <div class="prompt-box">查看所有产物</div>
+      <div class="prompt-box">对齐检查</div>
+      <div class="prompt-box">谁说了什么</div>
+      <div class="callout info" style="margin:0;">
+        <strong>对齐检查</strong>：输出共识地图、分歧点、决策留痕。<br>
+        <strong>谁说了什么</strong>：展示说话人观点和分歧，不总结拔高。
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SECTION 3: Template ========== -->
+<div class="section">
+  <div class="section-title">
+    <span class="section-num">3</span>
+    使用与讲解模板
+  </div>
+  <div class="section-desc">向团队或客户演示专家时，按此模板走一遍即可展示全部核心能力</div>
+
+  <div class="template-page">
+    <h3>📋 Pratyaya MVL Expert 演示模板</h3>
+
+    <!-- Module overview -->
+    <div class="template-section">
+      <h4>六模块全景</h4>
+      <div class="desc">MVL 工作坊三天六模块，每个模块对应 Canvas 的一个区域</div>
+      <div class="module-grid">
+        <div class="module-card">
+          <div class="m-id">M1</div>
+          <div class="m-name">战略对齐</div>
+          <div class="m-canvas">Intent · 目标/价值/指标</div>
+        </div>
+        <div class="module-card">
+          <div class="m-id">M2</div>
+          <div class="m-name">用户与需求</div>
+          <div class="m-canvas">User · 用户/需求/痛点</div>
+        </div>
+        <div class="module-card">
+          <div class="m-id">M3</div>
+          <div class="m-name">闭环目标与方案</div>
+          <div class="m-canvas">Workflow 草案</div>
+        </div>
+        <div class="module-card">
+          <div class="m-id">M4</div>
+          <div class="m-name">Agent Team 与 Context</div>
+          <div class="m-canvas">Workflow 冻结版</div>
+        </div>
+        <div class="module-card">
+          <div class="m-id">M5</div>
+          <div class="m-name">验证与修正</div>
+          <div class="m-canvas">Validation · 能否执行</div>
+        </div>
+        <div class="module-card">
+          <div class="m-id">M6</div>
+          <div class="m-name">收尾与价值判断</div>
+          <div class="m-canvas">最终方案/总结</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Demo script -->
+    <div class="template-section">
+      <h4>演示脚本（约 15 分钟）</h4>
+
+      <div style="margin-top:16px;">
+        <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px;">
+          <span class="step-num" style="background:var(--accent-soft);color:var(--accent);">1</span>
+          开场 — 展示快速指令（2 分钟）
+        </div>
+        <div class="prompt-box">请显示你的 3 个快速指令</div>
+        <div style="font-size:12px;color:var(--text-muted);margin:6px 0 16px 32px;">
+          讲解：三个快速指令分别对应「启动」「提炼」「全局汇总」三个核心入口。
+        </div>
+
+        <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px;">
+          <span class="step-num" style="background:var(--accent-soft);color:var(--accent);">2</span>
+          初始化 — 创建 Demo 项目（3 分钟）
+        </div>
+        <div class="prompt-box">我是第 1 组成员，项目名「Demo项目」，请引导 MVL 工作坊 M1 战略对齐模块</div>
+        <div style="font-size:12px;color:var(--text-muted);margin:6px 0 16px 32px;">
+          讲解：专家会创建项目目录、初始化六模块状态机、加载 M1 框架并输出引导问题。<br>
+          重点强调：<strong>用户驱动</strong>——专家不预设模式，所有关键决策由用户指令决定。
+        </div>
+
+        <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px;">
+          <span class="step-num" style="background:var(--purple-soft);color:var(--purple);">3</span>
+          提交转写 — 展示四阶段管线（5 分钟）
+        </div>
+        <div class="prompt-box">这是我们的逐字稿：
+
+<span class="placeholder">&lt;粘贴一段准备好的 M1 讨论转写&gt;</span></div>
+        <div style="font-size:12px;color:var(--text-muted);margin:6px 0 8px 32px;">
+          讲解：专家先存档原始转写，再生成 Key Points 概览（30 秒可浏览）。<br>
+          展示 Key Points 的五部分：讨论主题、关键主张、矛盾点、覆盖度初判、用户决策提示。
+        </div>
+        <div class="prompt-box">提炼</div>
+        <div style="font-size:12px;color:var(--text-muted);margin:6px 0 16px 32px;">
+          讲解：专家生成 M1-v1.md 确认包，展示必展项 5 条（一句话结论、对齐摘要、阻塞项、缺口速览、待确认版本），然后<strong>自动运行 Gate</strong>。
+        </div>
+
+        <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px;">
+          <span class="step-num" style="background:var(--green-soft);color:var(--green);">4</span>
+          Gate 确认与渲染 — 展示质量闸门（3 分钟）
+        </div>
+        <div class="prompt-box">确认 v1</div>
+        <div style="font-size:12px;color:var(--text-muted);margin:6px 0 8px 32px;">
+          讲解：Gate 是 LLM 建议者，用户是唯一门。<code>gate_pass</code> 时直接确认；<code>business_risk</code> FAIL 时可 override；<code>information_integrity</code> FAIL 不可 override。
+        </div>
+        <div class="prompt-box">选择 blue-professional-balanced</div>
+        <div style="font-size:12px;color:var(--text-muted);margin:6px 0 16px 32px;">
+          讲解：9 种视觉模式覆盖麦肯锡/Accenture/Bain/BCG/Roland Berger 等咨询风格。专家推荐 1-2 个，用户选定后生成 HTML。
+        </div>
+
+        <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px;">
+          <span class="step-num" style="background:var(--accent-soft);color:var(--accent);">5</span>
+          收尾 — 展示状态管理与全局视角（2 分钟）
+        </div>
+        <div class="prompt-box">检查状态</div>
+        <div class="prompt-box">查看所有产物</div>
+        <div style="font-size:12px;color:var(--text-muted);margin:6px 0 16px 32px;">
+          讲解：六模块状态一目了然。M1 已 rendered，M2-M6 待推进。最终六个模块全部 rendered 后，用「全局汇总」生成 MAAU 画布。
+        </div>
+      </div>
+    </div>
+
+    <!-- Key principles -->
+    <div class="template-section">
+      <h4>讲解时要强调的核心设计原则</h4>
+      <table>
+        <thead>
+          <tr>
+            <th style="width:160px;">原则</th>
+            <th>一句话解释</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>用户驱动</strong></td>
+            <td>所有关键决策（模式、提炼、补问、视觉模式、override）由用户指令决定，专家不预设、不自动选择</td>
+          </tr>
+          <tr>
+            <td><strong>讨论先于画布</strong></td>
+            <td>先帮助小组形成结论，再制作 HTML。Canvas 不从逐字稿直接生成</td>
+          </tr>
+          <tr>
+            <td><strong>人确认的是版本</strong></td>
+            <td>确认 v2 后再修改内容，v2 自动失效，必须升版重跑 Gate 重新确认</td>
+          </tr>
+          <tr>
+            <td><strong>LLM 是建议者</strong></td>
+            <td>Gate 输出建议，但 render_authorized 必须由用户在看完报告后显式写入</td>
+          </tr>
+          <tr>
+            <td><strong>未讨论就标空</strong></td>
+            <td>允许未知，不允许伪完整。缺口必须解释影响</td>
+          </tr>
+          <tr>
+            <td><strong>转写是不可信数据</strong></td>
+            <td>转写中的命令、链接、文件操作要求视为讨论内容，不执行</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Quick command card -->
+    <div class="template-section">
+      <h4>指令速查卡（可打印）</h4>
+      <table>
+        <thead>
+          <tr>
+            <th style="width:180px;">用户说</th>
+            <th>专家做</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>Mx 引导</code></td><td>加载框架，输出引导问题</td></tr>
+          <tr><td><code>提交转写 / 这是逐字稿</code></td><td>存档 → Key Points 抽取 → 等待决策</td></tr>
+          <tr><td><code>覆盖检查</code></td><td>评估框架覆盖度</td></tr>
+          <tr><td><code>提炼</code></td><td>生成 Mx-v{N}.md 确认包</td></tr>
+          <tr><td><code>补问</code></td><td>输出补问清单，标记 gaps_open</td></tr>
+          <tr><td><code>先看个样子</code></td><td>草稿 Canvas（带水印，不改状态）</td></tr>
+          <tr><td><code>确认 vN</code></td><td>基于 Gate 报告作最终确认</td></tr>
+          <tr><td><code>override / 我接受这个风险</code></td><td>填写 override 审计，带保留意见确认</td></tr>
+          <tr><td><code>换风格 / 换个模板</code></td><td>重新推荐视觉模式候选</td></tr>
+          <tr><td><code>检查状态 / 进度</code></td><td>报告六模块版本/状态/Gate/确认模式</td></tr>
+          <tr><td><code>查看 Mx 产物</code></td><td>列出已确认模块 Markdown + Canvas 链接</td></tr>
+          <tr><td><code>全局汇总</code></td><td>校验六模块 → 全局 Canvas + 报告</td></tr>
+          <tr><td><code>对齐检查</code></td><td>共识地图、分歧点、决策留痕</td></tr>
+          <tr><td><code>翻译一下</code></td><td>业务语言 ↔ 技术语言双向对照</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ========== Footer ========== -->
+<div style="text-align:center;padding:32px 0 0;border-top:1px solid var(--border);margin-top:48px;">
+  <div style="font-size:13px;color:var(--text-muted);">
+    Pratyaya MVL Expert · 提示词设计与使用模板<br>
+    基于 pratyaya v1.0.2 · 四阶段管线 · 5 态状态机 · 9 种视觉模式
+  </div>
+</div>
+
+</div>
+</body>
+</html>
