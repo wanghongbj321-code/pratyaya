@@ -369,5 +369,9 @@
       "minLength": 1
     }
   },
-  "additionalProperties": true
+  "additionalProperties": true,
+  "anyOf": [
+    { "required": ["modules"] },
+    { "required": ["golden_circle"] }
+  ]
 }

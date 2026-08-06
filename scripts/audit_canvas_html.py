@@ -240,6 +240,20 @@ def source_identity(path: Path) -> tuple[str | None, str | None]:
 def gc_source_identity(path: Path) -> tuple[str | None, str | None]:
     """从 GC-vN 确认包首行标题中提取画布类型与版本号。"""
     first_lines = "\n".join(path.read_text(encoding="utf-8").splitlines()[:12])
+
+
+def load_gc_anchor_orders(path: Path) -> list[str]:
+    """从 render-contract-gc.md 解析 GC 稳定锚点列表。"""
+    text = path.read_text(encoding="utf-8")
+    anchors = re.findall(r"\|\s*`([a-z][a-z0-9_-]+)`\s*\|", text)
+    if not anchors:
+        raise ValueError("GC contract has no anchor rows")
+    return anchors
+
+
+def gc_source_identity(path: Path) -> tuple[str | None, str | None]:
+    """从 GC-vN 确认包首行标题中提取画布类型与版本号。"""
+    first_lines = "\n".join(path.read_text(encoding="utf-8").splitlines()[:12])
     match = re.search(r"^#\s+黄金圈确认包\s+(v\d+)\s*$", first_lines, re.MULTILINE)
     return ("GC", match.group(1)) if match else (None, None)
 
@@ -255,7 +269,13 @@ def audit(
     is_gc = canvas_type == "gc"
     findings: list[Finding] = []
     orders: dict[str, list[str]] = {}
-    if not is_gc:
+    gc_anchors: list[str] = []
+    if is_gc:
+        try:
+            gc_anchors = load_gc_anchor_orders(contract_path)
+        except (OSError, ValueError) as exc:
+            return [Finding("CONTRACT", str(exc))]
+    else:
         try:
             orders = load_contract_anchor_orders(contract_path)
         except (OSError, ValueError) as exc:
@@ -282,6 +302,9 @@ def audit(
     required: list[str] = list(SHARED_IDS)
     if is_gc:
         required.extend(GC_MAIN_IDS)
+        # GC 契约无 alignment-section（MVL 专属），审计不要求
+        if "alignment-section" in required:
+            required.remove("alignment-section")
     elif page_type == "module-detail":
         required.extend(MODULE_MAIN_IDS)
     elif page_type == "global":
@@ -292,7 +315,7 @@ def audit(
 
     expected_anchors: list[str] = []
     if is_gc:
-        expected_anchors = list(GC_ANCHORS)
+        expected_anchors = list(gc_anchors)
         anchor_missing = [anchor for anchor in expected_anchors if counts[anchor] == 0]
         if anchor_missing:
             findings.append(
