@@ -1,5 +1,6 @@
 ---
 id: mckinsey-blue-conclusion
+zh_name: 麦肯锡蓝·结论驱动
 visual_system: McKinsey Blue
 layout: balanced
 formality: high

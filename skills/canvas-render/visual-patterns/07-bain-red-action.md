@@ -1,5 +1,6 @@
 ---
 id: bain-red-action
+zh_name: 贝恩红·行动洞察
 visual_system: Bain Red
 layout: balanced
 formality: high

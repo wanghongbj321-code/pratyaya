@@ -1,5 +1,6 @@
 ---
 id: bcg-green-matrix
+zh_name: 波士顿绿·战略矩阵
 visual_system: BCG Green
 layout: balanced
 formality: high

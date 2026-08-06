@@ -1,0 +1,58 @@
+{
+  "schema_version": "2.0",
+  "group_id": "G1",
+  "project_name": "示例项目-MVL+GC",
+  "current_module": "M1",
+  "modules": {
+    "M1": {
+      "version": 1,
+      "status": "confirmed",
+      "gate_recommendation": "pass",
+      "render_authorized": true,
+      "confirmation_mode": "gate_pass"
+    },
+    "M2": {
+      "version": 0,
+      "status": "draft",
+      "gate_recommendation": "pending",
+      "render_authorized": false,
+      "confirmation_mode": null
+    },
+    "M3": {
+      "version": 0,
+      "status": "draft",
+      "gate_recommendation": "pending",
+      "render_authorized": false,
+      "confirmation_mode": null
+    },
+    "M4": {
+      "version": 0,
+      "status": "draft",
+      "gate_recommendation": "pending",
+      "render_authorized": false,
+      "confirmation_mode": null
+    },
+    "M5": {
+      "version": 0,
+      "status": "draft",
+      "gate_recommendation": "pending",
+      "render_authorized": false,
+      "confirmation_mode": null
+    },
+    "M6": {
+      "version": 0,
+      "status": "draft",
+      "gate_recommendation": "pending",
+      "render_authorized": false,
+      "confirmation_mode": null
+    }
+  },
+  "golden_circle": {
+    "version": 1,
+    "status": "confirmed",
+    "gate_recommendation": "pass",
+    "render_authorized": true,
+    "confirmation_mode": "gate_pass"
+  },
+  "updated_at": "2026-08-06T15:00:00+08:00"
+}
