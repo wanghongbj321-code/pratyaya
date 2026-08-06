@@ -1,5 +1,6 @@
 ---
 id: signal-balanced
+zh_name: Signal·均衡
 visual_system: Signal
 layout: balanced
 formality: high

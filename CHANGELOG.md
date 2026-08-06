@@ -3,6 +3,31 @@
 > 本文件记录 Pratyaya 专家的正式版本变更。
 > 完整 SemVer 与架构说明见 [`README.md`](./README.md) / [`DESIGN.md`](./DESIGN.md) / [docs/MVL-整体架构设计.md](./docs/MVL-整体架构设计.md)。
 
+## [v2.0.0] - 2026-08-06
+
+### 破坏性变更（MAJOR）
+
+- **项目目录迁移**：新项目使用 `workshop/{项目名}/`（旧 `mvl-workshop/{项目名}/` 仍可识别）。
+- **状态模型升级**：`state.schema.json` 从 v1.0 升级到 v2.0——`current_module` 和 `modules` 降为可选字段，新增顶层 `golden_circle` 对象。
+- **专家身份变更**：`displayName` 从 `Pratyaya MVL Expert` 改为 `Pratyaya Canvas Expert`。
+
+### 新增功能
+
+- **黄金圈画布**：新增完整的 Golden Circle 画布支持（WHY/HOW/WHAT 三层，四阶段管线）。
+- **gc-distill Skill**：黄金圈提炼（Key Points + 确认包生成），含跨层一致性（第 6a 节）。
+- **gc-gate Skill**：黄金圈门禁（6 条放行条件：4 info_integrity + 2 business_risk）。
+- **视觉模式 10**：`10-black-gray-professional`（黑灰专业·打印版），作为默认配色方案。
+- **中文展示名**：所有 10 个视觉模式新增 `zh_name` 字段（模式选择时优先展示）。
+- **canvas-render 扩展**：支持 `canvas_type` 参数（`mvl` / `golden-circle`），`render-contract-gc.md`。
+- **审计脚本扩展**：`audit_canvas_html.py` 新增 `--type gc`，支持 GC 画布校验。
+- **通用画布入口**：`defaultInitPrompt` 改为询问画布类型，`quickPrompts` 新增黄金圈入口。
+- **Agent 多画布路由**：步骤 -1 先判定画布类型，Phase GC 独立 8 步工作流。
+
+### 变更文件
+
+- 新增：`skills/gc-distill/`、`skills/gc-gate/`、`render-contract-gc.md`、`10-black-gray-professional.md`、`schemas/state.schema.json`（v2.0）
+- 修改：`plugin.json`（v2.0.0）、`agents/pratyaya.md`、`canvas-render/SKILL.md`、`visual-patterns/README.md`、`audit_canvas_html.py`、`check_contract_consistency.py`、`README.md`、`schemas/README.md`、测试文件
+
 ## [v1.0.2] - 2026-08-01
 
 ### 字段对齐

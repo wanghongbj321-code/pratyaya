@@ -1,19 +1,25 @@
 ---
 name: canvas-render
-description: 把已通过用户授权的 MVL 模块确认包（Mx-v{N}.md）按用户选定的 Markdown 视觉模式渲染为可编辑、可追溯、离线可打开的 HTML Canvas，并在六模块完成后生成可下钻的全局 Canvas。正式渲染前置条件：state.json 的 render_authorized=true 且 confirmation_mode ∈ {gate_pass, override}；override 时必须携带完整 override_audit。主 Agent 扫描 visual-patterns frontmatter、推荐候选并传递完整模式路径；本 Skill 不自动选模式。用户要求生成模块画布、全局画布或管理层汇报页面时使用。
+description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 黄金圈: GC-v{N}.md）按用户选定的 Markdown 视觉模式渲染为可编辑、可追溯、离线可打开的 HTML Canvas。正式渲染前置条件：state.json 的 render_authorized=true 且 confirmation_mode ∈ {gate_pass, override}；override 时必须携带完整 override_audit。主 Agent 扫描 visual-patterns frontmatter、推荐候选并传递完整模式路径 + canvas_type 参数；本 Skill 不自动选模式。
 ---
 
 # Canvas 渲染
 
 本 Skill 是展示层，不是分析层。只把已确认的 Markdown 事实源转成 HTML；不得从转写直接提炼，不得为填满页面新增、润色或补齐业务结论。
 
+支持两种画布类型（由主 Agent 通过 `canvas_type` 参数指定）：
+- `mvl`：MVL 六模块画布（默认）
+- `golden-circle`：黄金圈单画布
+
 执行前按需读取：
 
-- `../mvl-distill/references/workshop-canvas-map.md`：全局 Canvas 大小模块映射。
-- `../mvl-distill/references/mvl-canvas-spec.md`：模块产出规范。
-- `references/render-contract.md`：DOM、共享结构、离线、数据完整性、打印和 caveat 契约。
+- `../mvl-distill/references/workshop-canvas-map.md`：MVL 全局 Canvas 大小模块映射。
+- `../mvl-distill/references/mvl-canvas-spec.md`：MVL 模块产出规范。
+- `../gc-distill/references/gc-spec.md`：黄金圈 section 规范与锚点映射。
+- `references/render-contract.md`：MVL DOM、共享结构、离线、数据完整性、打印和 caveat 契约。
+- `references/render-contract-gc.md`：黄金圈 DOM、锚点映射、共享结构契约。
 - `visual-patterns/README.md`：视觉模式的发现、命名、字段、正文结构和阻断规则。
-- `../../scripts/audit_canvas_html.py`：确定性 HTML 静态审计；模块锚点顺序直接读取 `render-contract.md`。
+- `../../scripts/audit_canvas_html.py`：确定性 HTML 静态审计；锚点顺序直接读取对应 render contract。
 
 视觉候选只能来自 `visual-patterns/` 的 Markdown 规格；不得从集中登记册或预制 HTML 推断候选与视觉 token。
 
@@ -21,22 +27,26 @@ description: 把已通过用户授权的 MVL 模块确认包（Mx-v{N}.md）按�
 
 正式渲染和模块详情渲染必须同时收到：
 
-1. 确认包路径：按主 Agent 已确定的当前项目工作目录解析 `modules/Mx-v{N}.md`，不得跨项目搜索。
-2. 用户授权（来自 `state.json`）：同模块 `render_authorized = true` 且 `confirmation_mode ∈ {gate_pass, override}`；override 时 `override_audit` 完整（含 items、reason、confirmed_by、confirmed_at）。
-3. Gate 建议（来自同版本 Gate 报告）：`gate_recommendation`（pass / fail）。
-4. 用户选定模式的完整仓库相对路径，例如：
+1. `canvas_type`：画布类型，`"mvl"`（默认）或 `"golden-circle"`。
+2. 确认包路径：按当前项目工作目录解析。
+   - MVL：`modules/Mx-v{N}.md`
+   - GC：`modules/GC-v{N}.md`
+3. 用户授权（来自 `state.json`）：
+   - MVL：对应模块 `render_authorized = true` 且 `confirmation_mode ∈ {gate_pass, override}`
+   - GC：`golden_circle.render_authorized = true` 且 `golden_circle.confirmation_mode ∈ {gate_pass, override}`
+   - override 时 `override_audit` 完整（含 items、reason、confirmed_by、confirmed_at）。
+4. Gate 建议（来自同版本 Gate 报告）：`gate_recommendation`（pass / fail）。
+5. 用户选定模式的完整仓库相对路径。
 
-   ```text
-   skills/canvas-render/visual-patterns/01-blue-professional-balanced.md
-   ```
-
-草稿模式的数据源改为当前最新 `modules/Mx-keypoints.md`，但仍必须收到用户选定模式的完整路径。
+草稿模式数据源：
+- MVL：`modules/Mx-keypoints.md`
+- GC：`modules/GC-keypoints.md`
 
 收到模式路径后必须校验：
 
 - 路径位于 `skills/canvas-render/visual-patterns/` 内。
 - 文件存在，且文件名满足 `NN-{id}.md`。
-- frontmatter 恰好包含 `id / visual_system / layout / formality / density / best_for`。
+- frontmatter 恰好包含 `id / zh_name / visual_system / layout / formality / density / best_for`。
 - 文件名 `{id}` 与 frontmatter `id` 一致。
 - 正文按顺序包含"色板 token / 字体 / 网格 / 组件库 / 适用场景 / 反例"六节。
 
@@ -79,6 +89,22 @@ description: 把已通过用户授权的 MVL 模块确认包（Mx-v{N}.md）按�
 - 空字段显示"未讨论"或"待确认"，不得补写。
 - 不进入全局 Canvas、管理层报告，也不改变模块状态。
 
+### 黄金圈正式模式
+
+- 输入 `canvas_type=golden-circle`，状态为 `confirmed` 或 `rendered`，且 `render_authorized=true`。
+- 输出 `output/gc-canvas.html`；Python 静态审计 + 浏览器视觉验收通过后才算成功。
+- 按 `render-contract-gc.md` 展示 WHY / HOW / WHAT 三层 + 跨层一致性。
+- 显示版本、确认、缺口、风险、结论 ID、证据摘要和 caveat 状态。
+- **不触发全局 Canvas**，不扫描跨模块 caveat。GC 是单画布。
+
+### 黄金圈草稿模式
+
+- 仅在用户明确要求"用草稿辅助继续讨论"时生成。
+- 数据源：`modules/GC-keypoints.md`。
+- 输出 `output/gc-canvas.html`，带永久"草稿 / 未确认 / 禁止用于管理层决策"水印。
+- 空字段显示"未讨论"或"待确认"，不得补写。
+- 不改变模块状态，不进入正式输出。
+
 ## 视觉模式实现
 
 本 Skill 不选择模式，只实现主 Agent 传入的已选路径。
@@ -94,8 +120,9 @@ description: 把已通过用户授权的 MVL 模块确认包（Mx-v{N}.md）按�
 
 ## 内容与数据契约
 
-- 正式页面内容只来自同版本 `modules/Mx-v{N}.md`。
-- 全局页只使用规定的六大板块；过程材料留在模块详情页并提供下钻入口。
+- 正式页面内容只来自同版本确认包（MVL: `modules/Mx-v{N}.md` / GC: `modules/GC-v{N}.md`）。
+- MVL 全局页只使用规定的六大板块；过程材料留在模块详情页并提供下钻入口。
+- GC 使用规定的 WHY / HOW / WHAT 三层 + 跨层一致性板块，无子模块详情页。
 - Workflow 必须分别呈现 Agent 执行、人工操作 / 确认、人审 + Agent 执行三类节点。
 - 内嵌 `<script type="application/json" id="canvas-data">`，内容包含同版本确认包 + 授权元数据（`render_authorized` / `confirmation_mode` / `override_audit`）。
 - 每个模块、结论、缺口和共享区域使用 `render-contract.md` 规定的稳定锚点。
@@ -128,6 +155,15 @@ HTML 写出后先运行静态审计。以下命令以专家包根目录为当前
 python3 scripts/audit_canvas_html.py output/module-N-canvas.html \
   --source modules/Mx-v{N}.md \
   --state state.json
+```
+
+GC 正式画布审计：
+
+```bash
+python3 scripts/audit_canvas_html.py output/gc-canvas.html \
+  --source modules/GC-v{N}.md \
+  --state state.json \
+  --type gc
 ```
 
 全局页不绑定单一确认包，运行 `python3 scripts/audit_canvas_html.py output/maau-global-canvas.html`。草稿页没有正式授权元数据，只传 HTML；仍须满足适用的结构、离线和草稿标记检查。

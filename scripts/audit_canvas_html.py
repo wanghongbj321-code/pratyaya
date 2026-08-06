@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Deterministic static audit for pratyaya Canvas HTML files."""
+"""Deterministic static audit for pratyaya Canvas HTML files (MVL + Golden Circle)."""
 
 from __future__ import annotations
 
@@ -25,6 +25,9 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONTRACT = (
     REPO_ROOT / "skills" / "canvas-render" / "references" / "render-contract.md"
 )
+GC_CONTRACT = (
+    REPO_ROOT / "skills" / "canvas-render" / "references" / "render-contract-gc.md"
+)
 MODULE_MAIN_IDS = (
     "module-summary",
     "module-outputs",
@@ -33,6 +36,14 @@ MODULE_MAIN_IDS = (
     "module-gaps",
 )
 GLOBAL_MAIN_IDS = ("intent", "user", "agent-team", "workflow", "context", "validation")
+GC_MAIN_IDS = ("why", "how", "what", "cross-layer-alignment")
+GC_ANCHORS = (
+    "canvas-headline",
+    "why-belief", "why-purpose", "why-mission",
+    "how-principles", "how-differentiation", "how-methods",
+    "what-products", "what-services", "what-evidence",
+    "alignment-why-how", "alignment-how-what",
+)
 SHARED_IDS = (
     "canvas-header",
     "quality-panel",
@@ -226,18 +237,49 @@ def source_identity(path: Path) -> tuple[str | None, str | None]:
     return (match.group(1), match.group(2)) if match else (None, None)
 
 
+def gc_source_identity(path: Path) -> tuple[str | None, str | None]:
+    """从 GC-vN 确认包首行标题中提取画布类型与版本号。"""
+    first_lines = "\n".join(path.read_text(encoding="utf-8").splitlines()[:12])
+
+
+def load_gc_anchor_orders(path: Path) -> list[str]:
+    """从 render-contract-gc.md 解析 GC 稳定锚点列表。"""
+    text = path.read_text(encoding="utf-8")
+    anchors = re.findall(r"\|\s*`([a-z][a-z0-9_-]+)`\s*\|", text)
+    if not anchors:
+        raise ValueError("GC contract has no anchor rows")
+    return anchors
+
+
+def gc_source_identity(path: Path) -> tuple[str | None, str | None]:
+    """从 GC-vN 确认包首行标题中提取画布类型与版本号。"""
+    first_lines = "\n".join(path.read_text(encoding="utf-8").splitlines()[:12])
+    match = re.search(r"^#\s+黄金圈确认包\s+(v\d+)\s*$", first_lines, re.MULTILINE)
+    return ("GC", match.group(1)) if match else (None, None)
+
+
 def audit(
     html_path: Path,
     contract_path: Path = DEFAULT_CONTRACT,
     state_path: Path | None = None,
     source_path: Path | None = None,
+    canvas_type: str = "mvl",
 ) -> list[Finding]:
     """对照 render-contract / state.json / 确认包，审计单个 Canvas HTML 文件。"""
+    is_gc = canvas_type == "gc"
     findings: list[Finding] = []
-    try:
-        orders = load_contract_anchor_orders(contract_path)
-    except (OSError, ValueError) as exc:
-        return [Finding("CONTRACT", str(exc))]
+    orders: dict[str, list[str]] = {}
+    gc_anchors: list[str] = []
+    if is_gc:
+        try:
+            gc_anchors = load_gc_anchor_orders(contract_path)
+        except (OSError, ValueError) as exc:
+            return [Finding("CONTRACT", str(exc))]
+    else:
+        try:
+            orders = load_contract_anchor_orders(contract_path)
+        except (OSError, ValueError) as exc:
+            return [Finding("CONTRACT", str(exc))]
     try:
         source, html = parse_html(html_path)
     except (OSError, UnicodeError) as exc:
@@ -251,13 +293,19 @@ def audit(
     page_type = html.body_attrs.get("data-page-type")
     module = html.body_attrs.get("data-module")
     body_version = normalize_version(html.body_attrs.get("data-version"))
-    if page_type not in {"module-detail", "global"}:
+    valid_types = {"module-detail", "global"} if not is_gc else {"golden-circle"}
+    if page_type not in valid_types:
         findings.append(Finding("PAGE_TYPE", f"unsupported data-page-type: {page_type!r}"))
     if not body_version:
         findings.append(Finding("VERSION", "body data-version must be an integer or vN"))
 
     required: list[str] = list(SHARED_IDS)
-    if page_type == "module-detail":
+    if is_gc:
+        required.extend(GC_MAIN_IDS)
+        # GC 契约无 alignment-section（MVL 专属），审计不要求
+        if "alignment-section" in required:
+            required.remove("alignment-section")
+    elif page_type == "module-detail":
         required.extend(MODULE_MAIN_IDS)
     elif page_type == "global":
         required.extend(GLOBAL_MAIN_IDS)
@@ -266,7 +314,14 @@ def audit(
         findings.append(Finding("MISSING_ID", f"missing required ids: {', '.join(missing)}"))
 
     expected_anchors: list[str] = []
-    if page_type == "module-detail":
+    if is_gc:
+        expected_anchors = list(gc_anchors)
+        anchor_missing = [anchor for anchor in expected_anchors if counts[anchor] == 0]
+        if anchor_missing:
+            findings.append(
+                Finding("MISSING_ANCHOR", f"GC missing anchors: {', '.join(anchor_missing)}")
+            )
+    elif page_type == "module-detail":
         if module not in orders:
             findings.append(Finding("MODULE", f"unsupported data-module: {module!r}"))
         else:
@@ -303,9 +358,13 @@ def audit(
             findings.append(
                 Finding("VERSION_MISMATCH", f"body={body_version!r}, canvas-data={data_version!r}")
             )
-        if page_type == "module-detail" and canvas_data.get("module") != module:
+        if not is_gc and page_type == "module-detail" and canvas_data.get("module") != module:
             findings.append(
                 Finding("MODULE_MISMATCH", f"body={module!r}, canvas-data={canvas_data.get('module')!r}")
+            )
+        if is_gc and canvas_data.get("canvas_type") != "golden-circle":
+            findings.append(
+                Finding("CANVAS_TYPE", f"canvas-data.canvas_type must be 'golden-circle', got {canvas_data.get('canvas_type')!r}")
             )
         sections = canvas_data.get("sections")
         if expected_anchors and isinstance(sections, dict):
@@ -331,7 +390,9 @@ def audit(
     if "@media print" not in lowered:
         findings.append(Finding("PRINT", "missing @media print rule"))
 
-    if canvas_data is not None and page_type == "module-detail":
+    # Caveat checks (for both MVL module-detail and GC)
+    caveat_page_types = {"module-detail"} if not is_gc else {"golden-circle"}
+    if canvas_data is not None and page_type in caveat_page_types:
         auth = canvas_data.get("auth")
         if not isinstance(auth, dict):
             findings.append(Finding("AUTH", "canvas-data.auth must be an object"))
@@ -355,14 +416,17 @@ def audit(
 
     if source_path is not None:
         try:
-            source_module, source_version = source_identity(source_path)
+            if is_gc:
+                source_module, source_version = gc_source_identity(source_path)
+            else:
+                source_module, source_version = source_identity(source_path)
         except OSError as exc:
             findings.append(Finding("SOURCE_READ", str(exc)))
         else:
             if source_module is None or source_version is None:
                 findings.append(Finding("SOURCE", "cannot read module/version from confirmation package"))
             else:
-                if module and source_module != module:
+                if not is_gc and module and source_module != module:
                     findings.append(
                         Finding("SOURCE_MODULE", f"HTML={module!r}, source={source_module!r}")
                     )
@@ -374,12 +438,17 @@ def audit(
     if state_path is not None:
         try:
             state = load_json(state_path)
-            modules = state.get("modules", {})
-            state_module = (
-                modules.get(module) if isinstance(modules, dict) and module is not None else None
-            )
-            if not isinstance(state_module, dict):
-                raise ValueError(f"state.json has no module record for {module}")
+            if is_gc:
+                state_module = state.get("golden_circle")
+                if not isinstance(state_module, dict):
+                    raise ValueError("state.json has no golden_circle record")
+            else:
+                modules = state.get("modules", {})
+                state_module = (
+                    modules.get(module) if isinstance(modules, dict) and module is not None else None
+                )
+                if not isinstance(state_module, dict):
+                    raise ValueError(f"state.json has no module record for {module}")
         except (OSError, json.JSONDecodeError, ValueError) as exc:
             findings.append(Finding("STATE_READ", str(exc)))
         else:
@@ -403,14 +472,18 @@ def audit(
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
-    """解析命令行参数，返回 html/contract/state/source 路径。"""
+    """解析命令行参数，返回 html/contract/state/source/type。"""
     parser = argparse.ArgumentParser(description=__doc__)
     _ = parser.add_argument("html", type=Path, help="Canvas HTML file to audit")
     _ = parser.add_argument(
-        "--contract", type=Path, default=DEFAULT_CONTRACT, help="render-contract.md path"
+        "--contract", type=Path, help="render-contract.md path (auto-selects by --type if omitted)"
     )
     _ = parser.add_argument("--state", type=Path, help="project state.json for auth/version checks")
-    _ = parser.add_argument("--source", type=Path, help="Mx-vN.md confirmation package")
+    _ = parser.add_argument("--source", type=Path, help="confirmation package (Mx-vN.md or GC-vN.md)")
+    _ = parser.add_argument(
+        "--type", dest="canvas_type", choices=("mvl", "gc"), default="mvl",
+        help="canvas type: mvl (default) or gc (golden circle)",
+    )
     return parser.parse_args(argv)
 
 
@@ -418,10 +491,16 @@ def main(argv: list[str] | None = None) -> int:
     """脚本入口：执行审计并打印结果，返回进程退出码。"""
     args = parse_args(argv)
     html_arg = cast(Path, args.html)
-    contract_arg = cast(Path, args.contract)
+    canvas_type = cast(str, args.canvas_type)
+    if args.contract is not None:
+        contract_arg = cast(Path, args.contract)
+    elif canvas_type == "gc":
+        contract_arg = GC_CONTRACT
+    else:
+        contract_arg = DEFAULT_CONTRACT
     state_arg = cast("Path | None", args.state)
     source_arg = cast("Path | None", args.source)
-    findings = audit(html_arg, contract_arg, state_arg, source_arg)
+    findings = audit(html_arg, contract_arg, state_arg, source_arg, canvas_type)
     if findings:
         print(f"FAIL {html_arg}")
         for finding in findings:

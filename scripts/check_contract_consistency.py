@@ -60,6 +60,8 @@ SKILLS_DIR = "skills"
 VISUAL_PATTERNS_DIR = "skills/canvas-render/visual-patterns"
 VISUAL_PATTERNS_README = "skills/canvas-render/visual-patterns/README.md"
 GATE_REFERENCES_DIR = "skills/module-conclusion-gate/references"
+GC_GATE_DIR = "skills/gc-gate/references"
+GC_GATE_FILE = "skills/gc-gate/references/GC-gate.md"
 WORKSHOP_CANVAS_MAP = "skills/mvl-distill/references/workshop-canvas-map.md"
 RENDER_CONTRACT = "skills/canvas-render/references/render-contract.md"
 CANVAS_SPEC = "skills/mvl-distill/references/mvl-canvas-spec.md"
@@ -67,10 +69,11 @@ MODULE_GATE_SKILL = "skills/module-conclusion-gate/SKILL.md"
 EXAMPLES_MODULES = "examples/modules"
 
 # Phase A 常量
-EXPECTED_VISUAL_PATTERN_COUNT = 9
-EXPECTED_VISUAL_PATTERN_NN_RANGE = tuple(f"{n:02d}" for n in range(1, 10))
+EXPECTED_VISUAL_PATTERN_COUNT = 10
+EXPECTED_VISUAL_PATTERN_NN_RANGE = tuple(f"{n:02d}" for n in range(1, 11))
 EXPECTED_VISUAL_PATTERN_METADATA = (
     "id",
+    "zh_name",
     "visual_system",
     "layout",
     "formality",
@@ -736,6 +739,154 @@ def check_gate_source(ctx: CheckContext) -> list[Finding]:
     return findings
 
 
+# ---- GC 闸门 ---------------------------------------------------------------
+
+GC_GATE_ID_RE = re.compile(r"^GC-GATE-\d+$")
+
+
+def _iter_gc_gate_path(path: Path) -> Path | None:
+    p = path / GC_GATE_FILE
+    return p if p.is_file() else None
+
+
+def check_gc_gate_file_set(ctx: CheckContext) -> list[Finding]:
+    """黄金圈闸门策略文件 GC-gate.md 必须存在。"""
+    p = ctx.root / GC_GATE_FILE
+    if not p.is_file():
+        return [
+            Finding(
+                code="GC_GATE_FILE_SET",
+                level="error",
+                where=GC_GATE_FILE,
+                message="缺少黄金圈闸门策略文件 GC-gate.md",
+                hint="需在 skills/gc-gate/references/GC-gate.md 写入 6 条放行条件",
+            )
+        ]
+    return []
+
+
+def check_gc_gate_table(ctx: CheckContext) -> list[Finding]:
+    """GC-gate.md 表格可解析，ID/分类/风险/来源 合法。"""
+    findings: list[Finding] = []
+    p = ctx.root / GC_GATE_FILE
+    if not p.is_file():
+        return findings
+    text = p.read_text(encoding="utf-8")
+    # 直接解析 GC gate 表格（GATE_ID_RE 只匹配 M{N}-GATE-{NN}，不适用）
+    rows: list[dict[str, str]] = []
+    in_table = False
+    columns: list[str] = []
+    for line in text.splitlines():
+        if not line.lstrip().startswith("|"):
+            in_table = False
+            columns = []
+            continue
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if not cells:
+            continue
+        if all(set(c) <= {"-", ":", " "} for c in cells):
+            continue
+        if not in_table:
+            if cells and cells[0].strip().lower() == "id":
+                in_table = True
+                columns = [c.strip().strip("`").lower() for c in cells]
+            continue
+        first = cells[0].strip().strip("`")
+        if not GC_GATE_ID_RE.match(first):
+            continue
+        row: dict[str, str] = {"id": first}
+        col_map = {"分类": "category", "风险等级": "risk", "来源": "source"}
+        for idx, value in enumerate(cells[1:], start=1):
+            if idx >= len(columns):
+                continue
+            header = columns[idx]
+            alias = col_map.get(header, header)
+            row[alias] = value.strip().strip("`")
+        for key in ("category", "risk", "source"):
+            if key not in row:
+                row[key] = ""
+        rows.append(row)
+    if not rows:
+        findings.append(
+            Finding(
+                code="GC_GATE_TABLE",
+                level="error",
+                where=GC_GATE_FILE,
+                message="GC-gate.md 表格无数据行",
+                hint="表格需要 6 条放行条件",
+            )
+        )
+        return findings
+    ids_seen: list[str] = []
+    for row in rows:
+        gid = row.get("id", "")
+        cat = row.get("category", "")
+        risk = row.get("risk", "")
+        source = row.get("source", "")
+        if not GC_GATE_ID_RE.match(gid):
+            findings.append(
+                Finding(
+                    code="GC_GATE_ID_FORMAT",
+                    level="error",
+                    where=GC_GATE_FILE,
+                    message=f"GC-GATE ID 格式不符：{gid}（期望 GC-GATE-NN）",
+                    hint="GC-GATE ID 须为 GC-GATE-01..GC-GATE-06",
+                )
+            )
+        if cat not in ALLOWED_GATE_CATEGORIES:
+            findings.append(
+                Finding(
+                    code="GC_GATE_CATEGORY",
+                    level="error",
+                    where=GC_GATE_FILE,
+                    message=f"GC-GATE {gid} 分类 {cat!r} 不在白名单 {ALLOWED_GATE_CATEGORIES}",
+                    hint="分类必须为 information_integrity 或 business_risk",
+                )
+            )
+        if risk not in ALLOWED_GATE_RISK_LEVELS:
+            findings.append(
+                Finding(
+                    code="GC_GATE_RISK",
+                    level="error",
+                    where=GC_GATE_FILE,
+                    message=f"GC-GATE {gid} 风险等级 {risk!r} 不在白名单 {ALLOWED_GATE_RISK_LEVELS}",
+                    hint="风险等级必须为 low / medium / high",
+                )
+            )
+        if not source:
+            findings.append(
+                Finding(
+                    code="GC_GATE_SOURCE",
+                    level="error",
+                    where=GC_GATE_FILE,
+                    message=f"GC-GATE {gid} 来源 ID 为空",
+                    hint="每条放行条件必须填写来源 ID",
+                )
+            )
+        ids_seen.append(gid)
+    if len(ids_seen) != 6:
+        findings.append(
+            Finding(
+                code="GC_GATE_COUNT",
+                level="error",
+                where=GC_GATE_FILE,
+                message=f"GC-GATE 共 {len(ids_seen)} 条（期望 6 条）",
+                hint="黄金圈闸门必须有 6 条放行条件：GC-GATE-01..GC-GATE-06",
+            )
+        )
+    if len(set(ids_seen)) != len(ids_seen):
+        findings.append(
+            Finding(
+                code="GC_GATE_ID_UNIQUE",
+                level="error",
+                where=GC_GATE_FILE,
+                message="GC-GATE ID 重复",
+                hint="每个 GC-GATE-xx ID 必须唯一",
+            )
+        )
+    return findings
+
+
 # ---- 视觉模式 -------------------------------------------------------------
 
 
@@ -759,7 +910,7 @@ def check_pattern_count(ctx: CheckContext) -> list[Finding]:
                 level="error",
                 where=VISUAL_PATTERNS_DIR,
                 message="缺少 visual-patterns 目录",
-                hint="需在 skills/canvas-render/visual-patterns/ 下放 9 个模式文件 + README",
+                hint="需在 skills/canvas-render/visual-patterns/ 下放 10 个模式文件 + README",
             )
         ]
     readme = base / "README.md"
@@ -781,7 +932,7 @@ def check_pattern_count(ctx: CheckContext) -> list[Finding]:
                 level="error",
                 where=VISUAL_PATTERNS_DIR,
                 message=f"模式文件 {len(files)} 个 ≠ 期望 {EXPECTED_VISUAL_PATTERN_COUNT}",
-                hint="按 visual-patterns/README.md 当前基线维护 9 个模式",
+                hint="按 visual-patterns/README.md 当前基线维护 10 个模式",
             )
         ]
     return []
@@ -822,7 +973,7 @@ def check_pattern_sequence(ctx: CheckContext) -> list[Finding]:
                 level="error",
                 where=VISUAL_PATTERNS_DIR,
                 message=f"模式序号集合 {nn_sorted} ≠ 期望 {list(EXPECTED_VISUAL_PATTERN_NN_RANGE)}",
-                hint="必须使用 01..09；不得跳号或重排已发布序号",
+                hint="必须使用 01..10；不得跳号或重排已发布序号",
             )
         )
     if len(nn_seen) != len(set(nn_seen)):
@@ -1414,9 +1565,11 @@ RULES: tuple[Rule, ...] = (
     Rule("GATE_CATEGORY", "A", "GATE 分类在白名单内", check_gate_category),
     Rule("GATE_RISK", "A", "GATE 风险等级在白名单内", check_gate_risk),
     Rule("GATE_SOURCE", "A", "GATE 来源 ID 必填", check_gate_source),
-    Rule("PATTERN_COUNT", "A", "视觉模式文件数 = 当前基线（9）", check_pattern_count),
+    Rule("GC_GATE_FILE_SET", "A", "黄金圈闸门策略文件 GC-gate.md 存在", check_gc_gate_file_set),
+    Rule("GC_GATE_TABLE", "A", "GC-gate.md 表格可解析 + ID/分类/风险/来源合法", check_gc_gate_table),
+    Rule("PATTERN_COUNT", "A", "视觉模式文件数 = 当前基线（10）", check_pattern_count),
     Rule("PATTERN_FILENAME", "A", "视觉模式文件名 NN-id.md", check_pattern_filename),
-    Rule("PATTERN_SEQUENCE", "A", "视觉模式序号 01..09", check_pattern_sequence),
+    Rule("PATTERN_SEQUENCE", "A", "视觉模式序号 01..10", check_pattern_sequence),
     Rule("PATTERN_ID", "A", "视觉模式 frontmatter id 与文件名一致", check_pattern_id),
     Rule("PATTERN_METADATA", "A", "视觉模式 frontmatter 字段完整", check_pattern_metadata),
     Rule("PATTERN_ENUM", "A", "视觉模式 layout/formality/density 取值在白名单内", check_pattern_enum),
