@@ -1,0 +1,31 @@
+{
+  "schema_version": "2.1",
+  "group_id": "G1",
+  "project_name": "HMW 测试项目",
+  "hmw": {
+    "version": 1,
+    "status": "confirmed",
+    "gate_recommendation": "fail",
+    "render_authorized": true,
+    "confirmation_mode": "override",
+    "override_audit": {
+      "version": 1,
+      "items": [
+        {
+          "assessment_id": "HMW-GATE-02",
+          "category": "business_risk",
+          "source_id": "HMW-quality",
+          "original_result": "fail",
+          "risk_level": "medium",
+          "impact": "HMW 问句可能夹带预设解法，团队接受方向正确的风险"
+        }
+      ],
+      "reason": "团队评估问句方向正确，预设解法风险可接受",
+      "mitigation": "正式渲染后由用户侧再次人工复核问句措辞",
+      "confirmed_by": "张三",
+      "confirmed_role": "CEO",
+      "confirmed_at": "2026-08-07T11:00:00+08:00"
+    }
+  },
+  "updated_at": "2026-08-07T11:00:00+08:00"
+}
