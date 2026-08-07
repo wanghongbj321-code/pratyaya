@@ -36,6 +36,10 @@
 - 新增：`skills/hmw-distill/`、`skills/hmw-gate/`、`render-contract-hmw.md`、`examples/canvas-html/hmw-canvas.html`、`scripts/render_canvas.py`、`tests/`（fixtures + 3 个测试文件）
 - 修改：`plugin.json`（v2.1.0）、`agents/pratyaya.md`、`canvas-render/SKILL.md`、`audit_canvas_html.py`、`check_contract_consistency.py`、`schemas/state.schema.json`（v2.1）、`schemas/README.md`、`README.md`、`DESIGN.md`、`DEVELOPMENT.md`、`docs/user-guide.md`、`docs/installation.md`、`docs/MVL-整体架构设计.md`、`examples/state-v2-sample.json`、`.gitignore`
 
+### 后续修正（不升版）
+
+> v2.1.0 曾引入的渲染脚本 `scripts/render_canvas.py` 违背 AGENTS.md 规则 3「渲染必须通过 canvas-render Skill，禁止渲染脚本」，已移除。渲染回归 canvas-render Skill 人工完成；双 Gate 审计测试改为直接以 `examples/canvas-html/hmw-canvas.html` 模板做结构审计，不再有运行时渲染的正式产物。相关 `DEVELOPMENT.md` 命令与内部执行计划已同步改写。
+
 ## [v2.0.0] - 2026-08-06
 
 ### 破坏性变更（MAJOR）
