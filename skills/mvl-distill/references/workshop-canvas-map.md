@@ -45,7 +45,7 @@
 |---|---|
 | M1 | `goal`、`value`、`success_metrics`、`evidence`、`boundary`、`acceptance`、`grouping` |
 | M2 | `users`、`needs`、`pain_points`、`most_important_outcomes`、`current_workflow`、`requirements` |
-| M3 | `hmw`、`loop_goal`、`capability_metrics`、`acceptance`、`boundary`、`solution_direction`、`workflow_draft`、`validation_dimensions` |
+| M3 | `hmw`、`loop_goal`、`capability_metrics`、`acceptance`、`boundary`、`workflow_draft`、`solution_direction`、`validation_dimensions` |
 | M4 | `agent_team`、`collaboration_mode`、`workflow_final`、`knowledge`、`data_sources`、`tools_skills`、`prototype_rounds`、`delivery_preparation` |
 | M5 | `validation_rounds`、`can_execute`、`can_create_value`、`trust_risk_controls`、`issues_corrections` |
 | M6 | `final_solution`、`solution_comparison`、`demo_summary`、`validation_review`、`capability_boundary`、`applicable_scenarios`、`optimization_space`、`evolution_assets`、`next_step_plan`、`headline`、`takeaway` |

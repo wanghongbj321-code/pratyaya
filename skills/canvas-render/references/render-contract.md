@@ -126,8 +126,8 @@
 | `id="m3-capability-metrics"` | 能力指标（capability_metrics） |
 | `id="m3-acceptance"` | 验收标准（acceptance） |
 | `id="m3-boundary"` | 边界（boundary） |
-| `id="m3-solution-direction"` | 方案方向（solution_direction） |
 | `id="m3-workflow-draft"` | Workflow 草案（workflow_draft） |
+| `id="m3-solution-direction"` | 方案方向（solution_direction） |
 | `id="m3-validation-dimensions"` | 验证维度（validation_dimensions） |
 
 ### M4 模块详情

@@ -3,196 +3,376 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>MVL 全局画布 MVL Canvas（一等公民 · 示例）</title>
+<title>MAAU Canvas · MVL Final Canvas（一等公民 · 示例）</title>
 <link rel="stylesheet" href="../shared/canvas-theme.css">
 <style>
-  /* 六大板块 */
-  .blocks{ display:grid; grid-template-columns:repeat(2,1fr); gap:16px; margin-bottom:16px; }
-  .block{
+  .wrap{ max-width:1600px; padding:24px; }
+
+  .maau-sheet{
     border:var(--border-w) solid var(--line); border-radius:var(--radius);
-    background:var(--paper); box-shadow:var(--shadow); padding:16px 18px 18px;
+    background:var(--paper); padding:14px; box-shadow:var(--shadow);
+  }
+
+  .maau-header{
+    display:flex; justify-content:space-between; align-items:flex-start;
+    gap:28px; padding:6px 8px 14px; border-bottom:var(--border-w) solid var(--line);
+  }
+  .maau-title-row{ display:flex; align-items:flex-start; gap:18px; flex-wrap:wrap; }
+  .maau-title-row h1{
+    margin:0; font-size:clamp(34px,4.6vw,58px); line-height:.95;
+    font-weight:800; letter-spacing:0; color:var(--title-color);
+  }
+  .maau-subtitle{ padding-top:2px; color:var(--ink); line-height:1.2; }
+  .maau-subtitle strong{ display:block; font-size:clamp(16px,1.9vw,25px); font-weight:800; }
+  .maau-subtitle span{ display:block; margin-top:2px; font-size:clamp(15px,1.65vw,22px); font-weight:700; }
+  .maau-desc{ margin:12px 0 0; color:var(--muted); font-size:14px; font-weight:700; max-width:850px; }
+  .maau-meta{
+    min-width:310px; padding-top:8px; font-size:12px; color:var(--ink);
+    display:grid; gap:7px;
+  }
+  .maau-meta-row{ display:grid; grid-template-columns:auto 1fr; align-items:end; gap:10px; }
+  .maau-meta-row b{ white-space:nowrap; font-weight:800; }
+  .maau-meta-line{ display:block; min-height:18px; border-bottom:1px solid var(--muted); color:var(--ink); }
+
+  .maau-top-grid{
+    display:grid; grid-template-columns:repeat(5,minmax(0,1fr));
+    gap:8px; margin-top:8px;
+  }
+  .maau-card,
+  .maau-validation,
+  .maau-governance,
+  .maau-footer{
+    border:var(--border-w) solid var(--line); border-radius:6px;
+    background:var(--paper); box-shadow:var(--shadow);
+  }
+  .maau-card{
+    min-height:440px; padding:10px; display:flex; flex-direction:column;
+  }
+  .maau-card-title{
+    display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+    margin:0; color:var(--ink); font-size:17px; line-height:1.2; font-weight:800;
+  }
+  .maau-card-title em{ font-style:normal; font-weight:800; }
+  .maau-card-title small{ color:var(--muted); font-size:13px; font-weight:700; }
+  .maau-index{
+    display:inline-grid; place-items:center; width:26px; height:26px;
+    border-radius:7px; background:#000; color:#fff; font-weight:800; line-height:1;
+    flex:0 0 auto;
+  }
+  .maau-prompt{
+    margin-top:10px; padding:10px; border-radius:6px;
+    background:linear-gradient(135deg,#f4f4f4,#eeeeee);
+    color:var(--ink); font-size:11.5px; line-height:1.5; min-height:96px;
+  }
+  .maau-prompt strong{ display:block; margin-bottom:3px; font-size:12px; }
+  .maau-prompt ul{ margin:0; padding-left:15px; }
+  .maau-fields{ flex:1; display:grid; gap:7px; margin-top:10px; align-content:start; }
+  .maau-field{ min-height:42px; border-bottom:1px solid var(--fill-line); }
+  .maau-field .field-label{ display:block; color:var(--muted); font-size:10.5px; font-weight:800; line-height:1.2; }
+  .maau-card .fill,
+  .maau-validation .fill{
+    min-height:28px; padding:2px 0; background-image:none; line-height:1.45;
+    font-size:12px; color:var(--ink); outline:none;
+  }
+  .maau-card .fill:focus,
+  .maau-validation .fill:focus{ background:var(--brand-pale); }
+  .maau-card .fill:empty::before,
+  .maau-validation .fill:empty::before{ font-size:11px; color:var(--hint-color); }
+  .maau-output{
+    margin-top:10px; padding:8px 9px; border-radius:6px; background:#eeeeee;
+    font-size:11px; font-weight:800; color:var(--ink);
+  }
+  .maau-source{
+    margin-top:7px; padding-top:7px; border-top:1px dashed var(--line);
+    font-size:10.5px; color:var(--hint-color); display:flex; flex-wrap:wrap; gap:5px 8px;
+  }
+  .maau-source a{ color:var(--ink); text-decoration:underline; text-underline-offset:2px; }
+
+  .maau-validation{ margin-top:8px; padding:10px; }
+  .maau-validation-grid{
+    display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-top:10px;
+  }
+  .validation-box{
+    min-height:230px; border:1px solid var(--line); border-radius:6px; padding:10px;
     display:flex; flex-direction:column;
   }
-  .block .fill{ flex:1; }
-  .block .src{ margin-top:8px; padding-top:8px; border-top:1px dashed var(--line); font-size:10.5px; color:var(--hint-color); }
+  .validation-box h3{ margin:0; font-size:14px; line-height:1.25; color:var(--ink); }
+  .validation-box p{ margin:3px 0 8px; font-size:11.5px; color:var(--muted); line-height:1.35; }
+  .validation-box .fill{ flex:1; }
 
-  /* 质量与治理面板（MVL render-contract 共享结构） */
-  .lower{ display:grid; grid-template-columns:1.4fr 1fr; gap:16px; align-items:start; }
-  .quality{
-    border:var(--border-w) solid var(--line); border-radius:var(--radius);
-    background:var(--paper); box-shadow:var(--shadow); padding:16px 18px 18px;
+  .maau-governance{ margin-top:8px; padding:10px; font-size:11.5px; }
+  .governance-head{ display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:8px; }
+  .governance-head h2{ margin:0; font-size:15px; line-height:1.2; }
+  .governance-head span{ color:var(--muted); font-weight:700; }
+  .governance-row{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; }
+  .governance-item{ border:1px solid var(--line); border-radius:6px; padding:8px; min-height:58px; }
+  .governance-item b{ display:block; font-size:10.5px; color:var(--muted); margin-bottom:3px; }
+  .governance-item span,
+  .governance-item dd{ color:var(--ink); font-weight:800; }
+  .governance-item dl{ margin:0; display:grid; grid-template-columns:auto 1fr; gap:2px 7px; }
+  .governance-item dt{ color:var(--muted); }
+  .governance-item dd{ margin:0; }
+  .governance-caveat{
+    margin-top:8px; padding:8px 10px; border:1.5px dashed #000; border-radius:6px;
+    background:var(--brand-pale); color:var(--ink); font-size:11.5px;
   }
-  .q-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-top:10px; }
-  .q-item{ border:1px solid var(--line); border-radius:var(--radius); padding:10px 12px; }
-  .q-item .q-name{ font-size:13px; font-weight:700; color:var(--ink); }
-  .q-item .q-en{ font-size:11px; color:var(--hint-color); }
-  .q-item .q-verdict{ margin-top:6px; font-size:12px; }
-  /* 质量结论色：黑灰体系内区分，不使用彩色 */
-  .verdict-pass{ color:#000; font-weight:700; }
-  .verdict-fail{ color:#000; font-weight:700; text-decoration:underline; }
-  .verdict-pending{ color:var(--muted); font-weight:700; }
-
-  .govern{
-    border:var(--border-w) solid var(--line); border-radius:var(--radius);
-    background:var(--paper); box-shadow:var(--shadow); padding:16px 18px 18px;
+  .governance-alignment{
+    margin-top:8px; padding-top:8px; border-top:1px solid var(--line);
+    display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px;
   }
-  .govern dl{ margin:0 0 4px; display:grid; grid-template-columns:auto 1fr; gap:4px 12px; font-size:12.5px; }
-  .govern dt{ color:var(--muted); }
-  .govern dd{ margin:0; font-weight:700; color:var(--ink); }
-  .govern .sub-head{ font-size:12px; font-weight:700; color:var(--ink); margin:12px 0 4px; }
-  .govern .caveat{
-    margin-top:12px; padding:10px 12px; border:1.5px dashed #000; border-radius:var(--radius);
-    font-size:12px; color:#000; background:var(--brand-pale);
-  }
-  .align{ margin-top:12px; border-top:1px solid var(--line); padding-top:8px; }
-  .align .a-item{ margin:0 0 6px; font-size:12px; color:var(--ink); }
-  .align .a-lbl{ color:var(--muted); }
+  .governance-alignment h3{ grid-column:1/-1; margin:0; font-size:12px; }
+  .governance-alignment p{ margin:0; color:var(--ink); }
+  .governance-alignment b{ color:var(--muted); }
 
   .local-notes{
-    margin-top:16px; border:1px dashed var(--line); border-radius:var(--radius);
-    padding:12px 14px; font-size:12.5px; min-height:48px; color:var(--ink); outline:none;
+    margin-top:8px; border:1px dashed var(--line); border-radius:6px;
+    padding:9px 10px; font-size:11.5px; min-height:38px; color:var(--ink); outline:none;
   }
-  .local-notes:empty::before{ content:"本地备注（浏览器内可编辑，刷新即清空）…"; color:var(--hint-color); }
+  .local-notes:empty::before{ content:"本地批注（不覆盖确认包事实源，刷新即清空）..."; color:var(--hint-color); }
 
-  @media(max-width:1100px){ .blocks{ grid-template-columns:1fr; } .lower{ grid-template-columns:1fr; } }
-  @media print{ .blocks{ gap:8px; } .block{ min-height:auto; } .lower{ gap:8px; } }
+  .maau-footer{
+    margin-top:8px; padding:9px 12px; display:flex; justify-content:space-between;
+    align-items:center; gap:16px; color:var(--ink); font-size:11.5px; font-weight:700;
+  }
+  .maau-footer-flow{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .maau-footer-note{ color:var(--muted); text-align:right; white-space:nowrap; }
+
+  @media(max-width:1100px){
+    .maau-header{ flex-direction:column; }
+    .maau-meta{ min-width:0; width:100%; }
+    .maau-top-grid,
+    .maau-validation-grid,
+    .governance-row,
+    .governance-alignment{ grid-template-columns:1fr; }
+    .maau-footer{ align-items:flex-start; flex-direction:column; }
+    .maau-footer-note{ text-align:left; white-space:normal; }
+  }
+  @media print{
+    .wrap{ padding:0; max-width:none; }
+    .maau-sheet{ break-inside:avoid; padding:8px; }
+    .maau-header{ gap:14px; padding-bottom:8px; }
+    .maau-title-row h1{ font-size:38px; }
+    .maau-subtitle strong{ font-size:17px; }
+    .maau-subtitle span{ font-size:15px; }
+    .maau-desc{ font-size:11px; margin-top:7px; }
+    .maau-card{ min-height:320px; padding:7px; }
+    .maau-prompt{ min-height:72px; padding:7px; font-size:9.5px; }
+    .maau-card-title{ font-size:13px; }
+    .maau-index{ width:21px; height:21px; border-radius:6px; }
+    .maau-field .field-label,
+    .maau-output,
+    .maau-source,
+    .maau-governance,
+    .maau-footer{ font-size:9px; }
+    .validation-box{ min-height:150px; padding:7px; }
+    .local-notes{ display:none; }
+  }
 </style>
 </head>
 <body data-theme="base" data-mode="formal" data-canvas="mvl" data-page-type="global" data-version="1">
 <div class="wrap">
-  <header class="canvas-head" id="canvas-header">
-    <div>
-      <div class="eyebrow">Pratyaya Canvas · 一等公民 · MVL</div>
-      <h1>MVL Canvas <span style="font-weight:500;font-size:16px;color:var(--muted)">· 全局汇总视图</span></h1>
-      <p class="sub">通过<u>什么</u>，为<u>谁</u>实现<u>什么价值</u>——MVL（Minimum Verifiable Loop，最小可验证自治闭环）三天工作坊六模块已确认结论的完整展示层。</p>
-      <div id="canvas-headline" style="margin-top:8px;font-size:14px;font-weight:700;color:var(--title-color);">一句话概括：{在此填写贯穿六大板块的核心价值主张}</div>
-    </div>
-    <div class="meta">
-      <strong>Canvas · MVL Global</strong>
-      日期：__________<br>
-      小组：__________<br>
-      版本：v1（草稿）
-    </div>
-  </header>
-
-  <!-- 六大板块 -->
-  <div class="blocks" id="mvl-blocks">
-    <section class="block" id="intent" aria-label="意图 Intent">
-      <h2 class="cell-title">Intent <span class="en">意图</span></h2>
-      <p class="cell-hint">本次 MVL 要验证的核心目标、价值与成功指标。（来源：M1；M3 回填）</p>
-      <div class="fill" id="intent-goal" contenteditable="true" data-ph="目标（Goal）…"></div>
-      <div class="fill" id="intent-value" contenteditable="true" data-ph="价值（Value）…"></div>
-      <div class="fill" id="intent-success-metrics" contenteditable="true" data-ph="成功指标（Success Metrics）：指标 / 基线 / 目标 / 衡量方式…"></div>
-      <div class="src" data-module="M1">来源模块：M1（Intent）；M3 回填 Intent</div>
-    </section>
-
-    <section class="block" id="user" aria-label="用户 User">
-      <h2 class="cell-title">User <span class="en">用户</span></h2>
-      <p class="cell-hint">锁定具体用户及其诉求、痛点与最重要的结果。（来源：M2）</p>
-      <div class="fill" id="user-users" contenteditable="true" data-ph="用户（Users）…"></div>
-      <div class="fill" id="user-needs" contenteditable="true" data-ph="需求（Needs）…"></div>
-      <div class="fill" id="user-pain-points" contenteditable="true" data-ph="痛点（Pain Points）…"></div>
-      <div class="fill" id="user-most-important-outcomes" contenteditable="true" data-ph="最重要的结果（Most Important Outcomes）…"></div>
-      <div class="src" data-module="M2">来源模块：M2（User）；为 Workflow 提供现状流程</div>
-    </section>
-
-    <section class="block" id="agent-team" aria-label="Agent Team">
-      <h2 class="cell-title">Agent Team <span class="en">人 + Agent</span></h2>
-      <p class="cell-hint">角色、职责、是否 Agent、决策边界与协作模式。（来源：M4）</p>
-      <div class="fill" id="agent-team-roles" contenteditable="true" data-ph="角色与职责（Roles / 是否 Agent / 决策边界）…"></div>
-      <div class="fill" id="agent-team-collaboration" contenteditable="true" data-ph="协作模式（Collaboration）…"></div>
-      <div class="src" data-module="M4">来源模块：M4（Agent Team）</div>
-    </section>
-
-    <section class="block" id="workflow" aria-label="工作流 Workflow">
-      <h2 class="cell-title">Workflow <span class="en">工作流</span></h2>
-      <p class="cell-hint">本次 MVL 的 AI 应用工作流——三类节点分别呈现。（来源：M2 现状流程素材；M3 草案；M4 冻结版）</p>
-      <div class="fill" id="workflow-steps" contenteditable="true" data-ph="流程步骤（Steps）…"></div>
-      <div class="fill" id="workflow-automation" contenteditable="true" data-ph="自动化节点（Agent 执行）…"></div>
-      <div class="fill" id="workflow-human-checkpoints" contenteditable="true" data-ph="人工操作 / 确认节点…"></div>
-      <div class="fill" id="workflow-human-agent-nodes" contenteditable="true" data-ph="人审 + Agent 执行节点…"></div>
-      <div class="fill" id="workflow-rules" contenteditable="true" data-ph="关键规则（Rules）…"></div>
-      <div class="src" data-module="M2/M3/M4">来源模块：M2 现状流程；M3 Workflow 草案；M4 冻结版</div>
-    </section>
-
-    <section class="block" id="context" aria-label="上下文 Context">
-      <h2 class="cell-title">Context <span class="en">上下文</span></h2>
-      <p class="cell-hint">知识库、数据源、工具与技能。（来源：M4）</p>
-      <div class="fill" id="context-knowledge" contenteditable="true" data-ph="知识库（Knowledge）…"></div>
-      <div class="fill" id="context-data-sources" contenteditable="true" data-ph="数据源（Data Sources）…"></div>
-      <div class="fill" id="context-tools-skills" contenteditable="true" data-ph="工具与技能（Tools &amp; Skills）…"></div>
-      <div class="src" data-module="M4">来源模块：M4（Context）</div>
-    </section>
-
-    <section class="block" id="validation" aria-label="闭环验证 Validation">
-      <h2 class="cell-title">Validation <span class="en">闭环验证</span></h2>
-      <p class="cell-hint">能否执行、能否创造价值、能否持续进化。（来源：M5；M6）</p>
-      <div class="fill" id="validation-executable" contenteditable="true" data-ph="能否执行（Can Execute）…"></div>
-      <div class="fill" id="validation-value" contenteditable="true" data-ph="能否创造价值（Can Create Value）：目标值 / 实测值 / 衡量方式…"></div>
-      <div class="fill" id="validation-evolution" contenteditable="true" data-ph="能否持续进化（Can Evolve）：Prompt / Workflow / SOP / Knowledge / Agent / Template / Best Practice / 数据资产…"></div>
-      <div class="src" data-module="M5/M6">来源模块：M5（Validation）；M6（持续进化 / 总结）</div>
-    </section>
-  </div>
-
-  <!-- 质量与治理面板 -->
-  <div class="lower">
-    <section class="quality" id="mvl-quality" aria-label="质量鉴别">
-      <h2 class="cell-title">跨模块一致性 <span class="en">Alignment &amp; Quality</span></h2>
-      <p class="cell-hint">全局汇总前校验 M1-M6 全部 rendered 且指向最新版本；跨模块 caveat 浮现（override 模块显式标注）。来源：<code>state.json</code> 与各模块确认包，不由展示层推断。</p>
-      <div class="q-grid">
-        <div class="q-item" id="mvl-quality-modules">
-          <div class="q-name">六模块齐全 <span class="q-en">all_modules_rendered</span></div>
-          <div class="q-verdict verdict-pending" data-verdict>待判定</div>
+  <main class="maau-sheet" id="maau-canvas">
+    <header class="maau-header" id="canvas-header">
+      <div class="maau-title-group">
+        <div class="maau-title-row">
+          <h1>MAAU Canvas</h1>
+          <div class="maau-subtitle">
+            <strong>MVL Final Canvas</strong>
+            <span>Minimum Actionable Agentic Unit<br>最小智能体可执行单元</span>
+          </div>
         </div>
-        <div class="q-item" id="mvl-quality-alignment">
-          <div class="q-name">跨模块一致 <span class="q-en">cross_module_consistent</span></div>
-          <div class="q-verdict verdict-pending" data-verdict>待判定</div>
+        <p class="maau-desc">通过「人 + Agent + Workflow + Context」持续创造价值并不断进化的最小协作单元；由 MVL 六模块已确认结论汇总生成。</p>
+      </div>
+      <div class="maau-meta" aria-label="项目元信息">
+        <div class="maau-meta-row"><b>项目 / Project:</b><span class="maau-meta-line" contenteditable="true"></span></div>
+        <div class="maau-meta-row"><b>团队 / Team:</b><span class="maau-meta-line" contenteditable="true"></span></div>
+        <div class="maau-meta-row"><b>日期 / Date:</b><span class="maau-meta-line" contenteditable="true"></span></div>
+        <div class="maau-meta-row"><b>版本 / Version:</b><span class="maau-meta-line" id="quality-version">v1（草稿）</span></div>
+        <div class="maau-meta-row"><b>确认状态 / Status:</b><span class="maau-meta-line">pending</span></div>
+      </div>
+    </header>
+
+    <section class="maau-top-grid" id="mvl-blocks" aria-label="MAAU 五要素">
+      <section class="maau-card" id="intent" aria-label="意图 Intent">
+        <h2 class="maau-card-title"><span class="maau-index">1</span><span>Intent <em>（意图）</em></span></h2>
+        <div class="maau-prompt">
+          <strong>我们要创造什么价值？</strong>
+          <ul>
+            <li>目标是什么？</li>
+            <li>为什么值得做？</li>
+            <li>如何定义成功？</li>
+          </ul>
         </div>
-        <div class="q-item" id="mvl-quality-caveat">
-          <div class="q-name">Caveat 浮现 <span class="q-en">caveat_surfaced</span></div>
-          <div class="q-verdict verdict-pending" data-verdict>待判定</div>
+        <div class="maau-fields">
+          <div class="maau-field"><span class="field-label">目标 / Goal</span><div class="fill" id="intent-goal" contenteditable="true" data-ph="目标（Goal）..."></div></div>
+          <div class="maau-field"><span class="field-label">价值 / Value</span><div class="fill" id="intent-value" contenteditable="true" data-ph="价值（Value）..."></div></div>
+          <div class="maau-field"><span class="field-label">成功指标 / Success Metrics</span><div class="fill" id="intent-success-metrics" contenteditable="true" data-ph="指标 / 基线 / 目标 / 衡量方式..."></div></div>
         </div>
-        <div class="q-item" id="mvl-quality-audit">
-          <div class="q-name">离线可打印 <span class="q-en">offline_printable</span></div>
-          <div class="q-verdict verdict-pending" data-verdict>待判定</div>
+        <div class="maau-output">输出 Output: 目标 | 价值 | 成功指标</div>
+        <div class="maau-source" data-module="M1/M3">来源：M1；M3 回填 <a href="./module-1-canvas.html">查看 M1 依据</a> <a href="./module-3-canvas.html">查看 M3 依据</a></div>
+      </section>
+
+      <section class="maau-card" id="user" aria-label="用户 User">
+        <h2 class="maau-card-title"><span class="maau-index">2</span><span>User <em>（用户）</em></span></h2>
+        <div class="maau-prompt">
+          <strong>我们为谁创造价值？</strong>
+          <ul>
+            <li>用户是谁？</li>
+            <li>他们有什么需求或痛点？</li>
+            <li>什么结果对他们最重要？</li>
+          </ul>
+        </div>
+        <div class="maau-fields">
+          <div class="maau-field"><span class="field-label">用户 / Users</span><div class="fill" id="user-users" contenteditable="true" data-ph="用户（Users）..."></div></div>
+          <div class="maau-field"><span class="field-label">需求 / Needs</span><div class="fill" id="user-needs" contenteditable="true" data-ph="需求（Needs）..."></div></div>
+          <div class="maau-field"><span class="field-label">痛点 / Pain Points</span><div class="fill" id="user-pain-points" contenteditable="true" data-ph="痛点（Pain Points）..."></div></div>
+          <div class="maau-field"><span class="field-label">最重要结果 / Most Important Outcomes</span><div class="fill" id="user-most-important-outcomes" contenteditable="true" data-ph="最重要的结果..."></div></div>
+        </div>
+        <div class="maau-output">输出 Output: 用户 | 需求 | 痛点 | 最重要结果</div>
+        <div class="maau-source" data-module="M2">来源：M2 <a href="./module-2-canvas.html">查看 M2 依据</a></div>
+      </section>
+
+      <section class="maau-card" id="agent-team" aria-label="Agent Team">
+        <h2 class="maau-card-title"><span class="maau-index">3</span><span>Agent Team <em>（人 + Agent）</em></span></h2>
+        <div class="maau-prompt">
+          <strong>谁来完成？</strong>
+          <ul>
+            <li>需要哪些角色？</li>
+            <li>Agent 负责什么？</li>
+            <li>人负责什么？</li>
+          </ul>
+        </div>
+        <div class="maau-fields">
+          <div class="maau-field"><span class="field-label">角色与职责 / Roles</span><div class="fill" id="agent-team-roles" contenteditable="true" data-ph="角色 / 职责 / 是否 Agent / 决策边界..."></div></div>
+          <div class="maau-field"><span class="field-label">协作模式 / Collaboration</span><div class="fill" id="agent-team-collaboration" contenteditable="true" data-ph="人与 Agent 的协作模式..."></div></div>
+        </div>
+        <div class="maau-output">输出 Output: 角色 | 职责 | 决策边界 | 协作模式</div>
+        <div class="maau-source" data-module="M4">来源：M4 <a href="./module-4-canvas.html">查看 M4 依据</a></div>
+      </section>
+
+      <section class="maau-card" id="workflow" aria-label="工作流 Workflow">
+        <h2 class="maau-card-title"><span class="maau-index">4</span><span>Workflow <em>（工作流）</em></span></h2>
+        <div class="maau-prompt">
+          <strong>如何完成？</strong>
+          <ul>
+            <li>关键步骤是什么？</li>
+            <li>哪些可以自动化？</li>
+            <li>哪些需要人工确认？</li>
+          </ul>
+        </div>
+        <div class="maau-fields">
+          <div class="maau-field"><span class="field-label">流程步骤 / Steps</span><div class="fill" id="workflow-steps" contenteditable="true" data-ph="触发 / 步骤 / 完成条件..."></div></div>
+          <div class="maau-field"><span class="field-label">Agent 执行 / Automation</span><div class="fill" id="workflow-automation" contenteditable="true" data-ph="自动化节点（Agent 执行）..."></div></div>
+          <div class="maau-field"><span class="field-label">人工确认 / Human Checkpoints</span><div class="fill" id="workflow-human-checkpoints" contenteditable="true" data-ph="人工操作 / 确认节点..."></div></div>
+          <div class="maau-field"><span class="field-label">人审 + Agent / Human + Agent</span><div class="fill" id="workflow-human-agent-nodes" contenteditable="true" data-ph="人审 + Agent 执行节点..."></div></div>
+          <div class="maau-field"><span class="field-label">关键规则 / Rules</span><div class="fill" id="workflow-rules" contenteditable="true" data-ph="决定流向、升级、停止或回退的关键规则..."></div></div>
+        </div>
+        <div class="maau-output">输出 Output: 流程 | Agent 执行 | 人工确认 | 人审 + Agent | 关键规则</div>
+        <div class="maau-source" data-module="M2/M3/M4">来源：M2/M3/M4 <a href="./module-3-canvas.html">查看 M3 草案</a> <a href="./module-4-canvas.html">查看 M4 冻结版</a></div>
+      </section>
+
+      <section class="maau-card" id="context" aria-label="上下文 Context">
+        <h2 class="maau-card-title"><span class="maau-index">5</span><span>Context <em>（上下文）</em></span></h2>
+        <div class="maau-prompt">
+          <strong>Agent 需要什么？</strong>
+          <ul>
+            <li>需要哪些知识和数据？</li>
+            <li>需要哪些工具？</li>
+            <li>信息从哪里来？</li>
+          </ul>
+        </div>
+        <div class="maau-fields">
+          <div class="maau-field"><span class="field-label">知识库 / Knowledge</span><div class="fill" id="context-knowledge" contenteditable="true" data-ph="知识库（Knowledge）..."></div></div>
+          <div class="maau-field"><span class="field-label">数据源 / Data Sources</span><div class="fill" id="context-data-sources" contenteditable="true" data-ph="数据源（Data Sources）..."></div></div>
+          <div class="maau-field"><span class="field-label">工具与技能 / Tools &amp; Skills</span><div class="fill" id="context-tools-skills" contenteditable="true" data-ph="工具与技能..."></div></div>
+        </div>
+        <div class="maau-output">输出 Output: 知识库 | 数据源 | 工具集</div>
+        <div class="maau-source" data-module="M4">来源：M4 <a href="./module-4-canvas.html">查看 M4 依据</a></div>
+      </section>
+    </section>
+
+    <section class="maau-validation" id="validation" aria-label="闭环验证 Validation">
+      <h2 class="maau-card-title"><span class="maau-index">6</span><span>Validation（闭环验证）</span><small>这个 MAAU 是否成立？</small></h2>
+      <div class="maau-validation-grid">
+        <div class="validation-box">
+          <h3>1. 能否执行？</h3>
+          <p>是否能完整完成一次真实任务？</p>
+          <div class="fill" id="validation-executable" contenteditable="true" data-ph="能否执行（Can Execute）..."></div>
+          <div class="maau-source" data-module="M5">来源：M5 <a href="./module-5-canvas.html">查看 M5 验证依据</a></div>
+        </div>
+        <div class="validation-box">
+          <h3>2. 能否创造价值？</h3>
+          <p>是否产生可衡量收益？例如：效率提升 | 成本降低 | 质量提升 | 收入增长</p>
+          <div class="fill" id="validation-value" contenteditable="true" data-ph="目标值 / 实测值 / 衡量方式；需对齐 Intent 成功指标..."></div>
+          <div class="maau-source" data-module="M5/M1">来源：M5；对齐 M1 <a href="./module-5-canvas.html">查看 M5 验证依据</a></div>
+        </div>
+        <div class="validation-box">
+          <h3>3. 能否持续进化？</h3>
+          <p>是否沉淀组织资产？例如：Prompt | Workflow | Agent Skill | Knowledge | SOP | Template</p>
+          <div class="fill" id="validation-evolution" contenteditable="true" data-ph="Prompt / Workflow / SOP / Knowledge / Agent / Template / Best Practice / 数据资产..."></div>
+          <div class="maau-source" data-module="M6">来源：M6 <a href="./module-6-canvas.html">查看 M6 总结依据</a></div>
         </div>
       </div>
     </section>
 
-    <aside class="govern" id="quality-panel" aria-label="质量与治理">
-      <h3 class="cell-title">质量与对齐</h3>
-      <dl>
-        <dt>版本</dt><dd id="quality-version">v1（草稿）</dd>
-      </dl>
-      <div id="quality-approval">
-        <dl>
-          <dt>Gate 建议</dt><dd id="quality-gate">pending</dd>
-          <dt>授权渲染</dt><dd id="quality-authorized">false</dd>
-          <dt>确认模式</dt><dd id="quality-mode">null</dd>
-        </dl>
+    <aside class="maau-governance" id="quality-panel" aria-label="质量与治理">
+      <div class="governance-head">
+        <h2>质量与对齐 <span class="en">Quality &amp; Alignment</span></h2>
+        <span>全局页扫描六模块 rendered 状态、跨模块一致性与 override caveat。</span>
       </div>
-      <dl>
-        <dt>缺口摘要</dt><dd id="quality-gaps">—</dd>
-        <dt>风险摘要</dt><dd id="quality-risks">—</dd>
-      </dl>
-      <div class="caveat" id="quality-caveat" hidden>
-        <b>Override 警示：</b><span id="quality-caveat-text">全局页扫描六模块 confirmation_mode，对 override 模块显式标注 caveat 与风险摘要；不得把 override 结论混入"已完全验证 / 无风险"。</span>
+      <div class="governance-row">
+        <div class="governance-item" id="quality-approval">
+          <b>授权状态 / Approval</b>
+          <dl>
+            <dt>Gate</dt><dd id="quality-gate">pending</dd>
+            <dt>Render</dt><dd id="quality-authorized">false</dd>
+            <dt>Mode</dt><dd id="quality-mode">null</dd>
+          </dl>
+        </div>
+        <div class="governance-item">
+          <b>缺口摘要 / Gaps</b>
+          <span id="quality-gaps">—</span>
+        </div>
+        <div class="governance-item">
+          <b>风险摘要 / Risks</b>
+          <span id="quality-risks">—</span>
+        </div>
+        <div class="governance-item">
+          <b>离线与打印 / Delivery</b>
+          <span>本地离线可打开；A4 横版打印；下钻使用相对链接。</span>
+        </div>
       </div>
-      <div class="align" id="alignment-section">
-        <h4 class="sub-head">对齐状态</h4>
-        <p class="a-item"><span class="a-lbl">共识地图：</span><span id="alignment-consensus">—</span></p>
-        <p class="a-item"><span class="a-lbl">分歧点：</span><span id="alignment-divergences">—</span></p>
-        <p class="a-item"><span class="a-lbl">决策留痕：</span><span id="alignment-decisions">—</span></p>
+      <div class="governance-caveat" id="quality-caveat" hidden>
+        <b>Override 警示：</b><span id="quality-caveat-text">全局页扫描六模块 confirmation_mode，对 override 模块显式标注 caveat、风险摘要、确认人、确认时间与补救措施；不得把 override 结论混入“已完全验证 / 无风险”。</span>
       </div>
+      <section class="governance-alignment" id="alignment-section">
+        <h3>对齐状态</h3>
+        <p><b>共识地图：</b><span id="alignment-consensus">—</span></p>
+        <p><b>分歧点：</b><span id="alignment-divergences">—</span></p>
+        <p><b>决策留痕：</b><span id="alignment-decisions">—</span></p>
+      </section>
     </aside>
-  </div>
 
-  <section class="local-notes" id="local-notes" contenteditable="true"></section>
+    <section class="local-notes" id="local-notes" contenteditable="true" aria-label="本地批注"></section>
 
-  <p class="footnote">
-    <b>说明：</b>本文件为 MVL <b>一等公民全局画布示例</b>（对齐 <code>render-contract.md</code> §A），结构 1:1 映射六大板块 + 共享结构锚点。MVL Canvas 是<b>六次工作坊已确认结论的展示层，非生产级系统</b>；模拟环境概念验证原型。
-    采用标准 pratyaya 黑灰配色（单色方案，无配色切换），按 Ctrl/Cmd + P 可直接横版打印。本示例为静态骨架，正式渲染由 <code>canvas-render</code> Skill 经 <code>提炼→门禁→渲染</code> 管线生成 <code>output/maau-global-canvas.html</code>；各板块下钻详见 <a href="./module-1-canvas.html">M1</a> … <a href="./module-6-canvas.html">M6</a> 模块详情示例。
-  </p>
+    <footer class="maau-footer">
+      <div class="maau-footer-flow">
+        <strong>使用说明 / How to Use</strong>
+        <span>1. 明确目标与用户</span>
+        <span>→</span>
+        <span>2. 组建人 + Agent 团队</span>
+        <span>→</span>
+        <span>3. 设计工作流</span>
+        <span>→</span>
+        <span>4. 配置上下文</span>
+        <span>→</span>
+        <span>5. 验证闭环</span>
+        <span>→</span>
+        <span>6. 迭代进化</span>
+      </div>
+      <div class="maau-footer-note">建议打印尺寸：A4 横版 | MVL Final Canvas | Sticky Notes Friendly</div>
+    </footer>
+  </main>
 </div>
 
 <script type="application/json" id="canvas-data">

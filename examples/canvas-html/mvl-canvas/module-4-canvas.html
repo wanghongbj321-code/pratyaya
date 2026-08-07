@@ -3,191 +3,389 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>M4 Canvas · 闭环冻结、原型两轮迭代与开发筹备（一等公民 · 示例）</title>
+<title>M4 Canvas · 闭环冻结（一等公民 · 示例）</title>
 <link rel="stylesheet" href="../shared/canvas-theme.css">
 <style>
-  .mod-summary{
-    border:var(--border-w) solid var(--line); border-radius:var(--radius);
-    background:var(--paper); box-shadow:var(--shadow); padding:16px 18px 18px; margin-bottom:16px;
-  }
-  .outputs{ display:grid; grid-template-columns:repeat(2,1fr); gap:16px; margin-bottom:16px; }
-  .cell{
-    border:var(--border-w) solid var(--line); border-radius:var(--radius);
-    background:var(--paper); box-shadow:var(--shadow); padding:16px 18px 18px;
-    display:flex; flex-direction:column;
-  }
-  .cell .fill{ flex:1; }
-  .lower{ display:grid; grid-template-columns:1.4fr 1fr; gap:16px; align-items:start; }
+  .wrap{ max-width:1600px; padding:24px; }
 
-  .quality{
+  .m4-sheet{
     border:var(--border-w) solid var(--line); border-radius:var(--radius);
-    background:var(--paper); box-shadow:var(--shadow); padding:16px 18px 18px;
+    background:var(--paper); padding:14px; box-shadow:var(--shadow);
   }
-  .q-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-top:10px; }
-  .q-item{ border:1px solid var(--line); border-radius:var(--radius); padding:10px 12px; }
-  .q-item .q-name{ font-size:13px; font-weight:700; color:var(--ink); }
-  .q-item .q-en{ font-size:11px; color:var(--hint-color); }
-  .q-item .q-verdict{ margin-top:6px; font-size:12px; }
-  .verdict-pass{ color:#000; font-weight:700; }
-  .verdict-fail{ color:#000; font-weight:700; text-decoration:underline; }
-  .verdict-pending{ color:var(--muted); font-weight:700; }
 
-  .govern{
-    border:var(--border-w) solid var(--line); border-radius:var(--radius);
-    background:var(--paper); box-shadow:var(--shadow); padding:16px 18px 18px;
+  /* 页头 hero */
+  .m4-hero{
+    display:flex; justify-content:space-between; align-items:flex-start;
+    gap:28px; padding:6px 8px 16px; border-bottom:var(--border-w) solid var(--line);
   }
-  .govern dl{ margin:0 0 4px; display:grid; grid-template-columns:auto 1fr; gap:4px 12px; font-size:12.5px; }
-  .govern dt{ color:var(--muted); }
-  .govern dd{ margin:0; font-weight:700; color:var(--ink); }
-  .govern .sub-head{ font-size:12px; font-weight:700; color:var(--ink); margin:12px 0 4px; }
-  .govern .caveat{
-    margin-top:12px; padding:10px 12px; border:1.5px dashed #000; border-radius:var(--radius);
-    font-size:12px; color:#000; background:var(--brand-pale);
+  .m4-hero .eyebrow{ margin:0 0 6px; color:var(--muted); font-size:12px; font-weight:800; letter-spacing:.04em; }
+  .m4-hero h1{
+    margin:0; font-size:clamp(30px,4vw,48px); line-height:.98;
+    font-weight:800; color:var(--title-color);
   }
-  .align{ margin-top:12px; border-top:1px solid var(--line); padding-top:8px; }
-  .align .a-item{ margin:0 0 6px; font-size:12px; color:var(--ink); }
-  .align .a-lbl{ color:var(--muted); }
+  .m4-hero-sub{ margin:6px 0 0; color:var(--ink); font-size:15px; font-weight:700; }
+  .m4-hero-sub em{ font-style:normal; color:var(--muted); font-weight:700; }
+  #module-summary-headline{
+    margin-top:12px; font-size:clamp(14px,1.5vw,17px); font-weight:700; color:var(--ink);
+  }
+  .m4-meta{
+    min-width:300px; padding-top:8px; font-size:12px; color:var(--ink);
+    display:grid; gap:7px;
+  }
+  .m4-meta-row{ display:grid; grid-template-columns:auto 1fr; align-items:end; gap:10px; }
+  .m4-meta-row b{ white-space:nowrap; font-weight:800; }
+  .m4-meta-line{ display:block; min-height:18px; border-bottom:1px solid var(--muted); color:var(--ink); }
+  .m4-back{ margin-top:4px; font-size:11.5px; }
+
+  /* 模块概览：全宽 */
+  .m4-overview{
+    margin-top:8px; border:var(--border-w) solid var(--line); border-radius:6px;
+    background:var(--paper); box-shadow:var(--shadow); padding:12px 14px;
+  }
+  .m4-overview .fill{ margin-top:8px; }
+
+  /* 闭环冻结板：2 + 全宽 + 3 + 2 */
+  .m4-freeze-board{
+    display:grid; grid-template-columns:repeat(6,minmax(0,1fr));
+    gap:8px; margin-top:8px;
+  }
+  .m4-card{
+    border:var(--border-w) solid var(--line); border-radius:6px;
+    background:var(--paper); box-shadow:var(--shadow);
+    padding:12px; display:flex; flex-direction:column;
+  }
+  .m4-team{ grid-column:span 3; min-height:220px; }
+  .m4-context{ grid-column:span 2; min-height:200px; }
+  .m4-delivery{ grid-column:span 3; min-height:210px; }
+  .m4-card-title{
+    display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+    margin:0 0 8px; color:var(--ink); font-size:16px; line-height:1.2; font-weight:800;
+  }
+  .m4-index{
+    display:inline-grid; place-items:center; width:24px; height:24px;
+    border-radius:6px; background:#000; color:#fff; font-weight:800; line-height:1; flex:0 0 auto;
+  }
+  .m4-card-title small{ color:var(--muted); font-size:12px; font-weight:700; }
+  .m4-card-hint{ margin:0 0 8px; font-size:11px; color:var(--muted); line-height:1.35; }
+  .m4-card .fill{ flex:1; }
+  .m4-output{
+    margin-top:10px; padding:6px 8px; border-radius:5px; background:#eeeeee;
+    font-size:10.5px; font-weight:800; color:var(--ink);
+  }
+  .m4-importance{ margin-top:6px; font-size:10px; font-weight:800; color:var(--hint-color); }
+
+  /* Workflow Final：全宽主视觉 */
+  .m4-workflow-final{
+    grid-column:1 / -1; min-height:260px;
+    border:var(--border-w) solid var(--line); border-radius:6px;
+    background:linear-gradient(180deg,var(--paper),#f4f4f4); box-shadow:var(--shadow);
+    padding:14px;
+  }
+  .m4-band-title{
+    display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+    margin:0 0 8px; color:var(--ink); font-size:17px; line-height:1.2; font-weight:800;
+  }
+  .m4-band-title small{ color:var(--muted); font-size:12px; font-weight:700; }
+  .m4-band-hint{ margin:0 0 8px; font-size:11px; color:var(--muted); line-height:1.35; }
+  .final-grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:4px; }
+  .final-block{ border-top:2px solid var(--ink); padding-top:6px; }
+  .final-block h4{ margin:0 0 4px; font-size:11.5px; color:var(--ink); }
+  .final-block .fill{ min-height:28px; border-bottom:1px solid var(--fill-line); }
+  .final-block.wide{ grid-column:1 / -1; }
+  .final-block.wide .fill{ min-height:40px; }
+
+  /* 通用可编辑输入 */
+  .fill{
+    min-height:28px; padding:2px 0; background-image:none; line-height:1.45;
+    font-size:12.5px; color:var(--ink); outline:none;
+  }
+  .fill:focus{ background:var(--brand-pale); }
+  .fill:empty::before{ content:attr(data-ph); font-size:11.5px; color:var(--hint-color); }
+
+  /* 结论 / 证据 / 缺口：信息层级区分 */
+  .m4-section{
+    margin-top:8px; border:var(--border-w) solid var(--line); border-radius:6px;
+    background:var(--paper); box-shadow:var(--shadow); padding:10px 14px;
+  }
+  .m4-section h2{ margin:0; font-size:15px; line-height:1.2; color:var(--ink); }
+  .m4-section h2 small{ color:var(--muted); font-size:12px; font-weight:700; }
+  .m4-section .section-desc{ margin:4px 0 8px; font-size:11px; color:var(--muted); line-height:1.35; }
+
+  /* 结论登记表：紧凑表格感 */
+  .conclusion-table{ display:grid; grid-template-columns:1fr; gap:6px; }
+  .conclusion-table .conclusion-head,
+  .conclusion-table .conclusion-row{
+    display:grid; grid-template-columns:90px 1.4fr 1fr; gap:6px; align-items:center;
+  }
+  .conclusion-table .conclusion-head{ font-size:10px; font-weight:800; color:var(--muted); }
+  .conclusion-table .conclusion-row .fill{ min-height:30px; border-bottom:1px solid var(--fill-line); }
+
+  /* 证据索引：低权重 */
+  .evidence-index{ display:grid; grid-template-columns:1fr; gap:4px; }
+  .evidence-index .fill{ min-height:26px; border-bottom:1px solid var(--fill-line); }
+
+  /* 缺口与推断：左右分区 */
+  .gaps-pair{ display:grid; grid-template-columns:1fr 1fr; gap:8px; align-items:start; }
+  .gaps-pair .gaps-block{ border-top:2px solid var(--ink); padding-top:6px; }
+  .gaps-pair h3{ margin:0 0 4px; font-size:12px; color:var(--ink); }
+  .gaps-pair .fill{ min-height:26px; border-bottom:1px solid var(--fill-line); }
+
+  /* 质量治理带 */
+  .m4-governance{
+    margin-top:8px; padding:10px 14px; font-size:11.5px;
+    border:var(--border-w) solid var(--line); border-radius:6px;
+    background:var(--paper); box-shadow:var(--shadow);
+  }
+  .governance-head{ display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:8px; }
+  .governance-head h2{ margin:0; font-size:15px; line-height:1.2; }
+  .governance-head span{ color:var(--muted); font-weight:700; }
+  .governance-row{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; }
+  .governance-item{ border:1px solid var(--line); border-radius:6px; padding:8px; min-height:56px; }
+  .governance-item b{ display:block; font-size:10.5px; color:var(--muted); margin-bottom:3px; }
+  .governance-item dl{ margin:0; display:grid; grid-template-columns:auto 1fr; gap:2px 7px; }
+  .governance-item dt{ color:var(--muted); }
+  .governance-item dd, .governance-item span{ margin:0; color:var(--ink); font-weight:800; }
+  .governance-caveat{
+    margin-top:8px; padding:8px 10px; border:1.5px dashed #000; border-radius:6px;
+    background:var(--brand-pale); color:var(--ink); font-size:11.5px;
+  }
+  .governance-alignment{
+    margin-top:8px; padding-top:8px; border-top:1px solid var(--line);
+    display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px;
+  }
+  .governance-alignment h3{ grid-column:1/-1; margin:0; font-size:12px; }
+  .governance-alignment p{ margin:0; color:var(--ink); }
+  .governance-alignment b{ color:var(--muted); }
 
   .local-notes{
-    margin-top:16px; border:1px dashed var(--line); border-radius:var(--radius);
-    padding:12px 14px; font-size:12.5px; min-height:48px; color:var(--ink); outline:none;
+    margin-top:8px; border:1px dashed var(--line); border-radius:6px;
+    padding:9px 10px; font-size:11.5px; min-height:38px; color:var(--ink); outline:none;
   }
-  .local-notes:empty::before{ content:"本地备注（浏览器内可编辑，刷新即清空）…"; color:var(--hint-color); }
+  .local-notes:empty::before{ content:"本地批注（浏览器内可编辑，刷新即清空，非正式事实源）..."; color:var(--hint-color); }
 
-  @media(max-width:1100px){ .outputs{ grid-template-columns:1fr; } .lower{ grid-template-columns:1fr; } }
-  @media print{ .outputs{ gap:8px; } .cell{ min-height:auto; } .lower{ gap:8px; } }
+  .m4-footer{
+    margin-top:8px; padding:9px 12px; display:flex; justify-content:space-between;
+    align-items:center; gap:16px; color:var(--ink); font-size:11.5px; font-weight:700;
+    border:var(--border-w) solid var(--line); border-radius:6px;
+    background:var(--paper); box-shadow:var(--shadow);
+  }
+  .m4-footer-note{ color:var(--muted); text-align:right; white-space:nowrap; }
+
+  @media(max-width:1100px){
+    .m4-hero{ flex-direction:column; }
+    .m4-meta{ min-width:0; width:100%; }
+    .m4-freeze-board{ grid-template-columns:1fr; }
+    .m4-team, .m4-context, .m4-workflow-final, .m4-delivery{ grid-column:auto; }
+    .final-grid{ grid-template-columns:1fr; }
+    .final-block.wide{ grid-column:auto; }
+    .conclusion-table .conclusion-head, .conclusion-table .conclusion-row{ grid-template-columns:1fr; }
+    .gaps-pair{ grid-template-columns:1fr; }
+    .governance-row, .governance-alignment{ grid-template-columns:1fr; }
+    .m4-footer{ align-items:flex-start; flex-direction:column; }
+    .m4-footer-note{ text-align:left; white-space:normal; }
+  }
+  @media print{
+    .wrap{ padding:0; max-width:none; }
+    .m4-sheet{ break-inside:avoid; padding:8px; }
+    .m4-hero{ gap:14px; padding-bottom:8px; }
+    .m4-hero h1{ font-size:34px; }
+    .m4-team, .m4-context, .m4-delivery{ min-height:130px; padding:8px; }
+    .m4-card-title{ font-size:13px; }
+    .m4-index{ width:20px; height:20px; border-radius:5px; }
+    .m4-workflow-final{ min-height:180px; }
+    .m4-governance, .m4-footer, .m4-card-hint, .section-desc, .m4-band-hint{ font-size:9px; }
+    .local-notes{ display:none; }
+  }
 </style>
 </head>
 <body data-theme="base" data-mode="formal" data-canvas="mvl" data-page-type="module-detail" data-module="M4" data-version="1">
 <div class="wrap">
-  <header class="canvas-head" id="canvas-header">
-    <div>
-      <div class="eyebrow">Pratyaya Canvas · 一等公民 · MVL 模块详情</div>
-      <h1>M4：闭环冻结、原型两轮迭代与开发筹备</h1>
-      <div id="module-summary-headline" style="margin-top:8px;font-size:14px;font-weight:700;color:var(--title-color);">一句话结论：{在此填写本模块核心理念}</div>
-    </div>
-    <div class="meta">
-      <strong>Canvas · M4 Detail</strong>
-      日期：__________<br>
-      小组：__________<br>
-      版本：v1（草稿）
-    </div>
-  </header>
+  <main class="m4-sheet">
+    <header class="m4-hero" id="canvas-header">
+      <div>
+        <p class="eyebrow">MVL Module Detail · M4</p>
+        <h1>M4：闭环冻结</h1>
+        <p class="m4-hero-sub">Workflow Final / Delivery Readiness</p>
+        <div id="module-summary-headline" contenteditable="true" data-ph="冻结结论：把 M3 Workflow Draft 固化为可交付的人-Agent-Context-Prototype-Delivery 配置…"></div>
+      </div>
+      <div class="m4-meta" aria-label="项目元信息">
+        <div class="m4-meta-row"><b>日期 / Date:</b><span class="m4-meta-line" contenteditable="true"></span></div>
+        <div class="m4-meta-row"><b>小组 / Group:</b><span class="m4-meta-line" contenteditable="true"></span></div>
+        <div class="m4-meta-row"><b>版本 / Version:</b><span class="m4-meta-line" id="quality-version">v1（草稿）</span></div>
+        <div class="m4-meta-row"><b>确认状态 / Status:</b><span class="m4-meta-line">pending</span></div>
+        <div class="m4-meta-row m4-back"><b>返回:</b><a href="./maau-global-canvas.html">MAAU 全局画布</a></div>
+      </div>
+    </header>
 
-  <section class="mod-summary" id="module-summary" aria-label="模块概览">
-    <h2 class="cell-title">模块概览 <span class="en">Module Summary</span></h2>
-    <div class="fill" id="module-summary-overview" contenteditable="true" data-ph="本模块讨论目标、范围与对最终 Canvas 的贡献…"></div>
-  </section>
+    <!-- 模块概览 -->
+    <section class="m4-overview" id="module-summary" aria-label="模块概览">
+      <h2 class="m4-card-title">模块概览 <small>Module Summary</small></h2>
+      <div class="fill" id="module-summary-overview" contenteditable="true" data-ph="把 M3 Workflow Draft 冻结为可执行、可测试、可交付的系统配置…"></div>
+    </section>
 
-  <div class="outputs" id="module-outputs">
-    <section class="cell" id="m4-agent-team">
-      <h2 class="cell-title">Agent Team <span class="en">Agent Team</span></h2>
-      <div class="fill" contenteditable="true" data-ph="角色 / 职责 / 是否 Agent / 决策边界…"></div>
-    </section>
-    <section class="cell" id="m4-collaboration">
-      <h2 class="cell-title">协作模式 <span class="en">Collaboration Mode</span></h2>
-      <div class="fill" contenteditable="true" data-ph="人与 Agent 的协作模式…"></div>
-    </section>
-    <section class="cell" id="m4-workflow-final">
-      <h2 class="cell-title">Workflow 冻结 <span class="en">Workflow Final</span></h2>
-      <div class="fill" contenteditable="true" data-ph="触发 / 步骤 / 完成条件 / 三类节点 / 关键规则（冻结版）…"></div>
-    </section>
-    <section class="cell" id="m4-knowledge">
-      <h2 class="cell-title">Context：知识 <span class="en">Knowledge</span></h2>
-      <div class="fill" contenteditable="true" data-ph="知识库…"></div>
-    </section>
-    <section class="cell" id="m4-data-sources">
-      <h2 class="cell-title">Context：数据源 <span class="en">Data Sources</span></h2>
-      <div class="fill" contenteditable="true" data-ph="数据源…"></div>
-    </section>
-    <section class="cell" id="m4-tools-skills">
-      <h2 class="cell-title">Context：工具与技能 <span class="en">Tools &amp; Skills</span></h2>
-      <div class="fill" contenteditable="true" data-ph="工具与技能…"></div>
-    </section>
-    <section class="cell" id="m4-prototype-rounds">
-      <h2 class="cell-title">两轮原型 <span class="en">Prototype Rounds</span></h2>
-      <div class="fill" contenteditable="true" data-ph="两轮原型及修改…"></div>
-    </section>
-    <section class="cell" id="m4-delivery-preparation">
-      <h2 class="cell-title">交付准备 <span class="en">Delivery Preparation</span></h2>
-      <div class="fill" contenteditable="true" data-ph="开发 / 场景测试 / 用户验证准备；团队分工与迭代节奏…"></div>
-    </section>
-  </div>
+    <!-- 闭环冻结板：第 1 行 2 列团队 + 第 2 行全宽 Workflow Final + 第 3 行 3 列 Context + 第 4 行 2 列原型与交付 -->
+    <section class="m4-freeze-board" id="module-outputs" aria-label="M4 模块专属产出">
+      <section class="m4-card m4-team" id="m4-agent-team" aria-label="Agent Team">
+        <h2 class="m4-card-title"><span class="m4-index">1</span><span>Agent Team <small>Agent Team</small></span></h2>
+        <p class="m4-card-hint">角色与责任配置：角色名称、职责、是否 Agent、决策边界、谁拍板 / 谁认可。</p>
+        <div class="fill" contenteditable="true" data-ph="角色 / 职责 / 是否 Agent / 决策边界…"></div>
+        <div class="m4-output">输出 Output: 角色 | 职责 | 是否 Agent | 决策边界</div>
+        <div class="m4-importance">Gate：每个角色应含名称、职责、是否 Agent、决策边界、协作模式。</div>
+      </section>
+      <section class="m4-card m4-team" id="m4-collaboration" aria-label="协作模式 Collaboration Mode">
+        <h2 class="m4-card-title"><span class="m4-index">2</span><span>协作模式 <small>Collaboration Mode</small></span></h2>
+        <p class="m4-card-hint">人-Agent 协作方式：人负责什么、Agent 负责什么、哪些环节需人工确认、升级 / 兜底机制。</p>
+        <div class="fill" contenteditable="true" data-ph="人与 Agent 的协作模式…"></div>
+        <div class="m4-output">输出 Output: 协作模式 | 人工确认 | 升级机制</div>
+      </section>
 
-  <section class="mod-summary" id="module-conclusions" aria-label="结论登记表">
-    <h2 class="cell-title">结论登记表 <span class="en">Conclusions</span></h2>
-    <div class="fill" id="conclusions-table" contenteditable="true" data-ph="结论 ID、内容、证据引用…"></div>
-  </section>
-
-  <section class="mod-summary" id="module-evidence" aria-label="证据索引">
-    <h2 class="cell-title">证据索引 <span class="en">Evidence Index</span></h2>
-    <div class="fill" id="evidence-list" contenteditable="true" data-ph="关键证据引用（仅引用 Key Points 与确认包自身 section，不引用逐字稿段落）…"></div>
-  </section>
-
-  <section class="mod-summary" id="module-gaps" aria-label="缺口与推断">
-    <h2 class="cell-title">缺口与推断 <span class="en">Gaps &amp; Inferences</span></h2>
-    <div class="fill" id="gaps-table" contenteditable="true" data-ph="缺口表（未讨论 section 标为缺口并说明对产出 / 最终 Canvas 的影响）…"></div>
-    <div class="fill" id="inferences-table" contenteditable="true" data-ph="推断表（区分事实 / 决策 / 假设 / 建议）…"></div>
-  </section>
-
-  <div class="lower">
-    <section class="quality" id="m4-quality" aria-label="质量鉴别">
-      <h2 class="cell-title">质量与对齐 <span class="en">Quality &amp; Alignment</span></h2>
-      <p class="cell-hint">门禁判定源自 <code>M4-GATE-*.md</code>；Workflow 冻结版三类节点必须齐全。</p>
-      <div class="q-grid">
-        <div class="q-item" id="m4-quality-workflow">
-          <div class="q-name">Workflow 冻结 <span class="q-en">workflow_frozen</span></div>
-          <div class="q-verdict verdict-pending" data-verdict>待判定</div>
+      <!-- Workflow Final：全宽主视觉 -->
+      <section class="m4-workflow-final" id="m4-workflow-final" aria-label="AI 应用工作流冻结版 Workflow Final">
+        <h2 class="m4-band-title"><span class="m4-index">3</span><span>Workflow Final <small>AI 应用工作流冻结版</small></span></h2>
+        <p class="m4-band-hint">M4 核心交付，冻结 M3 草案并增加流向 / 规则。不得拿普通业务流程代替 AI 应用工作流；须体现 AI 如何参与并标注继承 M3 草案后的冻结差异；三类节点必须齐全。</p>
+        <div class="final-grid">
+          <div class="final-block"><h4>Trigger / 触发</h4><div class="fill" contenteditable="true" data-ph="闭环触发条件…"></div></div>
+          <div class="final-block"><h4>Completion Condition / 完成条件</h4><div class="fill" contenteditable="true" data-ph="闭环完成条件…"></div></div>
+          <div class="final-block wide"><h4>Steps / 步骤</h4><div class="fill" contenteditable="true" data-ph="按流向排列的步骤…"></div></div>
+          <div class="final-block"><h4>Agent Execution Nodes / Agent 执行节点</h4><div class="fill" contenteditable="true" data-ph="AI 执行节点…"></div></div>
+          <div class="final-block"><h4>Human Operation / Confirmation Nodes / 人工操作 / 确认节点</h4><div class="fill" contenteditable="true" data-ph="人工操作 / 确认节点…"></div></div>
+          <div class="final-block wide"><h4>Human Review + Agent Nodes / 人审 + Agent 执行节点</h4><div class="fill" contenteditable="true" data-ph="人审 + Agent 执行节点…"></div></div>
+          <div class="final-block"><h4>Flow / 流向</h4><div class="fill" contenteditable="true" data-ph="节点间流向…"></div></div>
+          <div class="final-block"><h4>Rules / 关键规则</h4><div class="fill" contenteditable="true" data-ph="决定流向、升级、停止或回退的关键规则…"></div></div>
         </div>
-        <div class="q-item" id="m4-quality-team">
-          <div class="q-name">团队边界清晰 <span class="q-en">team_boundary_clear</span></div>
-          <div class="q-verdict verdict-pending" data-verdict>待判定</div>
+        <div class="m4-output">输出 Output: 触发 | 步骤 | 完成条件 | 三类节点 | 流向 | 关键规则</div>
+      </section>
+
+      <!-- Context Stack：3 列 -->
+      <section class="m4-card m4-context" id="m4-knowledge" aria-label="Context 知识 Knowledge">
+        <h2 class="m4-card-title"><span class="m4-index">4</span><span>Knowledge <small>知识库</small></span></h2>
+        <p class="m4-card-hint">Agent 需要哪些知识、知识来自哪里、是否有维护 Owner。</p>
+        <div class="fill" contenteditable="true" data-ph="知识库…"></div>
+        <div class="m4-output">输出 Output: 知识库 | 来源 | Owner</div>
+      </section>
+      <section class="m4-card m4-context" id="m4-data-sources" aria-label="Context 数据源 Data Sources">
+        <h2 class="m4-card-title"><span class="m4-index">5</span><span>Data Sources <small>数据源</small></span></h2>
+        <p class="m4-card-hint">数据来源、数据字段、更新频率、权限边界。</p>
+        <div class="fill" contenteditable="true" data-ph="数据源…"></div>
+        <div class="m4-output">输出 Output: 数据源 | 字段 | 更新 | 权限</div>
+      </section>
+      <section class="m4-card m4-context" id="m4-tools-skills" aria-label="Context 工具与技能 Tools & Skills">
+        <h2 class="m4-card-title"><span class="m4-index">6</span><span>Tools &amp; Skills <small>工具与技能</small></span></h2>
+        <p class="m4-card-hint">Agent 使用哪些工具、需要哪些 Skill、工具输入输出是什么。</p>
+        <div class="fill" contenteditable="true" data-ph="工具与技能…"></div>
+        <div class="m4-output">输出 Output: 工具 | Skill | 输入输出</div>
+      </section>
+
+      <!-- 原型与交付准备：2 列 -->
+      <section class="m4-card m4-delivery" id="m4-prototype-rounds" aria-label="两轮原型 Prototype Rounds">
+        <h2 class="m4-card-title"><span class="m4-index">7</span><span>两轮原型 <small>Prototype Rounds</small></span></h2>
+        <p class="m4-card-hint">第 1 轮 / 第 2 轮目标 · 实施 · 发现 · 修改，以及测试结论。</p>
+        <div class="fill" contenteditable="true" data-ph="两轮原型（目标 / 实施 / 发现 / 修改）及测试结论…"></div>
+        <div class="m4-output">输出 Output: 原型轮次 | 发现 | 修改 | 结论</div>
+        <div class="m4-importance">Gate：必须含两轮迭代记录。</div>
+      </section>
+      <section class="m4-card m4-delivery" id="m4-delivery-preparation" aria-label="交付准备 Delivery Preparation">
+        <h2 class="m4-card-title"><span class="m4-index">8</span><span>交付准备 <small>Delivery Preparation</small></span></h2>
+        <p class="m4-card-hint">开发准备、场景测试准备、用户验证准备，及 Owner、时间、验收标准。若 Owner / 时间不完整须在治理区显式暴露。</p>
+        <div class="fill" contenteditable="true" data-ph="开发 / 场景测试 / 用户验证准备；Owner / 时间…"></div>
+        <div class="m4-output">输出 Output: 开发 | 测试 | 用户验证 | Owner | 时间</div>
+        <div class="m4-importance">可 override 的 business_risk 点：Owner / 时间风险须显式暴露。</div>
+      </section>
+    </section>
+
+    <!-- 结论登记表：紧凑表格感 -->
+    <section class="m4-section" id="module-conclusions" aria-label="结论登记表">
+      <h2>结论登记表 <small>Conclusions</small></h2>
+      <p class="section-desc">结论 ID、内容、证据引用。</p>
+      <div class="conclusion-table" id="conclusions-table">
+        <div class="conclusion-head"><span>结论 ID</span><span>内容</span><span>证据引用</span></div>
+        <div class="conclusion-row"><div class="fill" contenteditable="true" data-ph="ID"></div><div class="fill" contenteditable="true" data-ph="内容"></div><div class="fill" contenteditable="true" data-ph="证据引用"></div></div>
+        <div class="conclusion-row"><div class="fill" contenteditable="true" data-ph="ID"></div><div class="fill" contenteditable="true" data-ph="内容"></div><div class="fill" contenteditable="true" data-ph="证据引用"></div></div>
+        <div class="conclusion-row"><div class="fill" contenteditable="true" data-ph="ID"></div><div class="fill" contenteditable="true" data-ph="内容"></div><div class="fill" contenteditable="true" data-ph="证据引用"></div></div>
+      </div>
+    </section>
+
+    <!-- 证据索引：可追溯索引 -->
+    <section class="m4-section" id="module-evidence" aria-label="证据索引">
+      <h2>证据索引 <small>Evidence Index</small></h2>
+      <p class="section-desc">可追溯索引（仅引用 Key Points 与确认包自身 section，不引用逐字稿段落）。</p>
+      <div class="evidence-index" id="evidence-list">
+        <div class="fill" contenteditable="true" data-ph="关键证据引用…"></div>
+        <div class="fill" contenteditable="true" data-ph="关键证据引用…"></div>
+        <div class="fill" contenteditable="true" data-ph="关键证据引用…"></div>
+      </div>
+    </section>
+
+    <!-- 缺口与推断：分区 -->
+    <section class="m4-section" id="module-gaps" aria-label="缺口与推断">
+      <h2>缺口与推断 <small>Gaps &amp; Inferences</small></h2>
+      <p class="section-desc">缺口影响是否能正式渲染。尤其突出 workflow_final 三类节点缺失、Context 缺失、delivery_preparation Owner / 时间不完整等缺口。</p>
+      <div class="gaps-pair">
+        <div class="gaps-block">
+          <h3>缺口表 <span class="en">Gaps</span></h3>
+          <div class="fill" id="gaps-table" contenteditable="true" data-ph="未讨论 section / 对产出的影响…"></div>
         </div>
-        <div class="q-item" id="m4-quality-prototype">
-          <div class="q-name">原型迭代完成 <span class="q-en">prototype_iterated</span></div>
-          <div class="q-verdict verdict-pending" data-verdict>待判定</div>
-        </div>
-        <div class="q-item" id="m4-quality-evidence">
-          <div class="q-name">证据支撑 <span class="q-en">evidence_backed</span></div>
-          <div class="q-verdict verdict-pending" data-verdict>待判定</div>
+        <div class="gaps-block">
+          <h3>推断表 <span class="en">Inferences</span></h3>
+          <div class="fill" id="inferences-table" contenteditable="true" data-ph="区分事实 / 决策 / 假设 / 建议…"></div>
         </div>
       </div>
     </section>
 
-    <aside class="govern" id="quality-panel" aria-label="质量与治理">
-      <h3 class="cell-title">质量与对齐</h3>
-      <dl>
-        <dt>版本</dt><dd id="quality-version">v1（草稿）</dd>
-      </dl>
-      <div id="quality-approval">
-        <dl>
-          <dt>Gate 建议</dt><dd id="quality-gate">pending</dd>
-          <dt>授权渲染</dt><dd id="quality-authorized">false</dd>
-          <dt>确认模式</dt><dd id="quality-mode">null</dd>
-        </dl>
+    <!-- 质量治理带 -->
+    <aside class="m4-governance" id="quality-panel" aria-label="质量与治理">
+      <div class="governance-head">
+        <h2>质量与对齐 <span class="en">Quality &amp; Alignment</span></h2>
+        <span>门禁判定源自 <code>M4-GATE-*.md</code>；对齐状态两种页面共享。</span>
       </div>
-      <dl>
-        <dt>缺口摘要</dt><dd id="quality-gaps">—</dd>
-        <dt>风险摘要</dt><dd id="quality-risks">—</dd>
-      </dl>
-      <div class="caveat" id="quality-caveat" hidden>
-        <b>Override 警示：</b><span id="quality-caveat-text">仅 override 时显示——Gate 建议 / override 项数量 / 高风险项数量 / 风险详情。</span>
+      <div class="governance-row">
+        <div class="governance-item" id="quality-approval">
+          <b>授权状态 / Approval</b>
+          <dl>
+            <dt>Gate</dt><dd id="quality-gate">pending</dd>
+            <dt>Render</dt><dd id="quality-authorized">false</dd>
+            <dt>Mode</dt><dd id="quality-mode">null</dd>
+          </dl>
+        </div>
+        <div class="governance-item">
+          <b>缺口摘要 / Gaps</b>
+          <span id="quality-gaps">—</span>
+        </div>
+        <div class="governance-item">
+          <b>风险摘要 / Risks</b>
+          <span id="quality-risks">—</span>
+        </div>
+        <div class="governance-item">
+          <b>M4 质量检查</b>
+          <dl>
+            <dt>Workflow 冻结</dt><dd class="verdict-pending">待判定</dd>
+            <dt>团队边界清晰</dt><dd class="verdict-pending">待判定</dd>
+            <dt>原型迭代完成</dt><dd class="verdict-pending">待判定</dd>
+            <dt>证据支撑</dt><dd class="verdict-pending">待判定</dd>
+          </dl>
+        </div>
       </div>
-      <div class="align" id="alignment-section">
-        <h4 class="sub-head">对齐状态</h4>
-        <p class="a-item"><span class="a-lbl">共识地图：</span><span id="alignment-consensus">—</span></p>
-        <p class="a-item"><span class="a-lbl">分歧点：</span><span id="alignment-divergences">—</span></p>
-        <p class="a-item"><span class="a-lbl">决策留痕：</span><span id="alignment-decisions">—</span></p>
+      <div class="governance-caveat" id="quality-caveat" hidden>
+        <b>Override 警示：</b><span id="quality-caveat-text">仅 override 时显示——Gate 建议 / override 项数量 / 高风险项数量 / 风险详情（含 delivery_preparation 的 Owner / 时间风险）。</span>
       </div>
+      <section class="governance-alignment" id="alignment-section">
+        <h3>对齐状态</h3>
+        <p><b>共识地图：</b><span id="alignment-consensus">—</span></p>
+        <p><b>分歧点：</b><span id="alignment-divergences">—</span></p>
+        <p><b>决策留痕：</b><span id="alignment-decisions">—</span></p>
+      </section>
     </aside>
-  </div>
 
-  <section class="local-notes" id="local-notes" contenteditable="true"></section>
+    <section class="local-notes" id="local-notes" contenteditable="true" aria-label="本地批注"></section>
 
-  <p class="footnote">
-    <b>说明：</b>本文件为 MVL <b>M4 模块详情一等公民示例</b>（对齐 <code>render-contract.md</code> §B），<code>#module-outputs</code> 内锚点顺序 1:1 映射契约 M4 表。MVL Canvas 是<b>六次工作坊已确认结论的展示层，非生产级系统</b>。
-    采用标准 pratyaya 黑灰配色，按 Ctrl/Cmd + P 可直接横版打印。本示例为静态骨架，正式渲染由 <code>canvas-render</code> Skill 生成 <code>output/module-4-canvas.html</code>。返回 <a href="./maau-global-canvas.html">MVL 全局画布</a>。
-  </p>
+    <footer class="m4-footer">
+      <span>M4 Detail Canvas</span>
+      <span>对齐 render-contract §B</span>
+      <span>A4 横版</span>
+      <a href="./maau-global-canvas.html">返回 MAAU 全局画布</a>
+      <span class="m4-footer-note">一等公民示例 · 正式渲染由 canvas-render 生成</span>
+    </footer>
+  </main>
 </div>
 
 <script type="application/json" id="canvas-data">

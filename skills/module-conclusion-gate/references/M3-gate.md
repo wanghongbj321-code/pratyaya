@@ -13,8 +13,8 @@
 - `capability_metrics`（能力指标）
 - `acceptance`（验收标准）
 - `boundary`（边界）
-- `solution_direction`（AI 方案方向）
-- `workflow_draft`（从触发到结果的 AI 应用工作流草案）
+- `workflow_draft`（从触发到结果的 AI 应用工作流草案，M3 主交付物）
+- `solution_direction`（AI 方案方向，对 Workflow Draft 的方案归纳与锁定）
 - `validation_dimensions`（分层验证维度）
 
 ## 必须形成的结论
