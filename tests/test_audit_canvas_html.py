@@ -230,7 +230,7 @@ class TestRegressions:
             [PYTHON, str(AUDIT), "--help"], capture_output=True, text=True
         )
         assert result.returncode == 0
-        assert "--type {mvl,gc,hmw}" in result.stdout or "mvl" in result.stdout
+        assert "--type {mvl,gc,hmw,journey}" in result.stdout or "mvl" in result.stdout
 
     def test_9b_hmw_without_template_on_formal_fails(self) -> None:
         """HMW 正式交付缺 --template 应 FAIL（HMW-TPL-GATE-00）。"""

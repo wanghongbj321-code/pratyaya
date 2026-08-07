@@ -11,7 +11,7 @@
   ],
   "properties": {
     "schema_version": {
-      "const": "2.2"
+      "const": "2.3"
     },
     "group_id": {
       "type": "string",
@@ -524,6 +524,26 @@
       ]
     },
     "persona": {
+      "$ref": "#/$defs/persona_state"
+    },
+    "journey": {
+      "$ref": "#/$defs/journey_state"
+    },
+    "updated_at": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "additionalProperties": true,
+  "anyOf": [
+    { "required": ["modules"] },
+    { "required": ["golden_circle"] },
+    { "required": ["hmw"] },
+    { "required": ["persona"] },
+    { "required": ["journey"] }
+  ],
+  "$defs": {
+    "single_canvas_state_base": {
       "type": "object",
       "required": [
         "version",
@@ -591,8 +611,7 @@
                 ],
                 "properties": {
                   "assessment_id": {
-                    "type": "string",
-                    "pattern": "^PERSONA-GATE-[0-9]+$"
+                    "type": "string"
                   },
                   "category": {
                     "const": "business_risk"
@@ -685,16 +704,49 @@
         }
       ]
     },
-    "updated_at": {
-      "type": "string",
-      "minLength": 1
+    "persona_state": {
+      "allOf": [
+        { "$ref": "#/$defs/single_canvas_state_base" },
+        {
+          "properties": {
+            "override_audit": {
+              "properties": {
+                "items": {
+                  "items": {
+                    "properties": {
+                      "assessment_id": {
+                        "pattern": "^PERSONA-GATE-[0-9]+$"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "journey_state": {
+      "allOf": [
+        { "$ref": "#/$defs/single_canvas_state_base" },
+        {
+          "properties": {
+            "override_audit": {
+              "properties": {
+                "items": {
+                  "items": {
+                    "properties": {
+                      "assessment_id": {
+                        "pattern": "^JOURNEY-GATE-[0-9]+$"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
     }
-  },
-  "additionalProperties": true,
-  "anyOf": [
-    { "required": ["modules"] },
-    { "required": ["golden_circle"] },
-    { "required": ["hmw"] },
-    { "required": ["persona"] }
-  ]
+  }
 }

@@ -31,11 +31,17 @@ GC_CONTRACT = (
 HMW_CONTRACT = (
     REPO_ROOT / "skills" / "canvas-render" / "references" / "render-contract-hmw.md"
 )
+JOURNEY_CONTRACT = (
+    REPO_ROOT / "skills" / "canvas-render" / "references" / "render-contract-journey.md"
+)
 PERSONA_CONTRACT = (
     REPO_ROOT / "skills" / "canvas-render" / "references" / "render-contract-persona.md"
 )
 HMW_TEMPLATE = (
     REPO_ROOT / "examples" / "canvas-html" / "hmw-canvas.html"
+)
+JOURNEY_TEMPLATE = (
+    REPO_ROOT / "examples" / "canvas-html" / "user-journey-canvas.html"
 )
 HMW_TPL_MAIN_IDS = (
     "hmw-statement",
@@ -60,6 +66,53 @@ HMW_TPL_GOVERN_IDS = (
     "quality-gaps",
     "quality-risks",
     "quality-caveat",
+)
+JOURNEY_TPL_MAIN_IDS = (
+    "canvas-header",
+    "journey-map",
+    "journey-frictions",
+    "journey-quality",
+    "quality-panel",
+    "local-notes",
+    "canvas-data",
+)
+JOURNEY_STAGE_FIELDS = (
+    "action",
+    "touchpoint-system",
+    "emotion",
+    "wait-rework",
+    "risk",
+)
+JOURNEY_STAGE_DATA_FIELDS = (
+    "stage_index",
+    "stage_name",
+    "action",
+    "touchpoint_system",
+    "emotion",
+    "wait_rework",
+    "risk",
+)
+JOURNEY_QUALITY_KEYS = (
+    "user_perspective",
+    "business_outcome",
+    "friction_visible",
+    "no_solution_bias",
+)
+JOURNEY_QUALITY_ANCHORS = (
+    "journey-quality-user-perspective",
+    "journey-quality-business-outcome",
+    "journey-quality-friction-visible",
+    "journey-quality-no-solution-bias",
+)
+JOURNEY_MAIN_IDS = (
+    "journey-map",
+    "journey-frictions",
+    "journey-quality",
+)
+JOURNEY_ANCHORS = (
+    "canvas-headline",
+    "journey-friction-summary",
+    *JOURNEY_QUALITY_ANCHORS,
 )
 PERSONA_MAIN_IDS = (
     "persona-name",
@@ -368,6 +421,11 @@ def hmw_source_identity(path: Path) -> tuple[str | None, str | None]:
     return ("HMW", match.group(1)) if match else (None, None)
 
 
+def journey_source_identity(path: Path) -> tuple[str | None, str | None]:
+    """从 JOURNEY-vN 确认包首行标题中提取画布类型与版本号。"""
+    first_lines = "\n".join(path.read_text(encoding="utf-8").splitlines()[:12])
+    match = re.search(r"^#\s+User Journey 确认包\s+(v\d+)\s*$", first_lines, re.MULTILINE)
+    return ("JOURNEY", match.group(1)) if match else (None, None)
 def persona_source_identity(path: Path) -> tuple[str | None, str | None]:
     """从 PERSONA-vN 确认包首行标题中提取画布类型与版本号。"""
     first_lines = "\n".join(path.read_text(encoding="utf-8").splitlines()[:12])
@@ -409,7 +467,7 @@ def load_persona_template_profile(contract_path: Path) -> dict[str, list[str]]:
     if anchor_match:
         # 基本信息 9 字段 + 六宫格 6 区 + 质量 4 维度
         stable_anchors = re.findall(r"`(persona-[a-z0-9-]+)`", anchor_match.group(1))
-    
+
     return {"main_order": main_order, "stable_anchors": stable_anchors}
 
 
@@ -441,6 +499,36 @@ def load_hmw_template_profile(contract_path: Path) -> dict[str, list[str]]:
     if anchor_match:
         stable_anchors = re.findall(
             r"`(hmw-[a-z0-9-]+|quality-[a-z0-9-]+|local-notes|canvas-data)`",
+            anchor_match.group(1),
+        )
+    return {"main_order": main_order, "stable_anchors": stable_anchors}
+
+
+def load_journey_template_profile(contract_path: Path) -> dict[str, list[str]]:
+    """从 render-contract-journey.md 解析 Journey 模板结构 profile。"""
+    text = contract_path.read_text(encoding="utf-8")
+    main_order: list[str] = []
+    stable_anchors: list[str] = []
+
+    order_match = re.search(
+        r"### 一级模块必需性与 DOM 相对顺序（强制）\s*```text\s*(.*?)```",
+        text,
+        re.DOTALL,
+    )
+    if order_match:
+        for line in order_match.group(1).splitlines():
+            m = re.match(r"\s*→\s*([a-z][a-z0-9-]+)\s*$", line)
+            if m:
+                main_order.append(m.group(1))
+
+    anchor_match = re.search(
+        r"### 稳定锚点集合（Template Gate 校验）(.*?)(?=\n### |\Z)",
+        text,
+        re.DOTALL,
+    )
+    if anchor_match:
+        stable_anchors = re.findall(
+            r"`(journey-[a-z0-9-]+|quality-[a-z0-9-]+|local-notes|canvas-data)`",
             anchor_match.group(1),
         )
     return {"main_order": main_order, "stable_anchors": stable_anchors}
@@ -571,6 +659,242 @@ def audit_template_gate(
             )
 
     return findings
+
+
+def journey_stage_numbers(ids: list[str]) -> list[int]:
+    """提取 `journey-stage-{n}` 一级阶段锚点编号。"""
+    numbers: list[int] = []
+    for element_id in ids:
+        match = re.fullmatch(r"journey-stage-(\d+)", element_id)
+        if match:
+            numbers.append(int(match.group(1)))
+    return numbers
+
+
+def audit_journey_dynamic_structure(
+    html: HtmlSnapshot,
+    canvas_data: JsonDict | None = None,
+    source_path: Path | None = None,
+) -> list[Finding]:
+    """检查 Journey 动态阶段锚点、canvas-data.stages 与确认包第 6 节顺序。"""
+    findings: list[Finding] = []
+    counts = Counter(html.ids)
+    stage_numbers = journey_stage_numbers(html.ids)
+    unique_numbers = sorted(set(stage_numbers))
+
+    if len(stage_numbers) != len(unique_numbers):
+        findings.append(Finding("JOURNEY_STAGE", "journey-stage-{n} contains duplicate stage ids"))
+    if len(unique_numbers) < 3:
+        findings.append(Finding("JOURNEY_STAGE", "Journey requires at least 3 stages"))
+    expected_numbers = list(range(1, len(unique_numbers) + 1))
+    if unique_numbers and unique_numbers != expected_numbers:
+        findings.append(
+            Finding("JOURNEY_STAGE", f"stage numbers must be continuous from 1: {unique_numbers}")
+        )
+
+    for number in unique_numbers:
+        expected_child_ids = [f"journey-stage-{number}-{field}" for field in JOURNEY_STAGE_FIELDS]
+        missing = [child for child in expected_child_ids if counts[child] == 0]
+        if missing:
+            findings.append(
+                Finding("JOURNEY_STAGE", f"stage {number} missing child anchors: {', '.join(missing)}")
+            )
+            continue
+        duplicates = [child for child in expected_child_ids if counts[child] > 1]
+        if duplicates:
+            findings.append(
+                Finding("JOURNEY_STAGE", f"stage {number} duplicate child anchors: {', '.join(duplicates)}")
+            )
+        actual = [item for item in html.ids if item in set(expected_child_ids)]
+        if actual != expected_child_ids:
+            findings.append(
+                Finding(
+                    "JOURNEY_STAGE_ORDER",
+                    f"stage {number} child order mismatch; expected {expected_child_ids}, actual {actual}",
+                )
+            )
+
+    if canvas_data is not None:
+        stages = canvas_data.get("stages")
+        if not isinstance(stages, list):
+            findings.append(Finding("JOURNEY_DATA", "canvas-data.stages must be an array"))
+        else:
+            if len(stages) != len(unique_numbers):
+                findings.append(
+                    Finding(
+                        "JOURNEY_DATA",
+                        f"canvas-data.stages length {len(stages)} != DOM stages {len(unique_numbers)}",
+                    )
+                )
+            for index, stage in enumerate(stages, start=1):
+                if not isinstance(stage, dict):
+                    findings.append(Finding("JOURNEY_DATA", f"stages[{index}] must be an object"))
+                    continue
+                missing_fields = [
+                    field for field in JOURNEY_STAGE_DATA_FIELDS if field not in stage
+                ]
+                if missing_fields:
+                    findings.append(
+                        Finding(
+                            "JOURNEY_DATA",
+                            f"stages[{index}] missing fields: {', '.join(missing_fields)}",
+                        )
+                    )
+                if stage.get("stage_index") != index:
+                    findings.append(
+                        Finding(
+                            "JOURNEY_DATA",
+                            f"stages[{index}].stage_index must be {index}, got {stage.get('stage_index')!r}",
+                        )
+                    )
+
+        quality = canvas_data.get("quality")
+        if not isinstance(quality, dict):
+            findings.append(Finding("JOURNEY_DATA", "canvas-data.quality must be an object"))
+        else:
+            missing_quality = [key for key in JOURNEY_QUALITY_KEYS if key not in quality]
+            if missing_quality:
+                findings.append(
+                    Finding("JOURNEY_DATA", f"canvas-data.quality missing: {', '.join(missing_quality)}")
+                )
+
+    if source_path is not None and canvas_data is not None:
+        source_rows = extract_markdown_table_rows(source_path, "6. 阶段地图")
+        if source_rows:
+            source_stage_names = [row[1].strip() for row in source_rows if len(row) >= 2]
+            stages = canvas_data.get("stages")
+            if isinstance(stages, list):
+                data_stage_names = [
+                    str(stage.get("stage_name", "")).strip()
+                    for stage in stages
+                    if isinstance(stage, dict)
+                ]
+                if source_stage_names != data_stage_names:
+                    findings.append(
+                        Finding(
+                            "JOURNEY_SOURCE_ORDER",
+                            f"stage order differs from source section 6: source={source_stage_names}, canvas-data={data_stage_names}",
+                        )
+                    )
+        else:
+            findings.append(Finding("JOURNEY_SOURCE_ORDER", "source section 6. 阶段地图 has no table rows"))
+
+    return findings
+
+
+def audit_journey_template_gate(
+    html: HtmlSnapshot,
+    source: str,
+    html_path: Path,
+    template: HtmlSnapshot,
+    profile: dict[str, list[str]],
+) -> list[Finding]:
+    """Journey Template Gate：一级模块、动态阶段、治理插槽、离线和隐藏检查。"""
+    findings: list[Finding] = []
+    counts = Counter(html.ids)
+    main_order = profile.get("main_order") or list(JOURNEY_TPL_MAIN_IDS)
+
+    page_type = html.body_attrs.get("data-page-type")
+    tpl_page_type = template.body_attrs.get("data-page-type")
+    if page_type != tpl_page_type:
+        findings.append(
+            Finding(
+                "JOURNEY-TPL-GATE-01",
+                f"data-page-type={page_type!r} 与模板 {tpl_page_type!r} 不一致",
+            )
+        )
+
+    missing = [i for i in main_order if counts[i] == 0]
+    if missing:
+        findings.append(Finding("JOURNEY-TPL-GATE-02", f"一级模块缺失: {', '.join(missing)}"))
+    duplicates = [i for i in main_order if counts[i] > 1]
+    if duplicates:
+        findings.append(Finding("JOURNEY-TPL-GATE-02", f"一级模块重复: {', '.join(duplicates)}"))
+
+    actual = [i for i in html.ids if i in set(main_order)]
+    if actual != main_order:
+        findings.append(
+            Finding(
+                "JOURNEY-TPL-GATE-03",
+                f"一级模块顺序偏离 profile: 期望 {main_order}, 实际 {actual}",
+            )
+        )
+
+    stable_anchors = set(profile.get("stable_anchors") or [])
+    stable_anchors.update(JOURNEY_ANCHORS)
+    anchor_missing = [a for a in sorted(stable_anchors) if counts[a] == 0]
+    if anchor_missing:
+        findings.append(
+            Finding("JOURNEY-TPL-GATE-04", f"稳定锚点缺失: {', '.join(anchor_missing)}")
+        )
+    findings.extend(
+        Finding(f"JOURNEY-TPL-GATE-04", finding.message)
+        for finding in audit_journey_dynamic_structure(html)
+    )
+
+    govern_missing = [i for i in HMW_TPL_GOVERN_IDS if counts[i] == 0]
+    if govern_missing:
+        findings.append(
+            Finding("JOURNEY-TPL-GATE-05", f"quality-panel 缺插槽: {', '.join(govern_missing)}")
+        )
+
+    if "@media print" not in source.lower():
+        findings.append(Finding("JOURNEY-TPL-GATE-06", "缺少 @media print 钩子"))
+    if html.external_urls:
+        findings.append(
+            Finding("JOURNEY-TPL-GATE-06", f"存在外部网络依赖: {', '.join(html.external_urls)}")
+        )
+    stylesheet_hrefs = re.findall(
+        r'<link\b[^>]*\brel=["\']stylesheet["\'][^>]*\bhref=["\']([^"\']+)["\']',
+        source,
+        re.IGNORECASE,
+    )
+    if not stylesheet_hrefs:
+        findings.append(Finding("JOURNEY-TPL-GATE-06", "缺少共享主题 stylesheet 链接"))
+    for href in stylesheet_hrefs:
+        if href.startswith(("http://", "https://", "//")):
+            continue
+        stylesheet_path = (html_path.parent / href).resolve()
+        if not stylesheet_path.is_file():
+            findings.append(Finding("JOURNEY-TPL-GATE-06", f"本地主题资源不存在: {href}"))
+
+    if "overflow-x:auto" not in source.replace(" ", ""):
+        findings.append(Finding("JOURNEY-TPL-GATE-06", "缺少横向滚动钩子 overflow-x:auto"))
+
+    for section_id in ("journey-map", "journey-frictions", "journey-quality", "quality-panel"):
+        attrs = html.attrs_by_id.get(section_id, {})
+        if counts[section_id] and (
+            element_is_hidden(source, attrs) or stylesheet_hides_element(source, section_id)
+        ):
+            findings.append(
+                Finding(
+                    "JOURNEY-TPL-GATE-06",
+                    f"{section_id} 被隐藏（hidden/display:none/visibility:hidden/class=hidden 任一）",
+                )
+            )
+
+    return findings
+
+
+def extract_markdown_table_rows(path: Path, heading: str) -> list[list[str]]:
+    """从 Markdown 文件指定标题下提取表格数据行。"""
+    markdown = path.read_text(encoding="utf-8")
+    match = re.search(
+        rf"^#{{1,6}}\s*{re.escape(heading)}\s*$\n?(.*?)(?=^#{{1,6}}\s|\Z)",
+        markdown,
+        re.MULTILINE | re.DOTALL,
+    )
+    if not match:
+        return []
+    rows: list[list[str]] = []
+    for line in match.group(1).splitlines():
+        if not line.strip().startswith("|"):
+            continue
+        cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
+        if not cells or all(re.fullmatch(r":?-{3,}:?", cell) for cell in cells):
+            continue
+        rows.append(cells)
+    return rows[1:] if rows else []
 
 
 def extract_hmw_table_rows(markdown: str, heading: str) -> list[list[str]]:
@@ -711,6 +1035,7 @@ def audit(
     """对照 render-contract / state.json / 确认包，审计单个 Canvas HTML 文件。"""
     is_gc = canvas_type == "gc"
     is_hmw = canvas_type == "hmw"
+    is_journey = canvas_type == "journey"
     is_persona = canvas_type == "persona"
     findings: list[Finding] = []
     orders: dict[str, list[str]] = {}
@@ -727,6 +1052,9 @@ def audit(
             hmw_anchors = load_gc_anchor_orders(contract_path)
         except (OSError, ValueError) as exc:
             return [Finding("CONTRACT", str(exc))]
+    elif is_journey:
+        # Journey 使用动态阶段锚点，固定锚点由常量与动态检查共同覆盖。
+        hmw_anchors = list(JOURNEY_ANCHORS)
     elif is_persona:
         try:
             persona_anchors = load_gc_anchor_orders(contract_path)
@@ -754,6 +1082,8 @@ def audit(
         valid_types = {"golden-circle"}
     elif is_hmw:
         valid_types = {"hmw"}
+    elif is_journey:
+        valid_types = {"journey"}
     elif is_persona:
         valid_types = {"persona"}
     else:
@@ -764,14 +1094,16 @@ def audit(
         findings.append(Finding("VERSION", "body data-version must be an integer or vN"))
 
     required: list[str] = list(SHARED_IDS)
-    if is_gc or is_hmw or is_persona:
+    if is_gc or is_hmw or is_journey or is_persona:
         if is_gc:
             required.extend(GC_MAIN_IDS)
         elif is_hmw:
             required.extend(HMW_MAIN_IDS)
-        else:  # is_persona
+        elif is_journey:
+            required.extend(JOURNEY_MAIN_IDS)
+        else:
             required.extend(PERSONA_MAIN_IDS)
-        # GC / HMW / Persona 契约无 alignment-section（MVL 专属），审计不要求
+        # 单画布契约无 alignment-section（MVL 专属），审计不要求
         if "alignment-section" in required:
             required.remove("alignment-section")
     elif page_type == "module-detail":
@@ -796,6 +1128,13 @@ def audit(
         if anchor_missing:
             findings.append(
                 Finding("MISSING_ANCHOR", f"HMW missing anchors: {', '.join(anchor_missing)}")
+            )
+    elif is_journey:
+        expected_anchors = list(JOURNEY_ANCHORS)
+        anchor_missing = [anchor for anchor in expected_anchors if counts[anchor] == 0]
+        if anchor_missing:
+            findings.append(
+                Finding("MISSING_ANCHOR", f"Journey missing anchors: {', '.join(anchor_missing)}")
             )
     elif is_persona:
         expected_anchors = list(persona_anchors)
@@ -853,6 +1192,10 @@ def audit(
             findings.append(
                 Finding("CANVAS_TYPE", f"canvas-data.canvas_type must be 'hmw', got {canvas_data.get('canvas_type')!r}")
             )
+        if is_journey and canvas_data.get("canvas_type") != "journey":
+            findings.append(
+                Finding("CANVAS_TYPE", f"canvas-data.canvas_type must be 'journey', got {canvas_data.get('canvas_type')!r}")
+            )
         if is_persona and canvas_data.get("canvas_type") != "persona":
             findings.append(
                 Finding("CANVAS_TYPE", f"canvas-data.canvas_type must be 'persona', got {canvas_data.get('canvas_type')!r}")
@@ -866,6 +1209,8 @@ def audit(
                 )
         elif expected_anchors:
             findings.append(Finding("SECTION_DATA", "canvas-data.sections must be an object"))
+        if is_journey:
+            findings.extend(audit_journey_dynamic_structure(html, canvas_data, source_path))
 
     lowered = source.lower()
     if "iframe" in html.tags:
@@ -886,6 +1231,8 @@ def audit(
         caveat_page_types = {"golden-circle"}
     elif is_hmw:
         caveat_page_types = {"hmw"}
+    elif is_journey:
+        caveat_page_types = {"journey"}
     elif is_persona:
         caveat_page_types = {"persona"}
     else:
@@ -901,12 +1248,24 @@ def audit(
             if mode == "override":
                 if counts["quality-caveat"] == 0:
                     findings.append(Finding("CAVEAT", "override page requires quality-caveat"))
-                elif "hidden" in caveat_attrs:
+                elif element_is_hidden(source, caveat_attrs) or stylesheet_hides_element(source, "quality-caveat"):
                     findings.append(Finding("CAVEAT", "override quality-caveat must be visible"))
                 if not auth.get("override_audit"):
                     findings.append(Finding("CAVEAT", "override page requires override_audit"))
             elif mode == "gate_pass" and counts["quality-caveat"] and "hidden" not in caveat_attrs:
                 findings.append(Finding("CAVEAT", "gate_pass quality-caveat must be hidden"))
+    if is_journey:
+        for section_id in ("journey-map", "journey-frictions", "journey-quality", "quality-panel"):
+            attrs = html.attrs_by_id.get(section_id, {})
+            if counts[section_id] and (
+                element_is_hidden(source, attrs) or stylesheet_hides_element(source, section_id)
+            ):
+                findings.append(
+                    Finding(
+                        "HIDDEN_SECTION",
+                        f"{section_id} must be visible",
+                    )
+                )
 
     if html.body_attrs.get("data-mode") == "draft":
         if "草稿" not in html.text or "未确认" not in html.text:
@@ -918,6 +1277,8 @@ def audit(
                 source_module, source_version = gc_source_identity(source_path)
             elif is_hmw:
                 source_module, source_version = hmw_source_identity(source_path)
+            elif is_journey:
+                source_module, source_version = journey_source_identity(source_path)
             elif is_persona:
                 source_module, source_version = persona_source_identity(source_path)
             else:
@@ -928,7 +1289,7 @@ def audit(
             if source_module is None or source_version is None:
                 findings.append(Finding("SOURCE", "cannot read module/version from confirmation package"))
             else:
-                if not is_gc and not is_hmw and module and source_module != module:
+                if not is_gc and not is_hmw and not is_journey and module and source_module != module:
                     findings.append(
                         Finding("SOURCE_MODULE", f"HTML={module!r}, source={source_module!r}")
                     )
@@ -948,6 +1309,10 @@ def audit(
                 state_module = state.get("hmw")
                 if not isinstance(state_module, dict):
                     raise ValueError("state.json has no hmw record")
+            elif is_journey:
+                state_module = state.get("journey")
+                if not isinstance(state_module, dict):
+                    raise ValueError("state.json has no journey record")
             elif is_persona:
                 state_module = state.get("persona")
                 if not isinstance(state_module, dict):
@@ -996,11 +1361,14 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     _ = parser.add_argument("--source", type=Path, help="confirmation package (Mx-vN.md or GC-vN.md)")
     _ = parser.add_argument(
         "--template", type=Path,
-        help="HMW 示例模板路径（Template Gate 比对基准；HMW 正式交付必须传入）",
+        help="HMW/Persona/Journey 示例模板路径（Template Gate 比对基准；正式交付必须传入）",
     )
     _ = parser.add_argument(
-        "--type", dest="canvas_type", choices=("mvl", "gc", "hmw", "persona"), default="mvl",
-        help="canvas type: mvl (default), gc (golden circle), hmw or persona",
+        "--type",
+        dest="canvas_type",
+        choices=("mvl", "gc", "hmw", "persona", "journey"),
+        default="mvl",
+        help="canvas type: mvl (default), gc (golden circle), hmw, persona or journey",
     )
     return parser.parse_args(argv)
 
@@ -1009,7 +1377,7 @@ def main(argv: list[str] | None = None) -> int:
     """脚本入口：执行双 Gate 审计并打印结果，返回进程退出码。
 
     - 内容/授权 Gate：所有画布类型（版本、事实源、授权、锚点、canvas-data、caveat、离线）。
-    - Template Gate：HMW 或 Persona 且传入 --template 时运行（结构完整性，不可 override）。
+    - Template Gate：HMW / Persona / Journey 且传入 --template 时运行（结构完整性，不可 override）。
     """
     args = parse_args(argv)
     html_arg = cast(Path, args.html)
@@ -1020,6 +1388,8 @@ def main(argv: list[str] | None = None) -> int:
         contract_arg = GC_CONTRACT
     elif canvas_type == "hmw":
         contract_arg = HMW_CONTRACT
+    elif canvas_type == "journey":
+        contract_arg = JOURNEY_CONTRACT
     elif canvas_type == "persona":
         contract_arg = PERSONA_CONTRACT
     else:
@@ -1031,7 +1401,7 @@ def main(argv: list[str] | None = None) -> int:
     findings = audit(html_arg, contract_arg, state_arg, source_arg, canvas_type)
     template_findings: list[Finding] = []
 
-    # Template Gate：HMW 或 Persona 正式交付（--template 传入）时运行
+    # Template Gate：HMW / Persona / Journey 正式交付（--template 传入）时运行
     if canvas_type == "hmw":
         if template_arg is None:
             if source_arg is not None or state_arg is not None:
@@ -1072,6 +1442,30 @@ def main(argv: list[str] | None = None) -> int:
                     )
             except (OSError, UnicodeError) as exc:
                 template_findings.append(Finding("HMW-TPL-GATE-00", f"模板读取失败: {exc}"))
+    elif canvas_type == "journey":
+        if template_arg is None:
+            if source_arg is not None or state_arg is not None:
+                template_findings.append(
+                    Finding("JOURNEY-TPL-GATE-00", "Journey 正式交付必须传入 --template 示例模板路径")
+                )
+        else:
+            try:
+                template_source, template = parse_html(template_arg)
+                profile = load_journey_template_profile(contract_arg)
+                if not profile["main_order"]:
+                    template_findings.append(
+                        Finding("JOURNEY-TPL-GATE-00", "render-contract-journey.md 模板 profile 无法解析")
+                    )
+                else:
+                    template_findings.extend(
+                        audit_journey_template_gate(template, template_source, template_arg, template, profile)
+                    )
+                    html_source, html_snapshot = parse_html(html_arg)
+                    template_findings.extend(
+                        audit_journey_template_gate(html_snapshot, html_source, html_arg, template, profile)
+                    )
+            except (OSError, UnicodeError) as exc:
+                template_findings.append(Finding("JOURNEY-TPL-GATE-00", f"模板读取失败: {exc}"))
     elif canvas_type == "persona":
         if template_arg is None:
             if source_arg is not None or state_arg is not None:

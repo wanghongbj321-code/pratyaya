@@ -8,6 +8,7 @@
 |---|---|---|
 | `golden-circle` | [`goden-circle-canvas.html`](./goden-circle-canvas.html) | 黄金圈单画布：WHY / HOW / WHAT 三层 + 跨层一致性 |
 | `persona` | [`user-persona-canvas.html`](./user-persona-canvas.html) | 用户画像：9 基本信息 + 6 宫格 |
+| `journey` | [`user-journey-canvas.html`](./user-journey-canvas.html) | 用户旅程：动态阶段 × 5 行合并结构 + 断点摘要 + 质量鉴别 |
 | `mvl` | [`mvl-canvas/maau-global-canvas.html`](./mvl-canvas/maau-global-canvas.html) | MVL 全局 Canvas：六大板块汇总视图 |
 | `mvl`（模块详情） | [`mvl-canvas/module-1-canvas.html`](./mvl-canvas/module-1-canvas.html) … [`module-6-canvas.html`](./mvl-canvas/module-6-canvas.html) | MVL 六个模块各自的详情 Canvas |
 

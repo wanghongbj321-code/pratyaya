@@ -1,7 +1,7 @@
 {
-  "schema_version": "2.2",
+  "schema_version": "2.3",
   "group_id": "G1",
-  "project_name": "示例项目-MVL+GC+HMW+Persona",
+  "project_name": "示例项目-MVL+GC+HMW+Persona+Journey",
   "current_module": "M1",
   "modules": {
     "M1": {
@@ -67,6 +67,13 @@
     "gate_recommendation": "pass",
     "render_authorized": true,
     "confirmation_mode": "gate_pass"
+  },
+  "journey": {
+    "version": 0,
+    "status": "draft",
+    "gate_recommendation": "pending",
+    "render_authorized": false,
+    "confirmation_mode": null
   },
   "updated_at": "2026-08-07T10:00:00+08:00"
 }

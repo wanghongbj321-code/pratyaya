@@ -753,6 +753,46 @@ HMW_GATE_SKILL = "skills/hmw-gate/SKILL.md"
 HMW_TEMPLATE_HTML = "examples/canvas-html/hmw-canvas.html"
 HMW_TPL_GATE_IDS = tuple(f"HMW-TPL-GATE-{n:02d}" for n in range(1, 7))
 HMW_IDEA_ANCHORS = tuple(f"hmw-idea-{n}" for n in range(1, 9))
+JOURNEY_GATE_ID_RE = re.compile(r"^JOURNEY-GATE-\d+$")
+JOURNEY_GATE_FILE = "skills/journey-gate/references/JOURNEY-gate.md"
+JOURNEY_DISTILL_SKILL = "skills/journey-distill/SKILL.md"
+JOURNEY_GATE_SKILL = "skills/journey-gate/SKILL.md"
+JOURNEY_FRAME = "skills/journey-distill/frameworks/journey-frame.md"
+JOURNEY_SPEC = "skills/journey-distill/references/journey-spec.md"
+JOURNEY_RENDER_CONTRACT = "skills/canvas-render/references/render-contract-journey.md"
+JOURNEY_TEMPLATE_HTML = "examples/canvas-html/user-journey-canvas.html"
+JOURNEY_EXAMPLE_KEYPOINTS = "examples/modules/JOURNEY-keypoints.md"
+JOURNEY_EXAMPLE_PACKAGE = "examples/modules/JOURNEY-v1.md"
+JOURNEY_EXAMPLE_GAPS = "examples/modules/JOURNEY-gaps.md"
+JOURNEY_TPL_GATE_IDS = tuple(f"JOURNEY-TPL-GATE-{n:02d}" for n in range(1, 7))
+JOURNEY_STAGE_FIELDS = (
+    "action",
+    "touchpoint-system",
+    "emotion",
+    "wait-rework",
+    "risk",
+)
+JOURNEY_STAGE_DATA_FIELDS = (
+    "stage_index",
+    "stage_name",
+    "action",
+    "touchpoint_system",
+    "emotion",
+    "wait_rework",
+    "risk",
+)
+JOURNEY_QUALITY_KEYS = (
+    "user_perspective",
+    "business_outcome",
+    "friction_visible",
+    "no_solution_bias",
+)
+JOURNEY_QUALITY_ANCHORS = (
+    "journey-quality-user-perspective",
+    "journey-quality-business-outcome",
+    "journey-quality-friction-visible",
+    "journey-quality-no-solution-bias",
+)
 PERSONA_DISTILL_SKILL = "skills/persona-distill/SKILL.md"
 PERSONA_GATE_SKILL = "skills/persona-gate/SKILL.md"
 PERSONA_GATE_FILE = "skills/persona-gate/references/PERSONA-gate.md"
@@ -1237,6 +1277,481 @@ def check_hmw_tpl_gate_ids(ctx: CheckContext) -> list[Finding]:
                 hint="HMW-TPL-GATE-01..06 必须在模板结构 profile 中定义",
             )
         )
+    return findings
+
+
+# ---- Journey ---------------------------------------------------------------
+
+
+def _parse_prefixed_gate_rows(path: Path, gate_re: re.Pattern[str]) -> list[dict[str, str]]:
+    """解析 GC / HMW / Journey 这类单画布 Gate 表。"""
+    text = read_text(path)
+    rows: list[dict[str, str]] = []
+    in_table = False
+    columns: list[str] = []
+    for line in text.splitlines():
+        if not line.lstrip().startswith("|"):
+            in_table = False
+            columns = []
+            continue
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if not cells:
+            continue
+        if all(set(c) <= {"-", ":", " "} for c in cells):
+            continue
+        if not in_table:
+            if cells and cells[0].strip().lower() == "id":
+                in_table = True
+                columns = [c.strip().strip("`").lower() for c in cells]
+            continue
+        first = cells[0].strip().strip("`")
+        if not gate_re.match(first):
+            continue
+        row: dict[str, str] = {"id": first}
+        col_map = {"分类": "category", "风险等级": "risk", "来源": "source"}
+        for idx, value in enumerate(cells[1:], start=1):
+            if idx >= len(columns):
+                continue
+            header = columns[idx]
+            alias = col_map.get(header, header)
+            row[alias] = value.strip().strip("`")
+        for key in ("category", "risk", "source"):
+            if key not in row:
+                row[key] = ""
+        rows.append(row)
+    return rows
+
+
+def _table_rows_from_heading(text: str, heading: str) -> list[list[str]]:
+    """从 Markdown 指定标题下提取表格数据行。"""
+    match = re.search(
+        rf"^#{{1,6}}\s*{re.escape(heading)}\s*$\n?(.*?)(?=^#{{1,6}}\s|\Z)",
+        text,
+        re.MULTILINE | re.DOTALL,
+    )
+    if not match:
+        return []
+    rows: list[list[str]] = []
+    for line in match.group(1).splitlines():
+        if not line.strip().startswith("|"):
+            continue
+        cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
+        if not cells or all(re.fullmatch(r":?-{3,}:?", cell) for cell in cells):
+            continue
+        rows.append(cells)
+    return rows[1:] if rows else []
+
+
+def _journey_stage_numbers(text: str) -> list[int]:
+    numbers: list[int] = []
+    for match in re.finditer(r'id="journey-stage-(\d+)"', text):
+        numbers.append(int(match.group(1)))
+    return numbers
+
+
+def check_journey_skill_paths(ctx: CheckContext) -> list[Finding]:
+    """Journey Skill 路径存在且 frontmatter name 匹配。"""
+    findings: list[Finding] = []
+    for path, expected in (
+        (ctx.root / JOURNEY_DISTILL_SKILL, "journey-distill"),
+        (ctx.root / JOURNEY_GATE_SKILL, "journey-gate"),
+    ):
+        if not path.is_file():
+            findings.append(
+                Finding(
+                    code="JOURNEY_SKILL_PATH",
+                    level="error",
+                    where=str(path.relative_to(ctx.root)),
+                    message=f"缺少 Journey Skill：{path.name}",
+                    hint="需按执行计划创建 journey-distill / journey-gate",
+                )
+            )
+            continue
+        text = read_text(path)
+        if not re.search(rf"^name:\s*{expected}\s*$", text, re.MULTILINE):
+            findings.append(
+                Finding(
+                    code="JOURNEY_SKILL_NAME",
+                    level="error",
+                    where=str(path.relative_to(ctx.root)),
+                    message=f"frontmatter name 应为 {expected}",
+                    hint="SKILL.md frontmatter name 必须与目录名一致",
+                )
+            )
+    return findings
+
+
+def check_journey_gate_table(ctx: CheckContext) -> list[Finding]:
+    """Journey Gate 表格可解析，ID/分类/风险/来源合法。"""
+    p = ctx.root / JOURNEY_GATE_FILE
+    if not p.is_file():
+        return [
+            Finding(
+                code="JOURNEY_GATE_FILE_SET",
+                level="error",
+                where=JOURNEY_GATE_FILE,
+                message="缺少 Journey 闸门策略文件 JOURNEY-gate.md",
+                hint="需在 skills/journey-gate/references/JOURNEY-gate.md 写入 6 条放行条件",
+            )
+        ]
+    findings: list[Finding] = []
+    rows = _parse_prefixed_gate_rows(p, JOURNEY_GATE_ID_RE)
+    if not rows:
+        return [
+            Finding(
+                code="JOURNEY_GATE_TABLE",
+                level="error",
+                where=JOURNEY_GATE_FILE,
+                message="JOURNEY-gate.md 表格无数据行",
+                hint="表格需要 6 条放行条件",
+            )
+        ]
+    ids_seen: list[str] = []
+    for row in rows:
+        gid = row.get("id", "")
+        cat = row.get("category", "")
+        risk = row.get("risk", "")
+        source = row.get("source", "")
+        if not JOURNEY_GATE_ID_RE.match(gid):
+            findings.append(
+                Finding(
+                    code="JOURNEY_GATE_ID_FORMAT",
+                    level="error",
+                    where=JOURNEY_GATE_FILE,
+                    message=f"JOURNEY-GATE ID 格式不符：{gid}",
+                    hint="JOURNEY-GATE ID 须为 JOURNEY-GATE-01..JOURNEY-GATE-06",
+                )
+            )
+        if cat not in ALLOWED_GATE_CATEGORIES:
+            findings.append(
+                Finding(
+                    code="JOURNEY_GATE_CATEGORY",
+                    level="error",
+                    where=JOURNEY_GATE_FILE,
+                    message=f"JOURNEY-GATE {gid} 分类 {cat!r} 不在白名单 {ALLOWED_GATE_CATEGORIES}",
+                    hint="分类必须为 information_integrity 或 business_risk",
+                )
+            )
+        if risk not in ALLOWED_GATE_RISK_LEVELS:
+            findings.append(
+                Finding(
+                    code="JOURNEY_GATE_RISK",
+                    level="error",
+                    where=JOURNEY_GATE_FILE,
+                    message=f"JOURNEY-GATE {gid} 风险等级 {risk!r} 不在白名单 {ALLOWED_GATE_RISK_LEVELS}",
+                    hint="风险等级必须为 low / medium / high",
+                )
+            )
+        if not source:
+            findings.append(
+                Finding(
+                    code="JOURNEY_GATE_SOURCE",
+                    level="error",
+                    where=JOURNEY_GATE_FILE,
+                    message=f"JOURNEY-GATE {gid} 来源 ID 为空",
+                    hint="每条放行条件必须填写来源 ID",
+                )
+            )
+        ids_seen.append(gid)
+    expected_ids = [f"JOURNEY-GATE-{n:02d}" for n in range(1, 7)]
+    if sorted(ids_seen) != expected_ids:
+        findings.append(
+            Finding(
+                code="JOURNEY_GATE_COUNT",
+                level="error",
+                where=JOURNEY_GATE_FILE,
+                message=f"JOURNEY-GATE ID 集合 {sorted(ids_seen)} ≠ 期望 {expected_ids}",
+                hint="Journey 闸门必须有 6 条放行条件：JOURNEY-GATE-01..06",
+            )
+        )
+    if len(set(ids_seen)) != len(ids_seen):
+        findings.append(
+            Finding(
+                code="JOURNEY_GATE_ID_UNIQUE",
+                level="error",
+                where=JOURNEY_GATE_FILE,
+                message="JOURNEY-GATE ID 重复",
+                hint="每个 JOURNEY-GATE-xx ID 必须唯一",
+            )
+        )
+    return findings
+
+
+def check_journey_render_contract_sync(ctx: CheckContext) -> list[Finding]:
+    """Journey render contract、审计脚本、示例模板三者锚点和动态阶段规则一致。"""
+    findings: list[Finding] = []
+    contract_path = ctx.root / JOURNEY_RENDER_CONTRACT
+    template_path = ctx.root / JOURNEY_TEMPLATE_HTML
+    audit_path = ctx.root / "scripts/audit_canvas_html.py"
+    render_skill = ctx.root / "skills/canvas-render/SKILL.md"
+    for path, code, hint in (
+        (contract_path, "JOURNEY_RENDER_CONTRACT", "需创建 render-contract-journey.md"),
+        (template_path, "JOURNEY_TEMPLATE_MISSING", "需创建 examples/canvas-html/user-journey-canvas.html"),
+    ):
+        if not path.is_file():
+            findings.append(
+                Finding(
+                    code=code,
+                    level="error",
+                    where=str(path.relative_to(ctx.root)),
+                    message=f"缺少 {path.name}",
+                    hint=hint,
+                )
+            )
+    if not contract_path.is_file() or not template_path.is_file():
+        return findings
+    contract = read_text(contract_path)
+    template = read_text(template_path)
+    audit = read_text(audit_path)
+    render_text = read_text(render_skill)
+
+    required_anchors = (
+        "journey-map",
+        "journey-frictions",
+        "journey-friction-summary",
+        "journey-quality",
+        *JOURNEY_QUALITY_ANCHORS,
+        "quality-panel",
+        "quality-version",
+        "quality-approval",
+        "quality-gaps",
+        "quality-risks",
+        "quality-caveat",
+        "local-notes",
+        "canvas-data",
+    )
+    for anchor in required_anchors:
+        for text, where in ((contract, JOURNEY_RENDER_CONTRACT), (template, JOURNEY_TEMPLATE_HTML), (audit, "scripts/audit_canvas_html.py")):
+            if anchor not in text:
+                findings.append(
+                    Finding(
+                        code="JOURNEY_ANCHOR_SYNC",
+                        level="error",
+                        where=where,
+                        message=f"缺 Journey 锚点 {anchor}",
+                        hint="render contract / 示例模板 / 审计脚本必须共享稳定锚点集合",
+                    )
+                )
+
+    stage_numbers = sorted(set(_journey_stage_numbers(template)))
+    if stage_numbers != [1, 2, 3]:
+        findings.append(
+            Finding(
+                code="JOURNEY_TEMPLATE_STAGE",
+                level="error",
+                where=JOURNEY_TEMPLATE_HTML,
+                message=f"模板阶段编号 {stage_numbers} ≠ [1, 2, 3]",
+                hint="示例模板至少包含 3 个连续阶段占位",
+            )
+        )
+    for number in stage_numbers:
+        for field_name in JOURNEY_STAGE_FIELDS:
+            anchor = f"journey-stage-{number}-{field_name}"
+            if anchor not in template:
+                findings.append(
+                    Finding(
+                        code="JOURNEY_TEMPLATE_STAGE_FIELD",
+                        level="error",
+                        where=JOURNEY_TEMPLATE_HTML,
+                        message=f"模板缺阶段子锚点 {anchor}",
+                        hint="每个阶段必须包含 action / touchpoint-system / emotion / wait-rework / risk",
+                    )
+                )
+    if '"canvas_type": "journey"' not in template:
+        findings.append(
+            Finding(
+                code="JOURNEY_CANVAS_DATA",
+                level="error",
+                where=JOURNEY_TEMPLATE_HTML,
+                message='模板 canvas-data 缺 "canvas_type": "journey"',
+                hint="canvas-data.canvas_type 必须为 journey",
+            )
+        )
+    for field_name in JOURNEY_STAGE_DATA_FIELDS:
+        if f'"{field_name}"' not in template:
+            findings.append(
+                Finding(
+                    code="JOURNEY_CANVAS_DATA",
+                    level="error",
+                    where=JOURNEY_TEMPLATE_HTML,
+                    message=f"模板 canvas-data.stages[] 缺字段 {field_name}",
+                    hint="canvas-data.stages[] 字段必须与审计脚本一致",
+                )
+            )
+    for gid in JOURNEY_TPL_GATE_IDS:
+        if gid not in contract:
+            findings.append(
+                Finding(
+                    code="JOURNEY_TPL_GATE_IDS",
+                    level="error",
+                    where=JOURNEY_RENDER_CONTRACT,
+                    message=f"render-contract-journey.md 缺 Template Gate ID {gid}",
+                    hint="JOURNEY-TPL-GATE-01..06 必须在模板结构 profile 中定义",
+                )
+            )
+    if "examples/canvas-html/user-journey-canvas.html" not in render_text:
+        findings.append(
+            Finding(
+                code="JOURNEY_RENDER_MAP",
+                level="error",
+                where="skills/canvas-render/SKILL.md",
+                message="canvas-render 示例映射缺 Journey 行",
+                hint="在示例映射表补 `journey` → examples/canvas-html/user-journey-canvas.html",
+            )
+        )
+    if "--type journey" not in render_text:
+        findings.append(
+            Finding(
+                code="JOURNEY_RENDER_AUDIT_CMD",
+                level="error",
+                where="skills/canvas-render/SKILL.md",
+                message="canvas-render 文档缺 Journey 审计命令",
+                hint="正式 Journey 审计命令必须包含 --type journey",
+            )
+        )
+    return findings
+
+
+def check_journey_examples(ctx: CheckContext) -> list[Finding]:
+    """Journey 示例模块必须覆盖 Key Points、确认包和 gaps，并保持缺口同源。"""
+    findings: list[Finding] = []
+    paths = [
+        ctx.root / JOURNEY_EXAMPLE_KEYPOINTS,
+        ctx.root / JOURNEY_EXAMPLE_PACKAGE,
+        ctx.root / JOURNEY_EXAMPLE_GAPS,
+    ]
+    for path in paths:
+        if not path.is_file():
+            findings.append(
+                Finding(
+                    code="JOURNEY_EXAMPLE_MISSING",
+                    level="error",
+                    where=str(path.relative_to(ctx.root)),
+                    message=f"缺少 Journey 示例文件 {path.name}",
+                    hint="需补齐 examples/modules/JOURNEY-keypoints.md / JOURNEY-v1.md / JOURNEY-gaps.md",
+                )
+            )
+    package_path = ctx.root / JOURNEY_EXAMPLE_PACKAGE
+    if not package_path.is_file():
+        return findings
+    package = read_text(package_path)
+    for section in (
+        "### 6. 阶段地图",
+        "### 6a. 质量鉴别",
+        "### 6b. 关键断点与机会",
+        "### 7. 结论登记表",
+        "### 8. 缺口表",
+        "### 9. 推断表",
+        "## 12. Gate 与用户决策",
+    ):
+        if section not in package:
+            findings.append(
+                Finding(
+                    code="JOURNEY_EXAMPLE_SECTION",
+                    level="error",
+                    where=JOURNEY_EXAMPLE_PACKAGE,
+                    message=f"JOURNEY-v1.md 缺 section {section}",
+                    hint="确认包示例必须包含 6 / 6a / 6b / 7 / 8 / 9 / 12 节",
+                )
+            )
+    stage_rows = _table_rows_from_heading(package, "6. 阶段地图")
+    if len(stage_rows) < 3:
+        findings.append(
+            Finding(
+                code="JOURNEY_EXAMPLE_STAGE",
+                level="error",
+                where=JOURNEY_EXAMPLE_PACKAGE,
+                message=f"阶段地图只有 {len(stage_rows)} 行（期望至少 3）",
+                hint="Journey 示例确认包至少包含 3 个动态阶段",
+            )
+        )
+    if package.count("JOURNEY-F") < 1:
+        findings.append(
+            Finding(
+                code="JOURNEY_EXAMPLE_FRICTION",
+                level="error",
+                where=JOURNEY_EXAMPLE_PACKAGE,
+                message="确认包示例缺 JOURNEY-Fxx 断点 / 机会 ID",
+                hint="第 6b 节至少包含 1 条关键断点与机会",
+            )
+        )
+    for key in JOURNEY_QUALITY_KEYS:
+        if key not in package:
+            findings.append(
+                Finding(
+                    code="JOURNEY_EXAMPLE_QUALITY",
+                    level="error",
+                    where=JOURNEY_EXAMPLE_PACKAGE,
+                    message=f"确认包示例缺质量维度 {key}",
+                    hint="第 6a 节必须包含 4 个质量鉴别维度",
+                )
+            )
+    for token, code, hint in (
+        ("JOURNEY-C", "JOURNEY_EXAMPLE_IDS", "结论 ID 使用 JOURNEY-Cxx"),
+        ("JOURNEY-G", "JOURNEY_EXAMPLE_IDS", "缺口 ID 使用 JOURNEY-Gxx"),
+        ("JOURNEY-Inf", "JOURNEY_EXAMPLE_IDS", "推断 ID 使用 JOURNEY-Infxx"),
+    ):
+        if token not in package:
+            findings.append(
+                Finding(
+                    code=code,
+                    level="error",
+                    where=JOURNEY_EXAMPLE_PACKAGE,
+                    message=f"确认包示例缺 {token} ID",
+                    hint=hint,
+                )
+            )
+
+    gaps_path = ctx.root / JOURNEY_EXAMPLE_GAPS
+    if gaps_path.is_file():
+        gaps = read_text(gaps_path)
+        package_gap_ids = set(re.findall(r"JOURNEY-G\d+", package))
+        gaps_ids = set(re.findall(r"JOURNEY-G\d+", gaps))
+        if gaps_ids and not gaps_ids.issubset(package_gap_ids):
+            findings.append(
+                Finding(
+                    code="JOURNEY_GAPS_SYNC",
+                    level="error",
+                    where=JOURNEY_EXAMPLE_GAPS,
+                    message=f"JOURNEY-gaps.md 缺口 ID {sorted(gaps_ids)} 未全部出现在确认包第 8 节 {sorted(package_gap_ids)}",
+                    hint="JOURNEY-gaps.md 与确认包第 8 节缺口表必须同源",
+                )
+            )
+    return findings
+
+
+def check_journey_no_seven_elements(ctx: CheckContext) -> list[Finding]:
+    """Journey 主表不得被定义为七要素。"""
+    findings: list[Finding] = []
+    scan = [
+        ctx.root / JOURNEY_FRAME,
+        ctx.root / JOURNEY_SPEC,
+        ctx.root / JOURNEY_RENDER_CONTRACT,
+        ctx.root / JOURNEY_TEMPLATE_HTML,
+        ctx.root / JOURNEY_EXAMPLE_PACKAGE,
+    ]
+    for path in scan:
+        if not path.is_file():
+            continue
+        text = read_text(path)
+        if "七要素" not in text:
+            continue
+        lines = text.splitlines()
+        for lineno, line in enumerate(lines, 1):
+            if "七要素" not in line:
+                continue
+            window = "\n".join(lines[max(0, lineno - 2) : lineno + 2])
+            if any(word in window for word in ("不得", "不把", "不要", "禁止", "非", "不作为", "不是")):
+                continue
+            findings.append(
+                Finding(
+                    code="JOURNEY_SEVEN_ELEMENTS",
+                    level="warning",
+                    where=f"{path.relative_to(ctx.root)}:{lineno}",
+                    message="Journey 文件出现七要素表述，需人工确认是否误把主表定义为七要素",
+                    hint="Journey 正式主表必须是动态阶段 × 5 行合并结构",
+                )
+            )
     return findings
 
 
@@ -1943,6 +2458,12 @@ RULES: tuple[Rule, ...] = (
     Rule("HMW_TEMPLATE_MISSING", "A", "HMW 一等公民模板存在且含 8 想法锚点", check_hmw_template_and_anchors),
     Rule("HMW_INF_ID", "A", "HMW 推断 ID 用 HMW-Inf-N（与 HMW-Idea-N 区分）", check_hmw_id_naming),
     Rule("HMW_TPL_GATE_UNIQUE", "B", "HMW-TPL-GATE-01..06 稳定 ID 定义且与 HMW-GATE 区分", check_hmw_tpl_gate_ids),
+    # Journey（执行计划 §8）
+    Rule("JOURNEY_SKILL_PATH", "A", "Journey Skill 路径存在且 frontmatter name 匹配", check_journey_skill_paths),
+    Rule("JOURNEY_GATE_FILE_SET", "A", "Journey 闸门策略文件 JOURNEY-gate.md 存在且合法", check_journey_gate_table),
+    Rule("JOURNEY_ANCHOR_SYNC", "B", "Journey render contract / 审计脚本 / 示例模板锚点一致", check_journey_render_contract_sync),
+    Rule("JOURNEY_EXAMPLE_MISSING", "A", "Journey 示例模块 Key Points / 确认包 / gaps 齐全", check_journey_examples),
+    Rule("JOURNEY_SEVEN_ELEMENTS", "B", "Journey 主表不得定义为七要素", check_journey_no_seven_elements),
     Rule("PERSONA_SKILL_PATH", "A", "Persona Skill、Gate、模板与渲染契约保持一致", check_persona_skill_paths),
 )
 

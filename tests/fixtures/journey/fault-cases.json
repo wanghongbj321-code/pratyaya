@@ -1,0 +1,35 @@
+{
+  "description": "Journey HTML 静态审计故障用例定义；测试按这些 replace 规则从模板生成临时故障 HTML。",
+  "cases": [
+    {
+      "id": "missing_stage",
+      "expect": "JOURNEY_STAGE",
+      "replace": [["id=\"journey-stage-3\"", "id=\"journey-stage-30\""]]
+    },
+    {
+      "id": "stage_gap",
+      "expect": "continuous",
+      "replace": [["id=\"journey-stage-2\"", "id=\"journey-stage-4\""]]
+    },
+    {
+      "id": "missing_child_anchor",
+      "expect": "journey-stage-2-wait-rework",
+      "replace": [["id=\"journey-stage-2-wait-rework\"", "id=\"journey-stage-2-wait-rework-x\""]]
+    },
+    {
+      "id": "missing_quality_anchor",
+      "expect": "journey-quality-no-solution-bias",
+      "replace": [["id=\"journey-quality-no-solution-bias\"", "id=\"journey-quality-no-solution-bias-x\""]]
+    },
+    {
+      "id": "missing_friction_summary",
+      "expect": "journey-friction-summary",
+      "replace": [["id=\"journey-friction-summary\"", "id=\"journey-friction-summary-x\""]]
+    },
+    {
+      "id": "hidden_quality",
+      "expect": "JOURNEY-TPL-GATE-06",
+      "replace": [["<section class=\"journey-quality\" id=\"journey-quality\"", "<section class=\"journey-quality hidden\" id=\"journey-quality\""]]
+    }
+  ]
+}

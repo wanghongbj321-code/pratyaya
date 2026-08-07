@@ -1,0 +1,29 @@
+{
+  "schema_version": "2.3",
+  "group_id": "G1",
+  "project_name": "Journey Override 测试项目",
+  "journey": {
+    "version": 1,
+    "status": "confirmed",
+    "gate_recommendation": "fail",
+    "render_authorized": true,
+    "confirmation_mode": "override",
+    "override_audit": {
+      "items": [
+        {
+          "assessment_id": "JOURNEY-GATE-04",
+          "category": "business_risk",
+          "risk_level": "medium",
+          "source_id": "JOURNEY-quality",
+          "impact": "业务结果边界存在风险",
+          "recommendation": "上线前补齐结果口径"
+        }
+      ],
+      "reason": "当前工作坊时间有限，业务负责人接受该边界风险。",
+      "confirmed_by": "张三",
+      "confirmed_role": "运营负责人",
+      "confirmed_at": "2026-08-07T22:10:00+08:00"
+    }
+  },
+  "updated_at": "2026-08-07T22:10:00+08:00"
+}

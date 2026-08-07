@@ -3,6 +3,25 @@
 > 本文件记录 Pratyaya 专家的正式版本变更。
 > 完整 SemVer 与架构说明见 [`README.md`](./README.md) / [`DESIGN.md`](./DESIGN.md) / [docs/MVL-整体架构设计.md](./docs/MVL-整体架构设计.md)。
 
+## [v2.3.0] - 2026-08-07
+
+### 新增功能（MINOR）
+
+- **User Journey 画布**：新增完整用户旅程一等公民画布，独立于 MVL M2 `09-user-journey.md`，不写 `state.modules.M2`。
+- **journey-distill Skill**：新增 Journey Key Points、确认包与补问产物，正式主表忠实保留动态阶段 × 5 行合并结构（行动 / 触点与系统 / 情绪 / 等待与返工 / 风险节点）。
+- **journey-gate Skill**：新增 6 条 Journey 放行条件（3 条 `information_integrity` + 3 条 `business_risk`），仅 `business_risk` 可由用户显式 override。
+- **状态模型升级**：`state.schema.json` 升级为 v2.3，新增可选 `persona` 与 `journey` 区块；Journey override 审计限定 `JOURNEY-GATE-*` 且 `category=business_risk`。
+- **canvas-render 扩展**：`canvas_type` 新增 `journey`，新增 `render-contract-journey.md` 与示例映射 `journey` → `examples/canvas-html/user-journey-canvas.html`。
+- **Journey 双 Gate 审计**：`audit_canvas_html.py` 新增 `--type journey`；正式交付需 `--template examples/canvas-html/user-journey-canvas.html`，检查动态阶段连续编号、每阶段 5 子锚点、质量锚点、断点摘要、授权与 caveat。
+- **示例与测试资产**：新增 `examples/modules/JOURNEY-keypoints.md`、`JOURNEY-v1.md`、`JOURNEY-gaps.md` 与 `tests/fixtures/journey/`，覆盖正式、草稿、override 与故障场景。
+- **契约检查器扩展**：新增 Journey 规则（`JOURNEY_SKILL_PATH` / `JOURNEY_GATE_FILE_SET` / `JOURNEY_ANCHOR_SYNC` / `JOURNEY_EXAMPLE_MISSING` / `JOURNEY_SEVEN_ELEMENTS`）。
+- **文档同步**：README / DESIGN / DEVELOPMENT / 用户指南 / 安装指南 / MVL 专题文档同步 v2.3、五类画布、10 个 Skill（+ Persona/Journey）、10 个视觉模式和 Journey 独立边界。
+
+### 兼容策略（非破坏性）
+
+- 既有 MVL / GC / HMW 项目无需迁移；`persona` 与 `journey` 均为可选区块。
+- 独立 Journey 结论可被用户人工引用回 MVL，但系统不自动同步，也不修改 MVL 内置方法文件。
+
 ## [v2.2.0] - 2026-08-07
 
 ### 新增功能（MINOR）
