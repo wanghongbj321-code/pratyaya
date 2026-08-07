@@ -4,17 +4,17 @@
 
 ## 1. 决策
 
-**单专家 + 多 Skill**：一个 `pratyaya` 专家包，调度七个 Skill（`mvl-distill` / `gc-distill` / `hmw-distill` / `module-conclusion-gate` / `gc-gate` / `hmw-gate` / `canvas-render`）完成工作流。每个 Skill 内部用最简、确定的契约约束 LLM 行为。三类画布（MVL / 黄金圈 / HMW）共享同一四阶段管线与状态机，各自拥有独立的提炼 Skill、门禁 Skill 与渲染契约。
+**单专家 + 多 Skill**：一个 `pratyaya` 专家包，调度九个 Skill（`mvl-distill` / `gc-distill` / `hmw-distill` / `persona-distill` / `module-conclusion-gate` / `gc-gate` / `hmw-gate` / `persona-gate` / `canvas-render`）完成工作流。每个 Skill 内部用最简、确定的契约约束 LLM 行为。四类画布（MVL / 黄金圈 / HMW / Persona）共享同一四阶段管线与状态机，各自拥有独立的提炼 Skill、门禁 Skill 与渲染契约。
 
 **人仍是最终决策者**：Skill 之间通过显式的确认包（v{N}.md）交付，每一步可被工作坊组织者审阅和回退。
 
-**画布类型路由**：主 Agent 在步骤 -1 判定画布类型（MVL / 黄金圈 / HMW），加载对应框架与确认包命名空间，三类画布互不串扰（详见 [agents/pratyaya.md](./agents/pratyaya.md)）。
+**画布类型路由**：主 Agent 在步骤 -1 判定画布类型（MVL / 黄金圈 / HMW / Persona），加载对应框架与确认包命名空间，四类画布互不串扰（详见 [agents/pratyaya.md](./agents/pratyaya.md)）。
 
 ## 2. 北极星目标
 
 - 一份能被生产团队复用的结论资产：MVL 覆盖目标、用户、Agent Team、Workflow、Context、Validation 六角度；黄金圈覆盖 WHY/HOW/WHAT 三层；HMW 覆盖问题陈述四字段与想法种子
 - 同一份资产同时支撑：模块化智能体画布、对外汇报、长期复盘
-- 三类画布输出同一套治理语义：版本化确认包 + Gate 建议 + 用户授权 + 可审计渲染
+- 四类画布输出同一套治理语义：版本化确认包 + Gate 建议 + 用户授权 + 可审计渲染
 
 ## 3. 问题定义
 
@@ -62,7 +62,7 @@
 ## 6. 核心数据资产
 
 - **画布记录**：以确认包 Markdown 形式存储（MVL：`Mx-v{N}.md`；黄金圈：`GC-v{N}.md`；HMW：`HMW-v{N}.md`），含业务内容节（MVL 第 1–11 节 / GC 第 6a 跨层一致性 / HMW 第 6a 质量鉴别、6b 想法种子、6c 想法↔HMW 对应）+ 第 12 节"Gate 与用户决策"治理元数据，以及业务 5 字段（conclusions / gaps / inferences / alignment / evidence）+ 治理 4 字段（gate_recommendation / render_authorized / confirmation_mode / override_audit）
-- **Schema**：`schemas/state.schema.json`（v2.1，非强制参考，详见 [schemas/README.md](./schemas/README.md)）；实际数据源为各画布确认包 Markdown
+- **Schema**：`schemas/state.schema.json`（v2.2，非强制参考，详见 [schemas/README.md](./schemas/README.md)）；实际数据源为各画布确认包 Markdown
 - **工作坊状态**：以 `state.json` 形式存储，支持三区块（`modules` / `golden_circle` / `hmw`，后两者可选），记录各画布的状态/版本/审批
 - **设计文档**：[DESIGN.md](./DESIGN.md)（本文档）
 
@@ -117,12 +117,12 @@ stateDiagram-v2
 
 ### 已实现
 
-- 单专家调度七个 Skill（`mvl-distill` / `gc-distill` / `hmw-distill` / `module-conclusion-gate` / `gc-gate` / `hmw-gate` / `canvas-render`）
-- **五状态画布生命周期**（`draft → gaps_open ↔ review_ready → confirmed → rendered`），三类画布共用
+- 单专家调度九个 Skill（`mvl-distill` / `gc-distill` / `hmw-distill` / `persona-distill` / `module-conclusion-gate` / `gc-gate` / `hmw-gate` / `persona-gate` / `canvas-render`）
+- **五状态画布生命周期**（`draft → gaps_open ↔ review_ready → confirmed → rendered`），四类画布共用
 - 模块和全局质量策略（MVL）与单画布质量策略（黄金圈 / HMW）
 - JSON Schema（当前标注为非强制参考，详见 [schemas/README.md](./schemas/README.md)）
 - **LLM 评估闸门**（输出 Markdown 判定报告 `skills/{mvl-conclusion-gate,gc-gate,hmw-gate}/references/*-gate.md`）
-- 本地离线 HTML 的渲染契约（MVL / GC / HMW 三份）
+- 本地离线 HTML 的渲染契约（MVL / GC / HMW / Persona 四份）
 - **HMW 双 Gate 审计**：`audit_canvas_html.py --type hmw --template ...`，内容/授权 Gate + Template Gate（详见 [DEVELOPMENT.md](./DEVELOPMENT.md) §3.1 与 [render-contract-hmw.md](./skills/canvas-render/references/render-contract-hmw.md)）
 - **一等公民示例模板**：`examples/canvas-html/`（persona / gc / hmw 三份 + 共享主题），作为渲染版面的视觉参照
 
@@ -155,7 +155,7 @@ HMW（How Might We，问题重构）是**独立的一等公民画布**，与 MVL
 
 ### 12.3 状态机与渲染契约
 
-状态机与第 10 节共用 5 态；`state.json` 使用 `hmw` 区块（v2.1 schema，可选）。渲染契约要求的一级模块顺序、稳定锚点集合、占位语义（`data-state="placeholder"`）与四态隐藏检测规则，见 [render-contract-hmw.md](./skills/canvas-render/references/render-contract-hmw.md)。
+状态机与第 10 节共用 5 态；`state.json` 使用 `hmw` 区块（v2.2 schema，可选）。渲染契约要求的一级模块顺序、稳定锚点集合、占位语义（`data-state="placeholder"`）与四态隐藏检测规则，见 [render-contract-hmw.md](./skills/canvas-render/references/render-contract-hmw.md)。
 
 ---
 

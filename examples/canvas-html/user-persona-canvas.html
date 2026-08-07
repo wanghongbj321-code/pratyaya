@@ -73,7 +73,7 @@
 </head>
 <body data-theme="base" data-canvas="persona" data-page-type="persona" data-version="1">
 <div class="wrap">
-  <header class="canvas-head">
+  <header class="canvas-head" id="canvas-header">
     <div>
       <div class="eyebrow">Pratyaya Canvas · 一等公民 · User Persona</div>
       <h1>用户画像 User Persona</h1>
@@ -211,21 +211,17 @@
   "page_type": "persona",
   "version": "1",
   "schema_version_target": "2.2",
-  "basic": {
-    "name": "", "gender": "", "age": "", "location": "", "education": "",
-    "job_title": "", "industry": "", "family_status": "", "income": ""
+  "sections": {
+    "canvas-headline": "",
+    "persona-name": "", "persona-gender": "", "persona-age": "", "persona-location": "", "persona-education": "",
+    "persona-job-title": "", "persona-industry": "", "persona-family-status": "", "persona-income": "",
+    "persona-description": "", "persona-goals-needs": "", "persona-behaviors": "",
+    "persona-pain-points": "", "persona-motivation": "", "persona-decision-factors": "",
+    "persona-quality-evidence": "pending", "persona-quality-concrete": "pending",
+    "persona-quality-voice": "pending", "persona-quality-representative": "pending",
+    "quality-panel": "", "local-notes": "", "canvas-data": ""
   },
-  "grid6": {
-    "description": "", "goals_needs": "", "behaviors": "",
-    "pain_points": "", "motivation": "", "decision_factors": ""
-  },
-  "quality": {
-    "evidence_based": "pending",
-    "concrete": "pending",
-    "pain_in_voice": "pending",
-    "representative": "pending"
-  },
-  "governance": {
+  "auth": {
     "gate_recommendation": "pending",
     "render_authorized": false,
     "confirmation_mode": null,

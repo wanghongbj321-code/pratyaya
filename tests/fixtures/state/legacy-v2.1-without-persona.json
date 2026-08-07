@@ -1,8 +1,7 @@
 {
-  "schema_version": "2.2",
+  "schema_version": "2.1",
   "group_id": "G1",
-  "project_name": "示例项目-MVL+GC+HMW+Persona",
-  "current_module": "M1",
+  "project_name": "旧版 HMW 项目（无 persona 区块）",
   "modules": {
     "M1": {
       "version": 1,
@@ -55,13 +54,6 @@
     "confirmation_mode": "gate_pass"
   },
   "hmw": {
-    "version": 1,
-    "status": "confirmed",
-    "gate_recommendation": "pass",
-    "render_authorized": true,
-    "confirmation_mode": "gate_pass"
-  },
-  "persona": {
     "version": 1,
     "status": "confirmed",
     "gate_recommendation": "pass",

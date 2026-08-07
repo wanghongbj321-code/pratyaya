@@ -1,11 +1,11 @@
-# Pratyaya MVL Expert — 整体功能架构设计
+# Pratyaya Canvas Expert — MVL 专题整体功能架构设计
 
 > 版本：以 `.codebuddy-plugin/plugin.json` `version` 字段为权威
 > 编写时间：2026-07-30（2026-08-07 补充多画布定位澄清）
 > 适用范围：架构师 / 维护者 / 二次开发者
 > 配套文档：[DESIGN.md](../DESIGN.md)（设计要点） / [README.md](../README.md)（门面） / [DEVELOPMENT.md](../DEVELOPMENT.md)（命令清单） / [用户指南](./user-guide.md)（用户视角）
 
-> **文档定位澄清（v2.1）**：本文档是 **MVL 专题**架构设计，聚焦 M1-M6 六模块流水线。pratyaya 专家包已升级为**多画布平台**（MVL / 黄金圈 / HMW 三类一等公民画布，7 个 Skill，schema v2.1）——MVL 整体架构（状态机、不变量、引用层级、扩展边界）在三类画布中通用，黄金圈与 HMW 的画布级差异见 [DESIGN.md §12](../DESIGN.md#12-hmw-画布双-gate-模型)。文中涉及 M3 的 `hmw` 子模块（`skills/mvl-distill/references/methods/10-hmw.md`）是 **MVL 六模块流程内的子系统方法**，与独立的 HMW 画布（`hmw-distill` / `hmw-gate` / `render-contract-hmw.md`）**并存且相互独立**：M3 的 hmw 方法不依赖 HMW 画布的 Skill；独立 HMW 画布可被任何项目单独使用。
+> **文档定位澄清（v2.2）**：本文档是 **MVL 专题**架构设计，聚焦 M1-M6 六模块流水线。pratyaya 专家包已升级为**多画布平台**（MVL / 黄金圈 / HMW / Persona 四类一等公民画布，9 个 Skill，schema v2.2）——MVL 整体架构（状态机、不变量、引用层级、扩展边界）在四类画布中通用。M3 的 `hmw` 子模块与独立 HMW 画布并存；MVL M2 的 `08-user-persona.md` 与独立 Persona 画布（`persona-distill` / `persona-gate` / `render-contract-persona.md`）也并存，可人工引用但不构成依赖。
 
 ---
 
@@ -13,7 +13,7 @@
 
 本文档回答四个核心问题：
 
-1. **是什么** — Pratyaya MVL Expert 的产品定位与设计取向（§1）
+1. **是什么** — Pratyaya Canvas Expert 的 MVL 专题定位与设计取向（§1）
 2. **怎么跑** — 端到端的数据流、组件协作、状态机（§2–§5）
 3. **怎么管** — 关键不变量、引用层级、扩展边界（§6–§7）
 4. **怎么改** — 二次开发、版本升级、风险控制（§8）
@@ -31,7 +31,7 @@
 
 ### 1.1 一句话定位
 
-> **Pratyaya MVL Expert = 面向 3 天 MVL（Minimum Verifiable Loop）工作坊的分步沉淀协作应用。**
+> **Pratyaya Canvas Expert 的 MVL 专题 = 面向 3 天 MVL（Minimum Verifiable Loop）工作坊的分步沉淀协作应用。**
 
 来源：2026-07-28 MVL 产品审查（§1.3）。
 

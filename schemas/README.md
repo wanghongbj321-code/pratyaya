@@ -1,20 +1,21 @@
 # Pratyaya Schemas（非强制参考）
 
-本目录下的 JSON Schema 仅作为非强制参考。**模块产物的唯一中间格式是 Markdown**（`modules/Mx-keypoints.md`、`modules/Mx-v{N}.md`、`modules/GC-keypoints.md`、`modules/GC-v{N}.md`、`modules/HMW-keypoints.md`、`modules/HMW-v{N}.md`），运行时不强制执行 JSON Schema 校验。
+本目录下的 JSON Schema 仅作为非强制参考。**模块产物的唯一中间格式是 Markdown**（`modules/Mx-keypoints.md`、`modules/Mx-v{N}.md`、`modules/GC-v{N}.md`、`modules/HMW-v{N}.md`、`modules/PERSONA-v{N}.md`），运行时不强制执行 JSON Schema 校验。
 
 ## 文件说明
 
-### `state.schema.json`（v2.1）
+### `state.schema.json`（v2.2）
 
-- **用途**：描述 `state.json` 的项目状态、模块版本、状态与审批结构，支持 MVL、黄金圈（Golden Circle）和 HMW（How Might We）三种画布类型。
-- **v2.1 变更**：
-  - `schema_version` 从 `"2.0"` 升级到 `"2.1"`（MINOR：新增**可选** `hmw` 顶层区块，无破坏性变更）。
+- **用途**：描述 `state.json` 的项目状态、模块版本、状态与审批结构，支持 MVL、黄金圈（Golden Circle）、HMW（How Might We）和 Persona（用户画像）四种画布类型。
+- **v2.2 变更**：
+  - `schema_version` 升级到 `"2.2"`（连续 MINOR：保留可选 `hmw` 顶层区块，并新增可选 `persona` 顶层区块）。
   - 新增顶层 `hmw` 对象，字段结构与 `golden_circle` 完全一致（`status` / `version` / `gate_recommendation` / `render_authorized` / `confirmation_mode` / `override_audit`）。
-  - `override_audit.items.assessment_id` 模式扩展为 `^(M[1-6]|GC|HMW)-GATE-[0-9]+$`。
+  - 新增顶层 `persona` 对象，字段结构与 `golden_circle` / `hmw` 一致。
+  - Persona override 审计项使用 `^PERSONA-GATE-[0-9]+$`，且只允许 `business_risk`。
 - **v2.0 变更（历史）**：
   - `current_module` 和 `modules` 从顶层 `required` 降为可选字段（仅 MVL 画布需要）。
   - 新增顶层 `golden_circle` 对象。
-- **向后兼容**：旧 MVL-only / GC-only state.json（无 `hmw` 区块）仍可使用；HMW 是可选区块，不强制存在。
+- **向后兼容**：`hmw` 与 `persona` 均为可选区块；旧项目在未进入相应画布流程时无需补齐该区块。
 - **当前状态**：保留作为**非强制参考**；LLM 不强制调用校验器。
 
 ### `module-record.schema.json`
@@ -26,10 +27,10 @@
 
 | 资产 | 当前实现 |
 |---|---|
-| 状态 | `state.json`（参考 state.schema.json v2.1，不强制校验；MVL 存 `modules`，GC 存 `golden_circle`，HMW 存 `hmw`） |
-| 模块中间产物 | `modules/Mx-keypoints.md` + `modules/Mx-v{N}.md`（MVL）/ `modules/GC-keypoints.md` + `modules/GC-v{N}.md`（黄金圈）/ `modules/HMW-keypoints.md` + `modules/HMW-v{N}.md`（HMW） |
-| 闸门判定 | LLM 阅读确认包 + 对应 Gate 策略文件（MVL: `Mx-gate.md` / GC: `GC-gate.md` / HMW: `HMW-gate.md`），输出 Markdown 判定报告 |
-| 事实源 | `Mx-v{N}.md` / `GC-v{N}.md` / `HMW-v{N}.md`（唯一事实源） |
+| 状态 | `state.json`（参考 state.schema.json v2.2，不强制校验；MVL 存 `modules`，GC 存 `golden_circle`，HMW 存 `hmw`，Persona 存 `persona`） |
+| 模块中间产物 | `modules/Mx-keypoints.md` + `modules/Mx-v{N}.md`（MVL）/ `modules/GC-v{N}.md`（黄金圈）/ `modules/HMW-v{N}.md`（HMW）/ `modules/PERSONA-v{N}.md`（Persona） |
+| 闸门判定 | LLM 阅读确认包 + 对应 Gate 策略文件（MVL: `Mx-gate.md` / GC: `GC-gate.md` / HMW: `HMW-gate.md` / Persona: `PERSONA-gate.md`），输出 Markdown 判定报告 |
+| 事实源 | `Mx-v{N}.md` / `GC-v{N}.md` / `HMW-v{N}.md` / `PERSONA-v{N}.md`（唯一事实源） |
 
 ## 后续评估
 

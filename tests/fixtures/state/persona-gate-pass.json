@@ -1,8 +1,7 @@
 {
   "schema_version": "2.2",
   "group_id": "G1",
-  "project_name": "示例项目-MVL+GC+HMW+Persona",
-  "current_module": "M1",
+  "project_name": "Persona 测试项目",
   "modules": {
     "M1": {
       "version": 1,

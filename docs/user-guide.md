@@ -10,22 +10,23 @@
 1. 确认专家已安装并验证（详见 [安装指南 §5](./installation.md#5-如何找到并验证专家)）
 2. 在"我的专家"中找到 “Pratyaya Canvas Expert”
 3. 点击进入主 Agent 对话
-4. 选择画布类型（MVL / 黄金圈 / HMW，见 §2）与模式（A / B / C）
+4. 选择画布类型（MVL / 黄金圈 / HMW / 用户画像，见 §2）与模式（A / B / C）
 5. 按 §3 决策分支逐模块推进
 
 ## 2. 模式选择
 
 主 Agent 启动时会先确认**画布类型**，再问你"想用哪种模式"：
 
-**画布类型**（对应 `state.json` 三区块）：
+**画布类型**（对应 `state.json` 四区块）：
 
 | 画布 | 说 | 工作流 |
 |---|---|---|
 | **MVL** | "开始 MVL 工作坊" / "M1 战略对齐" | 六模块（M1-M6），见 §4.1 |
 | **黄金圈** | "开始黄金圈画布" / "Golden Circle" | WHY/HOW/WHAT 三层，单画布 |
 | **HMW** | "开始 HMW 画布" / "How Might We" | 问题陈述四字段 + 想法种子，单画布 |
+| **用户画像** | "开始用户画像画布" / "Persona" | 9 基本信息 + 6 宫格 + 4 质量鉴别，单画布 |
 
-**模式**（针对 MVL 转写；黄金圈 / HMW 主要用引导）：
+**模式**（针对 MVL 转写；黄金圈 / HMW / 用户画像主要用引导）：
 
 | 模式 | 适用场景 | 数据源 |
 |---|---|---|
@@ -94,6 +95,10 @@
 
 主 Agent 引导讨论 → 提炼 `HMW-v{N}.md` → Gate → 确认 → 生成 `hmw-canvas.html`。HMW 正式渲染走**双 Gate**（内容/授权 + 结构 Template Gate），结构问题不能自行豁免（详见 [DEVELOPMENT.md §3.1](../DEVELOPMENT.md#31-python-静态审计)）。
 
+### 4.4 用户画像（单画布）
+
+用户画像固定覆盖 9 基本信息、6 宫格和 4 项质量鉴别。主 Agent 引导讨论 → 提炼 `PERSONA-v{N}.md` → Persona Gate → 用户确认或合规 override → 生成 `persona-canvas.html`。正式渲染同样经过内容/授权与 Template 双 Gate；只有 `PERSONA-GATE-03/04` 的业务风险可以显式 override。
+
 ## 5. 常用指令速查
 
 按使用阶段组织。完整指令集见 `agents/pratyaya.md` 的指令卡章节。
@@ -101,7 +106,7 @@
 **启动阶段**：
 
 - "开始 A 引导模式" / "开始 B 转写模式"
-- "开始黄金圈画布" / "开始 HMW 画布"
+- "开始黄金圈画布" / "开始 HMW 画布" / "开始用户画像画布"
 
 **模块阶段（MVL）**：
 
@@ -112,6 +117,11 @@
 
 - "HMW 提炼" / "HMW 补问" / "HMW 先看个样子" / "HMW 确认 v1" / "HMW override（已阅读影响）"
 - "生成 HMW 画布" / "HMW 状态"
+
+**用户画像阶段**：
+
+- "用户画像提炼" / "用户画像补问" / "用户画像先看个样子" / "用户画像确认 v1" / "用户画像 override（已阅读影响）"
+- "生成用户画像画布" / "用户画像状态"
 
 **全局阶段**：
 
@@ -165,8 +175,8 @@
 
 | 特征 | 草稿 Canvas | 正式 Canvas |
 |---|---|---|
-| 顶部字样 | 草稿 / 未确认 / 禁止用于管理层决策 | 画布名 + 版本号（MVL Canvas / Golden Circle / HMW Canvas） |
-| 数据源 | 对应 Key Points（非确认包） | 对应确认包（`Mx-v{N}.md` / `GC-v{N}.md` / `HMW-v{N}.md`） |
+| 顶部字样 | 草稿 / 未确认 / 禁止用于管理层决策 | 画布名 + 版本号（MVL Canvas / Golden Circle / HMW Canvas / Persona Canvas） |
+| 数据源 | 对应 Key Points（非确认包） | 对应确认包（`Mx-v{N}.md` / `GC-v{N}.md` / `HMW-v{N}.md` / `PERSONA-v{N}.md`） |
 | 视觉来源 | 用户选定的 `visual-patterns/NN-{id}.md` | 用户选定的 `visual-patterns/NN-{id}.md` |
 | 视觉系统 | 用户选定 | 用户选定 |
 | 状态变化 | 不改变画布状态 | 画布状态改为 `rendered` |

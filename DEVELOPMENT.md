@@ -10,11 +10,11 @@
 
 画布结论闸门（Gate）由 LLM 评估；旧 Python 脚本 `check_gate.py` 已删除。执行流程（按画布类型对应 Skill）：
 
-1. LLM 读取确认包 Markdown（MVL：`Mx-v{N}.md` / 黄金圈：`GC-v{N}.md` / HMW：`HMW-v{N}.md`）
-2. 对照对应 Gate Skill 的判定规则（MVL 34 条放行条件；黄金圈 / HMW 各 6 条稳定放行条件 + 稳定 ID + 分类与风险等级）
-3. 输出 Markdown 判定报告（`references/Mx-gate.md` / `GC-gate.md` / `HMW-gate.md`），含 `gate_recommendation: pass/fail/pending` + `override_eligible: true/false`；**不**写最终授权
+1. LLM 读取确认包 Markdown（MVL：`Mx-v{N}.md` / 黄金圈：`GC-v{N}.md` / HMW：`HMW-v{N}.md` / Persona：`PERSONA-v{N}.md`）
+2. 对照对应 Gate Skill 的判定规则（MVL 34 条放行条件；黄金圈 / HMW / Persona 各 6 条稳定放行条件 + 稳定 ID + 分类与风险等级）
+3. 输出 Markdown 判定报告（`references/Mx-gate.md` / `GC-gate.md` / `HMW-gate.md` / `PERSONA-gate.md`），含 `gate_recommendation: pass/fail/pending` + `override_eligible: true/false`；**不**写最终授权
 
-详细规则、缺口等级、推断术语、版本绑定的完整定义见 [skills/module-conclusion-gate/SKILL.md](./skills/module-conclusion-gate/SKILL.md)（MVL）、[skills/gc-gate/SKILL.md](./skills/gc-gate/SKILL.md)（黄金圈）、[skills/hmw-gate/SKILL.md](./skills/hmw-gate/SKILL.md)（HMW）。
+详细规则、缺口等级、推断术语、版本绑定的完整定义见 [skills/module-conclusion-gate/SKILL.md](./skills/module-conclusion-gate/SKILL.md)（MVL）、[skills/gc-gate/SKILL.md](./skills/gc-gate/SKILL.md)（黄金圈）、[skills/hmw-gate/SKILL.md](./skills/hmw-gate/SKILL.md)（HMW）、[skills/persona-gate/SKILL.md](./skills/persona-gate/SKILL.md)（Persona）。
 
 ## 3. HTML 渲染（Python 静态审计 + 浏览器视觉验收）
 
@@ -30,7 +30,7 @@ python3 scripts/audit_canvas_html.py <项目目录>/output/module-N-canvas.html 
   --state <项目目录>/state.json
 ```
 
-黄金圈画布：`--type gc`；HMW 画布：`--type hmw` 且必须携带 `--template examples/canvas-html/hmw-canvas.html`：
+黄金圈画布：`--type gc`；HMW 与 Persona 画布必须携带各自模板：
 
 ```bash
 python3 scripts/audit_canvas_html.py <项目目录>/output/hmw-canvas.html \
@@ -38,9 +38,15 @@ python3 scripts/audit_canvas_html.py <项目目录>/output/hmw-canvas.html \
   --state <项目目录>/state.json \
   --type hmw \
   --template examples/canvas-html/hmw-canvas.html
+
+python3 scripts/audit_canvas_html.py <项目目录>/output/persona-canvas.html \
+  --source <项目目录>/modules/PERSONA-v{N}.md \
+  --state <项目目录>/state.json \
+  --type persona \
+  --template examples/canvas-html/user-persona-canvas.html
 ```
 
-脚本使用 Python 标准库，负责（MVL / GC / HMW 通用）：
+脚本使用 Python 标准库，负责（MVL / GC / HMW / Persona 通用）：
 
 1. 页面类型、画布和版本元数据；
 2. 契约大模块、共享结构、稳定锚点存在且唯一；
@@ -78,13 +84,14 @@ Canvas 视觉系统由 `skills/canvas-render/visual-patterns/` 下的 Markdown �
 
 ## 5. 模块工作流
 
-四阶段管线（数据源与闸门），三类画布共用，差异在命名空间：
+四阶段管线（数据源与闸门），四类画布共用，差异在命名空间：
 
 | 画布 | Key Points | 提炼 | Gate | 渲染 |
 |---|---|---|---|---|
 | MVL | `Mx-keypoints.md` | `Mx-v{N}.md` | `Mx-gate.md` | `module-N-canvas.html` / 全局 |
 | 黄金圈 | `GC-keypoints.md` | `GC-v{N}.md` | `GC-gate.md` | `gc-canvas.html` |
 | HMW | `HMW-keypoints.md` | `HMW-v{N}.md` | `HMW-gate.md` | `hmw-canvas.html` |
+| Persona | `PERSONA-keypoints.md` | `PERSONA-v{N}.md` | `PERSONA-gate.md` | `persona-canvas.html` |
 
 ```text
 Key Points → 提炼（确认包 v{N}.md）→ Gate（判定报告）→ 渲染（HTML）

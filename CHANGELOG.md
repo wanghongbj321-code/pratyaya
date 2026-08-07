@@ -3,6 +3,20 @@
 > 本文件记录 Pratyaya 专家的正式版本变更。
 > 完整 SemVer 与架构说明见 [`README.md`](./README.md) / [`DESIGN.md`](./DESIGN.md) / [docs/MVL-整体架构设计.md](./docs/MVL-整体架构设计.md)。
 
+## [v2.2.0] - 2026-08-07
+
+### 新增功能（MINOR）
+
+- **用户画像画布**：新增与 MVL、黄金圈、HMW 对等的 Persona 单画像画布，结构固定为 9 基本信息、6 宫格和 4 项质量鉴别；不生成全局汇总，也不改变 MVL M2 的内置用户画像方法。
+- **Persona Skills**：新增 `persona-distill` 与 `persona-gate`，确认包命名为 `PERSONA-v{N}.md`，Gate 仅提出建议，只有 `PERSONA-GATE-03/04` 的 business_risk 允许用户显式 override。
+- **渲染与审计**：新增 `render-contract-persona.md`、Persona 示例模板、`audit_canvas_html.py --type persona` 和不可 override 的 `PERSONA-TPL-GATE-01~06`。
+- **状态模型**：state schema 升至 2.2；`persona` 与既有 `hmw` 都保持可选，Persona 正式授权读取 `state.persona`。
+
+### 兼容策略
+
+- Persona 与 MVL M2 `08-user-persona.md` 并存、可人工引用但不建立依赖。
+- 渲染继续由 `canvas-render` Skill 完成，不新增渲染脚本；正式 Persona 输出须通过内容/授权 Gate 与 Template Gate。
+
 ## [v2.1.0] - 2026-08-06
 
 ### 新增功能（MINOR）
