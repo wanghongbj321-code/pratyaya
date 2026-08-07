@@ -7,11 +7,20 @@
 
 ## 1. 概述
 
-**Pratyaya MVL Expert**（专家标识 `pratyaya`）是 MVL（Minimum Verifiable Loop，最小可验证自治闭环）工作坊引导专家包，专为 WorkBuddy 平台设计。核心能力：
+**Pratyaya Canvas Expert**（专家标识 `pratyaya`）是多画布工作坊专家包，专为 WorkBuddy 平台设计，支持三种画布类型：
 
-- 3 天 MVL 工作坊的引导与转写提炼
-- 模块化智能体画布（Canvas）的生成
-- 5 态模块生命周期管理
+| 画布 | 定位 | 结构 |
+|---|---|---|
+| **MVL** | 最小可验证自治闭环工作坊 | M1-M6 六模块 |
+| **黄金圈** | Golden Circle 战略澄清 | WHY/HOW/WHAT 三层 |
+| **HMW** | How Might We 问题重构 | 陈述四字段 + 想法种子 |
+
+核心能力：
+
+- 三类画布的引导、转写提炼与确认包沉淀
+- 质量门禁（Gate）建议 + 用户授权
+- 模块化智能体画布（Canvas）的生成（HMW 走双 Gate 审计）
+- 5 态画布生命周期管理（三类画布共用）
 
 专家包的元数据（`displayName` / `profession` / `displayDescription` / `quickPrompts` / `tags`）定义在 `.codebuddy-plugin/plugin.json`。**本指南不重复 plugin.json 字段，统一以一句话指向 plugin.json 作为权威来源**。详细字段值请查阅 `plugin.json`。
 
@@ -30,7 +39,7 @@
 将以下代码块**完整复制**到 WorkBuddy 的"专家导入"入口（一键粘贴即可完成注册与安装）：
 
 ```text
-请帮我安装本地的 MVL 工作坊引导专家（Pratyaya MVL Expert），仓库路径为 ./pratyaya/。
+请帮我安装本地的多画布工作坊专家（Pratyaya Canvas Expert），仓库路径为 ./pratyaya/。
 该专家包由本仓库的 .codebuddy-plugin/plugin.json 描述。
 请按 plugin.json 的字段读取专业名称、描述、快速指令集和标签。
 专家包内的 agents/pratyaya.md 是主 Agent 入口。
@@ -49,7 +58,7 @@ WorkBuddy 完成专家注册后必须重启，才能完整加载 agent、skill�
 
 1. 关闭 WorkBuddy
 2. 重新打开 WorkBuddy
-3. 进入"我的专家"页面，验证 “Pratyaya MVL Expert” 已出现
+3. 进入"我的专家"页面，验证 “Pratyaya Canvas Expert” 已出现
 
 不重启可能导致：专家已安装但 Agent 加载失败、Skill 路径不识别、avatar 缺失等异常。
 
@@ -72,11 +81,11 @@ WorkBuddy 完成专家注册后必须重启，才能完整加载 agent、skill�
 
 如果专家能准确回传 plugin.json 的 `quickPrompts` / `displayName` / `tags` 字段，则安装成功。
 
-### 5.3 验证模块生命周期
+### 5.3 验证画布生命周期
 
 向专家发送：
 
-> "请告诉我 M1 模块的当前状态机"
+> "请告诉我 HMW 画布的当前状态机"
 
 预期回答（5 态 + `confirmation_mode` 属性）：
 
@@ -85,7 +94,9 @@ WorkBuddy 完成专家注册后必须重启，才能完整加载 agent、skill�
 confirmation_mode：gate_pass / override / null（属性，不是状态）
 ```
 
-> `confirmation_mode` 是属性（不是状态）；用户可对 `business_risk` 显式 override 后进入 `confirmed`，并触发 caveat 显式呈现。
+也可验证画布类型路由："请介绍一下你支持哪几种画布"（预期：MVL / 黄金圈 / HMW 三类）。
+
+> `confirmation_mode` 是属性（不是状态）；用户可对 `business_risk` 显式 override 后进入 `confirmed`，并触发 caveat 显式呈现。HMW 正式渲染额外要求结构 Template Gate 通过（详见 [DEVELOPMENT.md §3.1](../DEVELOPMENT.md#31-python-静态审计)）。
 
 ## 6. 常见问题排查
 
@@ -107,15 +118,16 @@ confirmation_mode：gate_pass / override / null（属性，不是状态）
 
 ### 6.4 工作流异常
 
-- 检查 `skills/` 目录完整
-- 检查 `skills/canvas-render/visual-patterns/` 包含 `README.md` 和 9 个编号模式文件
-- 检查 `examples/modules/` 目录完整
+- 检查 `skills/` 目录完整（应含 7 个 Skill：mvl-distill / gc-distill / hmw-distill / module-conclusion-gate / gc-gate / hmw-gate / canvas-render）
+- 检查 `skills/canvas-render/visual-patterns/` 包含 `README.md` 和 10 个编号模式文件
+- 检查 `examples/modules/` 与 `examples/canvas-html/` 目录完整
 
 ### 6.5 草稿 Canvas 与正式 Canvas 混淆
 
 - 草稿 Canvas 顶部应有"草稿 / 未确认 / 禁止用于管理层决策"字样
-- 正式 Canvas 顶部应有"MVL Canvas"标题 + 版本号
+- 正式 Canvas 顶部应有画布名（MVL Canvas / Golden Circle / HMW Canvas）+ 版本号
 - 如无区分标志，请重新安装
+- HMW 正式 Canvas 无法生成时，检查是否已通过双 Gate（`--template` 缺失会 FAIL）
 
 ---
 

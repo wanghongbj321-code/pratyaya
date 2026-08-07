@@ -3,6 +3,39 @@
 > 本文件记录 Pratyaya 专家的正式版本变更。
 > 完整 SemVer 与架构说明见 [`README.md`](./README.md) / [`DESIGN.md`](./DESIGN.md) / [docs/MVL-整体架构设计.md](./docs/MVL-整体架构设计.md)。
 
+## [v2.1.0] - 2026-08-06
+
+### 新增功能（MINOR）
+
+- **HMW 画布**：新增完整的 HMW（How Might We，问题重构）画布支持，作为与 MVL、黄金圈同级的第三类一等公民画布。
+- **hmw-distill Skill**：HMW 提炼（Key Points + 确认包生成），含陈述四字段、质量鉴别（第 6a 节）、想法种子（第 6b 节）、想法↔HMW 对应（第 6c 节）。
+- **hmw-gate Skill**：HMW 门禁（6 条放行条件：4 info_integrity + 2 business_risk）。
+- **canvas-render 扩展**：`canvas_type` 新增 `hmw`，新增 `render-contract-hmw.md`（8 固定想法锚点 `hmw-idea-1`…`hmw-idea-8`）；示例映射表新增 `hmw` → `examples/canvas-html/hmw-canvas.html`。
+- **一等公民示例模板**：新增 `examples/canvas-html/hmw-canvas.html`（与 user-persona / goden-circle 同款黑灰骨架 + HMW 签名 4 字段陈述 + 2×4 八想法格 + 独立质量鉴别 / 想法对应 / 治理面板，占位内容规范 `data-state="placeholder"`）。
+- **双 Gate 审计模型**：`audit_canvas_html.py` 新增 `--type hmw` 与 `--template` 参数，HMW 正式交付走两个独立检查面——`[CONTENT/AUTH GATE]`（版本/事实源/授权/锚点/canvas-data）+ `[TEMPLATE GATE]`（`HMW-TPL-GATE-01~06` 结构完整性，**不可 override**）；模板自身先通过结构自审计才放行成品；`--template` 缺失时 FAIL（`HMW-TPL-GATE-00`）。
+- **渲染 smoke 脚本**：新增 `scripts/render_canvas.py`（确认包 → 模板骨架 → 临时 HTML），供集成验证。
+- **测试基础设施入库**：`tests/` 从 `.gitignore` 移除，测试作为发布 Gate 随专家包发布（§14 完成定义）；新增 state v2.1 fixtures、HMW 结构一致性测试与双 Gate 审计测试（59 用例）。
+- **状态模型升级**：`state.schema.json` 从 v2.0 升级到 v2.1——新增**可选**顶层 `hmw` 区块（向后兼容，无破坏性变更）；`override_audit.assessment_id` 正则扩展为 `^(M[1-6]|GC|HMW)-GATE-[0-9]+$`。
+- **Agent 多画布路由**：步骤 -1 增加 HMW 分支，新增 Phase HMW（8 步工作流），指令卡新增 HMW 行；Phase 0 新项目三区块（mvl/golden_circle/hmw）初始化，旧项目按需追加 hmw。
+- **契约检查器扩展**：新增 5 条 HMW 规则（`HMW_SKILL_PATH` / `HMW_GATE_FILE_SET` / `HMW_TEMPLATE_MISSING` / `HMW_INF_ID` / `HMW_TPL_GATE_UNIQUE`），规则族 31 → 37 条。
+- **视觉模式**：复用现有 10 个候选（不新增），默认 `10-black-gray-professional`。
+- **与 M3 的关系**：HMW 为完全独立画布；MVL 的 M3 hmw 子模块保持不变（两套并存，可引用不依赖）。
+
+### 兼容策略（非破坏性）
+
+- 既有 v2.0 项目无需迁移：`hmw` 区块为可选，旧 `state.json` 不含该区块仍合法；进入 HMW 流程时按需追加。
+- 既有 MVL / 黄金圈渲染与审计命令不变（默认 `--type mvl`；GC 用 `--type gc`）。
+
+### 迁移说明（新增项目）
+
+- 新项目在 Phase 0 同时建 `modules` / `golden_circle` / `hmw` 三区块（见 [agents/pratyaya.md](./agents/pratyaya.md) Phase 0）。
+- HMW 正式渲染必须携带 `--template examples/canvas-html/hmw-canvas.html`（双 Gate 前置条件）。
+
+### 变更文件
+
+- 新增：`skills/hmw-distill/`、`skills/hmw-gate/`、`render-contract-hmw.md`、`examples/canvas-html/hmw-canvas.html`、`scripts/render_canvas.py`、`tests/`（fixtures + 3 个测试文件）
+- 修改：`plugin.json`（v2.1.0）、`agents/pratyaya.md`、`canvas-render/SKILL.md`、`audit_canvas_html.py`、`check_contract_consistency.py`、`schemas/state.schema.json`（v2.1）、`schemas/README.md`、`README.md`、`DESIGN.md`、`DEVELOPMENT.md`、`docs/user-guide.md`、`docs/installation.md`、`docs/MVL-整体架构设计.md`、`examples/state-v2-sample.json`、`.gitignore`
+
 ## [v2.0.0] - 2026-08-06
 
 ### 破坏性变更（MAJOR）

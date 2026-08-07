@@ -1,23 +1,26 @@
 ---
 name: canvas-render
-description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 黄金圈: GC-v{N}.md）按用户选定的 Markdown 视觉模式渲染为可编辑、可追溯、离线可打开的 HTML Canvas。正式渲染前置条件：state.json 的 render_authorized=true 且 confirmation_mode ∈ {gate_pass, override}；override 时必须携带完整 override_audit。主 Agent 扫描 visual-patterns frontmatter、推荐候选并传递完整模式路径 + canvas_type 参数；本 Skill 不自动选模式。
+description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 黄金圈: GC-v{N}.md / HMW: HMW-v{N}.md）按用户选定的 Markdown 视觉模式渲染为可编辑、可追溯、离线可打开的 HTML Canvas。正式渲染前置条件：state.json 的 render_authorized=true 且 confirmation_mode ∈ {gate_pass, override}；override 时必须携带完整 override_audit。主 Agent 扫描 visual-patterns frontmatter、推荐候选并传递完整模式路径 + canvas_type 参数；本 Skill 不自动选模式。
 ---
 
 # Canvas 渲染
 
 本 Skill 是展示层，不是分析层。只把已确认的 Markdown 事实源转成 HTML；不得从转写直接提炼，不得为填满页面新增、润色或补齐业务结论。
 
-支持两种画布类型（由主 Agent 通过 `canvas_type` 参数指定）：
+支持三种画布类型（由主 Agent 通过 `canvas_type` 参数指定）：
 - `mvl`：MVL 六模块画布（默认）
 - `golden-circle`：黄金圈单画布
+- `hmw`：HMW 问题重构单画布
 
 执行前按需读取：
 
 - `../mvl-distill/references/workshop-canvas-map.md`：MVL 全局 Canvas 大小模块映射。
 - `../mvl-distill/references/mvl-canvas-spec.md`：MVL 模块产出规范。
 - `../gc-distill/references/gc-spec.md`：黄金圈 section 规范与锚点映射。
+- `../hmw-distill/references/hmw-spec.md`：HMW section 规范与锚点映射。
 - `references/render-contract.md`：MVL DOM、共享结构、离线、数据完整性、打印和 caveat 契约。
 - `references/render-contract-gc.md`：黄金圈 DOM、锚点映射、共享结构契约。
+- `references/render-contract-hmw.md`：HMW DOM、锚点映射、共享结构契约。
 - `examples/canvas-html/`：**所有画布类型的示例库**——渲染任何画布前必须在此目录按 `canvas_type` 查找对应示例并参照生成最终画布（见「示例参照」）；其中 `goden-circle-canvas.html` 是黄金圈 `gc-diagram` 3 圈图示的**唯一视觉事实源**（见 `render-contract-gc.md` §C）。
 - `visual-patterns/README.md`：视觉模式的发现、命名、字段、正文结构和阻断规则。
 - `../../scripts/audit_canvas_html.py`：确定性 HTML 静态审计；锚点顺序直接读取对应 render contract。
@@ -28,13 +31,15 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 黄金圈:
 
 正式渲染和模块详情渲染必须同时收到：
 
-1. `canvas_type`：画布类型，`"mvl"`（默认）或 `"golden-circle"`。
+1. `canvas_type`：画布类型，`"mvl"`（默认）、`"golden-circle"` 或 `"hmw"`。
 2. 确认包路径：按当前项目工作目录解析。
    - MVL：`modules/Mx-v{N}.md`
    - GC：`modules/GC-v{N}.md`
+   - HMW：`modules/HMW-v{N}.md`
 3. 用户授权（来自 `state.json`）：
    - MVL：对应模块 `render_authorized = true` 且 `confirmation_mode ∈ {gate_pass, override}`
    - GC：`golden_circle.render_authorized = true` 且 `golden_circle.confirmation_mode ∈ {gate_pass, override}`
+   - HMW：`hmw.render_authorized = true` 且 `hmw.confirmation_mode ∈ {gate_pass, override}`
    - override 时 `override_audit` 完整（含 items、reason、confirmed_by、confirmed_at）。
 4. Gate 建议（来自同版本 Gate 报告）：`gate_recommendation`（pass / fail）。
 5. 用户选定模式的完整仓库相对路径。
@@ -42,6 +47,7 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 黄金圈:
 草稿模式数据源：
 - MVL：`modules/Mx-keypoints.md`
 - GC：`modules/GC-keypoints.md`
+- HMW：`modules/HMW-keypoints.md`
 
 收到模式路径后必须校验：
 
@@ -108,6 +114,22 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 黄金圈:
 - 空字段显示"未讨论"或"待确认"，不得补写。
 - 不改变模块状态，不进入正式输出。
 
+### HMW 正式模式
+
+- 输入 `canvas_type=hmw`，状态为 `confirmed` 或 `rendered`，且 `render_authorized=true`。
+- 输出 `output/hmw-canvas.html`；Python 静态审计 + 浏览器视觉验收通过后才算成功。
+- 按 `render-contract-hmw.md` 展示 HMW 陈述（situation / question / for / so_that）+ 质量鉴别 + 想法种子（8 固定格）+ 想法↔HMW 对应。
+- 显示版本、确认、缺口、风险、结论 ID、证据摘要和 caveat 状态。
+- **不触发全局 Canvas**，不扫描跨模块 caveat。HMW 是单画布。
+
+### HMW 草稿模式
+
+- 仅在用户明确要求"用草稿辅助继续讨论"时生成。
+- 数据源：`modules/HMW-keypoints.md`。
+- 输出 `output/hmw-canvas.html`，带永久"草稿 / 未确认 / 禁止用于管理层决策"水印。
+- 空字段显示"未讨论"或"待确认"，不得补写。
+- 不改变模块状态，不进入正式输出。
+
 ## 视觉模式实现
 
 本 Skill 不选择模式，只实现主 Agent 传入的已选路径。
@@ -125,15 +147,16 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 黄金圈:
 
 **所有画布**（MVL / 黄金圈 / 用户画像 / HMW / 未来新增类型）在可视化渲染时，都必须先在 `examples/canvas-html/` 目录中查找对应的画布示例，并**参照该示例生成最终画布**：
 
-1. **查找**：按 `canvas_type` 在 `examples/canvas-html/` 中匹配示例文件（允许语义别名，如 `golden-circle` → `goden-circle-canvas.html`、`persona` → `user-persona-canvas.html`）。当前示例映射：
+1. **查找**：按 `canvas_type` 在 `examples/canvas-html/` 中匹配示例文件（允许语义别名，如 `golden-circle` → `goden-circle-canvas.html`、`persona` → `user-persona-canvas.html`、`hmw` → `hmw-canvas.html`）。当前示例映射：
 
    | canvas_type | 示例文件 |
    |---|---|
    | `golden-circle` | `examples/canvas-html/goden-circle-canvas.html` |
    | `persona` | `examples/canvas-html/user-persona-canvas.html` |
-   | `mvl` / `hmw` / 其他 | 暂无示例（见第 3 条处理） |
+   | `hmw` | `examples/canvas-html/hmw-canvas.html` |
+   | `mvl` / 其他 | 暂无示例（见第 3 条处理） |
 
-2. **参照**：示例是最终画布的**版面与签名视觉事实源**——整体布局、签名图示（如 GC 三同心圆）、治理面板 / 质量面板位置、pratyaya 黑灰配色与交互骨架均须与示例一致；业务内容仍按对应 render-contract 映射到稳定锚点。
+2. **参照**：示例是最终画布的**版面与签名视觉事实源**——整体布局、签名图示（如 GC 三同心圆）、治理面板 / 质量面板位置、pratyaya 黑灰配色与交互骨架均须与示例一致；业务内容仍按对应 render-contract 映射到稳定锚点。HMW 正式输出必须按 `examples/canvas-html/hmw-canvas.html` 的版面与签名布局生成，并同时通过内容/授权审计和 Template Gate（`HMW-TPL-GATE-XX`，见 `scripts/audit_canvas_html.py --template`）。
 
 3. **未找到示例**：不阻断渲染，但必须在交付说明中显式标注"该画布类型暂无示例参照"，并在浏览器视觉验收时按 render-contract 自行核对版面；同时提示需要补建对应示例（建议命名 `{canvas_type}-canvas.html`）。
 
@@ -185,6 +208,15 @@ python3 scripts/audit_canvas_html.py output/gc-canvas.html \
   --source modules/GC-v{N}.md \
   --state state.json \
   --type gc
+```
+
+HMW 正式画布审计：
+
+```bash
+python3 scripts/audit_canvas_html.py output/hmw-canvas.html \
+  --source modules/HMW-v{N}.md \
+  --state state.json \
+  --type hmw
 ```
 
 全局页不绑定单一确认包，运行 `python3 scripts/audit_canvas_html.py output/maau-global-canvas.html`。草稿页没有正式授权元数据，只传 HTML；仍须满足适用的结构、离线和草稿标记检查。

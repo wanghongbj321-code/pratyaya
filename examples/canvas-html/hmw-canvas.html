@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HMW 问题重构画布 How Might We Canvas（一等公民 · 示例）</title>
+<link rel="stylesheet" href="shared/canvas-theme.css">
+<style>
+  /* HMW 签名布局：顶部 4 字段陈述通栏 + 底部 2×4 想法格 */
+
+  /* 陈述通栏 */
+  .hmw-statement{
+    border:var(--border-w) solid var(--line); border-radius:var(--radius);
+    background:var(--paper); box-shadow:var(--shadow);
+    padding:18px 24px 20px; margin-bottom:16px;
+  }
+  .hmw-statement .tag{
+    font-size:10px; font-weight:700; letter-spacing:.18em; text-transform:uppercase;
+    color:var(--title-color); margin-bottom:10px;
+  }
+  .sentence{ font-size:16px; line-height:1.9; font-weight:700; color:var(--ink); }
+  .sentence .field{
+    display:block; margin:6px 0 0; font-weight:400; font-size:13px;
+    padding-left:12px; border-left:2px solid var(--line);
+  }
+  .sentence .field b{ display:inline-block; min-width:150px; font-weight:700; color:var(--title-color); }
+
+  /* 质量鉴别（4 维度） */
+  .quality{
+    border:var(--border-w) solid var(--line); border-radius:var(--radius);
+    background:var(--paper); box-shadow:var(--shadow);
+    padding:16px 18px 18px; margin-bottom:16px;
+  }
+  .q-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:10px; }
+  .q-item{ border:1px solid var(--line); border-radius:var(--radius); padding:10px 12px; }
+  .q-item .q-name{ font-size:13px; font-weight:700; color:var(--ink); }
+  .q-item .q-en{ font-size:11px; color:var(--hint-color); }
+  .q-item .q-verdict{ margin-top:6px; font-size:12px; }
+
+  /* 想法种子 2×4 格 */
+  .ideas{
+    border:var(--border-w) solid var(--line); border-radius:var(--radius);
+    background:var(--paper); box-shadow:var(--shadow);
+    padding:16px 18px 18px; margin-bottom:16px;
+  }
+  .idea-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:10px; }
+  .idea{
+    border:1px solid var(--line); border-radius:var(--radius); min-height:118px;
+    padding:10px 12px; display:flex; flex-direction:column;
+  }
+  .idea .idea-no{
+    width:20px; height:20px; border:1.5px solid var(--title-color); border-radius:50%;
+    display:inline-grid; place-items:center; font-size:10px; font-weight:700;
+    color:var(--title-color); margin-bottom:6px; flex:0 0 auto;
+  }
+  .idea .idea-fill{ flex:1; font-size:12.5px; line-height:1.5; }
+  .idea .idea-meta{ margin-top:6px; font-size:10px; color:var(--hint-color); }
+  .idea.placeholder .idea-fill{ color:var(--hint-color); }
+
+  /* 想法 ↔ HMW 对应 */
+  .coherence{
+    border:var(--border-w) solid var(--line); border-radius:var(--radius);
+    background:var(--paper); box-shadow:var(--shadow);
+    padding:16px 18px 18px; margin-bottom:16px;
+  }
+  .coherence table{ width:100%; border-collapse:collapse; font-size:12.5px; margin-top:10px; }
+  .coherence th,.coherence td{ border:1px solid var(--line); padding:8px 10px; text-align:left; vertical-align:top; }
+  .coherence th{ background:var(--brand-pale); font-weight:700; color:var(--title-color); }
+  .coherence td:first-child{ font-weight:700; white-space:nowrap; }
+
+  /* 质量与治理面板（与 persona 同款） */
+  .lower{ display:grid; grid-template-columns:1fr; gap:16px; }
+  .govern{
+    border:var(--border-w) solid var(--line); border-radius:var(--radius);
+    background:var(--paper); box-shadow:var(--shadow); padding:16px 18px 18px;
+  }
+  .govern dl{ margin:0; display:grid; grid-template-columns:auto 1fr; gap:6px 12px; font-size:12.5px; }
+  .govern dt{ color:var(--muted); }
+  .govern dd{ margin:0; font-weight:700; color:var(--ink); }
+
+  /* 本地备注 */
+  .local-notes{
+    margin-top:16px; border:1px dashed var(--line); border-radius:var(--radius);
+    padding:12px 14px; font-size:12.5px; min-height:48px; color:var(--ink);
+  }
+  .local-notes:empty::before{ content:"本地备注（浏览器内可编辑，刷新即清空）…"; color:var(--hint-color); }
+
+  @media(max-width:1100px){ .q-grid{ grid-template-columns:repeat(2,1fr); } .idea-grid{ grid-template-columns:repeat(2,1fr); } }
+  @media(max-width:720px){ .q-grid{ grid-template-columns:1fr; } .idea-grid{ grid-template-columns:1fr; } }
+  @media print{ .idea-grid{ gap:8px; } .idea{ min-height:86px; } .q-grid{ gap:8px; } }
+</style>
+</head>
+<body data-theme="base" data-canvas="hmw" data-page-type="hmw" data-version="1">
+<div class="wrap">
+  <header class="canvas-head" id="canvas-header">
+    <div>
+      <div class="eyebrow">Pratyaya Canvas · 一等公民 · How Might We</div>
+      <h1>HMW 问题重构画布 How Might We Canvas</h1>
+      <p class="sub">不是问"能不能做"，而是问"如何能做到"。把限制性思维转变成创造性思维：先说清谁在何时卡住，再说清我们如何能帮助他。</p>
+      <div id="canvas-headline" style="margin-top:8px;font-size:14px;font-weight:700;color:var(--title-color);">一句话结论：{在此填写整条 HMW 的问题重构方向}</div>
+    </div>
+    <div class="meta">
+      <strong>Canvas · HMW</strong>
+      日期：__________<br>
+      小组：__________<br>
+      版本：<span id="quality-version">v0（草稿）</span>
+    </div>
+  </header>
+
+  <!-- HMW 陈述：4 字段 -->
+  <section class="hmw-statement" id="hmw-statement" aria-label="HMW 陈述">
+    <div class="tag">核心提问 · HMW Statement</div>
+    <div class="sentence">
+      我们如何能让
+      <span class="field" id="hmw-situation"><b>situation · 问题情境</b>谁 + 何时 + 卡在哪里？（填写规则：具体的用户角色，不是"用户""大家"）</span>
+      <span class="field" id="hmw-question"><b>question · 我们可以如何</b>开放问句本体。删光技术名词再读一遍，读不通就打回。</span>
+      <span class="field" id="hmw-for"><b>for · 为 / 给</b>受益的具体用户。</span>
+      <span class="field" id="hmw-sothat"><b>so_that · 以便</b>期望的可衡量结果。</span>
+    </div>
+  </section>
+
+  <!-- 想法种子：8 固定格（2×4） -->
+  <section class="ideas" id="hmw-ideas" aria-label="想法种子">
+    <h2 class="cell-title">想法种子 <span class="en">Idea Seeds</span></h2>
+    <p class="cell-hint">至少 1–2 条想法，且每条回应 HMW 问句而非复述。未讨论的想法格保留占位（data-state="placeholder"），锚点不可缺失。</p>
+    <div class="idea-grid">
+      <div class="idea" id="hmw-idea-1" data-state="placeholder"><span class="idea-no">1</span><div class="idea-fill">待填写…</div><div class="idea-meta">功能 / 流程 / 机制 / 体验</div></div>
+      <div class="idea" id="hmw-idea-2" data-state="placeholder"><span class="idea-no">2</span><div class="idea-fill">待填写…</div><div class="idea-meta">功能 / 流程 / 机制 / 体验</div></div>
+      <div class="idea" id="hmw-idea-3" data-state="placeholder"><span class="idea-no">3</span><div class="idea-fill">待填写…</div><div class="idea-meta">功能 / 流程 / 机制 / 体验</div></div>
+      <div class="idea" id="hmw-idea-4" data-state="placeholder"><span class="idea-no">4</span><div class="idea-fill">待填写…</div><div class="idea-meta">功能 / 流程 / 机制 / 体验</div></div>
+      <div class="idea" id="hmw-idea-5" data-state="placeholder"><span class="idea-no">5</span><div class="idea-fill">待填写…</div><div class="idea-meta">功能 / 流程 / 机制 / 体验</div></div>
+      <div class="idea" id="hmw-idea-6" data-state="placeholder"><span class="idea-no">6</span><div class="idea-fill">待填写…</div><div class="idea-meta">功能 / 流程 / 机制 / 体验</div></div>
+      <div class="idea" id="hmw-idea-7" data-state="placeholder"><span class="idea-no">7</span><div class="idea-fill">待填写…</div><div class="idea-meta">功能 / 流程 / 机制 / 体验</div></div>
+      <div class="idea" id="hmw-idea-8" data-state="placeholder"><span class="idea-no">8</span><div class="idea-fill">待填写…</div><div class="idea-meta">功能 / 流程 / 机制 / 体验</div></div>
+    </div>
+  </section>
+
+  <!-- 想法 ↔ HMW 对应 -->
+  <section class="coherence" id="hmw-coherence" aria-label="想法与 HMW 对应">
+    <h2 class="cell-title">想法 ↔ HMW 对应 <span class="en">Coherence Map</span></h2>
+    <p class="cell-hint">每条想法回应哪条 HMW 问句？对应哪个质量维度？一致性判断（一致 / 部分一致 / 未建立）。此节为 hmw-coherence-map anchor 的事实源。</p>
+    <div id="hmw-coherence-map">
+      <table>
+        <thead><tr><th>想法 ID</th><th>回应问句</th><th>对应质量维度</th><th>一致性</th></tr></thead>
+        <tbody>
+          <tr><td>HMW-Idea-1</td><td>question（我们可以如何）</td><td>tension</td><td>—</td></tr>
+          <tr><td>HMW-Idea-2</td><td>—</td><td>—</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 质量鉴别：4 维度 -->
+  <section class="quality" id="hmw-quality" aria-label="质量鉴别">
+    <h2 class="cell-title">质量鉴别 <span class="en">Quality Check</span></h2>
+    <p class="cell-hint">四维度各判 通过 / 不通过（源自 M3 HMW 改写三步法）。此节为 render-contract-hmw.md 中 hmw-quality-* anchor 的事实源。</p>
+    <div class="q-grid">
+      <div class="q-item" id="hmw-quality-preset">
+        <div class="q-name">预设解法 <span class="q-en">preset_solution</span></div>
+        <div class="q-verdict verdict-pending" data-verdict>待判定</div>
+      </div>
+      <div class="q-item" id="hmw-quality-vague">
+        <div class="q-name">含糊 <span class="q-en">vague</span></div>
+        <div class="q-verdict verdict-pending" data-verdict>待判定</div>
+      </div>
+      <div class="q-item" id="hmw-quality-moment">
+        <div class="q-name">用户时刻 <span class="q-en">user_moment</span></div>
+        <div class="q-verdict verdict-pending" data-verdict>待判定</div>
+      </div>
+      <div class="q-item" id="hmw-quality-tension">
+        <div class="q-name">张力 <span class="q-en">tension</span></div>
+        <div class="q-verdict verdict-pending" data-verdict>待判定</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 质量与治理面板 -->
+  <div class="lower">
+    <aside class="govern" id="quality-panel" aria-label="质量与治理">
+      <h3 class="cell-title">质量与对齐</h3>
+      <dl>
+        <dt>版本</dt><dd id="quality-version-dd">v0（草稿）</dd>
+      </dl>
+      <div id="quality-approval">
+        <dl>
+          <dt>Gate 建议</dt><dd id="quality-gate">pending</dd>
+          <dt>授权渲染</dt><dd id="quality-authorized">false</dd>
+          <dt>确认模式</dt><dd id="quality-mode">null</dd>
+        </dl>
+      </div>
+      <dl>
+        <dt>缺口摘要</dt><dd id="quality-gaps">—</dd>
+        <dt>风险摘要</dt><dd id="quality-risks">—</dd>
+      </dl>
+      <div class="caveat" id="quality-caveat" hidden>
+        <b>Override 警示：</b><span id="quality-caveat-text">仅在 override 时显示——列出被接受的业务风险（预设解法 / 张力）与影响。</span>
+      </div>
+    </aside>
+  </div>
+
+  <section class="local-notes" id="local-notes" contenteditable="true"></section>
+
+  <p class="footnote">
+    <b>说明：</b>本文件为 HMW <b>一等公民画布示例</b>（对齐 <code>render-contract-hmw.md</code>），签名布局 1:1 沿用工作表 <code>canvas-templates/03-HMW画布.html</code> 的 4 字段陈述 + 8 想法格，并扩展质量鉴别、想法↔HMW 对应与 Gate / 授权治理面板。
+    采用标准 pratyaya 黑灰配色（单色方案，无配色切换），按 Ctrl/Cmd + P 可直接横版打印。本示例为静态骨架（占位内容），正式渲染由 <code>canvas-render</code> Skill 经 <code>提炼→门禁→渲染</code> 管线生成 <code>output/hmw-canvas.html</code>。
+  </p>
+</div>
+
+<script type="application/json" id="canvas-data">
+{
+  "canvas_type": "hmw",
+  "page_type": "hmw",
+  "version": "1",
+  "schema_version_target": "2.1",
+  "sections": {
+    "canvas-headline": "一句话结论",
+    "hmw-situation": "situation（问题情境）",
+    "hmw-question": "question（我们可以如何）",
+    "hmw-for": "for（为/给）",
+    "hmw-sothat": "so_that（以便）",
+    "hmw-quality-preset": "preset_solution（预设解法）",
+    "hmw-quality-vague": "vague（含糊）",
+    "hmw-quality-moment": "user_moment（用户时刻）",
+    "hmw-quality-tension": "tension（张力）",
+    "hmw-idea-1": "想法种子 1",
+    "hmw-idea-2": "想法种子 2",
+    "hmw-idea-3": "想法种子 3",
+    "hmw-idea-4": "想法种子 4",
+    "hmw-idea-5": "想法种子 5",
+    "hmw-idea-6": "想法种子 6",
+    "hmw-idea-7": "想法种子 7",
+    "hmw-idea-8": "想法种子 8",
+    "hmw-coherence-map": "想法 ↔ HMW 对应"
+  },
+  "statement": {
+    "situation": "", "question": "", "for": "", "so_that": ""
+  },
+  "quality": {
+    "preset_solution": "pending",
+    "vague": "pending",
+    "user_moment": "pending",
+    "tension": "pending"
+  },
+  "ideas": {
+    "idea_1": {"content": "", "type": "", "link_to_statement": "", "status": "placeholder"},
+    "idea_2": {"content": "", "type": "", "link_to_statement": "", "status": "placeholder"},
+    "idea_3": {"content": "", "type": "", "link_to_statement": "", "status": "placeholder"},
+    "idea_4": {"content": "", "type": "", "link_to_statement": "", "status": "placeholder"},
+    "idea_5": {"content": "", "type": "", "link_to_statement": "", "status": "placeholder"},
+    "idea_6": {"content": "", "type": "", "link_to_statement": "", "status": "placeholder"},
+    "idea_7": {"content": "", "type": "", "link_to_statement": "", "status": "placeholder"},
+    "idea_8": {"content": "", "type": "", "link_to_statement": "", "status": "placeholder"}
+  },
+  "coherence": {
+    "map": []
+  },
+  "auth": {
+    "gate_recommendation": "pending",
+    "render_authorized": false,
+    "confirmation_mode": null,
+    "override_audit": null
+  }
+}
+</script>
+</body>
+</html>

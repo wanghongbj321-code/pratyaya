@@ -8,14 +8,24 @@
 ## 1. 快速开始
 
 1. 确认专家已安装并验证（详见 [安装指南 §5](./installation.md#5-如何找到并验证专家)）
-2. 在"我的专家"中找到 “Pratyaya MVL Expert”
+2. 在"我的专家"中找到 “Pratyaya Canvas Expert”
 3. 点击进入主 Agent 对话
-4. 选择模式（A / B / C，见 §2）
+4. 选择画布类型（MVL / 黄金圈 / HMW，见 §2）与模式（A / B / C）
 5. 按 §3 决策分支逐模块推进
 
 ## 2. 模式选择
 
-主 Agent 启动时会问你"想用哪种模式"：
+主 Agent 启动时会先确认**画布类型**，再问你"想用哪种模式"：
+
+**画布类型**（对应 `state.json` 三区块）：
+
+| 画布 | 说 | 工作流 |
+|---|---|---|
+| **MVL** | "开始 MVL 工作坊" / "M1 战略对齐" | 六模块（M1-M6），见 §4.1 |
+| **黄金圈** | "开始黄金圈画布" / "Golden Circle" | WHY/HOW/WHAT 三层，单画布 |
+| **HMW** | "开始 HMW 画布" / "How Might We" | 问题陈述四字段 + 想法种子，单画布 |
+
+**模式**（针对 MVL 转写；黄金圈 / HMW 主要用引导）：
 
 | 模式 | 适用场景 | 数据源 |
 |---|---|---|
@@ -40,7 +50,9 @@
 
 ## 4. 3 天工作坊使用流程
 
-### 第 1 天（M1-M2）
+### 4.1 MVL（3 天工作坊）
+
+#### 第 1 天（M1-M2）
 
 - **M1 闭环目标定义**：goal、value、success_metrics
 - **M2 用户与需求**：users、needs、pain_points
@@ -61,6 +73,27 @@
 
 主 Agent 引导：M5 验证后生成 M6 收尾，再生成全局 Canvas。
 
+### 4.2 黄金圈（单画布）
+
+一次引导完成 WHY / HOW / WHAT 三层：
+
+1. **WHY**：信念 / 目的 / 使命
+2. **HOW**：原则 / 差异化 / 方法
+3. **WHAT**：产品 / 服务 / 证据
+
+主 Agent 引导三层讨论 → 提炼 `GC-v{N}.md` → Gate → 确认 → 生成 `gc-canvas.html`。
+
+### 4.3 HMW（单画布）
+
+问题重构工作坊，一次完成四步：
+
+1. **陈述四字段**：situation（问题情境）/ question（我们可以如何）/ for（为谁）/ so_that（以便达到什么结果）
+2. **质量鉴别**：四维度（预设解法 / 含糊 / 用户时刻 / 张力）各判通过或不通过
+3. **想法种子**：三分支（落地 / 抽象 / 重构）各产出想法，填 8 固定想法格
+4. **想法↔HMW 对应**：每条想法回应问句、对应质量维度、一致性判断
+
+主 Agent 引导讨论 → 提炼 `HMW-v{N}.md` → Gate → 确认 → 生成 `hmw-canvas.html`。HMW 正式渲染走**双 Gate**（内容/授权 + 结构 Template Gate），结构问题不能自行豁免（详见 [DEVELOPMENT.md §3.1](../DEVELOPMENT.md#31-python-静态审计)）。
+
 ## 5. 常用指令速查
 
 按使用阶段组织。完整指令集见 `agents/pratyaya.md` 的指令卡章节。
@@ -68,11 +101,17 @@
 **启动阶段**：
 
 - "开始 A 引导模式" / "开始 B 转写模式"
+- "开始黄金圈画布" / "开始 HMW 画布"
 
-**模块阶段**：
+**模块阶段（MVL）**：
 
 - "M1 提炼" / "M1 补问" / "M1 先看个样子" / "M1 确认 v1" / "M1 override（已阅读影响）"
 - "切换到 M2" / "M2 当前状态"
+
+**HMW 阶段**：
+
+- "HMW 提炼" / "HMW 补问" / "HMW 先看个样子" / "HMW 确认 v1" / "HMW override（已阅读影响）"
+- "生成 HMW 画布" / "HMW 状态"
 
 **全局阶段**：
 
@@ -102,7 +141,7 @@
 
 如 Canvas 渲染时报“视觉模式目录缺失”“模式未选择”或“文件名与 ID 不一致”：
 
-- 检查 `skills/canvas-render/visual-patterns/` 是否包含 9 个编号 Markdown 模式
+- 检查 `skills/canvas-render/visual-patterns/` 是否包含 10 个编号 Markdown 模式
 - 回到主 Agent 步骤 7，重新扫描候选并选择视觉模式
 - 选择时使用主 Agent 给出的候选名称；主 Agent 会向渲染 Skill 传递完整路径
 
@@ -126,11 +165,11 @@
 
 | 特征 | 草稿 Canvas | 正式 Canvas |
 |---|---|---|
-| 顶部字样 | 草稿 / 未确认 / 禁止用于管理层决策 | MVL Canvas + 版本号 |
-| 数据源 | `Mx-keypoints.md`（非确认包） | `Mx-v{N}.md`（确认包） |
+| 顶部字样 | 草稿 / 未确认 / 禁止用于管理层决策 | 画布名 + 版本号（MVL Canvas / Golden Circle / HMW Canvas） |
+| 数据源 | 对应 Key Points（非确认包） | 对应确认包（`Mx-v{N}.md` / `GC-v{N}.md` / `HMW-v{N}.md`） |
 | 视觉来源 | 用户选定的 `visual-patterns/NN-{id}.md` | 用户选定的 `visual-patterns/NN-{id}.md` |
 | 视觉系统 | 用户选定 | 用户选定 |
-| 状态变化 | 不改变模块状态 | 模块状态改为 `rendered` |
+| 状态变化 | 不改变画布状态 | 画布状态改为 `rendered` |
 | 适用范围 | 辅助继续讨论 | 演示报告 + 领导汇报 |
 
 ---

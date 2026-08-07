@@ -1,12 +1,11 @@
 {
-  "schema_version": "2.1",
+  "schema_version": "2.0",
   "group_id": "G1",
-  "project_name": "示例项目-MVL+GC+HMW",
-  "current_module": "M1",
+  "project_name": "旧版 MVL+GC 项目（无 hmw 区块）",
   "modules": {
     "M1": {
       "version": 1,
-      "status": "confirmed",
+      "status": "rendered",
       "gate_recommendation": "pass",
       "render_authorized": true,
       "confirmation_mode": "gate_pass"
@@ -48,18 +47,11 @@
     }
   },
   "golden_circle": {
-    "version": 1,
-    "status": "confirmed",
-    "gate_recommendation": "pass",
-    "render_authorized": true,
-    "confirmation_mode": "gate_pass"
+    "version": 0,
+    "status": "draft",
+    "gate_recommendation": "pending",
+    "render_authorized": false,
+    "confirmation_mode": null
   },
-  "hmw": {
-    "version": 1,
-    "status": "confirmed",
-    "gate_recommendation": "pass",
-    "render_authorized": true,
-    "confirmation_mode": "gate_pass"
-  },
-  "updated_at": "2026-08-07T10:00:00+08:00"
+  "updated_at": "2026-08-06T15:00:00+08:00"
 }
