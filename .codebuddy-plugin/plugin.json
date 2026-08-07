@@ -1,6 +1,6 @@
 {
   "name": "pratyaya",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "description": "pratyaya: AI-native multi-canvas workshop platform — supports MVL (Minimum Verifiable Loop), Golden Circle, HMW (How Might We), User Persona and User Journey canvases. Distills traceable conclusions; blocks incomplete modules; obtains versioned human confirmation; renders Canvas HTML.",
   "agents": [
     "./agents/pratyaya.md"

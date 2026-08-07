@@ -122,7 +122,7 @@ confirmation_mode：gate_pass / override / null（属性，不是状态）
 
 - 检查 `skills/` 目录完整（应含 10 个 Skill：mvl-distill / gc-distill / hmw-distill / persona-distill / journey-distill / module-conclusion-gate / gc-gate / hmw-gate / persona-gate / journey-gate / canvas-render）
 - 检查 `skills/canvas-render/visual-patterns/` 包含 `README.md` 和 10 个编号模式文件
-- 检查 `examples/modules/` 与 `examples/canvas-html/` 目录完整
+- 检查 `examples/modules/` 与 `skills/canvas-render/examples/` 目录完整
 
 ### 6.5 草稿 Canvas 与正式 Canvas 混淆
 

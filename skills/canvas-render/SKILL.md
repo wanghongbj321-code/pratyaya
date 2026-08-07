@@ -26,9 +26,9 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 黄金圈:
 - `references/render-contract-hmw.md`：HMW DOM、锚点映射、共享结构契约。
 - `references/render-contract-persona.md`：Persona DOM、锚点映射、共享结构契约。
 - `references/render-contract-journey.md`：Journey DOM、动态阶段、锚点映射、共享结构契约。
-- `examples/canvas-html/`：**所有画布类型的示例库**——渲染任何画布前必须在此目录按 `canvas_type` 查找对应示例并参照生成最终画布（见「示例参照」）；其中 `goden-circle-canvas.html` 是黄金圈 `gc-diagram` 3 圈图示的**唯一视觉事实源**（见 `render-contract-gc.md` §C）。
+- `examples/`：**所有画布类型的示例库**——渲染任何画布前必须在此目录按 `canvas_type` 查找对应示例并参照生成最终画布（见「示例参照」）；其中 `goden-circle-canvas.html` 是黄金圈 `gc-diagram` 3 圈图示的**唯一视觉事实源**（见 `render-contract-gc.md` §C）。
 - `visual-patterns/README.md`：视觉模式的发现、命名、字段、正文结构和阻断规则。
-- `../../scripts/audit_canvas_html.py`：确定性 HTML 静态审计；锚点顺序直接读取对应 render contract。
+- `scripts/audit_canvas_html.py`：确定性 HTML 静态审计；锚点顺序直接读取对应 render contract。
 
 视觉候选只能来自 `visual-patterns/` 的 Markdown 规格；不得从集中登记册或预制 HTML 推断候选与视觉 token。
 
@@ -112,7 +112,7 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 黄金圈:
 - 输入 `canvas_type=golden-circle`，状态为 `confirmed` 或 `rendered`，且 `render_authorized=true`。
 - 输出 `output/gc-canvas.html`；Python 静态审计 + 浏览器视觉验收通过后才算成功。
 - 按 `render-contract-gc.md` 展示 WHY / HOW / WHAT 三层 + 跨层一致性。
-- **必须参照 `examples/canvas-html/goden-circle-canvas.html` 实现 `gc-diagram` 3 圈同心圆图示**（WHY / HOW / WHAT 环带标签 + pratyaya 黑灰配色），不得省略、不得用其他图形替代（`render-contract-gc.md` §C）。
+- **必须参照 `examples/goden-circle-canvas.html` 实现 `gc-diagram` 3 圈同心圆图示**（WHY / HOW / WHAT 环带标签 + pratyaya 黑灰配色），不得省略、不得用其他图形替代（`render-contract-gc.md` §C）。
 - 显示版本、确认、缺口、风险、结论 ID、证据摘要和 caveat 状态。
 - **不触发全局 Canvas**，不扫描跨模块 caveat。GC 是单画布。
 
@@ -121,7 +121,7 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 黄金圈:
 - 仅在用户明确要求"用草稿辅助继续讨论"时生成。
 - 数据源：`modules/GC-keypoints.md`。
 - 输出 `output/gc-canvas.html`，带永久"草稿 / 未确认 / 禁止用于管理层决策"水印。
-- 同样**必须参照 `examples/canvas-html/goden-circle-canvas.html` 实现 `gc-diagram` 3 圈图示**（`render-contract-gc.md` §C）。
+- 同样**必须参照 `examples/goden-circle-canvas.html` 实现 `gc-diagram` 3 圈图示**（`render-contract-gc.md` §C）。
 - 空字段显示"未讨论"或"待确认"，不得补写。
 - 不改变模块状态，不进入正式输出。
 
@@ -188,22 +188,22 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 黄金圈:
 
 视觉模式只提供设计语法，不提供业务内容。不得复制模式文档之外的示例标题、角色、数字、指标、结论和品牌内容。
 
-## 示例参照（任何画布必须查找并参照 examples/canvas-html）
+## 示例参照（任何画布必须查找并参照 examples/）
 
-**所有画布**（MVL / 黄金圈 / 用户画像 / HMW / 未来新增类型）在可视化渲染时，都必须先在 `examples/canvas-html/` 目录中查找对应的画布示例，并**参照该示例生成最终画布**：
+**所有画布**（MVL / 黄金圈 / 用户画像 / HMW / 未来新增类型）在可视化渲染时，都必须先在 `examples/` 目录中查找对应的画布示例，并**参照该示例生成最终画布**：
 
-1. **查找**：按 `canvas_type` 在 `examples/canvas-html/` 中匹配示例文件（允许语义别名，如 `golden-circle` → `goden-circle-canvas.html`、`persona` → `user-persona-canvas.html`、`hmw` → `hmw-canvas.html`）。当前示例映射：
+1. **查找**：按 `canvas_type` 在 `examples/` 中匹配示例文件（允许语义别名，如 `golden-circle` → `goden-circle-canvas.html`、`persona` → `user-persona-canvas.html`、`hmw` → `hmw-canvas.html`）。当前示例映射：
 
    | canvas_type | 示例文件 |
    |---|---|
-   | `golden-circle` | `examples/canvas-html/goden-circle-canvas.html` |
-   | `persona` | `examples/canvas-html/user-persona-canvas.html` |
-   | `mvl` | `examples/canvas-html/mvl-canvas/maau-global-canvas.html`（全局）；`examples/canvas-html/mvl-canvas/module-{1-6}-canvas.html`（模块详情） |
-   | `hmw` | `examples/canvas-html/hmw-canvas.html` |
-   | `journey` | `examples/canvas-html/user-journey-canvas.html` |
+   | `golden-circle` | `examples/goden-circle-canvas.html` |
+   | `persona` | `examples/user-persona-canvas.html` |
+   | `mvl` | `examples/mvl-canvas/maau-global-canvas.html`（全局）；`examples/mvl-canvas/module-{1-6}-canvas.html`（模块详情） |
+   | `hmw` | `examples/hmw-canvas.html` |
+   | `journey` | `examples/user-journey-canvas.html` |
    | 其他 | 暂无示例（见第 3 条处理） |
 
-2. **参照**：示例是最终画布的**版面与签名视觉事实源**——整体布局、签名图示（如 GC 三同心圆）、治理面板 / 质量面板位置、pratyaya 黑灰配色与交互骨架均须与示例一致；业务内容仍按对应 render-contract 映射到稳定锚点。HMW 正式输出必须按 `examples/canvas-html/hmw-canvas.html` 的版面与签名布局生成，并同时通过内容/授权审计和 Template Gate（`HMW-TPL-GATE-XX`，见 `scripts/audit_canvas_html.py --template`）。
+2. **参照**：示例是最终画布的**版面与签名视觉事实源**——整体布局、签名图示（如 GC 三同心圆）、治理面板 / 质量面板位置、pratyaya 黑灰配色与交互骨架均须与示例一致；业务内容仍按对应 render-contract 映射到稳定锚点。HMW 正式输出必须按 `examples/hmw-canvas.html` 的版面与签名布局生成，并同时通过内容/授权审计和 Template Gate（`HMW-TPL-GATE-XX`，见 `scripts/audit_canvas_html.py --template`）。
 
 3. **未找到示例**：不阻断渲染，但必须在交付说明中显式标注"该画布类型暂无示例参照"，并在浏览器视觉验收时按 render-contract 自行核对版面；同时提示需要补建对应示例（建议命名 `{canvas_type}-canvas.html`）。
 
@@ -243,7 +243,7 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 黄金圈:
 HTML 写出后先运行静态审计。以下命令以专家包根目录为当前目录；若运行时位于工作坊项目目录，必须先解析专家包根目录并使用脚本的完整路径，不得调用项目目录中的同名文件。正式模块页使用：
 
 ```bash
-python3 scripts/audit_canvas_html.py output/module-N-canvas.html \
+python3 skills/canvas-render/scripts/audit_canvas_html.py output/module-N-canvas.html \
   --source modules/Mx-v{N}.md \
   --state state.json
 ```
@@ -251,7 +251,7 @@ python3 scripts/audit_canvas_html.py output/module-N-canvas.html \
 GC 正式画布审计：
 
 ```bash
-python3 scripts/audit_canvas_html.py output/gc-canvas.html \
+python3 skills/canvas-render/scripts/audit_canvas_html.py output/gc-canvas.html \
   --source modules/GC-v{N}.md \
   --state state.json \
   --type gc
@@ -260,7 +260,7 @@ python3 scripts/audit_canvas_html.py output/gc-canvas.html \
 HMW 正式画布审计：
 
 ```bash
-python3 scripts/audit_canvas_html.py output/hmw-canvas.html \
+python3 skills/canvas-render/scripts/audit_canvas_html.py output/hmw-canvas.html \
   --source modules/HMW-v{N}.md \
   --state state.json \
   --type hmw
@@ -269,7 +269,7 @@ python3 scripts/audit_canvas_html.py output/hmw-canvas.html \
 Persona 正式画布审计：
 
 ```bash
-python3 scripts/audit_canvas_html.py output/persona-canvas.html \
+python3 skills/canvas-render/scripts/audit_canvas_html.py output/persona-canvas.html \
   --source modules/PERSONA-v{N}.md \
   --state state.json \
   --type persona
@@ -278,14 +278,14 @@ python3 scripts/audit_canvas_html.py output/persona-canvas.html \
 Journey 正式画布审计：
 
 ```bash
-python3 scripts/audit_canvas_html.py output/journey-canvas.html \
+python3 skills/canvas-render/scripts/audit_canvas_html.py output/journey-canvas.html \
   --source modules/JOURNEY-v{N}.md \
   --state state.json \
   --type journey \
-  --template examples/canvas-html/user-journey-canvas.html
+  --template skills/canvas-render/examples/user-journey-canvas.html
 ```
 
-全局页不绑定单一确认包，运行 `python3 scripts/audit_canvas_html.py output/maau-global-canvas.html`。草稿页没有正式授权元数据，只传 HTML；仍须满足适用的结构、离线和草稿标记检查。
+全局页不绑定单一确认包，运行 `python3 skills/canvas-render/scripts/audit_canvas_html.py output/maau-global-canvas.html`。草稿页没有正式授权元数据，只传 HTML；仍须满足适用的结构、离线和草稿标记检查。
 
 脚本负责检查：
 
@@ -305,7 +305,7 @@ python3 scripts/audit_canvas_html.py output/journey-canvas.html \
 2. 窄屏 `390 × 844`：卡片合理堆叠，表格和高密度 flow 在自身容器滚动，文字不裁切。
 3. 打印：分页不改变 section 顺序；保留结论、版本、确认、风险、质量状态和 override caveat，隐藏编辑提示与操作控件。
 4. 模式视觉：实际色板、字体、网格、组件及专属组件符合用户选定模式，没有明显混搭或偏离。
-5. **示例比对**（该 `canvas_type` 在 `examples/canvas-html/` 有示例时）：整体版面与签名视觉须与示例一致；无示例时按 render-contract 自检并在交付说明标注。
+5. **示例比对**（该 `canvas_type` 在 `examples/` 有示例时）：整体版面与签名视觉须与示例一致；无示例时按 render-contract 自检并在交付说明标注。
 6. **Caveat 视觉**（仅 override 模块）：caveat 标识与风险详情在桌面、窄屏、打印下均可见。
 
 浏览器验收不重复检查锚点、JSON、授权字段和离线字符串；这些由 Python 审计负责。Python 审计不能替代真实布局检查，两阶段都通过后才能交付正式 HTML。
@@ -318,7 +318,7 @@ python3 scripts/audit_canvas_html.py output/journey-canvas.html \
 2. **桌面 PASS**：阅读顺序、布局和模式视觉正确。
 3. **窄屏 PASS**：堆叠、文字和高密度内容正确。
 4. **打印 PASS**：分页、保留内容和隐藏控件正确。
-5. **示例比对 PASS**（有示例时）：整体版面与签名视觉与 `examples/canvas-html/` 对应示例一致；无示例时已在交付说明标注。
+5. **示例比对 PASS**（有示例时）：整体版面与签名视觉与 `examples/` 对应示例一致；无示例时已在交付说明标注。
 6. **Caveat 视觉 PASS**（仅 override）：桌面、窄屏和打印均明确显示保留意见与风险详情。
 
 任一阶段失败时阻断交付，列出失败项、证据和修订建议。模块状态保持 `confirmed`；不得提前标记为 `rendered`。
@@ -347,7 +347,7 @@ Python 静态审计或浏览器视觉验收失败时：
 
 ## 明确排除
 
-- 不读取预制 HTML 作为**视觉模式**来源（例外：`examples/canvas-html/` 下的画布示例仅作为对应 `canvas_type` 的版面与签名视觉参考——见「示例参照」，不提供视觉模式 token / 候选；视觉模式仍只来自 `visual-patterns/` 的 Markdown 规格）。
+- 不读取预制 HTML 作为**视觉模式**来源（例外：`examples/` 下的画布示例仅作为对应 `canvas_type` 的版面与签名视觉参考——见「示例参照」，不提供视觉模式 token / 候选；视觉模式仍只来自 `visual-patterns/` 的 Markdown 规格）。
 - 不使用集中模板登记册进行推荐。
 - 不要求候选标题页、幻灯片分页、键盘翻页或演示运行时。
 - 不以页数替代 Canvas 的完整模块覆盖。

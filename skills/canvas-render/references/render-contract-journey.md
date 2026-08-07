@@ -164,7 +164,7 @@ action → touchpoint-system → emotion → wait-rework → risk
 
 ## 模板结构 Profile（Template Gate 判定依据）
 
-Template Gate（`audit_canvas_html.py --template examples/canvas-html/user-journey-canvas.html --type journey`）以本 profile 为判定依据，比较成品与模板的一级模块、稳定锚点、动态阶段锚点规则与相对 DOM 顺序。**不比较**占位文本、业务文案、动态版本值或 CSS 逐字符内容。
+Template Gate（`audit_canvas_html.py --template skills/canvas-render/examples/user-journey-canvas.html --type journey`）以本 profile 为判定依据，比较成品与模板的一级模块、稳定锚点、动态阶段锚点规则与相对 DOM 顺序。**不比较**占位文本、业务文案、动态版本值或 CSS 逐字符内容。
 
 ### 一级模块必需性与 DOM 相对顺序（强制）
 
@@ -202,8 +202,8 @@ canvas-header
 ## 参考样例
 
 - `internal/pratyaya-internal/docs/refs/canvas-templates/02-用户旅程画布.html`：内部静态 worksheet（设计参考，仅作视觉/语义映射参考，非运行时模板事实源）。
-- `examples/canvas-html/user-journey-canvas.html`：User Journey 一等公民**版面与签名视觉事实源**（Template Gate 的比对模板）。
+- `examples/user-journey-canvas.html`：User Journey 一等公民**版面与签名视觉事实源**（Template Gate 的比对模板）。
 
 ## 交付前自检
 
-同 MVL / GC / HMW：Python 静态审计（`audit_canvas_html.py --type journey`，正式交付追加 `--template examples/canvas-html/user-journey-canvas.html` 触发双 Gate）+ 浏览器视觉验收。两阶段都通过后才把状态改为 `rendered`。
+同 MVL / GC / HMW：Python 静态审计（`skills/canvas-render/scripts/audit_canvas_html.py --type journey`，正式交付追加 `--template skills/canvas-render/examples/user-journey-canvas.html` 触发双 Gate）+ 浏览器视觉验收。两阶段都通过后才把状态改为 `rendered`。

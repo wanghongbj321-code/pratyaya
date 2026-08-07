@@ -16,8 +16,8 @@ from pathlib import Path
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-AUDIT = REPO_ROOT / "scripts" / "audit_canvas_html.py"
-TEMPLATE = REPO_ROOT / "examples" / "canvas-html" / "user-journey-canvas.html"
+AUDIT = REPO_ROOT / "skills" / "canvas-render" / "scripts" / "audit_canvas_html.py"
+TEMPLATE = REPO_ROOT / "skills" / "canvas-render" / "examples" / "user-journey-canvas.html"
 PACKAGE = REPO_ROOT / "tests" / "fixtures" / "journey" / "JOURNEY-v1.md"
 STATE = REPO_ROOT / "tests" / "fixtures" / "state" / "journey-gate-pass.json"
 OVERRIDE_STATE = REPO_ROOT / "tests" / "fixtures" / "journey" / "state-override.json"

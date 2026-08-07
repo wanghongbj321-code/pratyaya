@@ -23,25 +23,25 @@ JsonDict = dict[str, JsonValue]
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONTRACT = (
-    REPO_ROOT / "skills" / "canvas-render" / "references" / "render-contract.md"
+    REPO_ROOT / "references" / "render-contract.md"
 )
 GC_CONTRACT = (
-    REPO_ROOT / "skills" / "canvas-render" / "references" / "render-contract-gc.md"
+    REPO_ROOT / "references" / "render-contract-gc.md"
 )
 HMW_CONTRACT = (
-    REPO_ROOT / "skills" / "canvas-render" / "references" / "render-contract-hmw.md"
+    REPO_ROOT / "references" / "render-contract-hmw.md"
 )
 JOURNEY_CONTRACT = (
-    REPO_ROOT / "skills" / "canvas-render" / "references" / "render-contract-journey.md"
+    REPO_ROOT / "references" / "render-contract-journey.md"
 )
 PERSONA_CONTRACT = (
-    REPO_ROOT / "skills" / "canvas-render" / "references" / "render-contract-persona.md"
+    REPO_ROOT / "references" / "render-contract-persona.md"
 )
 HMW_TEMPLATE = (
-    REPO_ROOT / "examples" / "canvas-html" / "hmw-canvas.html"
+    REPO_ROOT / "examples" / "hmw-canvas.html"
 )
 JOURNEY_TEMPLATE = (
-    REPO_ROOT / "examples" / "canvas-html" / "user-journey-canvas.html"
+    REPO_ROOT / "examples" / "user-journey-canvas.html"
 )
 HMW_TPL_MAIN_IDS = (
     "hmw-statement",

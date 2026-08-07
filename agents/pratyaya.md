@@ -28,7 +28,7 @@ skills: [mvl-distill, gc-distill, hmw-distill, persona-distill, journey-distill,
 - `frameworks/persona-frame.md`（实际位于 `skills/persona-distill/frameworks/`）指用户画像框架。
 - `skills/{skill-name}/...` 指 skill 内部资源（如 `skills/mvl-distill/frameworks/`、`skills/gc-distill/references/`、`skills/hmw-distill/references/`、`skills/persona-distill/references/`、`skills/canvas-render/visual-patterns/`、`skills/module-conclusion-gate/references/`、`skills/gc-gate/references/`、`skills/hmw-gate/references/`、`skills/persona-gate/references/`）。
 - `skills/canvas-render/visual-patterns/[0-9][0-9]-*.md` 指 skill 内部视觉模式资源（10 个 Markdown 视觉模式 + README）；项目目录不持有 visual-patterns/。发现、校验和完整路径传递规则见 `skills/canvas-render/visual-patterns/README.md` 与 `skills/canvas-render/SKILL.md`。
-- `scripts/audit_canvas_html.py` 指专家包根目录内的静态审计脚本，不是当前工作坊项目目录下的脚本；调用时从专家包根目录解析完整路径。
+- `skills/canvas-render/scripts/audit_canvas_html.py` 指专家包根目录内的静态审计脚本，不是当前工作坊项目目录下的脚本；调用时从专家包根目录解析完整路径。
 
 **Skill 资源解析规则（强制）**：
 
@@ -350,13 +350,13 @@ MVL 阶段声明可以是以下任意形式：
    - 同版本 Gate 判定（`gate_recommendation` 与评估项摘要）；
    - 用户选定模式的完整仓库相对路径。
 7. `canvas-render` 读取模式正文的色板、字体、网格、组件库、适用场景和反例，不读取旧 HTML 获取视觉 token。
-8. 生成 `output/module-N-canvas.html`，先运行 `scripts/audit_canvas_html.py`（正式模块页同时传入确认包和 `state.json`），Python PASS 后完成桌面、窄屏、打印浏览器视觉验收；全部通过后才交付并把状态改为 `rendered`。
+8. 生成 `output/module-N-canvas.html`，先运行 `skills/canvas-render/scripts/audit_canvas_html.py`（正式模块页同时传入确认包和 `state.json`），Python PASS 后完成桌面、窄屏、打印浏览器视觉验收；全部通过后才交付并把状态改为 `rendered`。
 
 **数据源**：HTML 生成读取 `modules/Mx-v{N}.md`（确认包）。LLM 提取其中的 `canvas_fields` 信息，按 `render-contract.md` 映射到 HTML 稳定锚点。`canvas-data` 必须内嵌同版本授权元数据（`render_authorized` / `confirmation_mode` / `override_audit`）。
 
 **路径规则**：不得由 `id` 猜测或拼接模式路径，不得静默回退到其他模式。目录、候选数量、frontmatter、ID、文件名或选定文件任一异常时，按"视觉模式资源异常"阻断。
 
-**自检步骤**：生成后先由 `scripts/audit_canvas_html.py` 对照 `render-contract.md` 检查 DOM/稳定锚点顺序、字段映射、版本、授权元数据、离线约束、打印规则与 caveat 结构；脚本直接读取契约映射表，不使用第二份锚点清单。Python PASS 后，LLM/人工浏览器只检查桌面、窄屏和打印的真实布局与选定模式视觉。`confirmation_mode=override` 时必须额外确认 caveat 状态标识与风险详情在三种视图下可见。
+**自检步骤**：生成后先由 `skills/canvas-render/scripts/audit_canvas_html.py` 对照 `render-contract.md` 检查 DOM/稳定锚点顺序、字段映射、版本、授权元数据、离线约束、打印规则与 caveat 结构；脚本直接读取契约映射表，不使用第二份锚点清单。Python PASS 后，LLM/人工浏览器只检查桌面、窄屏和打印的真实布局与选定模式视觉。`confirmation_mode=override` 时必须额外确认 caveat 状态标识与风险详情在三种视图下可见。
 
 **状态时序**：HTML 写出不等于渲染完成。Python 静态审计或浏览器视觉验收任一失败时，**保持 `confirmed`，`confirmation_mode` 与 `gate_recommendation` 保持原值**；不得提前写入 `rendered`，不得回退到 `gaps_open`。修订同一版本 HTML 后重新执行全部校验；只有全部通过才把状态改为 `rendered`。若修订涉及业务内容，必须按"状态回退"升版并重新确认。
 
@@ -411,7 +411,7 @@ MVL 阶段声明可以是以下任意形式：
 - 默认推荐 `10-black-gray-professional`（黑灰专业·打印版）。
 - 用户选定后调用 `canvas-render`，传递 `canvas_type=golden-circle`。
 - 生成 `output/gc-canvas.html`。
-- 运行 `python3 scripts/audit_canvas_html.py output/gc-canvas.html --source modules/GC-v{N}.md --state state.json --type gc`。
+- 运行 `python3 skills/canvas-render/scripts/audit_canvas_html.py output/gc-canvas.html --source modules/GC-v{N}.md --state state.json --type gc`。
 - 审计 + 浏览器验收通过后状态 → `rendered`。
 
 ### GC 步骤 8：完成
@@ -463,7 +463,7 @@ GC 是单画布，输出 `gc-canvas.html` 即完成。无「预告下一模块�
 - 默认推荐 `10-black-gray-professional`（黑灰专业·打印版）。
 - 用户选定后调用 `canvas-render`，传递 `canvas_type=hmw`。
 - 生成 `output/hmw-canvas.html`。
-- 运行 `python3 scripts/audit_canvas_html.py output/hmw-canvas.html --source modules/HMW-v{N}.md --state state.json --type hmw`。
+- 运行 `python3 skills/canvas-render/scripts/audit_canvas_html.py output/hmw-canvas.html --source modules/HMW-v{N}.md --state state.json --type hmw`。
 - 审计 + 浏览器验收通过后状态 → `rendered`。
 
 ### HMW 步骤 8：完成
@@ -531,11 +531,11 @@ HMW 是单画布，输出 `hmw-canvas.html` 即完成。无「预告下一模块
 - 运行：
 
   ```bash
-  python3 scripts/audit_canvas_html.py output/journey-canvas.html \
+  python3 skills/canvas-render/scripts/audit_canvas_html.py output/journey-canvas.html \
     --source modules/JOURNEY-v{N}.md \
     --state state.json \
     --type journey \
-    --template examples/canvas-html/user-journey-canvas.html
+    --template skills/canvas-render/examples/user-journey-canvas.html
   ```
 
 - Python 静态审计 + 浏览器视觉验收通过后状态 → `rendered`。
@@ -580,7 +580,7 @@ Journey 是单画布，输出 `journey-canvas.html` 即完成。无「预告下�
 ### Persona 步骤 7：视觉模式与渲染
 
 - 用户明确选择视觉模式后调用 `canvas-render`，传递 `canvas_type=persona`、同版本 `PERSONA-v{N}.md` 和 `state.persona` 授权元数据。
-- 输出 `output/persona-canvas.html`；必须执行 `audit_canvas_html.py --type persona --template examples/canvas-html/user-persona-canvas.html` 并完成桌面、窄屏、打印验收。
+- 输出 `output/persona-canvas.html`；必须执行 `skills/canvas-render/scripts/audit_canvas_html.py --type persona --template skills/canvas-render/examples/user-persona-canvas.html` 并完成桌面、窄屏、打印验收。
 - 审计与浏览器验收都通过才将状态写为 `rendered`；失败保持 `confirmed`。
 
 ### Persona 步骤 8：完成

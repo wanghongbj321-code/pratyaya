@@ -8,8 +8,8 @@ from pathlib import Path
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-AUDIT = REPO_ROOT / "scripts" / "audit_canvas_html.py"
-TEMPLATE = REPO_ROOT / "examples" / "canvas-html" / "user-persona-canvas.html"
+AUDIT = REPO_ROOT / "skills" / "canvas-render" / "scripts" / "audit_canvas_html.py"
+TEMPLATE = REPO_ROOT / "skills" / "canvas-render" / "examples" / "user-persona-canvas.html"
 GATE = REPO_ROOT / "skills" / "persona-gate" / "SKILL.md"
 AGENT = REPO_ROOT / "agents" / "pratyaya.md"
 
