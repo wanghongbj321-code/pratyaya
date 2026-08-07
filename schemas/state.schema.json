@@ -271,10 +271,7 @@
                     "pattern": "^GC-GATE-[0-9]+$"
                   },
                   "category": {
-                    "enum": [
-                      "information_integrity",
-                      "business_risk"
-                    ]
+                    "const": "business_risk"
                   },
                   "source_id": {
                     "type": "string"
@@ -436,10 +433,7 @@
                     "pattern": "^HMW-GATE-[0-9]+$"
                   },
                   "category": {
-                    "enum": [
-                      "information_integrity",
-                      "business_risk"
-                    ]
+                    "const": "business_risk"
                   },
                   "source_id": {
                     "type": "string"

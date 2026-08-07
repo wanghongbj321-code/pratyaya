@@ -80,10 +80,10 @@ class TestFormalPage:
         assert "HMW-TPL-GATE" not in result.stdout
 
     def test_14_business_content_change_does_not_break_template_gate(
-        self, tmp_path: Path, formal_html: Path
+        self, formal_html: Path
     ) -> None:
         """修改业务文案/版本值不触发 Template Gate 误报（同构仍 PASS）。"""
-        out = tmp_path / "content-changed.html"
+        out = formal_html.parent / "content-changed.html"
         text = formal_html.read_text(encoding="utf-8")
         text = text.replace("异常等级排序仪表盘", "全新的想法内容 A")
         text = text.replace('data-version="1"', 'data-version="3"')
@@ -91,6 +91,26 @@ class TestFormalPage:
         result = run_audit(out)
         # Template Gate 不应因业务内容/版本变化误报（内容 Gate 会报版本，但 Template 不报）
         assert "HMW-TPL-GATE" not in result.stdout
+
+    def test_formal_page_maps_confirmation_package_content(self, formal_html: Path) -> None:
+        """正式成品必须展示确认包的主陈述、质量、想法和对齐事实。"""
+        text = formal_html.read_text(encoding="utf-8")
+        for expected in (
+            "干部在早会前 30 分钟拿到前夜经营报表",
+            "我们如何能让干部在早会前快速定位异常指标并理解原因？",
+            "区域干部层（早会决策者）",
+            "定位时间从 2 小时降至 30 分钟内",
+            "按异常等级自动排序的经营仪表盘",
+            "HMW 关键主张 2-1",
+        ):
+            assert expected in text
+        assert 'id="hmw-idea-1" data-state="discussed"' in text
+        assert 'id="hmw-idea-1" data-state="placeholder"' not in text
+
+    def test_render_copies_shared_theme_next_to_output(self, formal_html: Path) -> None:
+        """多文件交付时，正式 HTML 的相对主题资源必须随输出目录提供。"""
+        theme = formal_html.parent / "shared" / "canvas-theme.css"
+        assert theme.is_file()
 
 
 class TestDraftAndOffline:
@@ -186,6 +206,19 @@ class TestAuthAndVersion:
         assert result.returncode != 0
         assert "hmw" in result.stdout  # 明确指向 hmw 区块缺失
 
+    def test_content_gate_fails_when_visible_statement_drifts_from_source(
+        self, tmp_path: Path, formal_html: Path
+    ) -> None:
+        """确认包事实被模板占位替换时，内容/授权 Gate 必须拒绝成品。"""
+        out = tmp_path / "statement-drift.html"
+        text = formal_html.read_text(encoding="utf-8").replace(
+            "干部在早会前 30 分钟拿到前夜经营报表", "待填写…", 1
+        )
+        out.write_text(text, encoding="utf-8")
+        result = run_audit(out, "--source", str(PACKAGE), "--state", str(STATE))
+        assert result.returncode != 0
+        assert "CONTENT_MAPPING" in result.stdout
+
 
 class TestHiddenModules:
     @pytest.mark.parametrize(
@@ -205,6 +238,29 @@ class TestHiddenModules:
             if "<<<" in spec:
                 pat, rep = spec.split("<<<", 1)
                 text = text.replace(pat, rep)
+        out.write_text(text, encoding="utf-8")
+        result = run_audit(out)
+        assert result.returncode != 0
+        assert "HMW-TPL-GATE-06" in result.stdout
+
+    def test_13c_missing_shared_theme_fails_template_gate(
+        self, tmp_path: Path, formal_html: Path
+    ) -> None:
+        """多文件成品缺少模板声明的共享主题资源时必须拒绝交付。"""
+        out = tmp_path / "canvas.html"
+        out.write_text(formal_html.read_text(encoding="utf-8"), encoding="utf-8")
+        result = run_audit(out, "--source", str(PACKAGE), "--state", str(STATE))
+        assert result.returncode != 0
+        assert "HMW-TPL-GATE-06" in result.stdout
+
+    def test_13b_style_rule_hiding_quality_module_fails(
+        self, tmp_path: Path, formal_html: Path
+    ) -> None:
+        """样式表规则隐藏质量模块也必须被 Template Gate 拦截。"""
+        out = tmp_path / "css-hidden.html"
+        text = formal_html.read_text(encoding="utf-8").replace(
+            "<style>", "<style>#hmw-quality{display:none}", 1
+        )
         out.write_text(text, encoding="utf-8")
         result = run_audit(out)
         assert result.returncode != 0

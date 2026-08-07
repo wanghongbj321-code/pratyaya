@@ -77,10 +77,7 @@ class TestInvalidHmwStates:
         """information_integrity 类别被 override 必须失败。"""
         state = load_fixture("hmw-invalid-override.json")
         errors = validate(state, schema)
-        # 期待失败：override 审计项 category=information_integrity 违反设计约束
-        # （schema 的 allOf 只约束 confirmation_mode=override 时 override_audit 存在且完整，
-        #  category 的合法性由枚举约束；information_integrity override 的语义约束在测试层验证）
-        assert errors == [] or any("override_audit" in e for e in errors)
+        assert any("category" in error for error in errors)
 
     def test_override_without_audit_fails(self, schema: dict) -> None:
         """confirmation_mode=override 但缺少 override_audit 必须失败。"""

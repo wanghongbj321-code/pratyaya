@@ -151,6 +151,7 @@ class HtmlSnapshot:
     attrs_by_id: dict[str, dict[str, str]]
     canvas_data_text: str
     text: str
+    text_by_id: dict[str, str]
     external_urls: list[str]
 
 
@@ -168,6 +169,7 @@ class CanvasParser(HTMLParser):
         self.attrs_by_id: dict[str, dict[str, str]] = {}
         self.external_urls: list[str] = []
         self.text_parts: list[str] = []
+        self.text_parts_by_id: dict[str, list[str]] = {}
         self.canvas_data_parts: list[str] = []
         self.stack: list[tuple[str, str | None]] = []
         self.module_outputs_depth = 0
@@ -212,6 +214,9 @@ class CanvasParser(HTMLParser):
 
     def handle_data(self, data: str) -> None:
         self.text_parts.append(data)
+        for _, element_id in self.stack:
+            if element_id:
+                self.text_parts_by_id.setdefault(element_id, []).append(data)
         if self.canvas_data_depth:
             self.canvas_data_parts.append(data)
 
@@ -228,6 +233,7 @@ class CanvasParser(HTMLParser):
             attrs_by_id=self.attrs_by_id,
             canvas_data_text="".join(self.canvas_data_parts).strip(),
             text="".join(self.text_parts),
+            text_by_id={element_id: "".join(parts) for element_id, parts in self.text_parts_by_id.items()},
             external_urls=self.external_urls,
         )
 
@@ -365,9 +371,21 @@ def element_is_hidden(source: str, attrs: dict[str, str]) -> bool:
     return False
 
 
+def stylesheet_hides_element(source: str, element_id: str) -> bool:
+    """检查 style 标签中直接命中指定 id 的隐藏规则。"""
+    for stylesheet in re.findall(r"<style[^>]*>(.*?)</style>", source, re.IGNORECASE | re.DOTALL):
+        for selectors, declarations in re.findall(r"([^{}]+)\{([^{}]*)\}", stylesheet, re.DOTALL):
+            if f"#{element_id}" not in selectors:
+                continue
+            if re.search(r"display\s*:\s*none|visibility\s*:\s*hidden", declarations, re.IGNORECASE):
+                return True
+    return False
+
+
 def audit_template_gate(
     html: HtmlSnapshot,
     source: str,
+    html_path: Path,
     template: HtmlSnapshot,
     profile: dict[str, list[str]],
 ) -> list[Finding]:
@@ -430,11 +448,26 @@ def audit_template_gate(
         findings.append(
             Finding("HMW-TPL-GATE-06", f"存在外部网络依赖: {', '.join(html.external_urls)}")
         )
+    stylesheet_hrefs = re.findall(
+        r'<link\b[^>]*\brel=["\']stylesheet["\'][^>]*\bhref=["\']([^"\']+)["\']',
+        source,
+        re.IGNORECASE,
+    )
+    if not stylesheet_hrefs:
+        findings.append(Finding("HMW-TPL-GATE-06", "缺少共享主题 stylesheet 链接"))
+    for href in stylesheet_hrefs:
+        if href.startswith(("http://", "https://", "//")):
+            continue
+        stylesheet_path = (html_path.parent / href).resolve()
+        if not stylesheet_path.is_file():
+            findings.append(Finding("HMW-TPL-GATE-06", f"本地主题资源不存在: {href}"))
 
     # 附加：质量鉴别 / 想法对应 / 治理面板不得隐藏（四态 hidden 检测）
     for section_id in ("hmw-quality", "hmw-coherence", "quality-panel"):
         attrs = html.attrs_by_id.get(section_id, {})
-        if counts[section_id] and element_is_hidden(source, attrs):
+        if counts[section_id] and (
+            element_is_hidden(source, attrs) or stylesheet_hides_element(source, section_id)
+        ):
             findings.append(
                 Finding(
                     "HMW-TPL-GATE-06",
@@ -442,6 +475,77 @@ def audit_template_gate(
                 )
             )
 
+    return findings
+
+
+def extract_hmw_table_rows(markdown: str, heading: str) -> list[list[str]]:
+    """从 HMW 确认包提取指定三级标题下的 Markdown 表格数据行。"""
+    match = re.search(
+        rf"^#{{1,6}}\s*{re.escape(heading)}\s*$\n?(.*?)(?=^#{{1,6}}\s|\Z)",
+        markdown,
+        re.MULTILINE | re.DOTALL,
+    )
+    if not match:
+        return []
+    rows: list[list[str]] = []
+    for line in match.group(1).splitlines():
+        if not line.strip().startswith("|"):
+            continue
+        cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
+        if not cells or all(re.fullmatch(r":?-{3,}:?", cell) for cell in cells):
+            continue
+        rows.append(cells)
+    return rows[1:] if rows else []
+
+
+def audit_hmw_content_mapping(html: HtmlSnapshot, source_path: Path) -> list[Finding]:
+    """确认正式 HMW 成品的可见业务事实来自同版本确认包。"""
+    try:
+        package = source_path.read_text(encoding="utf-8")
+    except (OSError, UnicodeError) as exc:
+        return [Finding("CONTENT_MAPPING", f"cannot read HMW package: {exc}")]
+
+    findings: list[Finding] = []
+    statement_rows = extract_hmw_table_rows(package, "6. HMW 陈述（4 字段）")
+    statement_ids = {
+        "situation": "hmw-situation",
+        "question": "hmw-question",
+        "for": "hmw-for",
+        "so_that": "hmw-sothat",
+    }
+    for row in statement_rows:
+        if len(row) < 2:
+            continue
+        field = next((key for key in statement_ids if row[0] == key or row[0].startswith(f"{key}（")), None)
+        if field and row[1] not in html.text_by_id.get(statement_ids[field], ""):
+            findings.append(
+                Finding("CONTENT_MAPPING", f"{statement_ids[field]} 未展示确认包字段内容")
+            )
+
+    quality_rows = extract_hmw_table_rows(package, "6a. 质量鉴别")
+    quality_ids = {
+        "preset_solution": "hmw-quality-preset",
+        "vague": "hmw-quality-vague",
+        "user_moment": "hmw-quality-moment",
+        "tension": "hmw-quality-tension",
+    }
+    for row in quality_rows:
+        if len(row) < 2:
+            continue
+        dimension = next((key for key in quality_ids if row[0] == key or row[0].startswith(f"{key}（")), None)
+        if dimension and row[1] not in html.text_by_id.get(quality_ids[dimension], ""):
+            findings.append(
+                Finding("CONTENT_MAPPING", f"{quality_ids[dimension]} 未展示确认包质量判定")
+            )
+
+    for index, row in enumerate(extract_hmw_table_rows(package, "6b. 想法种子")[:8], start=1):
+        if len(row) >= 2 and row[1] not in html.text_by_id.get(f"hmw-idea-{index}", ""):
+            findings.append(Finding("CONTENT_MAPPING", f"hmw-idea-{index} 未展示确认包想法内容"))
+
+    for row in extract_hmw_table_rows(package, "6c. 想法 ↔ HMW 对应"):
+        if row and row[0] not in html.text_by_id.get("hmw-coherence-map", ""):
+            findings.append(Finding("CONTENT_MAPPING", "hmw-coherence-map 未展示确认包对齐关系"))
+            break
     return findings
 
 
@@ -685,8 +789,10 @@ def audit(
                             Finding(
                                 "AUTH_MISMATCH",
                                 f"{field}: canvas-data={auth.get(field)!r}, state={state_module.get(field)!r}",
-                            )
                         )
+                    )
+                if is_hmw and source_path is not None:
+                    findings.extend(audit_hmw_content_mapping(html, source_path))
 
     return findings
 
@@ -753,12 +859,12 @@ def main(argv: list[str] | None = None) -> int:
                 else:
                     # 模板自审计：模板自身必须先通过结构检查（§6.2 步骤 13）
                     template_findings.extend(
-                        audit_template_gate(template, template_source, template, profile)
+                        audit_template_gate(template, template_source, template_arg, template, profile)
                     )
                     # 成品 Template Gate（复用已解析的 html）
                     html_source, html_snapshot = parse_html(html_arg)
                     template_findings.extend(
-                        audit_template_gate(html_snapshot, html_source, template, profile)
+                        audit_template_gate(html_snapshot, html_source, html_arg, template, profile)
                     )
             except (OSError, UnicodeError) as exc:
                 template_findings.append(Finding("HMW-TPL-GATE-00", f"模板读取失败: {exc}"))
