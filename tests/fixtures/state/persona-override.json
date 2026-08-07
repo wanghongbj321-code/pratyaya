@@ -1,0 +1,31 @@
+{
+  "schema_version": "2.3",
+  "group_id": "G1",
+  "project_name": "Persona 测试项目",
+  "persona": {
+    "version": 1,
+    "status": "confirmed",
+    "gate_recommendation": "fail",
+    "render_authorized": true,
+    "confirmation_mode": "override",
+    "override_audit": {
+      "version": 1,
+      "items": [
+        {
+          "assessment_id": "PERSONA-GATE-03",
+          "category": "business_risk",
+          "source_id": "PERSONA-quality",
+          "original_result": "fail",
+          "risk_level": "medium",
+          "impact": "行为/痛点缺乏真实出处，团队接受方向正确的风险"
+        }
+      ],
+      "reason": "团队评估画像方向正确，真实性风险可接受",
+      "mitigation": "正式渲染后由用户侧再次人工复核行为与痛点的真实性",
+      "confirmed_by": "张三",
+      "confirmed_role": "CEO",
+      "confirmed_at": "2026-08-07T11:00:00+08:00"
+    }
+  },
+  "updated_at": "2026-08-07T11:00:00+08:00"
+}

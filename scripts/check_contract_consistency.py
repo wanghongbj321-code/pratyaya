@@ -28,6 +28,10 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Callable, Union, cast
 
+
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+
 # JSON 反序列化后的通用值/字典类型（已知联合，避免 Any/Unknown 透传）
 JsonValue = Union[
     str, int, float, bool, None, list["JsonValue"], dict[str, "JsonValue"]
@@ -789,6 +793,19 @@ JOURNEY_QUALITY_ANCHORS = (
     "journey-quality-friction-visible",
     "journey-quality-no-solution-bias",
 )
+PERSONA_DISTILL_SKILL = "skills/persona-distill/SKILL.md"
+PERSONA_GATE_SKILL = "skills/persona-gate/SKILL.md"
+PERSONA_GATE_FILE = "skills/persona-gate/references/PERSONA-gate.md"
+PERSONA_CONTRACT = "skills/canvas-render/references/render-contract-persona.md"
+PERSONA_TEMPLATE_HTML = "examples/canvas-html/user-persona-canvas.html"
+PERSONA_REQUIRED_ANCHORS = (
+    "canvas-header", "persona-basic", "persona-grid6", "persona-quality", "quality-panel",
+    "persona-name", "persona-gender", "persona-age", "persona-location", "persona-education",
+    "persona-job-title", "persona-industry", "persona-family-status", "persona-income",
+    "persona-description", "persona-goals-needs", "persona-behaviors", "persona-pain-points",
+    "persona-motivation", "persona-decision-factors", "persona-quality-evidence",
+    "persona-quality-concrete", "persona-quality-voice", "persona-quality-representative",
+)
 
 
 def _iter_gc_gate_path(path: Path) -> Path | None:
@@ -935,6 +952,67 @@ def check_gc_gate_table(ctx: CheckContext) -> list[Finding]:
 
 
 # ---- HMW -------------------------------------------------------------------
+
+
+def check_persona_skill_paths(ctx: CheckContext) -> list[Finding]:
+    """Persona 一等公民资源、稳定 Gate ID 与模板锚点必须同时存在。"""
+    findings: list[Finding] = []
+    for path_text, expected_name in (
+        (PERSONA_DISTILL_SKILL, "persona-distill"),
+        (PERSONA_GATE_SKILL, "persona-gate"),
+    ):
+        path = ctx.root / path_text
+        if not path.is_file() or not re.search(
+            rf"^name:\s*{expected_name}\s*$", read_text(path), re.MULTILINE
+        ):
+            findings.append(
+                Finding(
+                    code="PERSONA_SKILL_PATH",
+                    level="error",
+                    where=path_text,
+                    message=f"Persona Skill 缺失或 frontmatter name 不是 {expected_name}",
+                    hint="persona-distill 与 persona-gate 都必须以扁平路径注册",
+                )
+            )
+
+    gate_text = read_text(ctx.root / PERSONA_GATE_FILE)
+    missing_ids = [f"PERSONA-GATE-{n:02d}" for n in range(1, 7) if f"PERSONA-GATE-{n:02d}" not in gate_text]
+    if missing_ids:
+        findings.append(
+            Finding(
+                code="PERSONA_GATE_FILE_SET",
+                level="error",
+                where=PERSONA_GATE_FILE,
+                message=f"Persona Gate 缺稳定 ID：{', '.join(missing_ids)}",
+                hint="PERSONA-GATE-01..06 必须完整且唯一",
+            )
+        )
+
+    template_text = read_text(ctx.root / PERSONA_TEMPLATE_HTML)
+    missing_anchors = [anchor for anchor in PERSONA_REQUIRED_ANCHORS if f'id="{anchor}"' not in template_text]
+    if missing_anchors:
+        findings.append(
+            Finding(
+                code="PERSONA_TEMPLATE_ANCHORS",
+                level="error",
+                where=PERSONA_TEMPLATE_HTML,
+                message=f"Persona 模板缺稳定锚点：{', '.join(missing_anchors)}",
+                hint="模板必须保留 9 基本信息、6 宫格、4 质量鉴别和治理模块",
+            )
+        )
+
+    contract_text = read_text(ctx.root / PERSONA_CONTRACT)
+    if "PERSONA-TPL-GATE-01" not in contract_text or "PERSONA-TPL-GATE-06" not in contract_text:
+        findings.append(
+            Finding(
+                code="PERSONA_TPL_GATE_IDS",
+                level="error",
+                where=PERSONA_CONTRACT,
+                message="Persona 渲染契约缺 PERSONA-TPL-GATE-01..06 定义",
+                hint="Template Gate 规则必须在 Persona 渲染契约中稳定定义",
+            )
+        )
+    return findings
 
 
 def check_hmw_skill_paths(ctx: CheckContext) -> list[Finding]:
@@ -2386,6 +2464,7 @@ RULES: tuple[Rule, ...] = (
     Rule("JOURNEY_ANCHOR_SYNC", "B", "Journey render contract / 审计脚本 / 示例模板锚点一致", check_journey_render_contract_sync),
     Rule("JOURNEY_EXAMPLE_MISSING", "A", "Journey 示例模块 Key Points / 确认包 / gaps 齐全", check_journey_examples),
     Rule("JOURNEY_SEVEN_ELEMENTS", "B", "Journey 主表不得定义为七要素", check_journey_no_seven_elements),
+    Rule("PERSONA_SKILL_PATH", "A", "Persona Skill、Gate、模板与渲染契约保持一致", check_persona_skill_paths),
 )
 
 

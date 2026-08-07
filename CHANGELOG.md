@@ -15,12 +15,26 @@
 - **Journey 双 Gate 审计**：`audit_canvas_html.py` 新增 `--type journey`；正式交付需 `--template examples/canvas-html/user-journey-canvas.html`，检查动态阶段连续编号、每阶段 5 子锚点、质量锚点、断点摘要、授权与 caveat。
 - **示例与测试资产**：新增 `examples/modules/JOURNEY-keypoints.md`、`JOURNEY-v1.md`、`JOURNEY-gaps.md` 与 `tests/fixtures/journey/`，覆盖正式、草稿、override 与故障场景。
 - **契约检查器扩展**：新增 Journey 规则（`JOURNEY_SKILL_PATH` / `JOURNEY_GATE_FILE_SET` / `JOURNEY_ANCHOR_SYNC` / `JOURNEY_EXAMPLE_MISSING` / `JOURNEY_SEVEN_ELEMENTS`）。
-- **文档同步**：README / DESIGN / DEVELOPMENT / 用户指南 / 安装指南 / MVL 专题文档同步 v2.3、五类画布、9 个 Skill、10 个视觉模式和 Journey 独立边界。
+- **文档同步**：README / DESIGN / DEVELOPMENT / 用户指南 / 安装指南 / MVL 专题文档同步 v2.3、五类画布、10 个 Skill（+ Persona/Journey）、10 个视觉模式和 Journey 独立边界。
 
 ### 兼容策略（非破坏性）
 
 - 既有 MVL / GC / HMW 项目无需迁移；`persona` 与 `journey` 均为可选区块。
 - 独立 Journey 结论可被用户人工引用回 MVL，但系统不自动同步，也不修改 MVL 内置方法文件。
+
+## [v2.2.0] - 2026-08-07
+
+### 新增功能（MINOR）
+
+- **用户画像画布**：新增与 MVL、黄金圈、HMW 对等的 Persona 单画像画布，结构固定为 9 基本信息、6 宫格和 4 项质量鉴别；不生成全局汇总，也不改变 MVL M2 的内置用户画像方法。
+- **Persona Skills**：新增 `persona-distill` 与 `persona-gate`，确认包命名为 `PERSONA-v{N}.md`，Gate 仅提出建议，只有 `PERSONA-GATE-03/04` 的 business_risk 允许用户显式 override。
+- **渲染与审计**：新增 `render-contract-persona.md`、Persona 示例模板、`audit_canvas_html.py --type persona` 和不可 override 的 `PERSONA-TPL-GATE-01~06`。
+- **状态模型**：state schema 升至 2.2；`persona` 与既有 `hmw` 都保持可选，Persona 正式授权读取 `state.persona`。
+
+### 兼容策略
+
+- Persona 与 MVL M2 `08-user-persona.md` 并存、可人工引用但不建立依赖。
+- 渲染继续由 `canvas-render` Skill 完成，不新增渲染脚本；正式 Persona 输出须通过内容/授权 Gate 与 Template Gate。
 
 ## [v2.1.0] - 2026-08-06
 

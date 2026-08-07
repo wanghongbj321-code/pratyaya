@@ -1,4 +1,4 @@
-"""HMW distill/gate 结构一致性测试。
+"""HMW / Persona / Journey distill-gate 结构一致性测试。
 
 覆盖执行计划 §3.2 要求：
 - HMW Skill 注册与实际路径一致。
@@ -21,8 +21,11 @@ DISTILL = SKILLS / "hmw-distill"
 GATE = SKILLS / "hmw-gate"
 JOURNEY_DISTILL = SKILLS / "journey-distill"
 JOURNEY_GATE = SKILLS / "journey-gate"
+PERSONA_DISTILL = SKILLS / "persona-distill"
+PERSONA_GATE = SKILLS / "persona-gate"
 CONTRACT = SKILLS / "canvas-render" / "references" / "render-contract-hmw.md"
 JOURNEY_CONTRACT = SKILLS / "canvas-render" / "references" / "render-contract-journey.md"
+PERSONA_CONTRACT = SKILLS / "canvas-render" / "references" / "render-contract-persona.md"
 EXAMPLES = REPO_ROOT / "examples" / "modules"
 CANVAS_EXAMPLES = REPO_ROOT / "examples" / "canvas-html"
 
@@ -33,6 +36,10 @@ EXPECTED_HMW_SKILLS = (
 EXPECTED_JOURNEY_PLACEHOLDER_SKILLS = (
     "./skills/journey-distill",
     "./skills/journey-gate",
+)
+EXPECTED_PERSONA_SKILLS = (
+    "./skills/persona-distill",
+    "./skills/persona-gate",
 )
 EXPECTED_HMW_FILES = (
     "SKILL.md",
@@ -87,8 +94,15 @@ class TestSkillRegistration:
         for skill in EXPECTED_HMW_SKILLS:
             assert skill in plugin["skills"], f"plugin.json missing {skill}"
         for skill in EXPECTED_JOURNEY_PLACEHOLDER_SKILLS:
-            assert skill in plugin["skills"], f"plugin.json missing Journey placeholder {skill}"
+            assert skill in plugin["skills"], f"plugin.json missing Journey skill {skill}"
+        for skill in EXPECTED_PERSONA_SKILLS:
+            assert skill in plugin["skills"], f"plugin.json missing Persona skill {skill}"
         assert plugin["version"] == "2.3.0"
+
+    def test_plugin_registers_persona_skills(self) -> None:
+        plugin = json.loads(read(REPO_ROOT / ".codebuddy-plugin" / "plugin.json"))
+        for skill in EXPECTED_PERSONA_SKILLS:
+            assert skill in plugin["skills"], f"plugin.json missing {skill}"
 
     def test_agent_registers_hmw_skills(self) -> None:
         agent = read(REPO_ROOT / "agents" / "pratyaya.md")
@@ -97,8 +111,19 @@ class TestSkillRegistration:
         skills = [s.strip() for s in m.group(1).split(",")]
         assert "hmw-distill" in skills
         assert "hmw-gate" in skills
+        assert "persona-distill" in skills
+        assert "persona-gate" in skills
         assert "journey-distill" in skills
         assert "journey-gate" in skills
+
+    def test_agent_and_plugin_skills_have_identical_order(self) -> None:
+        plugin = json.loads(read(REPO_ROOT / ".codebuddy-plugin" / "plugin.json"))
+        agent = read(REPO_ROOT / "agents" / "pratyaya.md")
+        match = re.search(r"^skills:\s*\[(.*?)\]", agent, re.MULTILINE)
+        assert match, "agent frontmatter missing skills field"
+        agent_order = [name.strip() for name in match.group(1).split(",")]
+        plugin_order = [path.removeprefix("./skills/") for path in plugin["skills"]]
+        assert agent_order == plugin_order
 
     def test_skills_order_distill_gate_render(self) -> None:
         """执行计划 §7 步骤 10：plugin 与 agent 的 skills 顺序按 distill→gate→render。"""
@@ -106,8 +131,16 @@ class TestSkillRegistration:
         plugin_order = [p.removeprefix("./skills/") for p in plugin["skills"]]
         # HMW 的 distill 在 gc-gate 前、render 在最后：全序必须满足 distill < gate < render 工作流
         workflow_rank = {
-            "mvl-distill": 0, "gc-distill": 0, "hmw-distill": 0, "journey-distill": 0,
-            "module-conclusion-gate": 1, "gc-gate": 1, "hmw-gate": 1, "journey-gate": 1,
+            "mvl-distill": 0,
+            "gc-distill": 0,
+            "hmw-distill": 0,
+            "persona-distill": 0,
+            "journey-distill": 0,
+            "module-conclusion-gate": 1,
+            "gc-gate": 1,
+            "hmw-gate": 1,
+            "persona-gate": 1,
+            "journey-gate": 1,
             "canvas-render": 2,
         }
         ranks = [workflow_rank[name] for name in plugin_order]

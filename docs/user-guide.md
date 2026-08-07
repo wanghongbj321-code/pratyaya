@@ -17,14 +17,14 @@
 
 主 Agent 启动时会先确认**画布类型**，再问你"想用哪种模式"：
 
-**画布类型**（对应 `state.json` 的 MVL / 单画布区块）：
+**画布类型**（对应 `state.json` 五区块）：
 
 | 画布 | 说 | 工作流 |
 |---|---|---|
 | **MVL** | "开始 MVL 工作坊" / "M1 战略对齐" | 六模块（M1-M6），见 §4.1 |
 | **黄金圈** | "开始黄金圈画布" / "Golden Circle" | WHY/HOW/WHAT 三层，单画布 |
 | **HMW** | "开始 HMW 画布" / "How Might We" | 问题陈述四字段 + 想法种子，单画布 |
-| **用户画像** | "开始用户画像画布" / "Persona" | 独立画布占位状态区块 |
+| **用户画像** | "开始用户画像画布" / "Persona" | 9 基本信息 + 6 宫格 + 4 质量鉴别，单画布 |
 | **用户旅程** | "开始用户旅程画布" / "Journey" | 动态阶段 × 5 行合并结构，单画布 |
 
 **模式**（各画布共用；具体字段由对应 Skill 定义）：
@@ -96,7 +96,11 @@
 
 主 Agent 引导讨论 → 提炼 `HMW-v{N}.md` → Gate → 确认 → 生成 `hmw-canvas.html`。HMW 正式渲染走**双 Gate**（内容/授权 + 结构 Template Gate），结构问题不能自行豁免（详见 [DEVELOPMENT.md §3.1](../DEVELOPMENT.md#31-python-静态审计)）。
 
-### 4.4 用户旅程（单画布）
+### 4.4 用户画像（单画布）
+
+用户画像固定覆盖 9 基本信息、6 宫格和 4 项质量鉴别。主 Agent 引导讨论 → 提炼 `PERSONA-v{N}.md` → Persona Gate → 用户确认或合规 override → 生成 `persona-canvas.html`。正式渲染同样经过内容/授权与 Template 双 Gate；只有 `PERSONA-GATE-03/04` 的业务风险可以显式 override。
+
+### 4.5 用户旅程（单画布）
 
 当前旅程工作坊，一次完成四步：
 
@@ -116,7 +120,7 @@
 **启动阶段**：
 
 - "开始 A 引导模式" / "开始 B 转写模式"
-- "开始黄金圈画布" / "开始 HMW 画布" / "开始用户旅程画布"
+- "开始黄金圈画布" / "开始 HMW 画布" / "开始用户画像画布" / "开始用户旅程画布"
 
 **模块阶段（MVL）**：
 
@@ -127,6 +131,11 @@
 
 - "HMW 提炼" / "HMW 补问" / "HMW 先看个样子" / "HMW 确认 v1" / "HMW override（已阅读影响）"
 - "生成 HMW 画布" / "HMW 状态"
+
+**用户画像阶段**：
+
+- "用户画像提炼" / "用户画像补问" / "用户画像先看个样子" / "用户画像确认 v1" / "用户画像 override（已阅读影响）"
+- "生成用户画像画布" / "用户画像状态"
 
 **用户旅程阶段**：
 
@@ -185,8 +194,8 @@
 
 | 特征 | 草稿 Canvas | 正式 Canvas |
 |---|---|---|
-| 顶部字样 | 草稿 / 未确认 / 禁止用于管理层决策 | 画布名 + 版本号（MVL Canvas / Golden Circle / HMW Canvas / Journey Canvas） |
-| 数据源 | 对应 Key Points（非确认包） | 对应确认包（`Mx-v{N}.md` / `GC-v{N}.md` / `HMW-v{N}.md` / `JOURNEY-v{N}.md`） |
+| 顶部字样 | 草稿 / 未确认 / 禁止用于管理层决策 | 画布名 + 版本号（MVL Canvas / Golden Circle / HMW Canvas / Persona Canvas / Journey Canvas） |
+| 数据源 | 对应 Key Points（非确认包） | 对应确认包（`Mx-v{N}.md` / `GC-v{N}.md` / `HMW-v{N}.md` / `PERSONA-v{N}.md` / `JOURNEY-v{N}.md`） |
 | 视觉来源 | 用户选定的 `visual-patterns/NN-{id}.md` | 用户选定的 `visual-patterns/NN-{id}.md` |
 | 视觉系统 | 用户选定 | 用户选定 |
 | 状态变化 | 不改变画布状态 | 画布状态改为 `rendered` |

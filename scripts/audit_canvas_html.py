@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Deterministic static audit for pratyaya Canvas HTML files (MVL + Golden Circle)."""
+"""Deterministic static audit for pratyaya Canvas HTML files (MVL + Golden Circle + HMW + Persona)."""
 
 from __future__ import annotations
 
@@ -33,6 +33,9 @@ HMW_CONTRACT = (
 )
 JOURNEY_CONTRACT = (
     REPO_ROOT / "skills" / "canvas-render" / "references" / "render-contract-journey.md"
+)
+PERSONA_CONTRACT = (
+    REPO_ROOT / "skills" / "canvas-render" / "references" / "render-contract-persona.md"
 )
 HMW_TEMPLATE = (
     REPO_ROOT / "examples" / "canvas-html" / "hmw-canvas.html"
@@ -110,6 +113,48 @@ JOURNEY_ANCHORS = (
     "canvas-headline",
     "journey-friction-summary",
     *JOURNEY_QUALITY_ANCHORS,
+)
+PERSONA_MAIN_IDS = (
+    "persona-name",
+    "persona-gender",
+    "persona-age",
+    "persona-location",
+    "persona-education",
+    "persona-job-title",
+    "persona-industry",
+    "persona-family-status",
+    "persona-income",
+    "persona-description",
+    "persona-goals-needs",
+    "persona-behaviors",
+    "persona-pain-points",
+    "persona-motivation",
+    "persona-decision-factors",
+)
+PERSONA_STABLE_ANCHORS = (
+    "canvas-headline",
+    "persona-name",
+    "persona-gender",
+    "persona-age",
+    "persona-location",
+    "persona-education",
+    "persona-job-title",
+    "persona-industry",
+    "persona-family-status",
+    "persona-income",
+    "persona-description",
+    "persona-goals-needs",
+    "persona-behaviors",
+    "persona-pain-points",
+    "persona-motivation",
+    "persona-decision-factors",
+)
+PERSONA_TPL_GOVERN_IDS = (
+    "quality-version",
+    "quality-approval",
+    "quality-gaps",
+    "quality-risks",
+    "quality-caveat",
 )
 # 约定隐藏方式（Template Gate 与内容/授权 Gate 共用）：任一命中即视为隐藏
 HIDDEN_PATTERNS = (
@@ -381,6 +426,49 @@ def journey_source_identity(path: Path) -> tuple[str | None, str | None]:
     first_lines = "\n".join(path.read_text(encoding="utf-8").splitlines()[:12])
     match = re.search(r"^#\s+User Journey 确认包\s+(v\d+)\s*$", first_lines, re.MULTILINE)
     return ("JOURNEY", match.group(1)) if match else (None, None)
+def persona_source_identity(path: Path) -> tuple[str | None, str | None]:
+    """从 PERSONA-vN 确认包首行标题中提取画布类型与版本号。"""
+    first_lines = "\n".join(path.read_text(encoding="utf-8").splitlines()[:12])
+    match = re.search(
+        r"^#\s+(?:User Persona|用户画像)\s*确认包\s+(v\d+)\s*$",
+        first_lines,
+        re.MULTILINE,
+    )
+    return ("PERSONA", match.group(1)) if match else (None, None)
+
+
+def load_persona_template_profile(contract_path: Path) -> dict[str, list[str]]:
+    """从 render-contract-persona.md 解析 Persona 模板结构 profile（一级模块顺序 + 稳定锚点）。
+
+    返回 {"main_order": [...], "stable_anchors": [...]}。
+    """
+    text = contract_path.read_text(encoding="utf-8")
+    main_order: list[str] = []
+    stable_anchors: list[str] = []
+
+    # 解析一级模块顺序（§4）
+    order_match = re.search(
+        r"## 4\.\s*一级模块顺序.*?\n```text\s*(.*?)```",
+        text,
+        re.DOTALL,
+    )
+    if order_match:
+        for line in order_match.group(1).splitlines():
+            m = re.match(r"\s*→\s*([a-z][a-z0-9-]+)\s*$", line)
+            if m:
+                main_order.append(m.group(1))
+
+    # 解析稳定锚点集合（§5）
+    anchor_match = re.search(
+        r"## 5\.\s*稳定锚点集合.*?\n(.*?)(?=\n## |\Z)",
+        text,
+        re.DOTALL,
+    )
+    if anchor_match:
+        # 基本信息 9 字段 + 六宫格 6 区 + 质量 4 维度
+        stable_anchors = re.findall(r"`(persona-[a-z0-9-]+)`", anchor_match.group(1))
+
+    return {"main_order": main_order, "stable_anchors": stable_anchors}
 
 
 def load_hmw_template_profile(contract_path: Path) -> dict[str, list[str]]:
@@ -478,65 +566,70 @@ def audit_template_gate(
     html_path: Path,
     template: HtmlSnapshot,
     profile: dict[str, list[str]],
+    gate_prefix: str = "HMW",
+    check_ids: tuple[str, ...] = HMW_TPL_MAIN_IDS,
+    check_stable_anchors: tuple[str, ...] = HMW_TPL_STABLE_ANCHORS,
+    check_govern_ids: tuple[str, ...] = HMW_TPL_GOVERN_IDS,
+    hidden_section_ids: tuple[str, ...] = ("hmw-quality", "hmw-coherence", "quality-panel"),
 ) -> list[Finding]:
-    """Template Gate：比较成品与 HMW 模板的一级模块、稳定锚点与相对 DOM 顺序。
+    """Template Gate：比较成品与模板的一级模块、稳定锚点与相对 DOM 顺序。
 
-    所有规则均为不可 override 的结构完整性检查（HMW-TPL-GATE-01..06）。
+    所有规则均为不可 override 的结构完整性检查（{gate_prefix}-TPL-GATE-01..06）。
     """
     findings: list[Finding] = []
     counts = Counter(html.ids)
-    main_order = profile.get("main_order") or list(HMW_TPL_MAIN_IDS)
+    main_order = profile.get("main_order") or list(check_ids)
 
-    # HMW-TPL-GATE-01: data-page-type 与模板一致
+    # {gate_prefix}-TPL-GATE-01: data-page-type 与模板一致
     page_type = html.body_attrs.get("data-page-type")
     tpl_page_type = template.body_attrs.get("data-page-type")
     if page_type != tpl_page_type:
         findings.append(
             Finding(
-                "HMW-TPL-GATE-01",
+                f"{gate_prefix}-TPL-GATE-01",
                 f"data-page-type={page_type!r} 与模板 {tpl_page_type!r} 不一致",
             )
         )
 
-    # HMW-TPL-GATE-02: 一级模块全部存在且唯一
+    # {gate_prefix}-TPL-GATE-02: 一级模块全部存在且唯一
     missing = [i for i in main_order if counts[i] == 0]
     if missing:
-        findings.append(Finding("HMW-TPL-GATE-02", f"一级模块缺失: {', '.join(missing)}"))
+        findings.append(Finding(f"{gate_prefix}-TPL-GATE-02", f"一级模块缺失: {', '.join(missing)}"))
     duplicates = [i for i in main_order if counts[i] > 1]
     if duplicates:
-        findings.append(Finding("HMW-TPL-GATE-02", f"一级模块重复: {', '.join(duplicates)}"))
+        findings.append(Finding(f"{gate_prefix}-TPL-GATE-02", f"一级模块重复: {', '.join(duplicates)}"))
 
-    # HMW-TPL-GATE-03: 一级模块 DOM 相对顺序符合模板 profile
+    # {gate_prefix}-TPL-GATE-03: 一级模块 DOM 相对顺序符合模板 profile
     actual = [i for i in html.ids if i in set(main_order)]
     if actual != main_order:
         findings.append(
             Finding(
-                "HMW-TPL-GATE-03",
+                f"{gate_prefix}-TPL-GATE-03",
                 f"一级模块顺序偏离 profile: 期望 {main_order}, 实际 {actual}",
             )
         )
 
-    # HMW-TPL-GATE-04: 稳定锚点完整（4 字段 + 4 质量 + 8 想法 + coherence）
-    anchors = profile.get("stable_anchors") or list(HMW_TPL_STABLE_ANCHORS)
+    # {gate_prefix}-TPL-GATE-04: 稳定锚点完整
+    anchors = profile.get("stable_anchors") or list(check_stable_anchors)
     anchor_missing = [a for a in anchors if counts[a] == 0]
     if anchor_missing:
         findings.append(
-            Finding("HMW-TPL-GATE-04", f"稳定锚点缺失: {', '.join(anchor_missing)}")
+            Finding(f"{gate_prefix}-TPL-GATE-04", f"稳定锚点缺失: {', '.join(anchor_missing)}")
         )
 
-    # HMW-TPL-GATE-05: quality-panel 含版本/授权/缺口/风险/caveat 插槽
-    govern_missing = [i for i in HMW_TPL_GOVERN_IDS if counts[i] == 0]
+    # {gate_prefix}-TPL-GATE-05: quality-panel 含版本/授权/缺口/风险/caveat 插槽
+    govern_missing = [i for i in check_govern_ids if counts[i] == 0]
     if govern_missing:
         findings.append(
-            Finding("HMW-TPL-GATE-05", f"quality-panel 缺插槽: {', '.join(govern_missing)}")
+            Finding(f"{gate_prefix}-TPL-GATE-05", f"quality-panel 缺插槽: {', '.join(govern_missing)}")
         )
 
-    # HMW-TPL-GATE-06: 共享主题/窄屏/@media print 钩子 + 无外部依赖
+    # {gate_prefix}-TPL-GATE-06: 共享主题/窄屏/@media print 钩子 + 无外部依赖
     if "@media print" not in source.lower():
-        findings.append(Finding("HMW-TPL-GATE-06", "缺少 @media print 钩子"))
+        findings.append(Finding(f"{gate_prefix}-TPL-GATE-06", "缺少 @media print 钩子"))
     if html.external_urls:
         findings.append(
-            Finding("HMW-TPL-GATE-06", f"存在外部网络依赖: {', '.join(html.external_urls)}")
+            Finding(f"{gate_prefix}-TPL-GATE-06", f"存在外部网络依赖: {', '.join(html.external_urls)}")
         )
     stylesheet_hrefs = re.findall(
         r'<link\b[^>]*\brel=["\']stylesheet["\'][^>]*\bhref=["\']([^"\']+)["\']',
@@ -544,23 +637,23 @@ def audit_template_gate(
         re.IGNORECASE,
     )
     if not stylesheet_hrefs:
-        findings.append(Finding("HMW-TPL-GATE-06", "缺少共享主题 stylesheet 链接"))
+        findings.append(Finding(f"{gate_prefix}-TPL-GATE-06", "缺少共享主题 stylesheet 链接"))
     for href in stylesheet_hrefs:
         if href.startswith(("http://", "https://", "//")):
             continue
         stylesheet_path = (html_path.parent / href).resolve()
         if not stylesheet_path.is_file():
-            findings.append(Finding("HMW-TPL-GATE-06", f"本地主题资源不存在: {href}"))
+            findings.append(Finding(f"{gate_prefix}-TPL-GATE-06", f"本地主题资源不存在: {href}"))
 
     # 附加：质量鉴别 / 想法对应 / 治理面板不得隐藏（四态 hidden 检测）
-    for section_id in ("hmw-quality", "hmw-coherence", "quality-panel"):
+    for section_id in hidden_section_ids:
         attrs = html.attrs_by_id.get(section_id, {})
         if counts[section_id] and (
             element_is_hidden(source, attrs) or stylesheet_hides_element(source, section_id)
         ):
             findings.append(
                 Finding(
-                    "HMW-TPL-GATE-06",
+                    f"{gate_prefix}-TPL-GATE-06",
                     f"{section_id} 被隐藏（hidden/display:none/visibility:hidden/class=hidden 任一）",
                 )
             )
@@ -824,6 +917,63 @@ def extract_hmw_table_rows(markdown: str, heading: str) -> list[list[str]]:
     return rows[1:] if rows else []
 
 
+def audit_persona_content_mapping(html: HtmlSnapshot, source_path: Path) -> list[Finding]:
+    """确认正式 Persona 画布的可见字段来自同版本确认包。"""
+    try:
+        package = source_path.read_text(encoding="utf-8")
+    except (OSError, UnicodeError) as exc:
+        return [Finding("CONTENT_MAPPING", f"cannot read Persona package: {exc}")]
+
+    findings: list[Finding] = []
+    field_ids = {
+        "name": "persona-name",
+        "gender": "persona-gender",
+        "age": "persona-age",
+        "location": "persona-location",
+        "education": "persona-education",
+        "job_title": "persona-job-title",
+        "industry": "persona-industry",
+        "family_status": "persona-family-status",
+        "income": "persona-income",
+        "description": "persona-description",
+        "goals_needs": "persona-goals-needs",
+        "behaviors": "persona-behaviors",
+        "pain_points": "persona-pain-points",
+        "motivation": "persona-motivation",
+        "decision_factors": "persona-decision-factors",
+    }
+    for row in extract_hmw_table_rows(package, "6. 9 基本信息 + 6 宫格"):
+        if len(row) < 2:
+            continue
+        field = next(
+            (key for key in field_ids if row[0] == key or row[0].startswith(f"{key}（")),
+            None,
+        )
+        if field and row[1] not in html.text_by_id.get(field_ids[field], ""):
+            findings.append(
+                Finding("CONTENT_MAPPING", f"{field_ids[field]} 未展示确认包字段内容")
+            )
+
+    quality_ids = {
+        "evidence_based": "persona-quality-evidence",
+        "concrete": "persona-quality-concrete",
+        "pain_in_voice": "persona-quality-voice",
+        "representative": "persona-quality-representative",
+    }
+    for row in extract_hmw_table_rows(package, "6a. 质量鉴别"):
+        if len(row) < 2:
+            continue
+        field = next(
+            (key for key in quality_ids if row[0] == key or row[0].startswith(f"{key}（")),
+            None,
+        )
+        if field and row[1] not in html.text_by_id.get(quality_ids[field], ""):
+            findings.append(
+                Finding("CONTENT_MAPPING", f"{quality_ids[field]} 未展示确认包质量判定")
+            )
+    return findings
+
+
 def audit_hmw_content_mapping(html: HtmlSnapshot, source_path: Path) -> list[Finding]:
     """确认正式 HMW 成品的可见业务事实来自同版本确认包。"""
     try:
@@ -886,10 +1036,12 @@ def audit(
     is_gc = canvas_type == "gc"
     is_hmw = canvas_type == "hmw"
     is_journey = canvas_type == "journey"
+    is_persona = canvas_type == "persona"
     findings: list[Finding] = []
     orders: dict[str, list[str]] = {}
     gc_anchors: list[str] = []
     hmw_anchors: list[str] = []
+    persona_anchors: list[str] = []
     if is_gc:
         try:
             gc_anchors = load_gc_anchor_orders(contract_path)
@@ -903,6 +1055,11 @@ def audit(
     elif is_journey:
         # Journey 使用动态阶段锚点，固定锚点由常量与动态检查共同覆盖。
         hmw_anchors = list(JOURNEY_ANCHORS)
+    elif is_persona:
+        try:
+            persona_anchors = load_gc_anchor_orders(contract_path)
+        except (OSError, ValueError) as exc:
+            return [Finding("CONTRACT", str(exc))]
     else:
         try:
             orders = load_contract_anchor_orders(contract_path)
@@ -927,6 +1084,8 @@ def audit(
         valid_types = {"hmw"}
     elif is_journey:
         valid_types = {"journey"}
+    elif is_persona:
+        valid_types = {"persona"}
     else:
         valid_types = {"module-detail", "global"}
     if page_type not in valid_types:
@@ -935,9 +1094,16 @@ def audit(
         findings.append(Finding("VERSION", "body data-version must be an integer or vN"))
 
     required: list[str] = list(SHARED_IDS)
-    if is_gc or is_hmw or is_journey:
-        required.extend(GC_MAIN_IDS if is_gc else (HMW_MAIN_IDS if is_hmw else JOURNEY_MAIN_IDS))
-        # GC / HMW / Journey 契约无 alignment-section（MVL 专属），审计不要求
+    if is_gc or is_hmw or is_journey or is_persona:
+        if is_gc:
+            required.extend(GC_MAIN_IDS)
+        elif is_hmw:
+            required.extend(HMW_MAIN_IDS)
+        elif is_journey:
+            required.extend(JOURNEY_MAIN_IDS)
+        else:
+            required.extend(PERSONA_MAIN_IDS)
+        # 单画布契约无 alignment-section（MVL 专属），审计不要求
         if "alignment-section" in required:
             required.remove("alignment-section")
     elif page_type == "module-detail":
@@ -969,6 +1135,13 @@ def audit(
         if anchor_missing:
             findings.append(
                 Finding("MISSING_ANCHOR", f"Journey missing anchors: {', '.join(anchor_missing)}")
+            )
+    elif is_persona:
+        expected_anchors = list(persona_anchors)
+        anchor_missing = [anchor for anchor in expected_anchors if counts[anchor] == 0]
+        if anchor_missing:
+            findings.append(
+                Finding("MISSING_ANCHOR", f"Persona missing anchors: {', '.join(anchor_missing)}")
             )
     elif page_type == "module-detail":
         if module not in orders:
@@ -1023,6 +1196,10 @@ def audit(
             findings.append(
                 Finding("CANVAS_TYPE", f"canvas-data.canvas_type must be 'journey', got {canvas_data.get('canvas_type')!r}")
             )
+        if is_persona and canvas_data.get("canvas_type") != "persona":
+            findings.append(
+                Finding("CANVAS_TYPE", f"canvas-data.canvas_type must be 'persona', got {canvas_data.get('canvas_type')!r}")
+            )
         sections = canvas_data.get("sections")
         if expected_anchors and isinstance(sections, dict):
             section_missing = [anchor for anchor in expected_anchors if anchor not in sections]
@@ -1056,6 +1233,8 @@ def audit(
         caveat_page_types = {"hmw"}
     elif is_journey:
         caveat_page_types = {"journey"}
+    elif is_persona:
+        caveat_page_types = {"persona"}
     else:
         caveat_page_types = {"module-detail"}
     if canvas_data is not None and page_type in caveat_page_types:
@@ -1100,6 +1279,8 @@ def audit(
                 source_module, source_version = hmw_source_identity(source_path)
             elif is_journey:
                 source_module, source_version = journey_source_identity(source_path)
+            elif is_persona:
+                source_module, source_version = persona_source_identity(source_path)
             else:
                 source_module, source_version = source_identity(source_path)
         except OSError as exc:
@@ -1132,6 +1313,10 @@ def audit(
                 state_module = state.get("journey")
                 if not isinstance(state_module, dict):
                     raise ValueError("state.json has no journey record")
+            elif is_persona:
+                state_module = state.get("persona")
+                if not isinstance(state_module, dict):
+                    raise ValueError("state.json has no persona record")
             else:
                 modules = state.get("modules", {})
                 state_module = (
@@ -1159,6 +1344,8 @@ def audit(
                     )
                 if is_hmw and source_path is not None:
                     findings.extend(audit_hmw_content_mapping(html, source_path))
+                if is_persona and source_path is not None:
+                    findings.extend(audit_persona_content_mapping(html, source_path))
 
     return findings
 
@@ -1174,11 +1361,14 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     _ = parser.add_argument("--source", type=Path, help="confirmation package (Mx-vN.md or GC-vN.md)")
     _ = parser.add_argument(
         "--template", type=Path,
-        help="HMW/Journey 示例模板路径（Template Gate 比对基准；正式交付必须传入）",
+        help="HMW/Persona/Journey 示例模板路径（Template Gate 比对基准；正式交付必须传入）",
     )
     _ = parser.add_argument(
-        "--type", dest="canvas_type", choices=("mvl", "gc", "hmw", "journey"), default="mvl",
-        help="canvas type: mvl (default), gc (golden circle), hmw or journey",
+        "--type",
+        dest="canvas_type",
+        choices=("mvl", "gc", "hmw", "persona", "journey"),
+        default="mvl",
+        help="canvas type: mvl (default), gc (golden circle), hmw, persona or journey",
     )
     return parser.parse_args(argv)
 
@@ -1187,7 +1377,7 @@ def main(argv: list[str] | None = None) -> int:
     """脚本入口：执行双 Gate 审计并打印结果，返回进程退出码。
 
     - 内容/授权 Gate：所有画布类型（版本、事实源、授权、锚点、canvas-data、caveat、离线）。
-    - Template Gate：仅 HMW 且传入 --template 时运行（结构完整性，不可 override）。
+    - Template Gate：HMW / Persona / Journey 且传入 --template 时运行（结构完整性，不可 override）。
     """
     args = parse_args(argv)
     html_arg = cast(Path, args.html)
@@ -1200,6 +1390,8 @@ def main(argv: list[str] | None = None) -> int:
         contract_arg = HMW_CONTRACT
     elif canvas_type == "journey":
         contract_arg = JOURNEY_CONTRACT
+    elif canvas_type == "persona":
+        contract_arg = PERSONA_CONTRACT
     else:
         contract_arg = DEFAULT_CONTRACT
     state_arg = cast("Path | None", args.state)
@@ -1209,7 +1401,7 @@ def main(argv: list[str] | None = None) -> int:
     findings = audit(html_arg, contract_arg, state_arg, source_arg, canvas_type)
     template_findings: list[Finding] = []
 
-    # Template Gate：HMW / Journey 正式交付（--template 传入）时运行
+    # Template Gate：HMW / Persona / Journey 正式交付（--template 传入）时运行
     if canvas_type == "hmw":
         if template_arg is None:
             if source_arg is not None or state_arg is not None:
@@ -1227,12 +1419,26 @@ def main(argv: list[str] | None = None) -> int:
                 else:
                     # 模板自审计：模板自身必须先通过结构检查（§6.2 步骤 13）
                     template_findings.extend(
-                        audit_template_gate(template, template_source, template_arg, template, profile)
+                        audit_template_gate(
+                            template, template_source, template_arg, template, profile,
+                            gate_prefix="HMW",
+                            check_ids=HMW_TPL_MAIN_IDS,
+                            check_stable_anchors=HMW_TPL_STABLE_ANCHORS,
+                            check_govern_ids=HMW_TPL_GOVERN_IDS,
+                            hidden_section_ids=("hmw-quality", "hmw-coherence", "quality-panel"),
+                        )
                     )
                     # 成品 Template Gate（复用已解析的 html）
                     html_source, html_snapshot = parse_html(html_arg)
                     template_findings.extend(
-                        audit_template_gate(html_snapshot, html_source, html_arg, template, profile)
+                        audit_template_gate(
+                            html_snapshot, html_source, html_arg, template, profile,
+                            gate_prefix="HMW",
+                            check_ids=HMW_TPL_MAIN_IDS,
+                            check_stable_anchors=HMW_TPL_STABLE_ANCHORS,
+                            check_govern_ids=HMW_TPL_GOVERN_IDS,
+                            hidden_section_ids=("hmw-quality", "hmw-coherence", "quality-panel"),
+                        )
                     )
             except (OSError, UnicodeError) as exc:
                 template_findings.append(Finding("HMW-TPL-GATE-00", f"模板读取失败: {exc}"))
@@ -1260,6 +1466,46 @@ def main(argv: list[str] | None = None) -> int:
                     )
             except (OSError, UnicodeError) as exc:
                 template_findings.append(Finding("JOURNEY-TPL-GATE-00", f"模板读取失败: {exc}"))
+    elif canvas_type == "persona":
+        if template_arg is None:
+            if source_arg is not None or state_arg is not None:
+                template_findings.append(
+                    Finding("PERSONA-TPL-GATE-00", "Persona 正式交付必须传入 --template 示例模板路径")
+                )
+        else:
+            try:
+                template_source, template = parse_html(template_arg)
+                profile = load_persona_template_profile(contract_arg)
+                if not profile["main_order"]:
+                    template_findings.append(
+                        Finding("PERSONA-TPL-GATE-00", "render-contract-persona.md 模板 profile 无法解析")
+                    )
+                else:
+                    # 模板自审计
+                    template_findings.extend(
+                        audit_template_gate(
+                            template, template_source, template_arg, template, profile,
+                            gate_prefix="PERSONA",
+                            check_ids=PERSONA_MAIN_IDS,
+                            check_stable_anchors=PERSONA_STABLE_ANCHORS,
+                            check_govern_ids=PERSONA_TPL_GOVERN_IDS,
+                            hidden_section_ids=("persona-quality", "quality-panel"),
+                        )
+                    )
+                    # 成品 Template Gate
+                    html_source, html_snapshot = parse_html(html_arg)
+                    template_findings.extend(
+                        audit_template_gate(
+                            html_snapshot, html_source, html_arg, template, profile,
+                            gate_prefix="PERSONA",
+                            check_ids=PERSONA_MAIN_IDS,
+                            check_stable_anchors=PERSONA_STABLE_ANCHORS,
+                            check_govern_ids=PERSONA_TPL_GOVERN_IDS,
+                            hidden_section_ids=("persona-quality", "quality-panel"),
+                        )
+                    )
+            except (OSError, UnicodeError) as exc:
+                template_findings.append(Finding("PERSONA-TPL-GATE-00", f"模板读取失败: {exc}"))
 
     content_fail = bool(findings)
     template_fail = bool(template_findings)

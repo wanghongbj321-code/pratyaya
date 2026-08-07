@@ -1,0 +1,30 @@
+{
+  "schema_version": "2.3",
+  "group_id": "G1",
+  "project_name": "Persona 测试项目",
+  "persona": {
+    "version": 1,
+    "status": "confirmed",
+    "gate_recommendation": "fail",
+    "render_authorized": true,
+    "confirmation_mode": "override",
+    "override_audit": {
+      "version": 1,
+      "items": [
+        {
+          "assessment_id": "PERSONA-GATE-01",
+          "category": "information_integrity",
+          "source_id": "PERSONA-basic",
+          "original_result": "fail",
+          "risk_level": "low",
+          "impact": "关键基本信息 name/job_title/industry 缺失"
+        }
+      ],
+      "reason": "团队尝试 override 信息完整性失败项",
+      "confirmed_by": "张三",
+      "confirmed_role": "CEO",
+      "confirmed_at": "2026-08-07T11:00:00+08:00"
+    }
+  },
+  "updated_at": "2026-08-07T11:00:00+08:00"
+}

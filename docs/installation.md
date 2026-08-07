@@ -19,10 +19,10 @@
 
 核心能力：
 
-- 多类画布的引导、转写提炼与确认包沉淀
+- 五类画布（MVL / 黄金圈 / HMW / 用户画像 / 用户旅程）的引导、转写提炼与确认包沉淀
 - 质量门禁（Gate）建议 + 用户授权
 - 模块化智能体画布（Canvas）的生成（HMW / Journey 走双 Gate 审计）
-- 5 态画布生命周期管理（MVL / GC / HMW / Journey 共用）
+- 5 态画布生命周期管理（五类画布共用）
 
 专家包的元数据（`displayName` / `profession` / `displayDescription` / `quickPrompts` / `tags`）定义在 `.codebuddy-plugin/plugin.json`。**本指南不重复 plugin.json 字段，统一以一句话指向 plugin.json 作为权威来源**。详细字段值请查阅 `plugin.json`。
 
@@ -96,7 +96,7 @@ WorkBuddy 完成专家注册后必须重启，才能完整加载 agent、skill�
 confirmation_mode：gate_pass / override / null（属性，不是状态）
 ```
 
-也可验证画布类型路由："请介绍一下你支持哪几种画布"（预期：MVL / 黄金圈 / HMW / 用户画像 / 用户旅程）。
+也可验证画布类型路由："请介绍一下你支持哪几种画布"（预期：MVL / 黄金圈 / HMW / 用户画像 / 用户旅程五类）。
 
 > `confirmation_mode` 是属性（不是状态）；用户可对 `business_risk` 显式 override 后进入 `confirmed`，并触发 caveat 显式呈现。HMW / Journey 正式渲染额外要求结构 Template Gate 通过（详见 [DEVELOPMENT.md §3.1](../DEVELOPMENT.md#31-python-静态审计)）。
 
@@ -120,7 +120,7 @@ confirmation_mode：gate_pass / override / null（属性，不是状态）
 
 ### 6.4 工作流异常
 
-- 检查 `skills/` 目录完整（应含 9 个 Skill：mvl-distill / gc-distill / hmw-distill / journey-distill / module-conclusion-gate / gc-gate / hmw-gate / journey-gate / canvas-render）
+- 检查 `skills/` 目录完整（应含 10 个 Skill：mvl-distill / gc-distill / hmw-distill / persona-distill / journey-distill / module-conclusion-gate / gc-gate / hmw-gate / persona-gate / journey-gate / canvas-render）
 - 检查 `skills/canvas-render/visual-patterns/` 包含 `README.md` 和 10 个编号模式文件
 - 检查 `examples/modules/` 与 `examples/canvas-html/` 目录完整
 

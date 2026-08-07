@@ -10,11 +10,11 @@
 
 画布结论闸门（Gate）由 LLM 评估；旧 Python 脚本 `check_gate.py` 已删除。执行流程（按画布类型对应 Skill）：
 
-1. LLM 读取确认包 Markdown（MVL：`Mx-v{N}.md` / 黄金圈：`GC-v{N}.md` / HMW：`HMW-v{N}.md` / Journey：`JOURNEY-v{N}.md`）
-2. 对照对应 Gate Skill 的判定规则（MVL 34 条放行条件；黄金圈 / HMW / Journey 各 6 条稳定放行条件 + 稳定 ID + 分类与风险等级）
-3. 输出 Markdown 判定报告（`references/Mx-gate.md` / `GC-gate.md` / `HMW-gate.md` / `JOURNEY-gate.md`），含 `gate_recommendation: pass/fail/pending` + `override_eligible: true/false`；**不**写最终授权
+1. LLM 读取确认包 Markdown（MVL：`Mx-v{N}.md` / 黄金圈：`GC-v{N}.md` / HMW：`HMW-v{N}.md` / Persona：`PERSONA-v{N}.md` / Journey：`JOURNEY-v{N}.md`）
+2. 对照对应 Gate Skill 的判定规则（MVL 34 条放行条件；黄金圈 / HMW / Persona / Journey 各 6 条稳定放行条件 + 稳定 ID + 分类与风险等级）
+3. 输出 Markdown 判定报告（`references/Mx-gate.md` / `GC-gate.md` / `HMW-gate.md` / `PERSONA-gate.md` / `JOURNEY-gate.md`），含 `gate_recommendation: pass/fail/pending` + `override_eligible: true/false`；**不**写最终授权
 
-详细规则、缺口等级、推断术语、版本绑定的完整定义见 [skills/module-conclusion-gate/SKILL.md](./skills/module-conclusion-gate/SKILL.md)（MVL）、[skills/gc-gate/SKILL.md](./skills/gc-gate/SKILL.md)（黄金圈）、[skills/hmw-gate/SKILL.md](./skills/hmw-gate/SKILL.md)（HMW）、[skills/journey-gate/SKILL.md](./skills/journey-gate/SKILL.md)（Journey）。
+详细规则、缺口等级、推断术语、版本绑定的完整定义见 [skills/module-conclusion-gate/SKILL.md](./skills/module-conclusion-gate/SKILL.md)（MVL）、[skills/gc-gate/SKILL.md](./skills/gc-gate/SKILL.md)（黄金圈）、[skills/hmw-gate/SKILL.md](./skills/hmw-gate/SKILL.md)（HMW）、[skills/persona-gate/SKILL.md](./skills/persona-gate/SKILL.md)（Persona）、[skills/journey-gate/SKILL.md](./skills/journey-gate/SKILL.md)（Journey）。
 
 ## 3. HTML 渲染（Python 静态审计 + 浏览器视觉验收）
 
@@ -30,7 +30,7 @@ python3 scripts/audit_canvas_html.py <项目目录>/output/module-N-canvas.html 
   --state <项目目录>/state.json
 ```
 
-黄金圈画布：`--type gc`；HMW 与 Journey 画布为双 Gate，正式交付必须携带对应 `--template`：
+黄金圈画布：`--type gc`；HMW、Persona 与 Journey 画布必须携带各自模板：
 
 ```bash
 python3 scripts/audit_canvas_html.py <项目目录>/output/hmw-canvas.html \
@@ -38,17 +38,15 @@ python3 scripts/audit_canvas_html.py <项目目录>/output/hmw-canvas.html \
   --state <项目目录>/state.json \
   --type hmw \
   --template examples/canvas-html/hmw-canvas.html
-```
 
-```bash
-python3 scripts/audit_canvas_html.py <项目目录>/output/journey-canvas.html \
-  --source <项目目录>/modules/JOURNEY-v{N}.md \
+python3 scripts/audit_canvas_html.py <项目目录>/output/persona-canvas.html \
+  --source <项目目录>/modules/PERSONA-v{N}.md \
   --state <项目目录>/state.json \
-  --type journey \
-  --template examples/canvas-html/user-journey-canvas.html
+  --type persona \
+  --template examples/canvas-html/user-persona-canvas.html
 ```
 
-脚本使用 Python 标准库，负责（MVL / GC / HMW / Journey 通用）：
+脚本使用 Python 标准库，负责（MVL / GC / HMW / Persona / Journey 通用）：
 
 1. 页面类型、画布和版本元数据；
 2. 契约大模块、共享结构、稳定锚点存在且唯一；
@@ -56,7 +54,7 @@ python3 scripts/audit_canvas_html.py <项目目录>/output/journey-canvas.html \
 4. `canvas-data` JSON、确认包版本和 `state.json` 授权元数据一致；
 5. 离线安全、必要打印规则、草稿标记和 override caveat 必需结构。
 
-**HMW / Journey 双 Gate 模型**：`--type hmw` 或 `--type journey` 时输出分为两个检查面——`[CONTENT/AUTH GATE]`（业务一致性：版本 / 事实源 / 授权 / 锚点 / canvas-data，语义与 MVL 一致）与 `[TEMPLATE GATE]`（结构完整性：`HMW-TPL-GATE-01~06` / `JOURNEY-TPL-GATE-01~06`，**不可 override**，见 [DESIGN.md](./DESIGN.md) §12.2 / §13.4）。`--template` 缺失时正式交付 FAIL（`HMW-TPL-GATE-00` / `JOURNEY-TPL-GATE-00`）；模板自身先通过结构自审计才放行成品。
+**HMW / Persona / Journey 双 Gate 模型**：`--type hmw`、`--type persona` 或 `--type journey` 时输出分为两个检查面——`[CONTENT/AUTH GATE]`（业务一致性：版本 / 事实源 / 授权 / 锚点 / canvas-data，语义与 MVL 一致）与 `[TEMPLATE GATE]`（结构完整性：`HMW-TPL-GATE-01~06` / `PERSONA-TPL-GATE-01~06` / `JOURNEY-TPL-GATE-01~06`，**不可 override**，见 [DESIGN.md](./DESIGN.md) §12.2 / §13.4）。`--template` 缺失时正式交付 FAIL（`HMW-TPL-GATE-00` / `PERSONA-TPL-GATE-00` / `JOURNEY-TPL-GATE-00`）；模板自身先通过结构自审计才放行成品。
 
 锚点顺序直接解析自对应 `render-contract-*.md`，不得在脚本中维护第二份清单。脚本 PASS 返回 0；FAIL 返回非零状态并列出失败项、期望值和实际值。
 
@@ -86,20 +84,21 @@ Canvas 视觉系统由 `skills/canvas-render/visual-patterns/` 下的 Markdown �
 
 ## 5. 模块工作流
 
-四阶段管线（数据源与闸门），多类画布共用，差异在命名空间：
+四阶段管线（数据源与闸门），五类画布共用，差异在命名空间：
 
 | 画布 | Key Points | 提炼 | Gate | 渲染 |
 |---|---|---|---|---|
 | MVL | `Mx-keypoints.md` | `Mx-v{N}.md` | `Mx-gate.md` | `module-N-canvas.html` / 全局 |
 | 黄金圈 | `GC-keypoints.md` | `GC-v{N}.md` | `GC-gate.md` | `gc-canvas.html` |
 | HMW | `HMW-keypoints.md` | `HMW-v{N}.md` | `HMW-gate.md` | `hmw-canvas.html` |
+| Persona | `PERSONA-keypoints.md` | `PERSONA-v{N}.md` | `PERSONA-gate.md` | `persona-canvas.html` |
 | Journey | `JOURNEY-keypoints.md` | `JOURNEY-v{N}.md` | `JOURNEY-gate.md` | `journey-canvas.html` |
 
 ```text
 Key Points → 提炼（确认包 v{N}.md）→ Gate（判定报告）→ 渲染（HTML）
 ```
 
-每个阶段的输入/输出/状态变化由对应 Skill 定义，详见 [skills/mvl-distill/SKILL.md](./skills/mvl-distill/SKILL.md) / [skills/gc-distill/SKILL.md](./skills/gc-distill/SKILL.md) / [skills/hmw-distill/SKILL.md](./skills/hmw-distill/SKILL.md) / [skills/journey-distill/SKILL.md](./skills/journey-distill/SKILL.md) / [skills/module-conclusion-gate/SKILL.md](./skills/module-conclusion-gate/SKILL.md) / [skills/gc-gate/SKILL.md](./skills/gc-gate/SKILL.md) / [skills/hmw-gate/SKILL.md](./skills/hmw-gate/SKILL.md) / [skills/journey-gate/SKILL.md](./skills/journey-gate/SKILL.md) / [skills/canvas-render/SKILL.md](./skills/canvas-render/SKILL.md)。
+每个阶段的输入/输出/状态变化由对应 Skill 定义，详见 [skills/mvl-distill/SKILL.md](./skills/mvl-distill/SKILL.md) / [skills/gc-distill/SKILL.md](./skills/gc-distill/SKILL.md) / [skills/hmw-distill/SKILL.md](./skills/hmw-distill/SKILL.md) / [skills/persona-distill/SKILL.md](./skills/persona-distill/SKILL.md) / [skills/journey-distill/SKILL.md](./skills/journey-distill/SKILL.md) / [skills/module-conclusion-gate/SKILL.md](./skills/module-conclusion-gate/SKILL.md) / [skills/gc-gate/SKILL.md](./skills/gc-gate/SKILL.md) / [skills/hmw-gate/SKILL.md](./skills/hmw-gate/SKILL.md) / [skills/persona-gate/SKILL.md](./skills/persona-gate/SKILL.md) / [skills/journey-gate/SKILL.md](./skills/journey-gate/SKILL.md) / [skills/canvas-render/SKILL.md](./skills/canvas-render/SKILL.md)。
 
 ## 6. 版本与发布
 
