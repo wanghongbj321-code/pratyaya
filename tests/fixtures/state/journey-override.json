@@ -1,0 +1,31 @@
+{
+  "schema_version": "2.3",
+  "group_id": "G1",
+  "project_name": "Journey 测试项目",
+  "journey": {
+    "version": 1,
+    "status": "confirmed",
+    "gate_recommendation": "fail",
+    "render_authorized": true,
+    "confirmation_mode": "override",
+    "override_audit": {
+      "version": 1,
+      "items": [
+        {
+          "assessment_id": "JOURNEY-GATE-04",
+          "category": "business_risk",
+          "source_id": "JOURNEY-quality",
+          "original_result": "fail",
+          "risk_level": "medium",
+          "impact": "旅程终点尚未完全到达业务结果，团队接受当前阶段先行确认的风险"
+        }
+      ],
+      "reason": "团队已知晓终点定义风险，决定先以当前版本推进讨论",
+      "mitigation": "后续补充业务结果确认环节并升版",
+      "confirmed_by": "张三",
+      "confirmed_role": "业务负责人",
+      "confirmed_at": "2026-08-07T12:35:00+08:00"
+    }
+  },
+  "updated_at": "2026-08-07T12:35:00+08:00"
+}

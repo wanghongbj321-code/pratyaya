@@ -5,7 +5,7 @@
 > 适用范围：架构师 / 维护者 / 二次开发者
 > 配套文档：[DESIGN.md](../DESIGN.md)（设计要点） / [README.md](../README.md)（门面） / [DEVELOPMENT.md](../DEVELOPMENT.md)（命令清单） / [用户指南](./user-guide.md)（用户视角）
 
-> **文档定位澄清（v2.1）**：本文档是 **MVL 专题**架构设计，聚焦 M1-M6 六模块流水线。pratyaya 专家包已升级为**多画布平台**（MVL / 黄金圈 / HMW 三类一等公民画布，7 个 Skill，schema v2.1）——MVL 整体架构（状态机、不变量、引用层级、扩展边界）在三类画布中通用，黄金圈与 HMW 的画布级差异见 [DESIGN.md §12](../DESIGN.md#12-hmw-画布双-gate-模型)。文中涉及 M3 的 `hmw` 子模块（`skills/mvl-distill/references/methods/10-hmw.md`）是 **MVL 六模块流程内的子系统方法**，与独立的 HMW 画布（`hmw-distill` / `hmw-gate` / `render-contract-hmw.md`）**并存且相互独立**：M3 的 hmw 方法不依赖 HMW 画布的 Skill；独立 HMW 画布可被任何项目单独使用。
+> **文档定位澄清（v2.3）**：本文档是 **MVL 专题**架构设计，聚焦 M1-M6 六模块流水线。pratyaya 专家包已升级为**多画布平台**（MVL / 黄金圈 / HMW / 用户画像 / 用户旅程，9 个 Skill，schema v2.3）——MVL 整体架构（状态机、不变量、引用层级、扩展边界）在多类画布中通用，HMW 与 Journey 的画布级差异见 [DESIGN.md §12](../DESIGN.md#12-hmw-画布双-gate-模型) / [§13](../DESIGN.md#13-user-journey-画布动态阶段--双-gate-模型)。文中涉及 M2 的 `09-user-journey.md` 与 M3 的 `10-hmw.md` 是 **MVL 六模块流程内的子系统方法**，分别与独立 Journey / HMW 画布并存且相互独立：MVL 内置方法不依赖独立单画布 Skill；独立单画布可被任何项目单独使用，结论只能由用户人工引用回 MVL。
 
 ---
 
@@ -91,7 +91,7 @@ flowchart TB
         FW["frameworks/m1-m6-*.md<br/>6 阶段固定框架"]
         GP["skills/module-conclusion-gate/references/M1-M6-gate.md<br/>6 阶段闸门策略"]
         RC["canvas-render/references/<br/>render-contract.md<br/>mvl-canvas-spec.md"]
-        VP["canvas-render/visual-patterns/<br/>9 个 Markdown 视觉模式 + 6 字段"]
+        VP["canvas-render/visual-patterns/<br/>10 个 Markdown 视觉模式 + 7 字段"]
         EX["examples/modules/<br/>Key Points / 确认包模板"]
     end
 
@@ -270,7 +270,7 @@ flowchart LR
     I --> L --> R --> U --> S
 ```
 
-视觉模式基线（9 个 Markdown 文件，六字段用于推荐）：
+视觉模式基线（10 个 Markdown 文件，七字段用于推荐，含 `zh_name` 中文展示名）：
 
 | 视觉系统             | balanced              | flow                  |
 | -------------------- | --------------------- | --------------------- |
@@ -550,7 +550,7 @@ flowchart TB
 | Key Points | `modules/Mx-keypoints.md`                     | 草稿 Canvas 数据源        | 1 → 4 草稿 |
 | Gate 报告  | `skills/module-conclusion-gate/references/Mx-gate.md`                      | 闸门判定（LLM 输出）      | 3           |
 | 阶段框架   | `frameworks/m{1-6}-*.md`                      | 引导问题 + 最低结论       | 0 / 2       |
-| 视觉模式   | `skills/canvas-render/visual-patterns/NN-{id}.md` | 9 模式 / 六字段 + 六节正文 | 4           |
+| 视觉模式   | `skills/canvas-render/visual-patterns/NN-{id}.md` | 10 模式 / 七字段 + 六节正文 | 4           |
 | 渲染契约   | `canvas-render/references/render-contract.md` | DOM + section 映射        | 4           |
 | 旧 JSON    | ~~`module-N.json`~~                          | **已弃用**          | —          |
 
@@ -606,7 +606,7 @@ flowchart LR
 1. 用户把仓库 clone 到 `my-codes/pratyaya`
 2. 把安装提示词贴到 WorkBuddy 专家导入入口
 3. WorkBuddy 读取 `.codebuddy-plugin/plugin.json`
-4. 加载主 Agent + 3 个 Skill
+4. 加载主 Agent + 当前画布所需 Skill（MVL 使用 mvl-distill / module-conclusion-gate / canvas-render；平台总计 9 个 Skill）
 5. **必须重启 WorkBuddy** 才能完整加载
 
 **权威边界**：
@@ -712,7 +712,7 @@ flowchart TB
         SM["5 态状态机<br/>draft → gaps_open ↔ review_ready → confirmed → rendered"]
     end
 
-    subgraph SKILLS["3 个 Skill"]
+    subgraph SKILLS["MVL 相关 Skill"]
         direction LR
         SK1["mvl-distill<br/>Key Points + 原子提炼"]
         SK2["module-conclusion-gate<br/>LLM 评估"]

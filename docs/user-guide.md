@@ -10,22 +10,24 @@
 1. 确认专家已安装并验证（详见 [安装指南 §5](./installation.md#5-如何找到并验证专家)）
 2. 在"我的专家"中找到 “Pratyaya Canvas Expert”
 3. 点击进入主 Agent 对话
-4. 选择画布类型（MVL / 黄金圈 / HMW，见 §2）与模式（A / B / C）
+4. 选择画布类型（MVL / 黄金圈 / HMW / 用户画像 / 用户旅程，见 §2）与模式（A / B / C）
 5. 按 §3 决策分支逐模块推进
 
 ## 2. 模式选择
 
 主 Agent 启动时会先确认**画布类型**，再问你"想用哪种模式"：
 
-**画布类型**（对应 `state.json` 三区块）：
+**画布类型**（对应 `state.json` 的 MVL / 单画布区块）：
 
 | 画布 | 说 | 工作流 |
 |---|---|---|
 | **MVL** | "开始 MVL 工作坊" / "M1 战略对齐" | 六模块（M1-M6），见 §4.1 |
 | **黄金圈** | "开始黄金圈画布" / "Golden Circle" | WHY/HOW/WHAT 三层，单画布 |
 | **HMW** | "开始 HMW 画布" / "How Might We" | 问题陈述四字段 + 想法种子，单画布 |
+| **用户画像** | "开始用户画像画布" / "Persona" | 独立画布占位状态区块 |
+| **用户旅程** | "开始用户旅程画布" / "Journey" | 动态阶段 × 5 行合并结构，单画布 |
 
-**模式**（针对 MVL 转写；黄金圈 / HMW 主要用引导）：
+**模式**（各画布共用；具体字段由对应 Skill 定义）：
 
 | 模式 | 适用场景 | 数据源 |
 |---|---|---|
@@ -48,7 +50,7 @@
 | **override / 我接受这个风险** | 仅 Gate 报告含 `business_risk` FAIL 时生效；`confirmation_mode=override` + 填写 override 审计；HTML 显示 caveat 标识 |
 | **补问 / 修订** | 存在 `information_integrity` FAIL 或需修订时；不提供 override 路径 |
 
-## 4. 3 天工作坊使用流程
+## 4. 工作坊使用流程
 
 ### 4.1 MVL（3 天工作坊）
 
@@ -94,6 +96,19 @@
 
 主 Agent 引导讨论 → 提炼 `HMW-v{N}.md` → Gate → 确认 → 生成 `hmw-canvas.html`。HMW 正式渲染走**双 Gate**（内容/授权 + 结构 Template Gate），结构问题不能自行豁免（详见 [DEVELOPMENT.md §3.1](../DEVELOPMENT.md#31-python-静态审计)）。
 
+### 4.4 用户旅程（单画布）
+
+当前旅程工作坊，一次完成四步：
+
+1. **阶段地图**：阶段按实际旅程动态生成，最低 3 个有效阶段，不固定 7 个槽位。
+2. **5 行主表**：行动 / 触点与系统 / 情绪 / 等待与返工 / 风险节点。
+3. **关键断点与机会**：等待、返工、风险、情绪低点形成的断点摘要。
+4. **质量鉴别**：用户视角 / 到达业务结果 / 断点可见 / 未预设方案，正式画布外显，但不进入主表成为第 6 行。
+
+主 Agent 引导讨论 → 提炼 `JOURNEY-v{N}.md` → Journey Gate → 确认 / override → 生成 `journey-canvas.html`。Journey 正式渲染走**双 Gate**（内容/授权 + 动态阶段 Template Gate），结构问题不能自行豁免。
+
+> 独立 Journey Canvas 不修改 MVL M2 的 `09-user-journey.md`，不写 `state.modules.M2`；如需把 Journey 结论带入 MVL，只能由用户人工引用。
+
 ## 5. 常用指令速查
 
 按使用阶段组织。完整指令集见 `agents/pratyaya.md` 的指令卡章节。
@@ -101,7 +116,7 @@
 **启动阶段**：
 
 - "开始 A 引导模式" / "开始 B 转写模式"
-- "开始黄金圈画布" / "开始 HMW 画布"
+- "开始黄金圈画布" / "开始 HMW 画布" / "开始用户旅程画布"
 
 **模块阶段（MVL）**：
 
@@ -112,6 +127,11 @@
 
 - "HMW 提炼" / "HMW 补问" / "HMW 先看个样子" / "HMW 确认 v1" / "HMW override（已阅读影响）"
 - "生成 HMW 画布" / "HMW 状态"
+
+**用户旅程阶段**：
+
+- "用户旅程提炼" / "用户旅程补问" / "用户旅程先看个样子" / "用户旅程确认 v1" / "用户旅程 override（已阅读影响）"
+- "生成用户旅程画布" / "Journey 状态"
 
 **全局阶段**：
 
@@ -165,8 +185,8 @@
 
 | 特征 | 草稿 Canvas | 正式 Canvas |
 |---|---|---|
-| 顶部字样 | 草稿 / 未确认 / 禁止用于管理层决策 | 画布名 + 版本号（MVL Canvas / Golden Circle / HMW Canvas） |
-| 数据源 | 对应 Key Points（非确认包） | 对应确认包（`Mx-v{N}.md` / `GC-v{N}.md` / `HMW-v{N}.md`） |
+| 顶部字样 | 草稿 / 未确认 / 禁止用于管理层决策 | 画布名 + 版本号（MVL Canvas / Golden Circle / HMW Canvas / Journey Canvas） |
+| 数据源 | 对应 Key Points（非确认包） | 对应确认包（`Mx-v{N}.md` / `GC-v{N}.md` / `HMW-v{N}.md` / `JOURNEY-v{N}.md`） |
 | 视觉来源 | 用户选定的 `visual-patterns/NN-{id}.md` | 用户选定的 `visual-patterns/NN-{id}.md` |
 | 视觉系统 | 用户选定 | 用户选定 |
 | 状态变化 | 不改变画布状态 | 画布状态改为 `rendered` |

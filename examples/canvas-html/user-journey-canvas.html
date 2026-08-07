@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>User Journey 用户旅程画布（一等公民 · 示例）</title>
+<link rel="stylesheet" href="shared/canvas-theme.css">
+<style>
+  .journey-map{
+    border:var(--border-w) solid var(--line); border-radius:var(--radius);
+    background:var(--paper); box-shadow:var(--shadow);
+    padding:16px 18px 18px; margin-bottom:16px;
+  }
+  .stage-scroll{ overflow-x:auto; padding-bottom:4px; }
+  .stage-grid{
+    display:grid; grid-template-columns:150px repeat(3,minmax(220px,1fr));
+    min-width:860px; border:1px solid var(--line); border-radius:var(--radius);
+  }
+  .row-label,.stage-head,.stage-cell{
+    border-right:1px solid var(--line); border-bottom:1px solid var(--line);
+    padding:10px 12px; min-height:58px; font-size:12.5px; line-height:1.5;
+  }
+  .stage-grid > :nth-child(4n){ border-right:0; }
+  .stage-grid > :nth-last-child(-n+4){ border-bottom:0; }
+  .row-label,.stage-head{ background:var(--brand-pale); color:var(--title-color); font-weight:700; }
+  .stage-head small{ display:block; color:var(--hint-color); font-weight:400; margin-top:3px; }
+  .stage-cell{ background:var(--paper); color:var(--ink); }
+  .stage-cell[data-state="placeholder"]{ color:var(--hint-color); }
+
+  .frictions,.journey-quality,.govern{
+    border:var(--border-w) solid var(--line); border-radius:var(--radius);
+    background:var(--paper); box-shadow:var(--shadow); padding:16px 18px 18px;
+    margin-bottom:16px;
+  }
+  .friction-list{ display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:10px; }
+  .friction-item{ border:1px solid var(--line); border-radius:var(--radius); padding:10px 12px; min-height:92px; }
+  .friction-item b{ display:block; color:var(--title-color); margin-bottom:6px; }
+  .quality-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:10px; }
+  .q-item{ border:1px solid var(--line); border-radius:var(--radius); padding:10px 12px; }
+  .q-name{ font-size:13px; font-weight:700; color:var(--ink); }
+  .q-en{ font-size:11px; color:var(--hint-color); }
+  .q-verdict{ margin-top:6px; font-size:12px; }
+  .govern dl{ margin:0; display:grid; grid-template-columns:auto 1fr; gap:6px 12px; font-size:12.5px; }
+  .govern dt{ color:var(--muted); }
+  .govern dd{ margin:0; font-weight:700; color:var(--ink); }
+  .caveat{ margin-top:12px; border:1px solid var(--line); border-radius:var(--radius); padding:10px 12px; }
+  .local-notes{
+    margin-top:16px; border:1px dashed var(--line); border-radius:var(--radius);
+    padding:12px 14px; font-size:12.5px; min-height:48px; color:var(--ink);
+  }
+  .local-notes:empty::before{ content:"本地备注（浏览器内可编辑，刷新即清空）…"; color:var(--hint-color); }
+
+  @media(max-width:1000px){
+    .friction-list{ grid-template-columns:1fr; }
+    .quality-grid{ grid-template-columns:repeat(2,1fr); }
+  }
+  @media(max-width:720px){
+    .quality-grid{ grid-template-columns:1fr; }
+    .stage-grid{ min-width:760px; grid-template-columns:130px repeat(3,minmax(210px,1fr)); }
+  }
+  @media print{
+    @page{ size:landscape; margin:12mm; }
+    .stage-scroll{ overflow:visible; }
+    .stage-grid{ min-width:0; }
+    .local-notes{ border-style:solid; }
+  }
+</style>
+</head>
+<body data-theme="base" data-canvas="journey" data-page-type="journey" data-version="1">
+<div class="wrap">
+  <header class="canvas-head" id="canvas-header">
+    <div>
+      <div class="eyebrow">Pratyaya Canvas · 一等公民 · User Journey</div>
+      <h1>User Journey 用户旅程画布</h1>
+      <p class="sub">按真实阶段动态展开，主表忠实保留 5 行合并结构：行动、触点与系统、情绪、等待与返工、风险节点。</p>
+      <div id="canvas-headline" style="margin-top:8px;font-size:14px;font-weight:700;color:var(--title-color);">一句话结论：{在此填写当前旅程的核心断点与机会}</div>
+    </div>
+    <div class="meta">
+      <strong>Canvas · Journey</strong>
+      日期：__________<br>
+      小组：__________<br>
+      版本：<span id="quality-version">v0（草稿）</span>
+    </div>
+  </header>
+
+  <section class="journey-map" id="journey-map" aria-label="阶段地图">
+    <h2 class="cell-title">阶段地图 <span class="en">Dynamic Journey Map</span></h2>
+    <p class="cell-hint">阶段数量由确认包第 6 节表格数据行决定；示例保留 3 个阶段占位以满足最低结构。</p>
+    <div class="stage-scroll">
+      <div class="stage-grid" role="table" aria-label="Journey 5 行阶段表">
+        <div class="row-label"></div>
+        <article class="stage-head" id="journey-stage-1">阶段 1<small>阶段名待填写</small></article>
+        <article class="stage-head" id="journey-stage-2">阶段 2<small>阶段名待填写</small></article>
+        <article class="stage-head" id="journey-stage-3">阶段 3<small>阶段名待填写</small></article>
+
+        <div class="row-label">行动</div>
+        <div class="stage-cell" id="journey-stage-1-action" data-state="placeholder">未讨论</div>
+        <div class="stage-cell" id="journey-stage-2-action" data-state="placeholder">未讨论</div>
+        <div class="stage-cell" id="journey-stage-3-action" data-state="placeholder">未讨论</div>
+
+        <div class="row-label">触点与系统</div>
+        <div class="stage-cell" id="journey-stage-1-touchpoint-system" data-state="placeholder">未讨论</div>
+        <div class="stage-cell" id="journey-stage-2-touchpoint-system" data-state="placeholder">未讨论</div>
+        <div class="stage-cell" id="journey-stage-3-touchpoint-system" data-state="placeholder">未讨论</div>
+
+        <div class="row-label">情绪</div>
+        <div class="stage-cell" id="journey-stage-1-emotion" data-state="placeholder">未讨论</div>
+        <div class="stage-cell" id="journey-stage-2-emotion" data-state="placeholder">未讨论</div>
+        <div class="stage-cell" id="journey-stage-3-emotion" data-state="placeholder">未讨论</div>
+
+        <div class="row-label">等待与返工</div>
+        <div class="stage-cell" id="journey-stage-1-wait-rework" data-state="placeholder">未讨论</div>
+        <div class="stage-cell" id="journey-stage-2-wait-rework" data-state="placeholder">未讨论</div>
+        <div class="stage-cell" id="journey-stage-3-wait-rework" data-state="placeholder">未讨论</div>
+
+        <div class="row-label">风险节点</div>
+        <div class="stage-cell" id="journey-stage-1-risk" data-state="placeholder">未讨论</div>
+        <div class="stage-cell" id="journey-stage-2-risk" data-state="placeholder">未讨论</div>
+        <div class="stage-cell" id="journey-stage-3-risk" data-state="placeholder">未讨论</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="frictions" id="journey-frictions" aria-label="关键断点与机会">
+    <h2 class="cell-title">关键断点与机会 <span class="en">Friction Summary</span></h2>
+    <div class="friction-list" id="journey-friction-summary">
+      <div class="friction-item"><b>等待 / 返工</b>待填写…</div>
+      <div class="friction-item"><b>风险节点</b>待填写…</div>
+      <div class="friction-item"><b>机会判断</b>待填写…</div>
+    </div>
+  </section>
+
+  <section class="journey-quality" id="journey-quality" aria-label="质量鉴别">
+    <h2 class="cell-title">质量鉴别 <span class="en">Canvas-visible Quality Check</span></h2>
+    <p class="cell-hint">质量鉴别是正式画布外显能力，不进入主表成为第 6 行。</p>
+    <div class="quality-grid">
+      <div class="q-item" id="journey-quality-user-perspective">
+        <div class="q-name">用户视角 <span class="q-en">user_perspective</span></div>
+        <div class="q-verdict verdict-pending">待判定</div>
+      </div>
+      <div class="q-item" id="journey-quality-business-outcome">
+        <div class="q-name">到达业务结果 <span class="q-en">business_outcome</span></div>
+        <div class="q-verdict verdict-pending">待判定</div>
+      </div>
+      <div class="q-item" id="journey-quality-friction-visible">
+        <div class="q-name">断点可见 <span class="q-en">friction_visible</span></div>
+        <div class="q-verdict verdict-pending">待判定</div>
+      </div>
+      <div class="q-item" id="journey-quality-no-solution-bias">
+        <div class="q-name">未预设方案 <span class="q-en">no_solution_bias</span></div>
+        <div class="q-verdict verdict-pending">待判定</div>
+      </div>
+    </div>
+  </section>
+
+  <aside class="govern" id="quality-panel" aria-label="质量与治理">
+    <h3 class="cell-title">质量与治理</h3>
+    <dl>
+      <dt>版本</dt><dd id="quality-version-dd">v0（草稿）</dd>
+    </dl>
+    <div id="quality-approval">
+      <dl>
+        <dt>Gate 建议</dt><dd id="quality-gate">pending</dd>
+        <dt>授权渲染</dt><dd id="quality-authorized">false</dd>
+        <dt>确认模式</dt><dd id="quality-mode">null</dd>
+      </dl>
+    </div>
+    <dl>
+      <dt>缺口摘要</dt><dd id="quality-gaps">—</dd>
+      <dt>风险摘要</dt><dd id="quality-risks">—</dd>
+    </dl>
+    <div class="caveat" id="quality-caveat" hidden>
+      <b>Override 警示：</b><span id="quality-caveat-text">仅在 override 时显示，列出被接受的 business_risk Gate 项与影响。</span>
+    </div>
+  </aside>
+
+  <section class="local-notes" id="local-notes" contenteditable="true"></section>
+
+  <p class="footnote">
+    <b>说明：</b>本文件为 User Journey <b>一等公民画布示例</b>（对齐 <code>render-contract-journey.md</code>），签名布局延续工作表 <code>canvas-templates/02-用户旅程画布.html</code> 的阶段横向展开、要素纵向排列心智。
+    本示例为静态骨架（占位内容），正式渲染由 <code>canvas-render</code> Skill 经 <code>提炼→门禁→渲染</code> 管线生成 <code>output/journey-canvas.html</code>。
+  </p>
+</div>
+
+<script type="application/json" id="canvas-data">
+{
+  "canvas_type": "journey",
+  "page_type": "journey",
+  "version": "1",
+  "schema_version_target": "2.3",
+  "sections": {
+    "canvas-headline": "一句话结论",
+    "journey-map": "6：阶段地图",
+    "journey-friction-summary": "6b：关键断点与机会",
+    "journey-quality-user-perspective": "6a：user_perspective",
+    "journey-quality-business-outcome": "6a：business_outcome",
+    "journey-quality-friction-visible": "6a：friction_visible",
+    "journey-quality-no-solution-bias": "6a：no_solution_bias"
+  },
+  "stages": [
+    {"stage_index": 1, "stage_name": "阶段名待填写", "action": "", "touchpoint_system": "", "emotion": "", "wait_rework": "", "risk": ""},
+    {"stage_index": 2, "stage_name": "阶段名待填写", "action": "", "touchpoint_system": "", "emotion": "", "wait_rework": "", "risk": ""},
+    {"stage_index": 3, "stage_name": "阶段名待填写", "action": "", "touchpoint_system": "", "emotion": "", "wait_rework": "", "risk": ""}
+  ],
+  "quality": {
+    "user_perspective": "pending",
+    "business_outcome": "pending",
+    "friction_visible": "pending",
+    "no_solution_bias": "pending"
+  },
+  "auth": {
+    "gate_recommendation": "pending",
+    "render_authorized": false,
+    "confirmation_mode": null,
+    "override_audit": null
+  }
+}
+</script>
+</body>
+</html>
