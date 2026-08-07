@@ -17,9 +17,6 @@ Thumbs.db
 __pycache__/
 *.pyc
 
-# 回归测试（依赖本地 Python 环境，不随专家包发布到 Gitee）
-tests/
-
 # 临时文件
 tmp/
 
@@ -28,4 +25,7 @@ tmp/
 
 # 内部文件
 internal/
+
+# 本地 PR 说明文档（供团队在浏览器建 PR 时参考，不入库）
+PR-visual-enhancement.md
 

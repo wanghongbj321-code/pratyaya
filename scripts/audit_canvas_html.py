@@ -28,6 +28,43 @@ DEFAULT_CONTRACT = (
 GC_CONTRACT = (
     REPO_ROOT / "skills" / "canvas-render" / "references" / "render-contract-gc.md"
 )
+HMW_CONTRACT = (
+    REPO_ROOT / "skills" / "canvas-render" / "references" / "render-contract-hmw.md"
+)
+HMW_TEMPLATE = (
+    REPO_ROOT / "examples" / "canvas-html" / "hmw-canvas.html"
+)
+HMW_TPL_MAIN_IDS = (
+    "hmw-statement",
+    "hmw-ideas",
+    "hmw-coherence",
+    "hmw-quality",
+    "quality-panel",
+    "local-notes",
+    "canvas-data",
+)
+HMW_TPL_STABLE_ANCHORS = (
+    "hmw-situation", "hmw-question", "hmw-for", "hmw-sothat",
+    "hmw-quality-preset", "hmw-quality-vague",
+    "hmw-quality-moment", "hmw-quality-tension",
+    "hmw-idea-1", "hmw-idea-2", "hmw-idea-3", "hmw-idea-4",
+    "hmw-idea-5", "hmw-idea-6", "hmw-idea-7", "hmw-idea-8",
+    "hmw-coherence-map",
+)
+HMW_TPL_GOVERN_IDS = (
+    "quality-version",
+    "quality-approval",
+    "quality-gaps",
+    "quality-risks",
+    "quality-caveat",
+)
+# 约定隐藏方式（Template Gate 与内容/授权 Gate 共用）：任一命中即视为隐藏
+HIDDEN_PATTERNS = (
+    r"hidden\b",  # hidden HTML 属性
+    r"display\s*:\s*none",  # style="display:none"
+    r"visibility\s*:\s*hidden",  # style="visibility:hidden"
+    r"class\s*=\s*[\"'][^\"']*\bhidden\b",  # class="hidden"
+)
 MODULE_MAIN_IDS = (
     "module-summary",
     "module-outputs",
@@ -43,6 +80,21 @@ GC_ANCHORS = (
     "how-principles", "how-differentiation", "how-methods",
     "what-products", "what-services", "what-evidence",
     "alignment-why-how", "alignment-how-what",
+)
+HMW_MAIN_IDS = (
+    "hmw-statement",
+    "hmw-quality",
+    "hmw-ideas",
+    "hmw-coherence",
+)
+HMW_ANCHORS = (
+    "canvas-headline",
+    "hmw-situation", "hmw-question", "hmw-for", "hmw-sothat",
+    "hmw-quality-preset", "hmw-quality-vague",
+    "hmw-quality-moment", "hmw-quality-tension",
+    "hmw-idea-1", "hmw-idea-2", "hmw-idea-3", "hmw-idea-4",
+    "hmw-idea-5", "hmw-idea-6", "hmw-idea-7", "hmw-idea-8",
+    "hmw-coherence-map",
 )
 SHARED_IDS = (
     "canvas-header",
@@ -99,6 +151,7 @@ class HtmlSnapshot:
     attrs_by_id: dict[str, dict[str, str]]
     canvas_data_text: str
     text: str
+    text_by_id: dict[str, str]
     external_urls: list[str]
 
 
@@ -116,6 +169,7 @@ class CanvasParser(HTMLParser):
         self.attrs_by_id: dict[str, dict[str, str]] = {}
         self.external_urls: list[str] = []
         self.text_parts: list[str] = []
+        self.text_parts_by_id: dict[str, list[str]] = {}
         self.canvas_data_parts: list[str] = []
         self.stack: list[tuple[str, str | None]] = []
         self.module_outputs_depth = 0
@@ -160,6 +214,9 @@ class CanvasParser(HTMLParser):
 
     def handle_data(self, data: str) -> None:
         self.text_parts.append(data)
+        for _, element_id in self.stack:
+            if element_id:
+                self.text_parts_by_id.setdefault(element_id, []).append(data)
         if self.canvas_data_depth:
             self.canvas_data_parts.append(data)
 
@@ -176,6 +233,7 @@ class CanvasParser(HTMLParser):
             attrs_by_id=self.attrs_by_id,
             canvas_data_text="".join(self.canvas_data_parts).strip(),
             text="".join(self.text_parts),
+            text_by_id={element_id: "".join(parts) for element_id, parts in self.text_parts_by_id.items()},
             external_urls=self.external_urls,
         )
 
@@ -258,6 +316,239 @@ def gc_source_identity(path: Path) -> tuple[str | None, str | None]:
     return ("GC", match.group(1)) if match else (None, None)
 
 
+def hmw_source_identity(path: Path) -> tuple[str | None, str | None]:
+    """从 HMW-vN 确认包首行标题中提取画布类型与版本号。"""
+    first_lines = "\n".join(path.read_text(encoding="utf-8").splitlines()[:12])
+    match = re.search(r"^#\s+HMW 确认包\s+(v\d+)\s*$", first_lines, re.MULTILINE)
+    return ("HMW", match.group(1)) if match else (None, None)
+
+
+def load_hmw_template_profile(contract_path: Path) -> dict[str, list[str]]:
+    """从 render-contract-hmw.md 解析 HMW 模板结构 profile（一级模块顺序 + 稳定锚点）。
+
+    返回 {"main_order": [...], "stable_anchors": [...]}。
+    """
+    text = contract_path.read_text(encoding="utf-8")
+    main_order: list[str] = []
+    stable_anchors: list[str] = []
+
+    order_match = re.search(
+        r"### 一级模块必需性与 DOM 相对顺序（强制）\s*```text\s*(.*?)```",
+        text,
+        re.DOTALL,
+    )
+    if order_match:
+        for line in order_match.group(1).splitlines():
+            m = re.match(r"\s*→\s*([a-z][a-z0-9-]+)\s*$", line)
+            if m:
+                main_order.append(m.group(1))
+
+    anchor_match = re.search(
+        r"### 稳定锚点集合（Template Gate 校验）(.*?)(?=\n### |\Z)",
+        text,
+        re.DOTALL,
+    )
+    if anchor_match:
+        stable_anchors = re.findall(
+            r"`(hmw-[a-z0-9-]+|quality-[a-z0-9-]+|local-notes|canvas-data)`",
+            anchor_match.group(1),
+        )
+    return {"main_order": main_order, "stable_anchors": stable_anchors}
+
+
+def element_is_hidden(source: str, attrs: dict[str, str]) -> bool:
+    """判断元素是否以约定方式隐藏（hidden 属性 / display:none / visibility:hidden / class=hidden）。"""
+    if "hidden" in attrs:
+        return True
+    style = attrs.get("style", "")
+    if re.search(r"display\s*:\s*none", style, re.IGNORECASE):
+        return True
+    if re.search(r"visibility\s*:\s*hidden", style, re.IGNORECASE):
+        return True
+    classes = attrs.get("class", "").split()
+    if "hidden" in classes:
+        return True
+    return False
+
+
+def stylesheet_hides_element(source: str, element_id: str) -> bool:
+    """检查 style 标签中直接命中指定 id 的隐藏规则。"""
+    for stylesheet in re.findall(r"<style[^>]*>(.*?)</style>", source, re.IGNORECASE | re.DOTALL):
+        for selectors, declarations in re.findall(r"([^{}]+)\{([^{}]*)\}", stylesheet, re.DOTALL):
+            if f"#{element_id}" not in selectors:
+                continue
+            if re.search(r"display\s*:\s*none|visibility\s*:\s*hidden", declarations, re.IGNORECASE):
+                return True
+    return False
+
+
+def audit_template_gate(
+    html: HtmlSnapshot,
+    source: str,
+    html_path: Path,
+    template: HtmlSnapshot,
+    profile: dict[str, list[str]],
+) -> list[Finding]:
+    """Template Gate：比较成品与 HMW 模板的一级模块、稳定锚点与相对 DOM 顺序。
+
+    所有规则均为不可 override 的结构完整性检查（HMW-TPL-GATE-01..06）。
+    """
+    findings: list[Finding] = []
+    counts = Counter(html.ids)
+    main_order = profile.get("main_order") or list(HMW_TPL_MAIN_IDS)
+
+    # HMW-TPL-GATE-01: data-page-type 与模板一致
+    page_type = html.body_attrs.get("data-page-type")
+    tpl_page_type = template.body_attrs.get("data-page-type")
+    if page_type != tpl_page_type:
+        findings.append(
+            Finding(
+                "HMW-TPL-GATE-01",
+                f"data-page-type={page_type!r} 与模板 {tpl_page_type!r} 不一致",
+            )
+        )
+
+    # HMW-TPL-GATE-02: 一级模块全部存在且唯一
+    missing = [i for i in main_order if counts[i] == 0]
+    if missing:
+        findings.append(Finding("HMW-TPL-GATE-02", f"一级模块缺失: {', '.join(missing)}"))
+    duplicates = [i for i in main_order if counts[i] > 1]
+    if duplicates:
+        findings.append(Finding("HMW-TPL-GATE-02", f"一级模块重复: {', '.join(duplicates)}"))
+
+    # HMW-TPL-GATE-03: 一级模块 DOM 相对顺序符合模板 profile
+    actual = [i for i in html.ids if i in set(main_order)]
+    if actual != main_order:
+        findings.append(
+            Finding(
+                "HMW-TPL-GATE-03",
+                f"一级模块顺序偏离 profile: 期望 {main_order}, 实际 {actual}",
+            )
+        )
+
+    # HMW-TPL-GATE-04: 稳定锚点完整（4 字段 + 4 质量 + 8 想法 + coherence）
+    anchors = profile.get("stable_anchors") or list(HMW_TPL_STABLE_ANCHORS)
+    anchor_missing = [a for a in anchors if counts[a] == 0]
+    if anchor_missing:
+        findings.append(
+            Finding("HMW-TPL-GATE-04", f"稳定锚点缺失: {', '.join(anchor_missing)}")
+        )
+
+    # HMW-TPL-GATE-05: quality-panel 含版本/授权/缺口/风险/caveat 插槽
+    govern_missing = [i for i in HMW_TPL_GOVERN_IDS if counts[i] == 0]
+    if govern_missing:
+        findings.append(
+            Finding("HMW-TPL-GATE-05", f"quality-panel 缺插槽: {', '.join(govern_missing)}")
+        )
+
+    # HMW-TPL-GATE-06: 共享主题/窄屏/@media print 钩子 + 无外部依赖
+    if "@media print" not in source.lower():
+        findings.append(Finding("HMW-TPL-GATE-06", "缺少 @media print 钩子"))
+    if html.external_urls:
+        findings.append(
+            Finding("HMW-TPL-GATE-06", f"存在外部网络依赖: {', '.join(html.external_urls)}")
+        )
+    stylesheet_hrefs = re.findall(
+        r'<link\b[^>]*\brel=["\']stylesheet["\'][^>]*\bhref=["\']([^"\']+)["\']',
+        source,
+        re.IGNORECASE,
+    )
+    if not stylesheet_hrefs:
+        findings.append(Finding("HMW-TPL-GATE-06", "缺少共享主题 stylesheet 链接"))
+    for href in stylesheet_hrefs:
+        if href.startswith(("http://", "https://", "//")):
+            continue
+        stylesheet_path = (html_path.parent / href).resolve()
+        if not stylesheet_path.is_file():
+            findings.append(Finding("HMW-TPL-GATE-06", f"本地主题资源不存在: {href}"))
+
+    # 附加：质量鉴别 / 想法对应 / 治理面板不得隐藏（四态 hidden 检测）
+    for section_id in ("hmw-quality", "hmw-coherence", "quality-panel"):
+        attrs = html.attrs_by_id.get(section_id, {})
+        if counts[section_id] and (
+            element_is_hidden(source, attrs) or stylesheet_hides_element(source, section_id)
+        ):
+            findings.append(
+                Finding(
+                    "HMW-TPL-GATE-06",
+                    f"{section_id} 被隐藏（hidden/display:none/visibility:hidden/class=hidden 任一）",
+                )
+            )
+
+    return findings
+
+
+def extract_hmw_table_rows(markdown: str, heading: str) -> list[list[str]]:
+    """从 HMW 确认包提取指定三级标题下的 Markdown 表格数据行。"""
+    match = re.search(
+        rf"^#{{1,6}}\s*{re.escape(heading)}\s*$\n?(.*?)(?=^#{{1,6}}\s|\Z)",
+        markdown,
+        re.MULTILINE | re.DOTALL,
+    )
+    if not match:
+        return []
+    rows: list[list[str]] = []
+    for line in match.group(1).splitlines():
+        if not line.strip().startswith("|"):
+            continue
+        cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
+        if not cells or all(re.fullmatch(r":?-{3,}:?", cell) for cell in cells):
+            continue
+        rows.append(cells)
+    return rows[1:] if rows else []
+
+
+def audit_hmw_content_mapping(html: HtmlSnapshot, source_path: Path) -> list[Finding]:
+    """确认正式 HMW 成品的可见业务事实来自同版本确认包。"""
+    try:
+        package = source_path.read_text(encoding="utf-8")
+    except (OSError, UnicodeError) as exc:
+        return [Finding("CONTENT_MAPPING", f"cannot read HMW package: {exc}")]
+
+    findings: list[Finding] = []
+    statement_rows = extract_hmw_table_rows(package, "6. HMW 陈述（4 字段）")
+    statement_ids = {
+        "situation": "hmw-situation",
+        "question": "hmw-question",
+        "for": "hmw-for",
+        "so_that": "hmw-sothat",
+    }
+    for row in statement_rows:
+        if len(row) < 2:
+            continue
+        field = next((key for key in statement_ids if row[0] == key or row[0].startswith(f"{key}（")), None)
+        if field and row[1] not in html.text_by_id.get(statement_ids[field], ""):
+            findings.append(
+                Finding("CONTENT_MAPPING", f"{statement_ids[field]} 未展示确认包字段内容")
+            )
+
+    quality_rows = extract_hmw_table_rows(package, "6a. 质量鉴别")
+    quality_ids = {
+        "preset_solution": "hmw-quality-preset",
+        "vague": "hmw-quality-vague",
+        "user_moment": "hmw-quality-moment",
+        "tension": "hmw-quality-tension",
+    }
+    for row in quality_rows:
+        if len(row) < 2:
+            continue
+        dimension = next((key for key in quality_ids if row[0] == key or row[0].startswith(f"{key}（")), None)
+        if dimension and row[1] not in html.text_by_id.get(quality_ids[dimension], ""):
+            findings.append(
+                Finding("CONTENT_MAPPING", f"{quality_ids[dimension]} 未展示确认包质量判定")
+            )
+
+    for index, row in enumerate(extract_hmw_table_rows(package, "6b. 想法种子")[:8], start=1):
+        if len(row) >= 2 and row[1] not in html.text_by_id.get(f"hmw-idea-{index}", ""):
+            findings.append(Finding("CONTENT_MAPPING", f"hmw-idea-{index} 未展示确认包想法内容"))
+
+    for row in extract_hmw_table_rows(package, "6c. 想法 ↔ HMW 对应"):
+        if row and row[0] not in html.text_by_id.get("hmw-coherence-map", ""):
+            findings.append(Finding("CONTENT_MAPPING", "hmw-coherence-map 未展示确认包对齐关系"))
+            break
+    return findings
+
+
 def audit(
     html_path: Path,
     contract_path: Path = DEFAULT_CONTRACT,
@@ -267,12 +558,19 @@ def audit(
 ) -> list[Finding]:
     """对照 render-contract / state.json / 确认包，审计单个 Canvas HTML 文件。"""
     is_gc = canvas_type == "gc"
+    is_hmw = canvas_type == "hmw"
     findings: list[Finding] = []
     orders: dict[str, list[str]] = {}
     gc_anchors: list[str] = []
+    hmw_anchors: list[str] = []
     if is_gc:
         try:
             gc_anchors = load_gc_anchor_orders(contract_path)
+        except (OSError, ValueError) as exc:
+            return [Finding("CONTRACT", str(exc))]
+    elif is_hmw:
+        try:
+            hmw_anchors = load_gc_anchor_orders(contract_path)
         except (OSError, ValueError) as exc:
             return [Finding("CONTRACT", str(exc))]
     else:
@@ -293,16 +591,20 @@ def audit(
     page_type = html.body_attrs.get("data-page-type")
     module = html.body_attrs.get("data-module")
     body_version = normalize_version(html.body_attrs.get("data-version"))
-    valid_types = {"module-detail", "global"} if not is_gc else {"golden-circle"}
+    valid_types = (
+        {"module-detail", "global"}
+        if not is_gc and not is_hmw
+        else ({"golden-circle"} if is_gc else {"hmw"})
+    )
     if page_type not in valid_types:
         findings.append(Finding("PAGE_TYPE", f"unsupported data-page-type: {page_type!r}"))
     if not body_version:
         findings.append(Finding("VERSION", "body data-version must be an integer or vN"))
 
     required: list[str] = list(SHARED_IDS)
-    if is_gc:
-        required.extend(GC_MAIN_IDS)
-        # GC 契约无 alignment-section（MVL 专属），审计不要求
+    if is_gc or is_hmw:
+        required.extend(GC_MAIN_IDS if is_gc else HMW_MAIN_IDS)
+        # GC / HMW 契约无 alignment-section（MVL 专属），审计不要求
         if "alignment-section" in required:
             required.remove("alignment-section")
     elif page_type == "module-detail":
@@ -320,6 +622,13 @@ def audit(
         if anchor_missing:
             findings.append(
                 Finding("MISSING_ANCHOR", f"GC missing anchors: {', '.join(anchor_missing)}")
+            )
+    elif is_hmw:
+        expected_anchors = list(hmw_anchors)
+        anchor_missing = [anchor for anchor in expected_anchors if counts[anchor] == 0]
+        if anchor_missing:
+            findings.append(
+                Finding("MISSING_ANCHOR", f"HMW missing anchors: {', '.join(anchor_missing)}")
             )
     elif page_type == "module-detail":
         if module not in orders:
@@ -366,6 +675,10 @@ def audit(
             findings.append(
                 Finding("CANVAS_TYPE", f"canvas-data.canvas_type must be 'golden-circle', got {canvas_data.get('canvas_type')!r}")
             )
+        if is_hmw and canvas_data.get("canvas_type") != "hmw":
+            findings.append(
+                Finding("CANVAS_TYPE", f"canvas-data.canvas_type must be 'hmw', got {canvas_data.get('canvas_type')!r}")
+            )
         sections = canvas_data.get("sections")
         if expected_anchors and isinstance(sections, dict):
             section_missing = [anchor for anchor in expected_anchors if anchor not in sections]
@@ -390,8 +703,13 @@ def audit(
     if "@media print" not in lowered:
         findings.append(Finding("PRINT", "missing @media print rule"))
 
-    # Caveat checks (for both MVL module-detail and GC)
-    caveat_page_types = {"module-detail"} if not is_gc else {"golden-circle"}
+    # Caveat checks (for MVL module-detail / GC / HMW single-canvas pages)
+    if is_gc:
+        caveat_page_types = {"golden-circle"}
+    elif is_hmw:
+        caveat_page_types = {"hmw"}
+    else:
+        caveat_page_types = {"module-detail"}
     if canvas_data is not None and page_type in caveat_page_types:
         auth = canvas_data.get("auth")
         if not isinstance(auth, dict):
@@ -418,6 +736,8 @@ def audit(
         try:
             if is_gc:
                 source_module, source_version = gc_source_identity(source_path)
+            elif is_hmw:
+                source_module, source_version = hmw_source_identity(source_path)
             else:
                 source_module, source_version = source_identity(source_path)
         except OSError as exc:
@@ -426,7 +746,7 @@ def audit(
             if source_module is None or source_version is None:
                 findings.append(Finding("SOURCE", "cannot read module/version from confirmation package"))
             else:
-                if not is_gc and module and source_module != module:
+                if not is_gc and not is_hmw and module and source_module != module:
                     findings.append(
                         Finding("SOURCE_MODULE", f"HTML={module!r}, source={source_module!r}")
                     )
@@ -442,6 +762,10 @@ def audit(
                 state_module = state.get("golden_circle")
                 if not isinstance(state_module, dict):
                     raise ValueError("state.json has no golden_circle record")
+            elif is_hmw:
+                state_module = state.get("hmw")
+                if not isinstance(state_module, dict):
+                    raise ValueError("state.json has no hmw record")
             else:
                 modules = state.get("modules", {})
                 state_module = (
@@ -465,8 +789,10 @@ def audit(
                             Finding(
                                 "AUTH_MISMATCH",
                                 f"{field}: canvas-data={auth.get(field)!r}, state={state_module.get(field)!r}",
-                            )
                         )
+                    )
+                if is_hmw and source_path is not None:
+                    findings.extend(audit_hmw_content_mapping(html, source_path))
 
     return findings
 
@@ -481,14 +807,22 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     _ = parser.add_argument("--state", type=Path, help="project state.json for auth/version checks")
     _ = parser.add_argument("--source", type=Path, help="confirmation package (Mx-vN.md or GC-vN.md)")
     _ = parser.add_argument(
-        "--type", dest="canvas_type", choices=("mvl", "gc"), default="mvl",
-        help="canvas type: mvl (default) or gc (golden circle)",
+        "--template", type=Path,
+        help="HMW 示例模板路径（Template Gate 比对基准；HMW 正式交付必须传入）",
+    )
+    _ = parser.add_argument(
+        "--type", dest="canvas_type", choices=("mvl", "gc", "hmw"), default="mvl",
+        help="canvas type: mvl (default), gc (golden circle) or hmw",
     )
     return parser.parse_args(argv)
 
 
 def main(argv: list[str] | None = None) -> int:
-    """脚本入口：执行审计并打印结果，返回进程退出码。"""
+    """脚本入口：执行双 Gate 审计并打印结果，返回进程退出码。
+
+    - 内容/授权 Gate：所有画布类型（版本、事实源、授权、锚点、canvas-data、caveat、离线）。
+    - Template Gate：仅 HMW 且传入 --template 时运行（结构完整性，不可 override）。
+    """
     args = parse_args(argv)
     html_arg = cast(Path, args.html)
     canvas_type = cast(str, args.canvas_type)
@@ -496,15 +830,57 @@ def main(argv: list[str] | None = None) -> int:
         contract_arg = cast(Path, args.contract)
     elif canvas_type == "gc":
         contract_arg = GC_CONTRACT
+    elif canvas_type == "hmw":
+        contract_arg = HMW_CONTRACT
     else:
         contract_arg = DEFAULT_CONTRACT
     state_arg = cast("Path | None", args.state)
     source_arg = cast("Path | None", args.source)
+    template_arg = cast("Path | None", args.template)
+
     findings = audit(html_arg, contract_arg, state_arg, source_arg, canvas_type)
-    if findings:
+    template_findings: list[Finding] = []
+
+    # Template Gate：仅 HMW 正式交付（--template 传入）时运行
+    if canvas_type == "hmw":
+        if template_arg is None:
+            if source_arg is not None or state_arg is not None:
+                template_findings.append(
+                    Finding("HMW-TPL-GATE-00", "HMW 正式交付必须传入 --template 示例模板路径")
+                )
+        else:
+            try:
+                template_source, template = parse_html(template_arg)
+                profile = load_hmw_template_profile(contract_arg)
+                if not profile["main_order"]:
+                    template_findings.append(
+                        Finding("HMW-TPL-GATE-00", "render-contract-hmw.md 模板 profile 无法解析")
+                    )
+                else:
+                    # 模板自审计：模板自身必须先通过结构检查（§6.2 步骤 13）
+                    template_findings.extend(
+                        audit_template_gate(template, template_source, template_arg, template, profile)
+                    )
+                    # 成品 Template Gate（复用已解析的 html）
+                    html_source, html_snapshot = parse_html(html_arg)
+                    template_findings.extend(
+                        audit_template_gate(html_snapshot, html_source, html_arg, template, profile)
+                    )
+            except (OSError, UnicodeError) as exc:
+                template_findings.append(Finding("HMW-TPL-GATE-00", f"模板读取失败: {exc}"))
+
+    content_fail = bool(findings)
+    template_fail = bool(template_findings)
+    if content_fail or template_fail:
         print(f"FAIL {html_arg}")
-        for finding in findings:
-            print(f"- [{finding.code}] {finding.message}")
+        if findings:
+            print("  [CONTENT/AUTH GATE]")
+            for finding in findings:
+                print(f"    - [{finding.code}] {finding.message}")
+        if template_findings:
+            print("  [TEMPLATE GATE]")
+            for finding in template_findings:
+                print(f"    - [{finding.code}] {finding.message}")
         return 1
     print(f"PASS {html_arg}")
     return 0
