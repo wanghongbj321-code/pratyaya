@@ -131,7 +131,8 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 黄金圈:
    |---|---|
    | `golden-circle` | `examples/canvas-html/goden-circle-canvas.html` |
    | `persona` | `examples/canvas-html/user-persona-canvas.html` |
-   | `mvl` / `hmw` / 其他 | 暂无示例（见第 3 条处理） |
+   | `mvl` | `examples/canvas-html/mvl-canvas/maau-global-canvas.html`（全局）；`examples/canvas-html/mvl-canvas/module-{1-6}-canvas.html`（模块详情） |
+   | `hmw` / 其他 | 暂无示例（见第 3 条处理） |
 
 2. **参照**：示例是最终画布的**版面与签名视觉事实源**——整体布局、签名图示（如 GC 三同心圆）、治理面板 / 质量面板位置、pratyaya 黑灰配色与交互骨架均须与示例一致；业务内容仍按对应 render-contract 映射到稳定锚点。
 

@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>M4 Canvas · 闭环冻结、原型两轮迭代与开发筹备（一等公民 · 示例）</title>
+<link rel="stylesheet" href="../shared/canvas-theme.css">
+<style>
+  .mod-summary{
+    border:var(--border-w) solid var(--line); border-radius:var(--radius);
+    background:var(--paper); box-shadow:var(--shadow); padding:16px 18px 18px; margin-bottom:16px;
+  }
+  .outputs{ display:grid; grid-template-columns:repeat(2,1fr); gap:16px; margin-bottom:16px; }
+  .cell{
+    border:var(--border-w) solid var(--line); border-radius:var(--radius);
+    background:var(--paper); box-shadow:var(--shadow); padding:16px 18px 18px;
+    display:flex; flex-direction:column;
+  }
+  .cell .fill{ flex:1; }
+  .lower{ display:grid; grid-template-columns:1.4fr 1fr; gap:16px; align-items:start; }
+
+  .quality{
+    border:var(--border-w) solid var(--line); border-radius:var(--radius);
+    background:var(--paper); box-shadow:var(--shadow); padding:16px 18px 18px;
+  }
+  .q-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-top:10px; }
+  .q-item{ border:1px solid var(--line); border-radius:var(--radius); padding:10px 12px; }
+  .q-item .q-name{ font-size:13px; font-weight:700; color:var(--ink); }
+  .q-item .q-en{ font-size:11px; color:var(--hint-color); }
+  .q-item .q-verdict{ margin-top:6px; font-size:12px; }
+  .verdict-pass{ color:#000; font-weight:700; }
+  .verdict-fail{ color:#000; font-weight:700; text-decoration:underline; }
+  .verdict-pending{ color:var(--muted); font-weight:700; }
+
+  .govern{
+    border:var(--border-w) solid var(--line); border-radius:var(--radius);
+    background:var(--paper); box-shadow:var(--shadow); padding:16px 18px 18px;
+  }
+  .govern dl{ margin:0 0 4px; display:grid; grid-template-columns:auto 1fr; gap:4px 12px; font-size:12.5px; }
+  .govern dt{ color:var(--muted); }
+  .govern dd{ margin:0; font-weight:700; color:var(--ink); }
+  .govern .sub-head{ font-size:12px; font-weight:700; color:var(--ink); margin:12px 0 4px; }
+  .govern .caveat{
+    margin-top:12px; padding:10px 12px; border:1.5px dashed #000; border-radius:var(--radius);
+    font-size:12px; color:#000; background:var(--brand-pale);
+  }
+  .align{ margin-top:12px; border-top:1px solid var(--line); padding-top:8px; }
+  .align .a-item{ margin:0 0 6px; font-size:12px; color:var(--ink); }
+  .align .a-lbl{ color:var(--muted); }
+
+  .local-notes{
+    margin-top:16px; border:1px dashed var(--line); border-radius:var(--radius);
+    padding:12px 14px; font-size:12.5px; min-height:48px; color:var(--ink); outline:none;
+  }
+  .local-notes:empty::before{ content:"本地备注（浏览器内可编辑，刷新即清空）…"; color:var(--hint-color); }
+
+  @media(max-width:1100px){ .outputs{ grid-template-columns:1fr; } .lower{ grid-template-columns:1fr; } }
+  @media print{ .outputs{ gap:8px; } .cell{ min-height:auto; } .lower{ gap:8px; } }
+</style>
+</head>
+<body data-theme="base" data-mode="formal" data-canvas="mvl" data-page-type="module-detail" data-module="M4" data-version="1">
+<div class="wrap">
+  <header class="canvas-head" id="canvas-header">
+    <div>
+      <div class="eyebrow">Pratyaya Canvas · 一等公民 · MVL 模块详情</div>
+      <h1>M4：闭环冻结、原型两轮迭代与开发筹备</h1>
+      <div id="module-summary-headline" style="margin-top:8px;font-size:14px;font-weight:700;color:var(--title-color);">一句话结论：{在此填写本模块核心理念}</div>
+    </div>
+    <div class="meta">
+      <strong>Canvas · M4 Detail</strong>
+      日期：__________<br>
+      小组：__________<br>
+      版本：v1（草稿）
+    </div>
+  </header>
+
+  <section class="mod-summary" id="module-summary" aria-label="模块概览">
+    <h2 class="cell-title">模块概览 <span class="en">Module Summary</span></h2>
+    <div class="fill" id="module-summary-overview" contenteditable="true" data-ph="本模块讨论目标、范围与对最终 Canvas 的贡献…"></div>
+  </section>
+
+  <div class="outputs" id="module-outputs">
+    <section class="cell" id="m4-agent-team">
+      <h2 class="cell-title">Agent Team <span class="en">Agent Team</span></h2>
+      <div class="fill" contenteditable="true" data-ph="角色 / 职责 / 是否 Agent / 决策边界…"></div>
+    </section>
+    <section class="cell" id="m4-collaboration">
+      <h2 class="cell-title">协作模式 <span class="en">Collaboration Mode</span></h2>
+      <div class="fill" contenteditable="true" data-ph="人与 Agent 的协作模式…"></div>
+    </section>
+    <section class="cell" id="m4-workflow-final">
+      <h2 class="cell-title">Workflow 冻结 <span class="en">Workflow Final</span></h2>
+      <div class="fill" contenteditable="true" data-ph="触发 / 步骤 / 完成条件 / 三类节点 / 关键规则（冻结版）…"></div>
+    </section>
+    <section class="cell" id="m4-knowledge">
+      <h2 class="cell-title">Context：知识 <span class="en">Knowledge</span></h2>
+      <div class="fill" contenteditable="true" data-ph="知识库…"></div>
+    </section>
+    <section class="cell" id="m4-data-sources">
+      <h2 class="cell-title">Context：数据源 <span class="en">Data Sources</span></h2>
+      <div class="fill" contenteditable="true" data-ph="数据源…"></div>
+    </section>
+    <section class="cell" id="m4-tools-skills">
+      <h2 class="cell-title">Context：工具与技能 <span class="en">Tools &amp; Skills</span></h2>
+      <div class="fill" contenteditable="true" data-ph="工具与技能…"></div>
+    </section>
+    <section class="cell" id="m4-prototype-rounds">
+      <h2 class="cell-title">两轮原型 <span class="en">Prototype Rounds</span></h2>
+      <div class="fill" contenteditable="true" data-ph="两轮原型及修改…"></div>
+    </section>
+    <section class="cell" id="m4-delivery-preparation">
+      <h2 class="cell-title">交付准备 <span class="en">Delivery Preparation</span></h2>
+      <div class="fill" contenteditable="true" data-ph="开发 / 场景测试 / 用户验证准备；团队分工与迭代节奏…"></div>
+    </section>
+  </div>
+
+  <section class="mod-summary" id="module-conclusions" aria-label="结论登记表">
+    <h2 class="cell-title">结论登记表 <span class="en">Conclusions</span></h2>
+    <div class="fill" id="conclusions-table" contenteditable="true" data-ph="结论 ID、内容、证据引用…"></div>
+  </section>
+
+  <section class="mod-summary" id="module-evidence" aria-label="证据索引">
+    <h2 class="cell-title">证据索引 <span class="en">Evidence Index</span></h2>
+    <div class="fill" id="evidence-list" contenteditable="true" data-ph="关键证据引用（仅引用 Key Points 与确认包自身 section，不引用逐字稿段落）…"></div>
+  </section>
+
+  <section class="mod-summary" id="module-gaps" aria-label="缺口与推断">
+    <h2 class="cell-title">缺口与推断 <span class="en">Gaps &amp; Inferences</span></h2>
+    <div class="fill" id="gaps-table" contenteditable="true" data-ph="缺口表（未讨论 section 标为缺口并说明对产出 / 最终 Canvas 的影响）…"></div>
+    <div class="fill" id="inferences-table" contenteditable="true" data-ph="推断表（区分事实 / 决策 / 假设 / 建议）…"></div>
+  </section>
+
+  <div class="lower">
+    <section class="quality" id="m4-quality" aria-label="质量鉴别">
+      <h2 class="cell-title">质量与对齐 <span class="en">Quality &amp; Alignment</span></h2>
+      <p class="cell-hint">门禁判定源自 <code>M4-GATE-*.md</code>；Workflow 冻结版三类节点必须齐全。</p>
+      <div class="q-grid">
+        <div class="q-item" id="m4-quality-workflow">
+          <div class="q-name">Workflow 冻结 <span class="q-en">workflow_frozen</span></div>
+          <div class="q-verdict verdict-pending" data-verdict>待判定</div>
+        </div>
+        <div class="q-item" id="m4-quality-team">
+          <div class="q-name">团队边界清晰 <span class="q-en">team_boundary_clear</span></div>
+          <div class="q-verdict verdict-pending" data-verdict>待判定</div>
+        </div>
+        <div class="q-item" id="m4-quality-prototype">
+          <div class="q-name">原型迭代完成 <span class="q-en">prototype_iterated</span></div>
+          <div class="q-verdict verdict-pending" data-verdict>待判定</div>
+        </div>
+        <div class="q-item" id="m4-quality-evidence">
+          <div class="q-name">证据支撑 <span class="q-en">evidence_backed</span></div>
+          <div class="q-verdict verdict-pending" data-verdict>待判定</div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="govern" id="quality-panel" aria-label="质量与治理">
+      <h3 class="cell-title">质量与对齐</h3>
+      <dl>
+        <dt>版本</dt><dd id="quality-version">v1（草稿）</dd>
+      </dl>
+      <div id="quality-approval">
+        <dl>
+          <dt>Gate 建议</dt><dd id="quality-gate">pending</dd>
+          <dt>授权渲染</dt><dd id="quality-authorized">false</dd>
+          <dt>确认模式</dt><dd id="quality-mode">null</dd>
+        </dl>
+      </div>
+      <dl>
+        <dt>缺口摘要</dt><dd id="quality-gaps">—</dd>
+        <dt>风险摘要</dt><dd id="quality-risks">—</dd>
+      </dl>
+      <div class="caveat" id="quality-caveat" hidden>
+        <b>Override 警示：</b><span id="quality-caveat-text">仅 override 时显示——Gate 建议 / override 项数量 / 高风险项数量 / 风险详情。</span>
+      </div>
+      <div class="align" id="alignment-section">
+        <h4 class="sub-head">对齐状态</h4>
+        <p class="a-item"><span class="a-lbl">共识地图：</span><span id="alignment-consensus">—</span></p>
+        <p class="a-item"><span class="a-lbl">分歧点：</span><span id="alignment-divergences">—</span></p>
+        <p class="a-item"><span class="a-lbl">决策留痕：</span><span id="alignment-decisions">—</span></p>
+      </div>
+    </aside>
+  </div>
+
+  <section class="local-notes" id="local-notes" contenteditable="true"></section>
+
+  <p class="footnote">
+    <b>说明：</b>本文件为 MVL <b>M4 模块详情一等公民示例</b>（对齐 <code>render-contract.md</code> §B），<code>#module-outputs</code> 内锚点顺序 1:1 映射契约 M4 表。MVL Canvas 是<b>六次工作坊已确认结论的展示层，非生产级系统</b>。
+    采用标准 pratyaya 黑灰配色，按 Ctrl/Cmd + P 可直接横版打印。本示例为静态骨架，正式渲染由 <code>canvas-render</code> Skill 生成 <code>output/module-4-canvas.html</code>。返回 <a href="./maau-global-canvas.html">MVL 全局画布</a>。
+  </p>
+</div>
+
+<script type="application/json" id="canvas-data">
+{
+  "canvas_type": "mvl",
+  "page_type": "module-detail",
+  "module": "M4",
+  "version": "1",
+  "schema_version_target": "2.1",
+  "sections": {
+    "m4-agent-team": "", "m4-collaboration": "", "m4-workflow-final": "", "m4-knowledge": "",
+    "m4-data-sources": "", "m4-tools-skills": "", "m4-prototype-rounds": "", "m4-delivery-preparation": ""
+  },
+  "auth": {
+    "gate_recommendation": "pending",
+    "render_authorized": false,
+    "confirmation_mode": null,
+    "override_audit": null
+  }
+}
+</script>
+</body>
+</html>
