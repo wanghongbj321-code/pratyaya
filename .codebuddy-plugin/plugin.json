@@ -1,7 +1,7 @@
 {
   "name": "pratyaya",
-  "version": "2.1.0",
-  "description": "pratyaya: AI-native multi-canvas workshop platform — supports MVL (Minimum Verifiable Loop), Golden Circle and HMW (How Might We) canvases. Distills traceable conclusions; blocks incomplete modules; obtains versioned human confirmation; renders Canvas HTML.",
+  "version": "2.2.0",
+  "description": "pratyaya: AI-native multi-canvas workshop platform — supports MVL (Minimum Verifiable Loop), Golden Circle, HMW (How Might We) and User Persona canvases. Distills traceable conclusions; blocks incomplete modules; obtains versioned human confirmation; renders Canvas HTML.",
   "agents": [
     "./agents/pratyaya.md"
   ],
@@ -12,6 +12,8 @@
     "./skills/module-conclusion-gate",
     "./skills/gc-gate",
     "./skills/hmw-gate",
+    "./skills/persona-distill",
+    "./skills/persona-gate",
     "./skills/canvas-render"
   ],
   "expertType": "agent",
@@ -25,8 +27,8 @@
     "zh": "Pratyaya Canvas Expert"
   },
   "displayDescription": {
-    "en": "AI-native multi-canvas workshop platform: MVL (Minimum Verifiable Loop) + Golden Circle + HMW (How Might We) canvases.",
-    "zh": "AI 原生多画布工作坊平台：MVL 最小可验证闭环 + 黄金圈法则 + HMW 问题重构画布"
+    "en": "AI-native multi-canvas workshop platform: MVL (Minimum Verifiable Loop) + Golden Circle + HMW (How Might We) + User Persona canvases.",
+    "zh": "AI 原生多画布工作坊平台：MVL 最小可验证闭环 + 黄金圈法则 + HMW 问题重构画布 + 用户画像画布"
   },
   "avatar": "avatars/expert.png",
   "categoryId": "12-IndustryConsultant",
@@ -65,6 +67,18 @@
     {
       "en": "Please guide an HMW (How Might We) canvas workshop to reframe the problem.",
       "zh": "请引导 HMW 问题重构画布工作坊，帮助我重构问题并产出想法种子"
+    },
+    {
+      "en": "Please guide a User Persona canvas workshop to build a data-driven persona.",
+      "zh": "请引导用户画像画布工作坊，帮助我构建数据驱动的用户画像"
+    },
+    {
+      "en": "Please guide a User Persona canvas workshop to build a data-driven persona.",
+      "zh": "请引导用户画像画布工作坊，帮助我构建数据驱动的用户画像"
+    },
+    {
+      "en": "Please guide a User Persona canvas workshop to build a data-driven persona.",
+      "zh": "请引导用户画像画布工作坊，帮助我构建数据驱动的用户画像"
     }
   ]
 }
