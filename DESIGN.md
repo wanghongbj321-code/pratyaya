@@ -1,21 +1,24 @@
-# MVL 设计文档
+# Pratyaya 设计文档
 
 > 适用版本：以 `.codebuddy-plugin/plugin.json` `version` 字段为权威
 
 ## 1. 决策
 
-**单专家 + 多 Skill**：一个 `pratyaya` 专家包，调度三个 Skill（`mvl-distill` / `module-conclusion-gate` / `canvas-render`）完成工作流。每个 Skill 内部用最简、确定的契约约束 LLM 行为。
+**单专家 + 多 Skill**：一个 `pratyaya` 专家包，调度七个 Skill（`mvl-distill` / `gc-distill` / `hmw-distill` / `module-conclusion-gate` / `gc-gate` / `hmw-gate` / `canvas-render`）完成工作流。每个 Skill 内部用最简、确定的契约约束 LLM 行为。三类画布（MVL / 黄金圈 / HMW）共享同一四阶段管线与状态机，各自拥有独立的提炼 Skill、门禁 Skill 与渲染契约。
 
 **人仍是最终决策者**：Skill 之间通过显式的确认包（v{N}.md）交付，每一步可被工作坊组织者审阅和回退。
 
+**画布类型路由**：主 Agent 在步骤 -1 判定画布类型（MVL / 黄金圈 / HMW），加载对应框架与确认包命名空间，三类画布互不串扰（详见 [agents/pratyaya.md](./agents/pratyaya.md)）。
+
 ## 2. 北极星目标
 
-- 一份能被生产团队复用的 MVL 结论资产，覆盖目标、用户、Agent Team、Workflow、Context、Validation 六个角度
+- 一份能被生产团队复用的结论资产：MVL 覆盖目标、用户、Agent Team、Workflow、Context、Validation 六角度；黄金圈覆盖 WHY/HOW/WHAT 三层；HMW 覆盖问题陈述四字段与想法种子
 - 同一份资产同时支撑：模块化智能体画布、对外汇报、长期复盘
+- 三类画布输出同一套治理语义：版本化确认包 + Gate 建议 + 用户授权 + 可审计渲染
 
 ## 3. 问题定义
 
-MVL 工作坊常陷入的反模式：
+工作坊常陷入的反模式（以 MVL 为原型，黄金圈 / HMW 通用）：
 
 - 文档、画布、汇报三套分离的产物
 - 结论含糊，无法被产品/工程引用
@@ -27,31 +30,40 @@ MVL 工作坊常陷入的反模式：
 
 ## 4. 分层
 
-四层流水线：
+四层流水线（画布类型决定分析层与治理层的具体 Skill）：
 
 - **原始材料层** — 转写稿、上下文快照、用户输入
-- **分析层**（mvl-distill） — Key Points 概览（`Mx-keypoints.md`）+ 确认包（`Mx-v{N}.md`）+ 缺口 + 推断
-- **治理层**（module-conclusion-gate） — LLM Gate 评估（输出 `gate_recommendation` + `override_eligible` 建议，**不**写最终授权）+ 用户决策（主 Agent 在步骤 6 写入 `render_authorized` + `confirmation_mode` + `override_audit`）
-- **展示层**（canvas-render） — 模块 Canvas + 全局 Canvas + 管理层报告
+- **分析层**（mvl-distill / gc-distill / hmw-distill） — Key Points 概览（`Mx-keypoints.md` / `GC-keypoints.md` / `HMW-keypoints.md`）+ 确认包（`Mx-v{N}.md` / `GC-v{N}.md` / `HMW-v{N}.md`）+ 缺口 + 推断
+- **治理层**（module-conclusion-gate / gc-gate / hmw-gate） — LLM Gate 评估（输出 `gate_recommendation` + `override_eligible` 建议，**不**写最终授权）+ 用户决策（主 Agent 写入 `render_authorized` + `confirmation_mode` + `override_audit`）
+- **展示层**（canvas-render） — 模块 Canvas / 黄金圈 Canvas / HMW Canvas + 全局 Canvas + 管理层报告
 
 ## 5. 数据源与视觉模式
 
+**四类事实源边界**（渲染链路中各自承担不同角色，不可混淆）：
+
+| 事实源 | 路径 | 角色 | 是否进渲染链路 |
+|---|---|---|---|
+| **内部参考**（不入库） | `internal/`（本地目录，gitignore） | 设计讨论期的版面草稿与 worksheet，**仅给人看** | ❌ 不读取 |
+| **示例模板**（入库） | `examples/canvas-html/*-canvas.html` | 最终画布的**版面与签名视觉参照**（一级模块布局、治理面板位置、交互骨架） | ⚠️ 只参照版面，不复制数据 |
+| **渲染契约**（入库） | `skills/canvas-render/references/render-contract-*.md` | 稳定锚点与数据映射的**事实源**（LLM 读契约现场生成 HTML） | ✅ 必须读取 |
+| **视觉模式**（入库） | `skills/canvas-render/visual-patterns/NN-{id}.md` | 色板、字体、网格、组件及边界（frontmatter 用于推荐） | ✅ 必须读取 |
+
 | 资产 | 路径 | 角色 |
 |---|---|---|
-| 确认包（唯一事实源） | `modules/Mx-v{N}.md` | 正式 Canvas 渲染依据 |
-| Key Points 概览 | `modules/Mx-keypoints.md` | 草稿 Canvas 数据源（不进入正式流程） |
-| Gate 评估产物 | `skills/module-conclusion-gate/references/Mx-gate.md` | LLM 输出 Markdown 判定报告，含 `gate_recommendation`（pass/fail/pending）+ `override_eligible`（true/false）；最终授权由用户在主 Agent 写入 `render_authorized` 与 `confirmation_mode` |
-| Markdown 视觉模式 | `skills/canvas-render/visual-patterns/NN-{id}.md` | 9 个可扫描模式；frontmatter 用于推荐，六节正文定义色板、字体、网格、组件及边界 |
-| HTML 静态审计 | `scripts/audit_canvas_html.py` | 直接读取渲染契约，确定性检查结构、稳定锚点顺序、版本/授权、离线与 caveat 约束 |
+| 确认包（唯一事实源） | `modules/Mx-v{N}.md` / `GC-v{N}.md` / `HMW-v{N}.md` | 正式 Canvas 渲染依据（画布类型对应命名空间） |
+| Key Points 概览 | `modules/Mx-keypoints.md` / `GC-keypoints.md` / `HMW-keypoints.md` | 草稿 Canvas 数据源（不进入正式流程） |
+| Gate 评估产物 | `skills/{module-conclusion-gate,gc-gate,hmw-gate}/references/*-gate.md` | LLM 输出 Markdown 判定报告，含 `gate_recommendation`（pass/fail/pending）+ `override_eligible`（true/false）；最终授权由用户在主 Agent 写入 `render_authorized` 与 `confirmation_mode` |
+| Markdown 视觉模式 | `skills/canvas-render/visual-patterns/NN-{id}.md` | 10 个可扫描模式；frontmatter 用于推荐，六节正文定义色板、字体、网格、组件及边界 |
+| HTML 静态审计 | `scripts/audit_canvas_html.py` | 直接读取渲染契约，确定性检查结构、稳定锚点顺序、版本/授权、离线与 caveat 约束；HMW 采用**双 Gate 模型**（内容/授权 Gate + Template Gate，见 §12） |
 | Schema（非强制参考） | `schemas/*.schema.json` | 详见 [schemas/README.md](./schemas/README.md) |
 
 旧的 `module-N.json` **不作为当前数据源**。
 
 ## 6. 核心数据资产
 
-- **模块记录**：以 `modules/Mx-v{N}.md` 形式存储，含 Key Points、结论、缺口、推断、版本绑定
-- **Schema**：`schemas/module-record.schema.json`（非强制参考，详见 [schemas/README.md](./schemas/README.md)）；实际数据源为 `Mx-v{N}.md` 确认包 Markdown，含 11 节业务内容（第 1–11 节）+ 第 12 节"Gate 与用户决策"治理元数据，以及业务 5 字段（conclusions / gaps / inferences / alignment / evidence）+ 治理 4 字段（gate_recommendation / render_authorized / confirmation_mode / override_audit）
-- **工作坊状态**：以 `state.json` 形式存储 M1-M6 的状态/版本/审批
+- **画布记录**：以确认包 Markdown 形式存储（MVL：`Mx-v{N}.md`；黄金圈：`GC-v{N}.md`；HMW：`HMW-v{N}.md`），含业务内容节（MVL 第 1–11 节 / GC 第 6a 跨层一致性 / HMW 第 6a 质量鉴别、6b 想法种子、6c 想法↔HMW 对应）+ 第 12 节"Gate 与用户决策"治理元数据，以及业务 5 字段（conclusions / gaps / inferences / alignment / evidence）+ 治理 4 字段（gate_recommendation / render_authorized / confirmation_mode / override_audit）
+- **Schema**：`schemas/state.schema.json`（v2.1，非强制参考，详见 [schemas/README.md](./schemas/README.md)）；实际数据源为各画布确认包 Markdown
+- **工作坊状态**：以 `state.json` 形式存储，支持三区块（`modules` / `golden_circle` / `hmw`，后两者可选），记录各画布的状态/版本/审批
 - **设计文档**：[DESIGN.md](./DESIGN.md)（本文档）
 
 ## 7. 关键不变量
@@ -85,7 +97,7 @@ MVL 工作坊常陷入的反模式：
 
 ## 10. 当前状态机
 
-5 态转换：
+5 态转换（MVL 模块级 / 黄金圈与 HMW 画布级共用）：
 
 ```mermaid
 stateDiagram-v2
@@ -96,21 +108,23 @@ stateDiagram-v2
     review_ready --> confirmed: 用户决策（gate_pass / override）
     confirmed --> rendered: 用户授权 + render_authorized=true + Canvas 校验通过
     rendered --> draft: 升版 v(N+1)
-    rendered --> [*]: 6 模块全部完成
+    rendered --> [*]: 画布全部完成
 ```
 
-`confirmation_mode` 是属性（`gate_pass` / `override` / `null`），不是状态；状态机仍为 5 态。Gate 失败不自动回退状态；用户可对 `business_risk` 显式 override 后进入 `confirmed`。`rendered` 模块若 `confirmation_mode=override`，仍参与跨模块 caveat 检查（不变量 #9）。
+`confirmation_mode` 是属性（`gate_pass` / `override` / `null`），不是状态；状态机仍为 5 态。Gate 失败不自动回退状态；用户可对 `business_risk` 显式 override 后进入 `confirmed`。`rendered` 模块若 `confirmation_mode=override`，仍参与跨模块 caveat 检查（不变量 #9，仅 MVL 模块间）。
 
 ## 11. 当前实现边界
 
 ### 已实现
 
-- 单专家调度三个 Skill（`mvl-distill` / `module-conclusion-gate` / `canvas-render`）
-- **五状态模块生命周期**（`draft → gaps_open ↔ review_ready → confirmed → rendered`）
-- 模块和全局质量策略
+- 单专家调度七个 Skill（`mvl-distill` / `gc-distill` / `hmw-distill` / `module-conclusion-gate` / `gc-gate` / `hmw-gate` / `canvas-render`）
+- **五状态画布生命周期**（`draft → gaps_open ↔ review_ready → confirmed → rendered`），三类画布共用
+- 模块和全局质量策略（MVL）与单画布质量策略（黄金圈 / HMW）
 - JSON Schema（当前标注为非强制参考，详见 [schemas/README.md](./schemas/README.md)）
-- **LLM 评估闸门**（输出 Markdown 判定报告 `skills/module-conclusion-gate/references/Mx-gate.md`，详见 [skills/module-conclusion-gate/SKILL.md](./skills/module-conclusion-gate/SKILL.md)）
-- 本地离线 HTML 的渲染契约
+- **LLM 评估闸门**（输出 Markdown 判定报告 `skills/{mvl-conclusion-gate,gc-gate,hmw-gate}/references/*-gate.md`）
+- 本地离线 HTML 的渲染契约（MVL / GC / HMW 三份）
+- **HMW 双 Gate 审计**：`audit_canvas_html.py --type hmw --template ...`，内容/授权 Gate + Template Gate（详见 [DEVELOPMENT.md](./DEVELOPMENT.md) §3.1 与 [render-contract-hmw.md](./skills/canvas-render/references/render-contract-hmw.md)）
+- **一等公民示例模板**：`examples/canvas-html/`（persona / gc / hmw 三份 + 共享主题），作为渲染版面的视觉参照
 
 ### 仍需验证
 
@@ -118,6 +132,30 @@ stateDiagram-v2
 - 不同业务场景的 blocker/major 判定一致性
 - 正式 HTML 渲染器的跨业务视觉回归（由 Python 静态审计与精简浏览器视觉验收共同完成，详见 [skills/canvas-render/SKILL.md](./skills/canvas-render/SKILL.md)）
 - 多组并行时的文件锁、并发写入和权限隔离
+
+## 12. HMW 画布（双 Gate 模型）
+
+HMW（How Might We，问题重构）是**独立的一等公民画布**，与 MVL 的 M3 hmw 子模块是两套并存能力：M3 hmw 是 MVL 六模块流程内的子方法（`skills/mvl-distill/references/methods/10-hmw.md`），不依赖独立 HMW 画布的 Skill；独立 HMW 画布拥有自己的 `hmw-distill` / `hmw-gate` / `render-contract-hmw.md`，可被任何项目单独使用。
+
+### 12.1 数据源边界
+
+- `internal/`（不入库）：设计参考（如旧四列 worksheet），**不进入渲染链路**
+- `examples/canvas-html/hmw-canvas.html`：HMW 最终画布的**版面与签名视觉参照**
+- `render-contract-hmw.md`：稳定锚点（4 陈述字段 + 4 质量维度 + 8 想法格 + coherence map）与数据映射的**事实源**
+- 视觉模式：复用 10 个候选（默认 `10-black-gray-professional`）
+
+### 12.2 双 Gate 审计模型
+
+正式渲染的 HMW Canvas 必须通过两个独立检查面（`audit_canvas_html.py --type hmw`）：
+
+1. **内容/授权 Gate**（业务一致性，可 override 语义同 MVL）：版本、事实源、授权（`render_authorized` + `confirmation_mode`）、稳定锚点、canvas-data、caveat、离线
+2. **Template Gate**（结构完整性，**不可 override**）：一级模块齐全且唯一、DOM 相对顺序符合模板 profile、质量/对齐/治理模块不隐藏（四态 hidden 检测）、打印钩子与无外部依赖。规则 ID `HMW-TPL-GATE-01~06`。
+
+正式交付缺 `--template` 参数 → Template Gate FAIL（`HMW-TPL-GATE-00`）。模板自身先通过结构自审计才放行成品。
+
+### 12.3 状态机与渲染契约
+
+状态机与第 10 节共用 5 态；`state.json` 使用 `hmw` 区块（v2.1 schema，可选）。渲染契约要求的一级模块顺序、稳定锚点集合、占位语义（`data-state="placeholder"`）与四态隐藏检测规则，见 [render-contract-hmw.md](./skills/canvas-render/references/render-contract-hmw.md)。
 
 ---
 
