@@ -3,7 +3,7 @@
 > 版本：以 `.codebuddy-plugin/plugin.json` `version` 字段为权威
 > 编写时间：2026-07-30
 > 适用范围：架构师 / 维护者 / 二次开发者
-> 配套文档：[DESIGN.md](../../../DESIGN.md)（设计要点） / [README.md](../../../README.md)（门面） / [DEVELOPMENT.md](../../../DEVELOPMENT.md)（命令清单） / [docs/user-guide.md](../../../docs/user-guide.md)（用户视角）
+> 配套文档：[DESIGN.md](../DESIGN.md)（设计要点） / [README.md](../README.md)（门面） / [DEVELOPMENT.md](../DEVELOPMENT.md)（命令清单） / [user-guide.md](./user-guide.md)（用户视角）
 
 ---
 
@@ -31,7 +31,7 @@
 
 > **Pratyaya MVL Expert = 面向 3 天 MVL（Minimum Verifiable Loop）工作坊的分步沉淀协作应用。**
 
-来源：2026-07-28 [MVL产品审查.md](./MVL产品审查.md) §1.3。
+来源：2026-07-28 MVL 产品审查（§1.3）。
 
 ### 1.2 三大设计原则
 
@@ -599,7 +599,7 @@ flowchart LR
     WB --> USER
 ```
 
-**安装路径**（详见 [docs/installation.md](../../../docs/installation.md)）：
+**安装路径**（详见 [installation.md](./installation.md)）：
 
 1. 用户把仓库 clone 到 `my-codes/pratyaya`
 2. 把安装提示词贴到 WorkBuddy 专家导入入口
@@ -616,8 +616,8 @@ flowchart LR
 | `quickPrompts` / `tags`                               | `plugin.json`                          | 用户指南不复制                                            |
 | 工作流定义                                                | `agents/pratyaya.md`   | 主 Agent 单一来源                                         |
 | Skill 接口                                                | `skills/{skill}/SKILL.md`              | 各 skill 单一来源                                         |
-| 设计约束                                                  | [DESIGN.md](../../../DESIGN.md)           | 不变量 + 数据资产                                         |
-| 命令清单                                                  | [DEVELOPMENT.md](../../../DEVELOPMENT.md) | 维护者唯一权威                                            |
+| 设计约束                                                  | [DESIGN.md](../DESIGN.md)           | 不变量 + 数据资产                                         |
+| 命令清单                                                  | [DEVELOPMENT.md](../DEVELOPMENT.md) | 维护者唯一权威                                            |
 
 ### 8.2 SemVer 版本策略
 
@@ -680,10 +680,10 @@ flowchart LR
 | 提炼的具体流程        | `skills/mvl-distill/SKILL.md`                                         |
 | 闸门评估的具体规则    | `skills/module-conclusion-gate/SKILL.md` + `skills/module-conclusion-gate/references/Mx-gate.md` |
 | 渲染的具体契约        | `skills/canvas-render/SKILL.md` + `references/render-contract.md`   |
-| 不变量 / 关键约束     | §6 +[DESIGN.md](../../../DESIGN.md) §7                                 |
-| 用户怎么用            | [docs/user-guide.md](../../../docs/user-guide.md)                        |
-| 怎么安装              | [docs/installation.md](../../../docs/installation.md)                    |
-| 怎么改代码            | [DEVELOPMENT.md](../../../DEVELOPMENT.md)                                |
+| 不变量 / 关键约束     | §6 +[DESIGN.md](../DESIGN.md) §7                                 |
+| 用户怎么用            | [user-guide.md](./user-guide.md)                        |
+| 怎么安装              | [installation.md](./installation.md)                    |
+| 怎么改代码            | [DEVELOPMENT.md](../DEVELOPMENT.md)                                |
 | 视觉模式规范          | `skills/canvas-render/visual-patterns/README.md`                      |
 | 必填 section 表       | `skills/mvl-distill/references/workshop-canvas-map.md`                |
 
@@ -762,7 +762,7 @@ flowchart TB
 ---
 
 **版本**：以 `.codebuddy-plugin/plugin.json` 为权威
-**配套**：[DESIGN.md](../../../DESIGN.md)（设计要点） / [README.md](../../../README.md)（门面） / [DEVELOPMENT.md](../../../DEVELOPMENT.md)（命令清单） / [docs/installation.md](./installation.md)（部署） / [docs/user-guide.md](./user-guide.md)（用户视角）
+**配套**：[DESIGN.md](../DESIGN.md)（设计要点） / [README.md](../README.md)（门面） / [DEVELOPMENT.md](../DEVELOPMENT.md)（命令清单） / [installation.md](./installation.md)（部署） / [user-guide.md](./user-guide.md)（用户视角）
 
 **作者**：Shaq
 **维护者**：Pratyaya 项目组

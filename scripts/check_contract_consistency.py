@@ -1486,7 +1486,9 @@ def check_override_category(ctx: CheckContext) -> list[Finding]:
             )
         )
         return findings
-    cat = _dig(audit, "properties", "items", "properties", "category")
+    cat = _dig(audit, "properties", "items", "items", "properties", "category")
+    if not cat.get("enum"):
+        cat = _dig(audit, "properties", "items", "properties", "category")
     enum_raw = cat.get("enum")
     enum_items = enum_raw if isinstance(enum_raw, list) else []
     enum_values: set[str] = {str(x) for x in enum_items}
