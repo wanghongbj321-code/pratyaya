@@ -750,7 +750,7 @@ HMW_GATE_ID_RE = re.compile(r"^HMW-GATE-\d+$")
 HMW_GATE_FILE = "skills/hmw-gate/references/HMW-gate.md"
 HMW_DISTILL_SKILL = "skills/hmw-distill/SKILL.md"
 HMW_GATE_SKILL = "skills/hmw-gate/SKILL.md"
-HMW_TEMPLATE_HTML = "examples/canvas-html/hmw-canvas.html"
+HMW_TEMPLATE_HTML = "skills/canvas-render/examples/hmw-canvas.html"
 HMW_TPL_GATE_IDS = tuple(f"HMW-TPL-GATE-{n:02d}" for n in range(1, 7))
 HMW_IDEA_ANCHORS = tuple(f"hmw-idea-{n}" for n in range(1, 9))
 JOURNEY_GATE_ID_RE = re.compile(r"^JOURNEY-GATE-\d+$")
@@ -760,7 +760,7 @@ JOURNEY_GATE_SKILL = "skills/journey-gate/SKILL.md"
 JOURNEY_FRAME = "skills/journey-distill/frameworks/journey-frame.md"
 JOURNEY_SPEC = "skills/journey-distill/references/journey-spec.md"
 JOURNEY_RENDER_CONTRACT = "skills/canvas-render/references/render-contract-journey.md"
-JOURNEY_TEMPLATE_HTML = "examples/canvas-html/user-journey-canvas.html"
+JOURNEY_TEMPLATE_HTML = "skills/canvas-render/examples/user-journey-canvas.html"
 JOURNEY_EXAMPLE_KEYPOINTS = "examples/modules/JOURNEY-keypoints.md"
 JOURNEY_EXAMPLE_PACKAGE = "examples/modules/JOURNEY-v1.md"
 JOURNEY_EXAMPLE_GAPS = "examples/modules/JOURNEY-gaps.md"
@@ -797,7 +797,7 @@ PERSONA_DISTILL_SKILL = "skills/persona-distill/SKILL.md"
 PERSONA_GATE_SKILL = "skills/persona-gate/SKILL.md"
 PERSONA_GATE_FILE = "skills/persona-gate/references/PERSONA-gate.md"
 PERSONA_CONTRACT = "skills/canvas-render/references/render-contract-persona.md"
-PERSONA_TEMPLATE_HTML = "examples/canvas-html/user-persona-canvas.html"
+PERSONA_TEMPLATE_HTML = "skills/canvas-render/examples/user-persona-canvas.html"
 PERSONA_REQUIRED_ANCHORS = (
     "canvas-header", "persona-basic", "persona-grid6", "persona-quality", "quality-panel",
     "persona-name", "persona-gender", "persona-age", "persona-location", "persona-education",
@@ -1187,7 +1187,7 @@ def check_hmw_template_and_anchors(ctx: CheckContext) -> list[Finding]:
                 level="error",
                 where=HMW_TEMPLATE_HTML,
                 message="缺少 HMW 一等公民模板 hmw-canvas.html",
-                hint="需在 examples/canvas-html/hmw-canvas.html 创建 4 字段 + 8 想法格模板",
+                hint="需在 skills/canvas-render/examples/hmw-canvas.html 创建 4 字段 + 8 想法格模板",
             )
         )
     else:
@@ -1217,14 +1217,19 @@ def check_hmw_template_and_anchors(ctx: CheckContext) -> list[Finding]:
     render_skill = ctx.root / "skills/canvas-render/SKILL.md"
     if render_skill.is_file():
         render_text = read_text(render_skill)
-        if "examples/canvas-html/hmw-canvas.html" not in render_text:
+        # SKILL.md 是 skill 内部文档；示例映射表按 P0-2 修订用 skill 内相对。
+        # 接受 skill 内相对或仓库根相对任一形式。
+        if (
+            "examples/hmw-canvas.html" not in render_text
+            and "skills/canvas-render/examples/hmw-canvas.html" not in render_text
+        ):
             findings.append(
                 Finding(
                     code="HMW_RENDER_MAP",
                     level="error",
                     where="skills/canvas-render/SKILL.md",
                     message="canvas-render 示例映射缺少 HMW 行",
-                    hint="在示例映射表补 `hmw` → examples/canvas-html/hmw-canvas.html",
+                    hint="在示例映射表补 `hmw` → examples/hmw-canvas.html（skill 内相对）或 skills/canvas-render/examples/hmw-canvas.html（仓库根相对）",
                 )
             )
     return findings
@@ -1482,11 +1487,11 @@ def check_journey_render_contract_sync(ctx: CheckContext) -> list[Finding]:
     findings: list[Finding] = []
     contract_path = ctx.root / JOURNEY_RENDER_CONTRACT
     template_path = ctx.root / JOURNEY_TEMPLATE_HTML
-    audit_path = ctx.root / "scripts/audit_canvas_html.py"
+    audit_path = ctx.root / "skills/canvas-render/scripts/audit_canvas_html.py"
     render_skill = ctx.root / "skills/canvas-render/SKILL.md"
     for path, code, hint in (
         (contract_path, "JOURNEY_RENDER_CONTRACT", "需创建 render-contract-journey.md"),
-        (template_path, "JOURNEY_TEMPLATE_MISSING", "需创建 examples/canvas-html/user-journey-canvas.html"),
+        (template_path, "JOURNEY_TEMPLATE_MISSING", "需创建 skills/canvas-render/examples/user-journey-canvas.html"),
     ):
         if not path.is_file():
             findings.append(
@@ -1589,14 +1594,17 @@ def check_journey_render_contract_sync(ctx: CheckContext) -> list[Finding]:
                     hint="JOURNEY-TPL-GATE-01..06 必须在模板结构 profile 中定义",
                 )
             )
-    if "examples/canvas-html/user-journey-canvas.html" not in render_text:
+    if (
+        "examples/user-journey-canvas.html" not in render_text
+        and "skills/canvas-render/examples/user-journey-canvas.html" not in render_text
+    ):
         findings.append(
             Finding(
                 code="JOURNEY_RENDER_MAP",
                 level="error",
                 where="skills/canvas-render/SKILL.md",
                 message="canvas-render 示例映射缺 Journey 行",
-                hint="在示例映射表补 `journey` → examples/canvas-html/user-journey-canvas.html",
+                hint="在示例映射表补 `journey` → examples/user-journey-canvas.html（skill 内相对）或 skills/canvas-render/examples/user-journey-canvas.html（仓库根相对）",
             )
         )
     if "--type journey" not in render_text:

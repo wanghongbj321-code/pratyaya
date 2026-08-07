@@ -27,7 +27,7 @@ CONTRACT = SKILLS / "canvas-render" / "references" / "render-contract-hmw.md"
 JOURNEY_CONTRACT = SKILLS / "canvas-render" / "references" / "render-contract-journey.md"
 PERSONA_CONTRACT = SKILLS / "canvas-render" / "references" / "render-contract-persona.md"
 EXAMPLES = REPO_ROOT / "examples" / "modules"
-CANVAS_EXAMPLES = REPO_ROOT / "examples" / "canvas-html"
+CANVAS_EXAMPLES = REPO_ROOT / "skills" / "canvas-render" / "examples"
 
 EXPECTED_HMW_SKILLS = (
     "./skills/hmw-distill",
@@ -97,7 +97,7 @@ class TestSkillRegistration:
             assert skill in plugin["skills"], f"plugin.json missing Journey skill {skill}"
         for skill in EXPECTED_PERSONA_SKILLS:
             assert skill in plugin["skills"], f"plugin.json missing Persona skill {skill}"
-        assert plugin["version"] == "2.3.0"
+        assert plugin["version"] == "2.3.1"
 
     def test_plugin_registers_persona_skills(self) -> None:
         plugin = json.loads(read(REPO_ROOT / ".codebuddy-plugin" / "plugin.json"))
@@ -272,7 +272,7 @@ class TestJourneyRenderContract:
         assert "modules/JOURNEY-v{N}.md" in skill
         assert "modules/JOURNEY-keypoints.md" in skill
         assert "output/journey-canvas.html" in skill
-        assert "examples/canvas-html/user-journey-canvas.html" in skill
+        assert "skills/canvas-render/examples/user-journey-canvas.html" in skill
 
     def test_journey_render_contract_exists_and_defines_dynamic_stages(self) -> None:
         contract = read(JOURNEY_CONTRACT)
@@ -317,7 +317,7 @@ class TestJourneyRenderContract:
 
     def test_journey_contract_audit_script_and_example_share_quality_anchors(self) -> None:
         contract = read(JOURNEY_CONTRACT)
-        audit = read(REPO_ROOT / "scripts" / "audit_canvas_html.py")
+        audit = read(REPO_ROOT / "skills" / "canvas-render" / "scripts" / "audit_canvas_html.py")
         example = read(CANVAS_EXAMPLES / "user-journey-canvas.html")
         for anchor in (
             "journey-quality-user-perspective",
@@ -392,7 +392,7 @@ class TestJourneyAgentContract:
             "modules/JOURNEY-gaps.md",
             "output/journey-canvas.html",
             "--type journey",
-            "--template examples/canvas-html/user-journey-canvas.html",
+            "--template skills/canvas-render/examples/user-journey-canvas.html",
             "render-contract-journey.md",
         ):
             assert phrase in agent

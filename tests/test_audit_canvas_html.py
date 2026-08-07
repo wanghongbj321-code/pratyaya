@@ -2,7 +2,7 @@
 
 依据 AGENTS.md 规则 3「渲染必须通过 canvas-render Skill，禁止渲染脚本」：
 - 已移除 `scripts/render_canvas.py`，测试**不再有运行时渲染的正式产物**。
-- `formal_html` fixture 直接指向 HMW 模板 `examples/canvas-html/hmw-canvas.html`，
+- `formal_html` fixture 直接指向 HMW 模板 `skills/canvas-render/examples/hmw-canvas.html`，
   以模板（占位骨架）作为双 Gate **结构审计**的事实源。
 - Content/Auth Gate 的"正式成品填充内容"正向场景（auth/version mismatch、content
   drift 等）依赖正式成品，而正式成品只能由 canvas-render Skill 人工生成，无法作为
@@ -33,8 +33,8 @@ from pathlib import Path
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-AUDIT = REPO_ROOT / "scripts" / "audit_canvas_html.py"
-TEMPLATE = REPO_ROOT / "examples" / "canvas-html" / "hmw-canvas.html"
+AUDIT = REPO_ROOT / "skills" / "canvas-render" / "scripts" / "audit_canvas_html.py"
+TEMPLATE = REPO_ROOT / "skills" / "canvas-render" / "examples" / "hmw-canvas.html"
 PACKAGE = REPO_ROOT / "examples" / "modules" / "HMW-v1.md"
 STATE = REPO_ROOT / "examples" / "state-v2-sample.json"
 PYTHON = sys.executable

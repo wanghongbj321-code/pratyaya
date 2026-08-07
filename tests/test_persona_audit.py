@@ -2,15 +2,25 @@
 
 from __future__ import annotations
 
+import importlib.util
 import json
 import re
+import sys
 from pathlib import Path
-
-from scripts.audit_canvas_html import PERSONA_CONTRACT, audit, persona_source_identity
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-TEMPLATE = REPO_ROOT / "examples" / "canvas-html" / "user-persona-canvas.html"
+_AUDIT_PATH = REPO_ROOT / "skills" / "canvas-render" / "scripts" / "audit_canvas_html.py"
+_spec = importlib.util.spec_from_file_location("audit_canvas_html", _AUDIT_PATH)
+_audit_mod = importlib.util.module_from_spec(_spec)
+sys.modules["audit_canvas_html"] = _audit_mod
+_spec.loader.exec_module(_audit_mod)  # type: ignore[union-attr]
+PERSONA_CONTRACT = _audit_mod.PERSONA_CONTRACT
+audit = _audit_mod.audit
+persona_source_identity = _audit_mod.persona_source_identity
+
+
+TEMPLATE = REPO_ROOT / "skills" / "canvas-render" / "examples" / "user-persona-canvas.html"
 STATE_GATE_PASS = REPO_ROOT / "tests" / "fixtures" / "state" / "persona-gate-pass.json"
 STATE_OVERRIDE = REPO_ROOT / "tests" / "fixtures" / "state" / "persona-override.json"
 

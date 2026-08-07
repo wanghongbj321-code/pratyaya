@@ -3,6 +3,17 @@
 > 本文件记录 Pratyaya 专家的正式版本变更。
 > 完整 SemVer 与架构说明见 [`README.md`](./README.md) / [`DESIGN.md`](./DESIGN.md) / [docs/MVL-整体架构设计.md](./docs/MVL-整体架构设计.md)。
 
+## [v2.3.1] - 2026-08-08
+
+### 修复（PATCH）
+
+- **示例库与审计脚本随 skill 安装**：解决 WorkBuddy 安装专家时 `examples/canvas-html/` 与 `scripts/audit_canvas_html.py` 未随 `canvas-render` skill 打包、安装态下 SKILL.md / render-contract 的相对路径引用悬空的问题。`examples/canvas-html/` 整体迁入 `skills/canvas-render/examples/`、`scripts/audit_canvas_html.py` 迁入 `skills/canvas-render/scripts/`，使渲染管线依赖随 skill 子树随装。
+- **audit 脚本自身常量同步**：`Path(__file__).resolve().parents[1]` 迁入后变为 skill 根，对应契约常量（5 处）与 HMW/Journey Template 常量改为 skill 相对（`references/...`、`examples/...`）。
+- **路径基准区分**：`SKILL.md` / render-contract 中正文描述性引用统一改为 skill 内相对（`examples/...`），可执行命令行保留"以专家包根目录为 cwd"的语义并加 `skills/canvas-render/` 前缀（`scripts/audit_canvas_html.py` / `--template skills/canvas-render/examples/...`）。
+- **tests / check 脚本同步**：5 个测试文件（含 `test_persona_audit.py` 的 importlib 加载）与 `scripts/check_contract_consistency.py` 对 audit 脚本与示例模板的路径常量、字符串断言（HMW/Persona/Journey）一并更新。
+- **文档同步**：`DEVELOPMENT.md` / `AGENTS.md` / `DESIGN.md` / `docs/installation.md` / `agents/pratyaya.md` 中所有 `examples/canvas-html/` 与 `scripts/audit_canvas_html.py` 引用改为仓库根相对 `skills/canvas-render/...`；历史 design/debugs 方案文档与 `CHANGELOG.md` v2.3.0 及之前条目保持原路径不动。
+- **保留内容**：`examples/modules/` / `examples/output/` / `examples/state-v2-sample.json` / `scripts/check_contract_consistency.py`（D4=② 仅同步内部路径常量，不随装）保留原地。
+
 ## [v2.3.0] - 2026-08-07
 
 ### 新增功能（MINOR）

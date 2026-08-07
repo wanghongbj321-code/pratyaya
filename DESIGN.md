@@ -44,7 +44,7 @@
 | 事实源 | 路径 | 角色 | 是否进渲染链路 |
 |---|---|---|---|
 | **内部参考**（不入库） | `internal/`（本地目录，gitignore） | 设计讨论期的版面草稿与 worksheet，**仅给人看** | ❌ 不读取 |
-| **示例模板**（入库） | `examples/canvas-html/*-canvas.html` | 最终画布的**版面与签名视觉参照**（一级模块布局、治理面板位置、交互骨架） | ⚠️ 只参照版面，不复制数据 |
+| **示例模板**（入库） | `skills/canvas-render/examples/*-canvas.html` | 最终画布的**版面与签名视觉参照**（一级模块布局、治理面板位置、交互骨架） | ⚠️ 只参照版面，不复制数据 |
 | **渲染契约**（入库） | `skills/canvas-render/references/render-contract-*.md` | 稳定锚点与数据映射的**事实源**（LLM 读契约现场生成 HTML） | ✅ 必须读取 |
 | **视觉模式**（入库） | `skills/canvas-render/visual-patterns/NN-{id}.md` | 色板、字体、网格、组件及边界（frontmatter 用于推荐） | ✅ 必须读取 |
 
@@ -54,7 +54,7 @@
 | Key Points 概览 | `modules/Mx-keypoints.md` / `GC-keypoints.md` / `HMW-keypoints.md` / `PERSONA-keypoints.md` / `JOURNEY-keypoints.md` | 草稿 Canvas 数据源（不进入正式流程） |
 | Gate 评估产物 | `skills/{module-conclusion-gate,gc-gate,hmw-gate,persona-gate,journey-gate}/references/*-gate.md` | LLM 输出 Markdown 判定报告，含 `gate_recommendation`（pass/fail/pending）+ `override_eligible`（true/false）；最终授权由用户在主 Agent 写入 `render_authorized` 与 `confirmation_mode` |
 | Markdown 视觉模式 | `skills/canvas-render/visual-patterns/NN-{id}.md` | 10 个可扫描模式；frontmatter 用于推荐，六节正文定义色板、字体、网格、组件及边界 |
-| HTML 静态审计 | `scripts/audit_canvas_html.py` | 直接读取渲染契约，确定性检查结构、稳定锚点顺序、版本/授权、离线与 caveat 约束；HMW 与 Journey 采用**双 Gate 模型**（内容/授权 Gate + Template Gate，见 §12 / §13） |
+| HTML 静态审计 | `skills/canvas-render/scripts/audit_canvas_html.py` | 直接读取渲染契约，确定性检查结构、稳定锚点顺序、版本/授权、离线与 caveat 约束；HMW 与 Journey 采用**双 Gate 模型**（内容/授权 Gate + Template Gate，见 §12 / §13） |
 | Schema（非强制参考） | `schemas/*.schema.json` | 详见 [schemas/README.md](./schemas/README.md) |
 
 旧的 `module-N.json` **不作为当前数据源**。
@@ -124,7 +124,7 @@ stateDiagram-v2
 - **LLM 评估闸门**（输出 Markdown 判定报告 `skills/{mvl-conclusion-gate,gc-gate,hmw-gate,persona-gate,journey-gate}/references/*-gate.md`）
 - 本地离线 HTML 的渲染契约（MVL / GC / HMW / Persona / Journey 五份）
 - **HMW 双 Gate 审计**：`audit_canvas_html.py --type hmw --template ...`，内容/授权 Gate + Template Gate（详见 [DEVELOPMENT.md](./DEVELOPMENT.md) §3.1 与 [render-contract-hmw.md](./skills/canvas-render/references/render-contract-hmw.md)）
-- **一等公民示例模板**：`examples/canvas-html/`（persona / gc / hmw / journey + 共享主题），作为渲染版面的视觉参照
+- **一等公民示例模板**：`skills/canvas-render/examples/`（persona / gc / hmw / journey + 共享主题），作为渲染版面的视觉参照
 
 ### 仍需验证
 
@@ -140,7 +140,7 @@ HMW（How Might We，问题重构）是**独立的一等公民画布**，与 MVL
 ### 12.1 数据源边界
 
 - `internal/`（不入库）：设计参考（如旧四列 worksheet），**不进入渲染链路**
-- `examples/canvas-html/hmw-canvas.html`：HMW 最终画布的**版面与签名视觉参照**
+- `skills/canvas-render/examples/hmw-canvas.html`：HMW 最终画布的**版面与签名视觉参照**
 - `render-contract-hmw.md`：稳定锚点（4 陈述字段 + 4 质量维度 + 8 想法格 + coherence map）与数据映射的**事实源**
 - 视觉模式：复用 10 个候选（默认 `10-black-gray-professional`）
 
@@ -164,7 +164,7 @@ User Journey（用户旅程）是**独立的一等公民画布**，与 MVL 的 M
 ### 13.1 数据源边界
 
 - `internal/pratyaya-internal/docs/refs/canvas-templates/02-用户旅程画布.html`：内部离线 worksheet，保留填写 / 打印模板定位，不作为管线渲染产物事实源。
-- `examples/canvas-html/user-journey-canvas.html`：Journey 最终画布的**版面与签名视觉参照**。
+- `skills/canvas-render/examples/user-journey-canvas.html`：Journey 最终画布的**版面与签名视觉参照**。
 - `render-contract-journey.md`：稳定锚点、动态阶段、质量锚点与数据映射的**事实源**。
 - 视觉模式：复用 10 个候选（默认推荐 `10-black-gray-professional`，仍需用户明确选择）。
 
@@ -199,11 +199,11 @@ Gate 只输出 `gate_recommendation` 与 `override_eligible`，最终 `render_au
 正式交付命令：
 
 ```bash
-python3 scripts/audit_canvas_html.py output/journey-canvas.html \
+python3 skills/canvas-render/scripts/audit_canvas_html.py output/journey-canvas.html \
   --source modules/JOURNEY-v{N}.md \
   --state state.json \
   --type journey \
-  --template examples/canvas-html/user-journey-canvas.html
+  --template skills/canvas-render/examples/user-journey-canvas.html
 ```
 状态机与第 10 节共用 5 态；`state.json` 使用 `hmw` 区块（v2.3 schema，可选）。渲染契约要求的一级模块顺序、稳定锚点集合、占位语义（`data-state="placeholder"`）与四态隐藏检测规则，见 [render-contract-hmw.md](./skills/canvas-render/references/render-contract-hmw.md)。
 

@@ -210,14 +210,14 @@ canvas-header
 
 ## 11. 参考样例
 
-- `examples/canvas-html/user-persona-canvas.html`：Persona 一等公民版面与签名视觉事实源
+- `examples/user-persona-canvas.html`：Persona 一等公民版面与签名视觉事实源
 
 ---
 
 ## 12. 交付前自检
 
 ```bash
-python scripts/audit_canvas_html.py examples/canvas-html/user-persona-canvas.html --type persona
+python skills/canvas-render/scripts/audit_canvas_html.py skills/canvas-render/examples/user-persona-canvas.html --type persona
 ```
 
 Template Gate 通过后才可交付。
