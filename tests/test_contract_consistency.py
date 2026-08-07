@@ -147,6 +147,25 @@ class TestSkillRegistration:
         assert ranks == sorted(ranks), f"plugin skills order violates distill→gate→render: {plugin_order}"
 
 
+class TestPluginMetadata:
+    def test_workbuddy_quick_prompts_are_limited_to_three_primary_entries(self) -> None:
+        plugin = json.loads(read(REPO_ROOT / ".codebuddy-plugin" / "plugin.json"))
+        quick_prompts = plugin["quickPrompts"]
+
+        assert len(quick_prompts) == 3
+        assert quick_prompts[0] == plugin["defaultInitPrompt"]
+        assert "MVL" in quick_prompts[1]["zh"]
+        assert "MVL" in quick_prompts[1]["en"]
+        assert "用户旅程" in quick_prompts[2]["zh"]
+        assert "User Journey" in quick_prompts[2]["en"]
+
+    def test_workbuddy_zh_display_description_length(self) -> None:
+        plugin = json.loads(read(REPO_ROOT / ".codebuddy-plugin" / "plugin.json"))
+        description_zh = plugin["displayDescription"]["zh"]
+
+        assert 40 <= len(description_zh) <= 50
+
+
 class TestHmwSkillFiles:
     @pytest.mark.parametrize("fname", EXPECTED_HMW_FILES)
     def test_distill_file_exists(self, fname: str) -> None:
