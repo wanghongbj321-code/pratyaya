@@ -371,7 +371,11 @@ def hmw_source_identity(path: Path) -> tuple[str | None, str | None]:
 def persona_source_identity(path: Path) -> tuple[str | None, str | None]:
     """从 PERSONA-vN 确认包首行标题中提取画布类型与版本号。"""
     first_lines = "\n".join(path.read_text(encoding="utf-8").splitlines()[:12])
-    match = re.search(r"^#\s+用户画像确认包\s+(v\d+)\s*$", first_lines, re.MULTILINE)
+    match = re.search(
+        r"^#\s+(?:User Persona|用户画像)\s*确认包\s+(v\d+)\s*$",
+        first_lines,
+        re.MULTILINE,
+    )
     return ("PERSONA", match.group(1)) if match else (None, None)
 
 
@@ -587,6 +591,63 @@ def extract_hmw_table_rows(markdown: str, heading: str) -> list[list[str]]:
             continue
         rows.append(cells)
     return rows[1:] if rows else []
+
+
+def audit_persona_content_mapping(html: HtmlSnapshot, source_path: Path) -> list[Finding]:
+    """确认正式 Persona 画布的可见字段来自同版本确认包。"""
+    try:
+        package = source_path.read_text(encoding="utf-8")
+    except (OSError, UnicodeError) as exc:
+        return [Finding("CONTENT_MAPPING", f"cannot read Persona package: {exc}")]
+
+    findings: list[Finding] = []
+    field_ids = {
+        "name": "persona-name",
+        "gender": "persona-gender",
+        "age": "persona-age",
+        "location": "persona-location",
+        "education": "persona-education",
+        "job_title": "persona-job-title",
+        "industry": "persona-industry",
+        "family_status": "persona-family-status",
+        "income": "persona-income",
+        "description": "persona-description",
+        "goals_needs": "persona-goals-needs",
+        "behaviors": "persona-behaviors",
+        "pain_points": "persona-pain-points",
+        "motivation": "persona-motivation",
+        "decision_factors": "persona-decision-factors",
+    }
+    for row in extract_hmw_table_rows(package, "6. 9 基本信息 + 6 宫格"):
+        if len(row) < 2:
+            continue
+        field = next(
+            (key for key in field_ids if row[0] == key or row[0].startswith(f"{key}（")),
+            None,
+        )
+        if field and row[1] not in html.text_by_id.get(field_ids[field], ""):
+            findings.append(
+                Finding("CONTENT_MAPPING", f"{field_ids[field]} 未展示确认包字段内容")
+            )
+
+    quality_ids = {
+        "evidence_based": "persona-quality-evidence",
+        "concrete": "persona-quality-concrete",
+        "pain_in_voice": "persona-quality-voice",
+        "representative": "persona-quality-representative",
+    }
+    for row in extract_hmw_table_rows(package, "6a. 质量鉴别"):
+        if len(row) < 2:
+            continue
+        field = next(
+            (key for key in quality_ids if row[0] == key or row[0].startswith(f"{key}（")),
+            None,
+        )
+        if field and row[1] not in html.text_by_id.get(quality_ids[field], ""):
+            findings.append(
+                Finding("CONTENT_MAPPING", f"{quality_ids[field]} 未展示确认包质量判定")
+            )
+    return findings
 
 
 def audit_hmw_content_mapping(html: HtmlSnapshot, source_path: Path) -> list[Finding]:
@@ -825,6 +886,8 @@ def audit(
         caveat_page_types = {"golden-circle"}
     elif is_hmw:
         caveat_page_types = {"hmw"}
+    elif is_persona:
+        caveat_page_types = {"persona"}
     else:
         caveat_page_types = {"module-detail"}
     if canvas_data is not None and page_type in caveat_page_types:
@@ -916,6 +979,8 @@ def audit(
                     )
                 if is_hmw and source_path is not None:
                     findings.extend(audit_hmw_content_mapping(html, source_path))
+                if is_persona and source_path is not None:
+                    findings.extend(audit_persona_content_mapping(html, source_path))
 
     return findings
 

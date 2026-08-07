@@ -23,7 +23,6 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 黄金圈:
 - `references/render-contract-gc.md`：黄金圈 DOM、锚点映射、共享结构契约。
 - `references/render-contract-hmw.md`：HMW DOM、锚点映射、共享结构契约。
 - `references/render-contract-persona.md`：Persona DOM、锚点映射、共享结构契约。
-- `references/render-contract-persona.md`：Persona DOM、锚点映射、共享结构契约。
 - `examples/canvas-html/`：**所有画布类型的示例库**——渲染任何画布前必须在此目录按 `canvas_type` 查找对应示例并参照生成最终画布（见「示例参照」）；其中 `goden-circle-canvas.html` 是黄金圈 `gc-diagram` 3 圈图示的**唯一视觉事实源**（见 `render-contract-gc.md` §C）。
 - `visual-patterns/README.md`：视觉模式的发现、命名、字段、正文结构和阻断规则。
 - `../../scripts/audit_canvas_html.py`：确定性 HTML 静态审计；锚点顺序直接读取对应 render contract。

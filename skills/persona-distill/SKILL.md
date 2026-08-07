@@ -144,7 +144,7 @@ Stage 2 完成后交给主 agent 触发闸门（`persona-gate`），不直接进
 ### PERSONA-v{N}.md 确认包模板
 
 ```markdown
-# Persona 确认包 v{N}
+# User Persona 确认包 v{N}
 
 > 画布类型：User Persona（用户画像）画布
 > 版本：v{N}（基于第 X 轮 Key Points）

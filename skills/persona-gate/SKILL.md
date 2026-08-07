@@ -1,6 +1,6 @@
 ---
 name: persona-gate
-description: 用户画像闸门。对 PERSONA-v{N}.md 确认包执行 6 项放行条件检查，输出 gate_recommendation 与 override_eligible。
+description: 用户画像闸门。对 PERSONA-v{N}.md 确认包执行 6 项放行条件检查，只输出 gate_recommendation 与 override_eligible 建议。
 triggers:
   - "用户画像闸门"
   - "persona gate"
@@ -9,109 +9,69 @@ triggers:
 
 # Persona Gate（用户画像闸门）
 
-> 对 PERSONA-v{N}.md 确认包执行 6 项放行条件检查，输出 gate_recommendation 与 override_eligible。
-
-## 触发词
-
-- 用户画像闸门
-- persona gate
-- 画像质量检查
+> 对 `PERSONA-v{N}.md` 确认包执行确定性的 6 项放行条件检查。Gate 是建议者：只输出 Markdown 报告，绝不修改 `state.json`、确认包治理字段或最终渲染授权。
 
 ## 输入
 
-| 参数 | 说明 | 示例 |
-|---|---|---|
-| `state_path` | 项目状态文件路径 | `./outputs/state.json` |
-| `output_dir` | 输出目录（可选，默认 `./outputs`） | `./outputs` |
+- 当前版本 `modules/PERSONA-v{N}.md`
+- `references/PERSONA-gate.md`
 
-## 输出
+读取确认包的 9 基本信息、6 宫格、6a 质量鉴别和 §8 缺口表；只引用确认包与 Key Points，不把逐字稿写成正式事实。
 
-| 文件 | 说明 |
-|---|---|
-| `PERSONA-gate-report-v1.md` | 闸门检查报告 |
-| 更新 `state.json` | 写入 `persona.gate_recommendation` 与 `persona.override_eligible` |
+## 放行条件
 
-## 执行流程
+逐项执行 `references/PERSONA-gate.md` 中的稳定 ID：
 
-### 1. 读取确认包
+| ID | 检查项 | 分类 | 可 override |
+|---|---|---|---|
+| `PERSONA-GATE-01` | name / job_title / industry 有值 | information_integrity | 否 |
+| `PERSONA-GATE-02` | 六宫格 6 区有内容或显式缺口 | information_integrity | 否 |
+| `PERSONA-GATE-03` | 行为 / 痛点有真实出处 | business_risk | 是 |
+| `PERSONA-GATE-04` | 痛点用用户原话 | business_risk | 是 |
+| `PERSONA-GATE-05` | 画像具体非刻板 | information_integrity | 否 |
+| `PERSONA-GATE-06` | 质量四维度均已判定 | information_integrity | 否 |
 
-读取 `PERSONA-v1.md`，提取：
-- 9 基本信息
-- 6 宫格
-- 4 质量维度
+规则：
 
-### 2. 检查 6 项放行条件
+1. 全部 PASS → `gate_recommendation=pass`、`override_eligible=false`。
+2. 只有 `PERSONA-GATE-03 / 04` 的 `business_risk` FAIL → `gate_recommendation=fail`、`override_eligible=true`。
+3. 任一 `information_integrity` FAIL → `gate_recommendation=fail`、`override_eligible=false`。
+4. `information_integrity` 失败不得以 override 把缺失信息变成事实。
 
-读取 `references/PERSONA-gate.md`，逐项检查：
+## 输出：Gate 建议报告
 
-**P1: 关键基本信息完整性**
-- name / job_title / industry 必须有值
-
-**P2: 六宫格完整性**
-- 6 个宫格必须有内容或标记为「待补问」
-
-**P3: 质量维度证据充分**
-- evidence_based 评分 ≥ 3
-- 每个要点有证据支撑
-
-**P4: 画像具体性**
-- concrete 评分 ≥ 3
-- 避免泛泛描述
-
-**P5: 痛点原话记录**
-- pain_in_voice 评分 ≥ 3
-- 痛点使用用户原话
-
-**P6: 代表性**
-- representative 评分 ≥ 3
-- 画像能代表一类用户
-
-### 3. 输出闸门报告
+输出 `PERSONA-gate-report-v{N}.md`：
 
 ```markdown
-# 用户画像闸门报告 v1
+# 用户画像 Gate 报告 v{N}
 
-## 闸门结果
-- **结果**: PASS / FAIL
-- **可覆写**: Yes / No
+> 画布类型：User Persona
+> 确认包版本：v{N}
+> gate_recommendation：pass / fail
+> override_eligible：true / false
 
 ## 检查明细
 
-| ID | 检查项 | 状态 | 说明 |
-|---|---|---|---|
-| P1 | 关键基本信息完整 | ✅ | ... |
-| P2 | 六宫格完整 | ✅ | ... |
-| P3 | 质量维度充分 | ⚠️ | ... |
-| P4 | 画像具体 | ✅ | ... |
-| P5 | 痛点原话 | ✅ | ... |
-| P6 | 代表性 | ✅ | ... |
+| 稳定 ID | 检查项 | PASS/FAIL | 分类 | 风险等级 | 来源 ID | 影响 | 建议 |
+|---|---|---|---|---|---|---|---|
+| PERSONA-GATE-01 | ... | PASS / FAIL | information_integrity | low | PERSONA-basic | ... | ... |
 
 ## 建议动作
-- 全部 PASS → 可进入渲染
-- 部分 FAIL → 进入补问环节
+
+- Gate PASS：由主 Agent 展示报告，等待用户确认 v{N}。
+- 仅 business_risk FAIL：由主 Agent 展示影响并提供 override 选项。
+- 含 information_integrity FAIL：返回补问或修订；不提供 override。
 ```
 
-### 4. 更新 state.json
+## 授权边界
 
-写入 `persona.gate_recommendation`（pass/fail）与 `persona.override_eligible`（true/false）。
+- 本 Skill 不决定 `render_authorized`，不决定 `confirmation_mode`，不写 `override_audit`。
+- 主 Agent 在用户已阅读报告并作出明确选择后，才将 `gate_recommendation`、用户确认和 override 审计写入 `state.persona` 与确认包 §12。
+- 本 Skill 不渲染 Canvas；正式渲染仍须由 `canvas-render` 在用户授权后执行。
 
-## 覆写规则
+## 质量红线
 
-仅当 **P3 / P4 / P5 / P6 中任一项 FAIL** 时，用户可选择覆写：
-- 填写覆写理由
-- 记录决策人
-- 记录决策时间
-- 记录补救措施
-
-**P1 / P2 FAIL** 不可覆写，必须补问。
-
-## 约束
-
-- **不修改确认包内容**：只检查，不改写
-- **不自动渲染**：输出建议，由用户决定是否渲染
-- **可覆写项**：仅质量维度（P3-P6），基本信息完整性不可覆写
-
-## 依赖
-
-- `references/PERSONA-gate.md`（闸门条件定义）
-- `skills/persona-distill/SKILL.md`（确认包结构）
+1. 每条报告记录必须有稳定 ID、PASS/FAIL、分类、风险等级、来源 ID、影响与建议。
+2. 不编造证据，不因版面完整而把未讨论内容写成通过。
+3. `PERSONA-GATE-03 / 04` 之外的失败不得标记为可 override。
+4. Gate 失败不自动改变状态；状态迁移由用户决策和主 Agent 完成。

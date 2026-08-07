@@ -159,7 +159,20 @@ canvas-header
 
 ---
 
-## 6. 隐藏检测
+## 6. Template Gate 稳定规则
+
+## 7. 隐藏检测
+
+| ID | 检查项 |
+|---|---|
+| `PERSONA-TPL-GATE-01` | 页面 `data-page-type="persona"` 且与模板一致 |
+| `PERSONA-TPL-GATE-02` | 一级模块存在且唯一 |
+| `PERSONA-TPL-GATE-03` | 一级模块顺序符合本契约 §4 |
+| `PERSONA-TPL-GATE-04` | 9 基本信息、6 宫格、4 质量锚点完整 |
+| `PERSONA-TPL-GATE-05` | `quality-panel` 治理插槽完整 |
+| `PERSONA-TPL-GATE-06` | 离线共享主题、窄屏、打印与关键模块可见 |
+
+以上规则不可 override。
 
 质量鉴别（`persona-quality`）与治理面板（`quality-panel`）不得隐藏。四种隐藏方式任一命中即 FAIL：
 
@@ -170,7 +183,7 @@ canvas-header
 
 ---
 
-## 7. 本地离线约束
+## 8. 本地离线约束
 
 - CSS / JavaScript / 字体优先内联或使用系统字体
 - 禁止通过 `fetch("file.json")` 加载本地数据
@@ -179,7 +192,7 @@ canvas-header
 
 ---
 
-## 8. 数据完整性
+## 9. 数据完整性
 
 - `data-version` 必须等于确认包版本 `v{N}`
 - `canvas-data.auth` 必须与 `state.json.persona` 一致
@@ -187,7 +200,7 @@ canvas-header
 
 ---
 
-## 9. 打印与管理层阅读
+## 10. 打印与管理层阅读
 
 - `@media print` 隐藏编辑控件
 - 保留版本、确认、风险状态、结论与 override caveat
@@ -195,13 +208,13 @@ canvas-header
 
 ---
 
-## 10. 参考样例
+## 11. 参考样例
 
 - `examples/canvas-html/user-persona-canvas.html`：Persona 一等公民版面与签名视觉事实源
 
 ---
 
-## 11. 交付前自检
+## 12. 交付前自检
 
 ```bash
 python scripts/audit_canvas_html.py examples/canvas-html/user-persona-canvas.html --type persona

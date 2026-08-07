@@ -9,10 +9,10 @@
     "./skills/mvl-distill",
     "./skills/gc-distill",
     "./skills/hmw-distill",
+    "./skills/persona-distill",
     "./skills/module-conclusion-gate",
     "./skills/gc-gate",
     "./skills/hmw-gate",
-    "./skills/persona-distill",
     "./skills/persona-gate",
     "./skills/canvas-render"
   ],
