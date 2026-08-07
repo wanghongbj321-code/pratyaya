@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>用户画像画布 User Persona Canvas（一等公民 · 示例）</title>
+<link rel="stylesheet" href="shared/canvas-theme.css">
+<style>
+  /* 顶部基本信息条 */
+  .basic-bar{
+    display:flex; align-items:center; gap:22px;
+    border:var(--border-w) solid var(--line); border-radius:var(--radius);
+    background:var(--paper); padding:14px 22px; margin-bottom:16px;
+    box-shadow:var(--shadow);
+  }
+  .avatar{ flex:0 0 auto; width:46px; height:46px; color:var(--title-color); }
+  .basic-fields{ flex:1; display:flex; flex-direction:column; gap:10px; }
+  .basic-row{ display:flex; flex-wrap:wrap; gap:8px 26px; align-items:baseline; }
+  .field{ display:flex; align-items:baseline; gap:6px; font-size:13px; font-weight:700; white-space:nowrap; }
+  .field .lbl{ color:var(--ink); }
+  .field .blank{ font-weight:400; }
+  .f-name .blank{ min-width:190px; }
+  .f-sm .blank{ min-width:66px; }
+  .f-md .blank{ min-width:104px; }
+
+  /* 六宫格 */
+  .grid6{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:16px; }
+  .cell{
+    border:var(--border-w) solid var(--line); border-radius:var(--radius);
+    background:var(--paper); padding:16px 18px 18px; min-height:236px;
+    box-shadow:var(--shadow); display:flex; flex-direction:column;
+  }
+  .cell .fill{ flex:1; }
+
+  /* 质量鉴别 + 治理面板 */
+  .lower{ display:grid; grid-template-columns:1.4fr 1fr; gap:16px; align-items:start; }
+  .quality{
+    border:var(--border-w) solid var(--line); border-radius:var(--radius);
+    background:var(--paper); box-shadow:var(--shadow); padding:16px 18px 18px;
+  }
+  .q-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-top:10px; }
+  .q-item{ border:1px solid var(--line); border-radius:var(--radius); padding:10px 12px; }
+  .q-item .q-name{ font-size:13px; font-weight:700; color:var(--ink); }
+  .q-item .q-en{ font-size:11px; color:var(--hint-color); }
+  .q-item .q-verdict{ margin-top:6px; font-size:12px; }
+  /* 质量结论色：黑灰体系内区分，不使用彩色 */
+  .verdict-pass{ color:#000; font-weight:700; }
+  .verdict-fail{ color:#000; font-weight:700; text-decoration:underline; }
+  .verdict-pending{ color:var(--muted); font-weight:700; }
+
+  .govern{
+    border:var(--border-w) solid var(--line); border-radius:var(--radius);
+    background:var(--paper); box-shadow:var(--shadow); padding:16px 18px 18px;
+  }
+  .govern dl{ margin:0; display:grid; grid-template-columns:auto 1fr; gap:6px 12px; font-size:12.5px; }
+  .govern dt{ color:var(--muted); }
+  .govern dd{ margin:0; font-weight:700; color:var(--ink); }
+  .govern .caveat{
+    margin-top:12px; padding:10px 12px; border:1.5px dashed #000; border-radius:var(--radius);
+    font-size:12px; color:#000; background:var(--brand-pale);
+  }
+
+  .local-notes{
+    margin-top:16px; border:1px dashed var(--line); border-radius:var(--radius);
+    padding:12px 14px; font-size:12.5px; min-height:48px; color:var(--ink);
+  }
+  .local-notes:empty::before{ content:"本地备注（浏览器内可编辑，刷新即清空）…"; color:var(--hint-color); }
+
+  @media(max-width:1100px){ .grid6{ grid-template-columns:repeat(2,1fr); } .lower{ grid-template-columns:1fr; } }
+  @media(max-width:720px){ .grid6{ grid-template-columns:1fr; } .basic-bar{ flex-direction:column; align-items:flex-start; } }
+  @media print{ .grid6{ gap:8px; } .cell{ min-height:150px; } .lower{ gap:8px; } }
+</style>
+</head>
+<body data-theme="base" data-canvas="persona" data-page-type="persona" data-version="1">
+<div class="wrap">
+  <header class="canvas-head">
+    <div>
+      <div class="eyebrow">Pratyaya Canvas · 一等公民 · User Persona</div>
+      <h1>用户画像 User Persona</h1>
+      <p class="sub">锁定一个具体的人，而不是一类模糊的人群。所有后续的旅程、痛点与方案都以此为原点。</p>
+      <div id="canvas-headline" style="margin-top:8px;font-size:14px;font-weight:700;color:var(--title-color);">一句话结论：{在此填写本画像的核心特征与价值}</div>
+    </div>
+    <div class="meta">
+      <strong>Canvas · Persona</strong>
+      日期：__________<br>
+      小组：__________<br>
+      版本：<span id="quality-version">v0（草稿）</span>
+    </div>
+  </header>
+
+  <!-- 基本信息条（9 字段） -->
+  <section class="basic-bar" id="persona-basic" aria-label="基本信息">
+    <svg class="avatar" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+      <circle cx="24" cy="16" r="7.5"/>
+      <path d="M9 42c0-8.3 6.7-15 15-15s15 6.7 15 15" stroke-linecap="round"/>
+    </svg>
+    <div class="basic-fields">
+      <div class="basic-row">
+        <span class="field f-name"><span class="lbl">姓名 Name：</span><span class="blank" id="persona-name" contenteditable="true"></span></span>
+        <span class="field f-sm"><span class="lbl">性别 Gender：</span><span class="blank" id="persona-gender" contenteditable="true"></span></span>
+        <span class="field f-sm"><span class="lbl">年龄 Age：</span><span class="blank" id="persona-age" contenteditable="true"></span></span>
+        <span class="field f-md"><span class="lbl">区域 Location：</span><span class="blank" id="persona-location" contenteditable="true"></span></span>
+        <span class="field f-md"><span class="lbl">教育 Education：</span><span class="blank" id="persona-education" contenteditable="true"></span></span>
+      </div>
+      <div class="basic-row">
+        <span class="field f-md"><span class="lbl">职位 Job Title：</span><span class="blank" id="persona-job-title" contenteditable="true"></span></span>
+        <span class="field f-md"><span class="lbl">行业 Industry：</span><span class="blank" id="persona-industry" contenteditable="true"></span></span>
+        <span class="field f-md"><span class="lbl">家庭 Family：</span><span class="blank" id="persona-family-status" contenteditable="true"></span></span>
+        <span class="field f-md"><span class="lbl">收入 Income：</span><span class="blank" id="persona-income" contenteditable="true"></span></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 六宫格（6 区） -->
+  <div class="grid6" id="persona-grid6">
+    <section class="cell" id="persona-description">
+      <h2 class="cell-title">用户描述 <span class="en">Customer Description</span></h2>
+      <p class="cell-hint">用一段生动描述这个人的生活方式、工作状态、一个有代表性的普通的一天。</p>
+      <div class="fill" id="persona-description-fill" contenteditable="true" data-ph="在此填写…"></div>
+    </section>
+
+    <section class="cell" id="persona-goals-needs">
+      <h2 class="cell-title">目标和需求 <span class="en">Goals &amp; Needs</span></h2>
+      <p class="cell-hint">他们最想实现什么？短期与长期的目标、未被满足的诉求，以及他们衡量成功的标准。</p>
+      <div class="fill" id="persona-goals-needs-fill" contenteditable="true" data-ph="在此填写…"></div>
+    </section>
+
+    <section class="cell" id="persona-behaviors">
+      <h2 class="cell-title">行为与偏好 <span class="en">Behaviors &amp; Preferences</span></h2>
+      <p class="cell-hint">描述他们的常型行为模式、获取信息的渠道、消费决策习惯、社交偏好、常用的工具与平台。</p>
+      <div class="fill" id="persona-behaviors-fill" contenteditable="true" data-ph="在此填写…"></div>
+    </section>
+
+    <section class="cell" id="persona-pain-points">
+      <h2 class="cell-title">痛点和挑战 <span class="en">Pain Points &amp; Challenges</span></h2>
+      <p class="cell-hint">什么让他们最头疼？工作和生活中的主要障碍、反复遇到的挫折，以及现有方案无法满足的期待。</p>
+      <div class="fill" id="persona-pain-points-fill" contenteditable="true" data-ph="在此填写…"></div>
+    </section>
+
+    <section class="cell" id="persona-motivation">
+      <h2 class="cell-title">动机 <span class="en">Motivation</span></h2>
+      <p class="cell-hint">什么会驱使他们立即行动？包括触发行动的具体事件、最终的内在驱动力。</p>
+      <div class="fill" id="persona-motivation-fill" contenteditable="true" data-ph="在此填写…"></div>
+    </section>
+
+    <section class="cell" id="persona-decision-factors">
+      <h2 class="cell-title">影响因素 <span class="en">Decision Factors</span></h2>
+      <p class="cell-hint">什么会影响他们的最终选择？预算考量、他人建议、品牌认知、同行的口碑、时间压力等等。</p>
+      <div class="fill" id="persona-decision-factors-fill" contenteditable="true" data-ph="在此填写…"></div>
+    </section>
+  </div>
+
+  <!-- 质量鉴别 + 治理面板 -->
+  <div class="lower">
+    <section class="quality" id="persona-quality" aria-label="质量鉴别">
+      <h2 class="cell-title">质量鉴别 <span class="en">Quality Check</span></h2>
+      <p class="cell-hint">四维度各判 通过 / 不通过（源自 MVL method08 导师话术 / 陷阱）。此节为 render-contract-persona.md 中 persona-quality-* anchor 的事实源。</p>
+      <div class="q-grid">
+        <div class="q-item" id="persona-quality-evidence">
+          <div class="q-name">真实依据 <span class="q-en">evidence_based</span></div>
+          <div class="q-verdict verdict-pending" data-verdict>待判定</div>
+        </div>
+        <div class="q-item" id="persona-quality-concrete">
+          <div class="q-name">具体非刻板 <span class="q-en">concrete</span></div>
+          <div class="q-verdict verdict-pending" data-verdict>待判定</div>
+        </div>
+        <div class="q-item" id="persona-quality-voice">
+          <div class="q-name">痛点用原话 <span class="q-en">pain_in_voice</span></div>
+          <div class="q-verdict verdict-pending" data-verdict>待判定</div>
+        </div>
+        <div class="q-item" id="persona-quality-representative">
+          <div class="q-name">代表性 <span class="q-en">representative</span></div>
+          <div class="q-verdict verdict-pending" data-verdict>待判定</div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="govern" id="quality-panel" aria-label="质量与治理">
+      <h3 class="cell-title">质量与对齐</h3>
+      <dl>
+        <dt>版本</dt><dd id="quality-version-dd">v0（草稿）</dd>
+      </dl>
+      <div id="quality-approval">
+        <dl>
+          <dt>Gate 建议</dt><dd id="quality-gate">pending</dd>
+          <dt>授权渲染</dt><dd id="quality-authorized">false</dd>
+          <dt>确认模式</dt><dd id="quality-mode">null</dd>
+        </dl>
+      </div>
+      <dl>
+        <dt>缺口摘要</dt><dd id="quality-gaps">—</dd>
+        <dt>风险摘要</dt><dd id="quality-risks">—</dd>
+      </dl>
+      <div class="caveat" id="quality-caveat" hidden>
+        <b>Override 警示：</b><span id="quality-caveat-text">仅在 override 时显示——列出被接受的业务风险与影响。</span>
+      </div>
+    </aside>
+  </div>
+
+  <section class="local-notes" id="local-notes" contenteditable="true"></section>
+
+  <p class="footnote">
+    <b>说明：</b>本文件为 User Persona <b>一等公民画布示例</b>（对齐 <code>render-contract-persona.md</code>），结构 1:1 沿用工作表 <code>canvas-templates/01-用户画像画布.html</code> 的 9 基本信息 + 6 宫格，并扩展质量鉴别面板与 Gate / 授权元数据占位。
+    采用标准 pratyaya 黑灰配色（单色方案，无配色切换），按 Ctrl/Cmd + P 可直接横版打印。本示例为静态骨架，正式渲染由 <code>canvas-render</code> Skill 经 <code>提炼→门禁→渲染</code> 管线生成 <code>output/persona-canvas.html</code>。
+  </p>
+</div>
+
+<script type="application/json" id="canvas-data">
+{
+  "canvas_type": "persona",
+  "page_type": "persona",
+  "version": "1",
+  "schema_version_target": "2.2",
+  "basic": {
+    "name": "", "gender": "", "age": "", "location": "", "education": "",
+    "job_title": "", "industry": "", "family_status": "", "income": ""
+  },
+  "grid6": {
+    "description": "", "goals_needs": "", "behaviors": "",
+    "pain_points": "", "motivation": "", "decision_factors": ""
+  },
+  "quality": {
+    "evidence_based": "pending",
+    "concrete": "pending",
+    "pain_in_voice": "pending",
+    "representative": "pending"
+  },
+  "governance": {
+    "gate_recommendation": "pending",
+    "render_authorized": false,
+    "confirmation_mode": null,
+    "override_audit": null
+  }
+}
+</script>
+</body>
+</html>

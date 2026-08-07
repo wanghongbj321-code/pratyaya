@@ -12,6 +12,9 @@
     <h1>黄金圈法则 Golden Circle Canvas</h1>
     <div id="canvas-headline">一句话结论</div>
   </header>
+  <section id="gc-diagram">
+    <!-- 3 圈同心圆图示（WHY / HOW / WHAT）——签名视觉，必须参照 examples/canvas-html/goden-circle-canvas.html 实现（见 §C） -->
+  </section>
   <main>
     <section id="why">
       <h2>WHY — 信念、目标与使命</h2>
@@ -88,6 +91,20 @@
 - 已讨论的字段正常展示内容；未讨论的字段显示"未讨论"并标为缺口。
 - `alignment-*` 的数据源为 `GC-v{N}.md` 第 6a 节，不由 canvas-render 推断。
 - GC Canvas 是单画布，不存在子模块详情页和全局汇总页。
+- **`gc-diagram`（3 圈同心圆图示）是 GC 画布的签名视觉元素，渲染时必须参照 `examples/canvas-html/goden-circle-canvas.html` 实现**，见 §C。
+
+## C. 3 圈同心圆图示（签名视觉，必须参照示例）
+
+`gc-diagram` 区块展示黄金圈的标志性**三同心圆**（由内到外：WHY / HOW / WHAT），是 GC 画布区别于其他画布的核心视觉标识。
+
+**硬性要求（渲染时必须遵守）**：
+
+1. **必须参照** `examples/canvas-html/goden-circle-canvas.html`（仓库内一等公民示例）实现 `gc-diagram` 区块，包括：三同心圆的 SVG 结构（`<circle r="150/100/50">`）、WHY / HOW / WHAT 环带标签、`viewBox="0 0 340 340"` 及 pratyaya 黑灰配色。
+2. 该示例是 `gc-diagram` 的**唯一视觉事实源**；渲染时不得省略该图示，不得用其他图形（如三个并列圆、三层卡片）替代。
+3. 图示配色沿用 pratyaya 标准黑灰（`10-black-gray-professional`），不引入彩色、不做配色切换。
+4. 图示本身是纯视觉元素，不承载业务数据；业务内容仍写入下方 WHY / HOW / WHAT 三层 section 的对应锚点。
+
+> 说明：`gc-diagram` 不在 §B 锚点映射表内（不参与 anchor 顺序审计），但**渲染产物必须包含该元素**；交付前浏览器视觉验收时按示例比对。本要求是 `canvas-render/SKILL.md`「示例参照」全局规则（任何画布都必须查找并参照 `examples/canvas-html/` 对应示例）在 GC 的具体化。
 
 ## 共享结构
 
