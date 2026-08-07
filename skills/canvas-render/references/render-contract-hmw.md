@@ -140,15 +140,15 @@ Template Gate（`audit_canvas_html.py --template examples/canvas-html/hmw-canvas
 ```text
 canvas-header
   → hmw-statement
-  → hmw-quality
   → hmw-ideas
   → hmw-coherence
+  → hmw-quality
   → quality-panel
   → local-notes
   → canvas-data
 ```
 
-> **顺序依据**：与执行计划（`HMW画布实现执行计划-20260807.md` §8.7 / §14.19）及设计文档（§7.2 `<main>` 结构）保持一致。
+> **顺序依据**：以 `examples/canvas-html/hmw-canvas.html` 模板实际 DOM 顺序为准（质量鉴别 `hmw-quality` 与质量与对齐 `quality-panel` 同属质量总结，置于想法与对应关系之后、相邻成组）。Template Gate 以本 profile 与模板为比对基准。
 
 任一一级模块缺失、重复或相对顺序偏离本 profile，Template Gate FAIL（`HMW-TPL-GATE-02` / `HMW-TPL-GATE-03`）。
 
