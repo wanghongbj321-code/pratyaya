@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>M3 Canvas · 闭环蓝图（一等公民 · 示例）</title>
+<link rel="stylesheet" href="../shared/canvas-theme.css">
+<style>
+  .wrap{ max-width:1600px; padding:24px; }
+
+  .m3-sheet{
+    border:var(--border-w) solid var(--line); border-radius:var(--radius);
+    background:var(--paper); padding:14px; box-shadow:var(--shadow);
+  }
+
+  /* 页头 hero */
+  .m3-hero{
+    display:flex; justify-content:space-between; align-items:flex-start;
+    gap:28px; padding:6px 8px 16px; border-bottom:var(--border-w) solid var(--line);
+  }
+  .m3-hero .eyebrow{ margin:0 0 6px; color:var(--muted); font-size:12px; font-weight:800; letter-spacing:.04em; }
+  .m3-hero h1{
+    margin:0; font-size:clamp(30px,4vw,48px); line-height:.98;
+    font-weight:800; color:var(--title-color);
+  }
+  .m3-hero-sub{ margin:6px 0 0; color:var(--ink); font-size:15px; font-weight:700; }
+  .m3-hero-sub em{ font-style:normal; color:var(--muted); font-weight:700; }
+  #module-summary-headline{
+    margin-top:12px; font-size:clamp(14px,1.5vw,17px); font-weight:700; color:var(--ink);
+  }
+  .m3-meta{
+    min-width:300px; padding-top:8px; font-size:12px; color:var(--ink);
+    display:grid; gap:7px;
+  }
+  .m3-meta-row{ display:grid; grid-template-columns:auto 1fr; align-items:end; gap:10px; }
+  .m3-meta-row b{ white-space:nowrap; font-weight:800; }
+  .m3-meta-line{ display:block; min-height:18px; border-bottom:1px solid var(--muted); color:var(--ink); }
+  .m3-back{ margin-top:4px; font-size:11.5px; }
+
+  /* 模块概览：全宽 */
+  .m3-overview{
+    margin-top:8px; border:var(--border-w) solid var(--line); border-radius:6px;
+    background:var(--paper); box-shadow:var(--shadow); padding:12px 14px;
+  }
+  .m3-overview .fill{ margin-top:8px; }
+
+  /* 闭环蓝图：5 列定义链 + 全宽 Workflow Draft + 2 列收束 */
+  .m3-blueprint{
+    display:grid; grid-template-columns:repeat(5,minmax(0,1fr));
+    gap:8px; margin-top:8px;
+  }
+  .m3-card{
+    border:var(--border-w) solid var(--line); border-radius:6px;
+    background:var(--paper); box-shadow:var(--shadow);
+    padding:12px; display:flex; flex-direction:column;
+  }
+  .m3-definition{ min-height:230px; }
+  .m3-card-title{
+    display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+    margin:0 0 8px; color:var(--ink); font-size:15px; line-height:1.2; font-weight:800;
+  }
+  .m3-index{
+    display:inline-grid; place-items:center; width:24px; height:24px;
+    border-radius:6px; background:#000; color:#fff; font-weight:800; line-height:1; flex:0 0 auto;
+  }
+  .m3-card-title small{ color:var(--muted); font-size:11.5px; font-weight:700; }
+  .m3-card-hint{ margin:0 0 8px; font-size:11px; color:var(--muted); line-height:1.35; }
+  .m3-card .fill{ flex:1; }
+  .m3-output{
+    margin-top:10px; padding:6px 8px; border-radius:5px; background:#eeeeee;
+    font-size:10.5px; font-weight:800; color:var(--ink);
+  }
+  .m3-importance{ margin-top:6px; font-size:10px; font-weight:800; color:var(--hint-color); }
+
+  /* Workflow Draft：全宽主视觉 */
+  .m3-workflow-draft{
+    grid-column:1 / -1; min-height:260px;
+    border:var(--border-w) solid var(--line); border-radius:6px;
+    background:linear-gradient(180deg,var(--paper),#f4f4f4); box-shadow:var(--shadow);
+    padding:14px;
+  }
+  .m3-band-title{
+    display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+    margin:0 0 8px; color:var(--ink); font-size:17px; line-height:1.2; font-weight:800;
+  }
+  .m3-band-title small{ color:var(--muted); font-size:12px; font-weight:700; }
+  .m3-band-hint{ margin:0 0 8px; font-size:11px; color:var(--muted); line-height:1.35; }
+  .draft-grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:4px; }
+  .draft-block{ border-top:2px solid var(--ink); padding-top:6px; }
+  .draft-block h4{ margin:0 0 4px; font-size:11.5px; color:var(--ink); }
+  .draft-block .fill{ min-height:28px; border-bottom:1px solid var(--fill-line); }
+  .draft-block.wide{ grid-column:1 / -1; }
+  .draft-block.wide .fill{ min-height:40px; }
+
+  /* 方案与验证：2 列收束区 */
+  .m3-resolution-row{
+    grid-column:1 / -1;
+    display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px;
+  }
+  .m3-resolution{ min-height:180px; }
+
+  /* 通用可编辑输入 */
+  .fill{
+    min-height:28px; padding:2px 0; background-image:none; line-height:1.45;
+    font-size:12.5px; color:var(--ink); outline:none;
+  }
+  .fill:focus{ background:var(--brand-pale); }
+  .fill:empty::before{ content:attr(data-ph); font-size:11.5px; color:var(--hint-color); }
+
+  /* 结论 / 证据 / 缺口：信息层级区分 */
+  .m3-section{
+    margin-top:8px; border:var(--border-w) solid var(--line); border-radius:6px;
+    background:var(--paper); box-shadow:var(--shadow); padding:10px 14px;
+  }
+  .m3-section h2{ margin:0; font-size:15px; line-height:1.2; color:var(--ink); }
+  .m3-section h2 small{ color:var(--muted); font-size:12px; font-weight:700; }
+  .m3-section .section-desc{ margin:4px 0 8px; font-size:11px; color:var(--muted); line-height:1.35; }
+
+  /* 结论登记表：紧凑表格感 */
+  .conclusion-table{ display:grid; grid-template-columns:1fr; gap:6px; }
+  .conclusion-table .conclusion-head,
+  .conclusion-table .conclusion-row{
+    display:grid; grid-template-columns:90px 1.4fr 1fr; gap:6px; align-items:center;
+  }
+  .conclusion-table .conclusion-head{ font-size:10px; font-weight:800; color:var(--muted); }
+  .conclusion-table .conclusion-row .fill{ min-height:30px; border-bottom:1px solid var(--fill-line); }
+
+  /* 证据索引：低权重 */
+  .evidence-index{ display:grid; grid-template-columns:1fr; gap:4px; }
+  .evidence-index .fill{ min-height:26px; border-bottom:1px solid var(--fill-line); }
+
+  /* 缺口与推断：左右分区 */
+  .gaps-pair{ display:grid; grid-template-columns:1fr 1fr; gap:8px; align-items:start; }
+  .gaps-pair .gaps-block{ border-top:2px solid var(--ink); padding-top:6px; }
+  .gaps-pair h3{ margin:0 0 4px; font-size:12px; color:var(--ink); }
+  .gaps-pair .fill{ min-height:26px; border-bottom:1px solid var(--fill-line); }
+
+  /* 质量治理带 */
+  .m3-governance{
+    margin-top:8px; padding:10px 14px; font-size:11.5px;
+    border:var(--border-w) solid var(--line); border-radius:6px;
+    background:var(--paper); box-shadow:var(--shadow);
+  }
+  .governance-head{ display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:8px; }
+  .governance-head h2{ margin:0; font-size:15px; line-height:1.2; }
+  .governance-head span{ color:var(--muted); font-weight:700; }
+  .governance-row{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; }
+  .governance-item{ border:1px solid var(--line); border-radius:6px; padding:8px; min-height:56px; }
+  .governance-item b{ display:block; font-size:10.5px; color:var(--muted); margin-bottom:3px; }
+  .governance-item dl{ margin:0; display:grid; grid-template-columns:auto 1fr; gap:2px 7px; }
+  .governance-item dt{ color:var(--muted); }
+  .governance-item dd, .governance-item span{ margin:0; color:var(--ink); font-weight:800; }
+  .governance-caveat{
+    margin-top:8px; padding:8px 10px; border:1.5px dashed #000; border-radius:6px;
+    background:var(--brand-pale); color:var(--ink); font-size:11.5px;
+  }
+  .governance-alignment{
+    margin-top:8px; padding-top:8px; border-top:1px solid var(--line);
+    display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px;
+  }
+  .governance-alignment h3{ grid-column:1/-1; margin:0; font-size:12px; }
+  .governance-alignment p{ margin:0; color:var(--ink); }
+  .governance-alignment b{ color:var(--muted); }
+
+  .local-notes{
+    margin-top:8px; border:1px dashed var(--line); border-radius:6px;
+    padding:9px 10px; font-size:11.5px; min-height:38px; color:var(--ink); outline:none;
+  }
+  .local-notes:empty::before{ content:"本地批注（浏览器内可编辑，刷新即清空，非正式事实源）..."; color:var(--hint-color); }
+
+  .m3-footer{
+    margin-top:8px; padding:9px 12px; display:flex; justify-content:space-between;
+    align-items:center; gap:16px; color:var(--ink); font-size:11.5px; font-weight:700;
+    border:var(--border-w) solid var(--line); border-radius:6px;
+    background:var(--paper); box-shadow:var(--shadow);
+  }
+  .m3-footer-note{ color:var(--muted); text-align:right; white-space:nowrap; }
+
+  @media(max-width:1100px){
+    .m3-hero{ flex-direction:column; }
+    .m3-meta{ min-width:0; width:100%; }
+    .m3-blueprint, .m3-resolution-row{ grid-template-columns:1fr; }
+    .m3-workflow-draft, .m3-resolution{ grid-column:auto; }
+    .draft-grid{ grid-template-columns:1fr; }
+    .draft-block.wide{ grid-column:auto; }
+    .conclusion-table .conclusion-head, .conclusion-table .conclusion-row{ grid-template-columns:1fr; }
+    .gaps-pair{ grid-template-columns:1fr; }
+    .governance-row, .governance-alignment{ grid-template-columns:1fr; }
+    .m3-footer{ align-items:flex-start; flex-direction:column; }
+    .m3-footer-note{ text-align:left; white-space:normal; }
+  }
+  @media print{
+    .wrap{ padding:0; max-width:none; }
+    .m3-sheet{ break-inside:avoid; padding:8px; }
+    .m3-hero{ gap:14px; padding-bottom:8px; }
+    .m3-hero h1{ font-size:34px; }
+    .m3-definition{ min-height:150px; padding:8px; }
+    .m3-card-title{ font-size:13px; }
+    .m3-index{ width:20px; height:20px; border-radius:5px; }
+    .m3-workflow-draft{ min-height:180px; }
+    .m3-resolution{ min-height:130px; }
+    .m3-governance, .m3-footer, .m3-card-hint, .section-desc, .m3-band-hint{ font-size:9px; }
+    .local-notes{ display:none; }
+  }
+</style>
+</head>
+<body data-theme="base" data-mode="formal" data-canvas="mvl" data-page-type="module-detail" data-module="M3" data-version="1">
+<div class="wrap">
+  <main class="m3-sheet">
+    <header class="m3-hero" id="canvas-header">
+      <div>
+        <p class="eyebrow">MVL Module Detail · M3</p>
+        <h1>M3：闭环蓝图</h1>
+        <p class="m3-hero-sub">Loop Blueprint / Workflow Draft</p>
+        <div id="module-summary-headline" contenteditable="true" data-ph="锁定的闭环方案：把 M1 目标、M2 痛点与真实流程转译为可验证的 AI 应用闭环草案…"></div>
+      </div>
+      <div class="m3-meta" aria-label="项目元信息">
+        <div class="m3-meta-row"><b>日期 / Date:</b><span class="m3-meta-line" contenteditable="true"></span></div>
+        <div class="m3-meta-row"><b>小组 / Group:</b><span class="m3-meta-line" contenteditable="true"></span></div>
+        <div class="m3-meta-row"><b>版本 / Version:</b><span class="m3-meta-line" id="quality-version">v1（草稿）</span></div>
+        <div class="m3-meta-row"><b>确认状态 / Status:</b><span class="m3-meta-line">pending</span></div>
+        <div class="m3-meta-row m3-back"><b>返回:</b><a href="./maau-global-canvas.html">MAAU 全局画布</a></div>
+      </div>
+    </header>
+
+    <!-- 模块概览 -->
+    <section class="m3-overview" id="module-summary" aria-label="模块概览">
+      <h2 class="m3-card-title">模块概览 <small>Module Summary</small></h2>
+      <div class="fill" id="module-summary-overview" contenteditable="true" data-ph="从闭环定义到 Workflow Draft，再到方案锁定与验证设计…"></div>
+    </section>
+
+    <!-- 闭环蓝图：第 1 行 5 列闭环定义链 + 第 2 行全宽 Workflow Draft + 第 3 行 2 列方案与验证 -->
+    <section class="m3-blueprint" id="module-outputs" aria-label="M3 模块专属产出">
+      <section class="m3-card m3-definition" id="m3-hmw" aria-label="HMW 拆解 HMW">
+        <h2 class="m3-card-title"><span class="m3-index">1</span><span>HMW 拆解 <small>HMW</small></span></h2>
+        <p class="m3-card-hint">问题转译：是否来自 M1/M2 关键问题、把痛点改写为可行动问题、避免停留在表象。</p>
+        <div class="fill" contenteditable="true" data-ph="How Might We 问题拆解…"></div>
+        <div class="m3-output">输出 Output: HMW 问题 | 来源 gap | 行动方向</div>
+      </section>
+      <section class="m3-card m3-definition" id="m3-loop-goal" aria-label="闭环目标 Loop Goal">
+        <h2 class="m3-card-title"><span class="m3-index">2</span><span>闭环目标 <small>Loop Goal</small></span></h2>
+        <p class="m3-card-hint">闭环目标：从什么触发、到什么结果结束、业务方与技术方是否共同确认。</p>
+        <div class="fill" contenteditable="true" data-ph="从触发到结果的闭环目标…"></div>
+        <div class="m3-output">输出 Output: 触发 | 结果 | 共识状态</div>
+        <div class="m3-importance">重要性：高，须由业务方与技术方共同确认。</div>
+      </section>
+      <section class="m3-card m3-definition" id="m3-capability-metrics" aria-label="能力指标 Capability Metrics">
+        <h2 class="m3-card-title"><span class="m3-index">3</span><span>能力指标 <small>Capability Metrics</small></span></h2>
+        <p class="m3-card-hint">能力表现、可衡量指标、与 M1 success_metrics 的关系。</p>
+        <div class="fill" contenteditable="true" data-ph="能力指标…"></div>
+        <div class="m3-output">输出 Output: 能力指标 | 衡量方式</div>
+      </section>
+      <section class="m3-card m3-definition" id="m3-acceptance" aria-label="验收标准 Acceptance">
+        <h2 class="m3-card-title"><span class="m3-index">4</span><span>验收标准 <small>Acceptance</small></span></h2>
+        <p class="m3-card-hint">判定通过条件、失败条件、最低可用标准。</p>
+        <div class="fill" contenteditable="true" data-ph="验收标准…"></div>
+        <div class="m3-output">输出 Output: 验收标准 | 通过条件</div>
+      </section>
+      <section class="m3-card m3-definition" id="m3-boundary" aria-label="闭环边界 Boundary">
+        <h2 class="m3-card-title"><span class="m3-index">5</span><span>闭环边界 <small>Boundary</small></span></h2>
+        <p class="m3-card-hint">能做什么、不做什么、哪些假设不得越界。</p>
+        <div class="fill" contenteditable="true" data-ph="能力范围与边界…"></div>
+        <div class="m3-output">输出 Output: 范围 | 不在范围内 | 关键假设</div>
+      </section>
+
+      <!-- Workflow Draft：全宽主视觉 -->
+      <section class="m3-workflow-draft" id="m3-workflow-draft" aria-label="AI 应用工作流草案 Workflow Draft">
+        <h2 class="m3-band-title"><span class="m3-index">6</span><span>Workflow Draft <small>AI 应用工作流草案</small></span></h2>
+        <p class="m3-band-hint">M3 主交付物，从触发到结果的 AI 应用工作流草案。不得拿 M2 现状流程代替；须体现 AI 如何参与；触发 / 步骤 / 完成条件 + 三类节点必须齐全，缺失进入缺口。</p>
+        <div class="draft-grid">
+          <div class="draft-block"><h4>Trigger / 触发</h4><div class="fill" contenteditable="true" data-ph="闭环触发条件…"></div></div>
+          <div class="draft-block"><h4>Completion Condition / 完成条件</h4><div class="fill" contenteditable="true" data-ph="闭环完成条件…"></div></div>
+          <div class="draft-block wide"><h4>Steps / 步骤</h4><div class="fill" contenteditable="true" data-ph="按流向排列的步骤…"></div></div>
+          <div class="draft-block"><h4>Agent Execution Nodes / Agent 执行节点</h4><div class="fill" contenteditable="true" data-ph="AI 执行节点…"></div></div>
+          <div class="draft-block"><h4>Human Operation / Confirmation Nodes / 人工操作 / 确认节点</h4><div class="fill" contenteditable="true" data-ph="人工操作 / 确认节点…"></div></div>
+          <div class="draft-block wide"><h4>Human Review + Agent Nodes / 人审 + Agent 执行节点</h4><div class="fill" contenteditable="true" data-ph="人审 + Agent 执行节点…"></div></div>
+          <div class="draft-block wide"><h4>Rules / 关键规则</h4><div class="fill" contenteditable="true" data-ph="决定流向、升级、停止或回退的关键规则…"></div></div>
+        </div>
+        <div class="m3-output">输出 Output: 触发 | 步骤 | 完成条件 | Agent 执行 | 人工确认 | 人审 + Agent | 关键规则</div>
+      </section>
+
+      <!-- 方案与验证：2 列收束区 -->
+      <div class="m3-resolution-row">
+        <section class="m3-card m3-resolution" id="m3-solution-direction" aria-label="方案方向 Solution Direction">
+          <h2 class="m3-card-title"><span class="m3-index">7</span><span>方案方向 <small>Solution Direction</small></span></h2>
+          <p class="m3-card-hint">对 Workflow Draft 的方案归纳与锁定：选定方向、为何选择、是否还有未决备选方向。</p>
+          <div class="fill" contenteditable="true" data-ph="AI 方案方向…"></div>
+          <div class="m3-output">输出 Output: 方案方向 | 锁定依据 | 未决项</div>
+        </section>
+        <section class="m3-card m3-resolution" id="m3-validation-dimensions" aria-label="验证维度 Validation Dimensions">
+          <h2 class="m3-card-title"><span class="m3-index">8</span><span>验证维度 <small>Validation Dimensions</small></span></h2>
+          <p class="m3-card-hint">后续如何验证 Workflow Draft、哪些维度进入 M5、价值 / 可用性 / 风险 / 信任如何分层验证。</p>
+          <div class="fill" contenteditable="true" data-ph="分层验证维度…"></div>
+          <div class="m3-output">输出 Output: 验证维度 | 验证方法 | 后续模块衔接</div>
+        </section>
+      </div>
+    </section>
+
+    <!-- 结论登记表：紧凑表格感 -->
+    <section class="m3-section" id="module-conclusions" aria-label="结论登记表">
+      <h2>结论登记表 <small>Conclusions</small></h2>
+      <p class="section-desc">结论 ID、内容、证据引用。</p>
+      <div class="conclusion-table" id="conclusions-table">
+        <div class="conclusion-head"><span>结论 ID</span><span>内容</span><span>证据引用</span></div>
+        <div class="conclusion-row"><div class="fill" contenteditable="true" data-ph="ID"></div><div class="fill" contenteditable="true" data-ph="内容"></div><div class="fill" contenteditable="true" data-ph="证据引用"></div></div>
+        <div class="conclusion-row"><div class="fill" contenteditable="true" data-ph="ID"></div><div class="fill" contenteditable="true" data-ph="内容"></div><div class="fill" contenteditable="true" data-ph="证据引用"></div></div>
+        <div class="conclusion-row"><div class="fill" contenteditable="true" data-ph="ID"></div><div class="fill" contenteditable="true" data-ph="内容"></div><div class="fill" contenteditable="true" data-ph="证据引用"></div></div>
+      </div>
+    </section>
+
+    <!-- 证据索引：可追溯索引 -->
+    <section class="m3-section" id="module-evidence" aria-label="证据索引">
+      <h2>证据索引 <small>Evidence Index</small></h2>
+      <p class="section-desc">可追溯索引（仅引用 Key Points 与确认包自身 section，不引用逐字稿段落）。</p>
+      <div class="evidence-index" id="evidence-list">
+        <div class="fill" contenteditable="true" data-ph="关键证据引用…"></div>
+        <div class="fill" contenteditable="true" data-ph="关键证据引用…"></div>
+        <div class="fill" contenteditable="true" data-ph="关键证据引用…"></div>
+      </div>
+    </section>
+
+    <!-- 缺口与推断：分区 -->
+    <section class="m3-section" id="module-gaps" aria-label="缺口与推断">
+      <h2>缺口与推断 <small>Gaps &amp; Inferences</small></h2>
+      <p class="section-desc">缺口影响是否能正式渲染，未讨论 section 标为缺口并说明对产出 / 最终 Canvas 的影响。尤其突出 Workflow Draft 缺少 trigger / completion_condition / 三类节点时的缺口。</p>
+      <div class="gaps-pair">
+        <div class="gaps-block">
+          <h3>缺口表 <span class="en">Gaps</span></h3>
+          <div class="fill" id="gaps-table" contenteditable="true" data-ph="未讨论 section / 对产出的影响…"></div>
+        </div>
+        <div class="gaps-block">
+          <h3>推断表 <span class="en">Inferences</span></h3>
+          <div class="fill" id="inferences-table" contenteditable="true" data-ph="区分事实 / 决策 / 假设 / 建议…"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 质量治理带 -->
+    <aside class="m3-governance" id="quality-panel" aria-label="质量与治理">
+      <div class="governance-head">
+        <h2>质量与对齐 <span class="en">Quality &amp; Alignment</span></h2>
+        <span>门禁判定源自 <code>M3-GATE-*.md</code>；对齐状态两种页面共享。</span>
+      </div>
+      <div class="governance-row">
+        <div class="governance-item" id="quality-approval">
+          <b>授权状态 / Approval</b>
+          <dl>
+            <dt>Gate</dt><dd id="quality-gate">pending</dd>
+            <dt>Render</dt><dd id="quality-authorized">false</dd>
+            <dt>Mode</dt><dd id="quality-mode">null</dd>
+          </dl>
+        </div>
+        <div class="governance-item">
+          <b>缺口摘要 / Gaps</b>
+          <span id="quality-gaps">—</span>
+        </div>
+        <div class="governance-item">
+          <b>风险摘要 / Risks</b>
+          <span id="quality-risks">—</span>
+        </div>
+        <div class="governance-item">
+          <b>M3 质量检查</b>
+          <dl>
+            <dt>HMW 可落地</dt><dd class="verdict-pending">待判定</dd>
+            <dt>三类节点齐全</dt><dd class="verdict-pending">待判定</dd>
+            <dt>能力指标可衡量</dt><dd class="verdict-pending">待判定</dd>
+            <dt>证据支撑</dt><dd class="verdict-pending">待判定</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="governance-caveat" id="quality-caveat" hidden>
+        <b>Override 警示：</b><span id="quality-caveat-text">仅 override 时显示——Gate 建议 / override 项数量 / 高风险项数量 / 风险详情。</span>
+      </div>
+      <section class="governance-alignment" id="alignment-section">
+        <h3>对齐状态</h3>
+        <p><b>共识地图：</b><span id="alignment-consensus">—</span></p>
+        <p><b>分歧点：</b><span id="alignment-divergences">—</span></p>
+        <p><b>决策留痕：</b><span id="alignment-decisions">—</span></p>
+      </section>
+    </aside>
+
+    <section class="local-notes" id="local-notes" contenteditable="true" aria-label="本地批注"></section>
+
+    <footer class="m3-footer">
+      <span>M3 Detail Canvas</span>
+      <span>对齐 render-contract §B</span>
+      <span>A4 横版</span>
+      <a href="./maau-global-canvas.html">返回 MAAU 全局画布</a>
+      <span class="m3-footer-note">一等公民示例 · 正式渲染由 canvas-render 生成</span>
+    </footer>
+  </main>
+</div>
+
+<script type="application/json" id="canvas-data">
+{
+  "canvas_type": "mvl",
+  "page_type": "module-detail",
+  "module": "M3",
+  "version": "1",
+  "schema_version_target": "2.1",
+  "sections": {
+    "m3-hmw": "", "m3-loop-goal": "", "m3-capability-metrics": "", "m3-acceptance": "",
+    "m3-boundary": "", "m3-workflow-draft": "", "m3-solution-direction": "", "m3-validation-dimensions": ""
+  },
+  "auth": {
+    "gate_recommendation": "pending",
+    "render_authorized": false,
+    "confirmation_mode": null,
+    "override_audit": null
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>M6 Canvas · 成果收束（一等公民 · 示例）</title>
+<link rel="stylesheet" href="../shared/canvas-theme.css">
+<style>
+  .wrap{ max-width:1600px; padding:24px; }
+
+  .m6-sheet{
+    border:var(--border-w) solid var(--line); border-radius:var(--radius);
+    background:var(--paper); padding:14px; box-shadow:var(--shadow);
+  }
+
+  /* 页头 hero */
+  .m6-hero{
+    display:flex; justify-content:space-between; align-items:flex-start;
+    gap:28px; padding:6px 8px 16px; border-bottom:var(--border-w) solid var(--line);
+  }
+  .m6-hero .eyebrow{ margin:0 0 6px; color:var(--muted); font-size:12px; font-weight:800; letter-spacing:.04em; }
+  .m6-hero h1{
+    margin:0; font-size:clamp(30px,4vw,48px); line-height:.98;
+    font-weight:800; color:var(--title-color);
+  }
+  .m6-hero-sub{ margin:6px 0 0; color:var(--ink); font-size:15px; font-weight:700; }
+  .m6-hero-sub em{ font-style:normal; color:var(--muted); font-weight:700; }
+  #module-summary-headline{
+    margin-top:12px; font-size:clamp(14px,1.5vw,17px); font-weight:700; color:var(--ink);
+  }
+  .m6-meta{
+    min-width:300px; padding-top:8px; font-size:12px; color:var(--ink);
+    display:grid; gap:7px;
+  }
+  .m6-meta-row{ display:grid; grid-template-columns:auto 1fr; align-items:end; gap:10px; }
+  .m6-meta-row b{ white-space:nowrap; font-weight:800; }
+  .m6-meta-line{ display:block; min-height:18px; border-bottom:1px solid var(--muted); color:var(--ink); }
+  .m6-back{ margin-top:4px; font-size:11.5px; }
+
+  /* 模块概览：全宽 */
+  .m6-overview{
+    margin-top:8px; border:var(--border-w) solid var(--line); border-radius:6px;
+    background:var(--paper); box-shadow:var(--shadow); padding:12px 14px;
+  }
+  .m6-overview .fill{ margin-top:8px; }
+
+  /* 成果收束板：3 + 全宽 + 3 + 非等宽 4 */
+  .m6-outcome-board{
+    display:grid; grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:8px; margin-top:8px;
+  }
+  .m6-card{
+    border:var(--border-w) solid var(--line); border-radius:6px;
+    background:var(--paper); box-shadow:var(--shadow);
+    padding:12px; display:flex; flex-direction:column;
+  }
+  .m6-result, .m6-boundary{ min-height:220px; }
+  .m6-card-title{
+    display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+    margin:0 0 8px; color:var(--ink); font-size:15px; line-height:1.2; font-weight:800;
+  }
+  .m6-index{
+    display:inline-grid; place-items:center; width:24px; height:24px;
+    border-radius:6px; background:#000; color:#fff; font-weight:800; line-height:1; flex:0 0 auto;
+  }
+  .m6-card-title small{ color:var(--muted); font-size:11.5px; font-weight:700; }
+  .m6-card-hint{ margin:0 0 8px; font-size:11px; color:var(--muted); line-height:1.35; }
+  .m6-card .fill{ flex:1; }
+  .m6-output{
+    margin-top:10px; padding:6px 8px; border-radius:5px; background:#eeeeee;
+    font-size:10.5px; font-weight:800; color:var(--ink);
+  }
+  .m6-importance{ margin-top:6px; font-size:10px; font-weight:800; color:var(--hint-color); }
+
+  /* 验证复盘：全宽 */
+  .m6-validation-review{
+    grid-column:1 / -1; min-height:230px;
+    border:var(--border-w) solid var(--line); border-radius:6px;
+    background:linear-gradient(180deg,var(--paper),#f4f4f4); box-shadow:var(--shadow);
+    padding:14px;
+  }
+  .m6-band-title{
+    display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+    margin:0 0 8px; color:var(--ink); font-size:17px; line-height:1.2; font-weight:800;
+  }
+  .m6-band-title small{ color:var(--muted); font-size:12px; font-weight:700; }
+  .m6-band-hint{ margin:0 0 8px; font-size:11px; color:var(--muted); line-height:1.35; }
+  .review-grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:4px; }
+  .review-block{ border-top:2px solid var(--ink); padding-top:6px; }
+  .review-block h4{ margin:0 0 4px; font-size:11.5px; color:var(--ink); }
+  .review-block .fill{ min-height:28px; border-bottom:1px solid var(--fill-line); }
+  .review-block.wide{ grid-column:1 / -1; }
+
+  /* 成果收束条：非等宽 4 列 */
+  .m6-closeout-row{
+    grid-column:1 / -1;
+    display:grid; grid-template-columns:1.2fr 1.4fr 1fr 1fr; gap:8px;
+  }
+  .m6-closeout{ min-height:190px; }
+
+  /* 通用可编辑输入 */
+  .fill{
+    min-height:28px; padding:2px 0; background-image:none; line-height:1.45;
+    font-size:12.5px; color:var(--ink); outline:none;
+  }
+  .fill:focus{ background:var(--brand-pale); }
+  .fill:empty::before{ content:attr(data-ph); font-size:11.5px; color:var(--hint-color); }
+
+  /* 结论 / 证据 / 缺口：信息层级区分 */
+  .m6-section{
+    margin-top:8px; border:var(--border-w) solid var(--line); border-radius:6px;
+    background:var(--paper); box-shadow:var(--shadow); padding:10px 14px;
+  }
+  .m6-section h2{ margin:0; font-size:15px; line-height:1.2; color:var(--ink); }
+  .m6-section h2 small{ color:var(--muted); font-size:12px; font-weight:700; }
+  .m6-section .section-desc{ margin:4px 0 8px; font-size:11px; color:var(--muted); line-height:1.35; }
+
+  /* 结论登记表：紧凑表格感 */
+  .conclusion-table{ display:grid; grid-template-columns:1fr; gap:6px; }
+  .conclusion-table .conclusion-head,
+  .conclusion-table .conclusion-row{
+    display:grid; grid-template-columns:90px 1.4fr 1fr; gap:6px; align-items:center;
+  }
+  .conclusion-table .conclusion-head{ font-size:10px; font-weight:800; color:var(--muted); }
+  .conclusion-table .conclusion-row .fill{ min-height:30px; border-bottom:1px solid var(--fill-line); }
+
+  /* 证据索引：低权重 */
+  .evidence-index{ display:grid; grid-template-columns:1fr; gap:4px; }
+  .evidence-index .fill{ min-height:26px; border-bottom:1px solid var(--fill-line); }
+
+  /* 缺口与推断：左右分区 */
+  .gaps-pair{ display:grid; grid-template-columns:1fr 1fr; gap:8px; align-items:start; }
+  .gaps-pair .gaps-block{ border-top:2px solid var(--ink); padding-top:6px; }
+  .gaps-pair h3{ margin:0 0 4px; font-size:12px; color:var(--ink); }
+  .gaps-pair .fill{ min-height:26px; border-bottom:1px solid var(--fill-line); }
+
+  /* 质量治理带 */
+  .m6-governance{
+    margin-top:8px; padding:10px 14px; font-size:11.5px;
+    border:var(--border-w) solid var(--line); border-radius:6px;
+    background:var(--paper); box-shadow:var(--shadow);
+  }
+  .governance-head{ display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:8px; }
+  .governance-head h2{ margin:0; font-size:15px; line-height:1.2; }
+  .governance-head span{ color:var(--muted); font-weight:700; }
+  .governance-row{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; }
+  .governance-item{ border:1px solid var(--line); border-radius:6px; padding:8px; min-height:56px; }
+  .governance-item b{ display:block; font-size:10.5px; color:var(--muted); margin-bottom:3px; }
+  .governance-item dl{ margin:0; display:grid; grid-template-columns:auto 1fr; gap:2px 7px; }
+  .governance-item dt{ color:var(--muted); }
+  .governance-item dd, .governance-item span{ margin:0; color:var(--ink); font-weight:800; }
+  .governance-caveat{
+    margin-top:8px; padding:8px 10px; border:1.5px dashed #000; border-radius:6px;
+    background:var(--brand-pale); color:var(--ink); font-size:11.5px;
+  }
+  .governance-alignment{
+    margin-top:8px; padding-top:8px; border-top:1px solid var(--line);
+    display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px;
+  }
+  .governance-alignment h3{ grid-column:1/-1; margin:0; font-size:12px; }
+  .governance-alignment p{ margin:0; color:var(--ink); }
+  .governance-alignment b{ color:var(--muted); }
+
+  .local-notes{
+    margin-top:8px; border:1px dashed var(--line); border-radius:6px;
+    padding:9px 10px; font-size:11.5px; min-height:38px; color:var(--ink); outline:none;
+  }
+  .local-notes:empty::before{ content:"本地批注（浏览器内可编辑，刷新即清空，非正式事实源）..."; color:var(--hint-color); }
+
+  .m6-footer{
+    margin-top:8px; padding:9px 12px; display:flex; justify-content:space-between;
+    align-items:center; gap:16px; color:var(--ink); font-size:11.5px; font-weight:700;
+    border:var(--border-w) solid var(--line); border-radius:6px;
+    background:var(--paper); box-shadow:var(--shadow);
+  }
+  .m6-footer-note{ color:var(--muted); text-align:right; white-space:nowrap; }
+
+  @media(max-width:1100px){
+    .m6-hero{ flex-direction:column; }
+    .m6-meta{ min-width:0; width:100%; }
+    .m6-outcome-board, .m6-closeout-row{ grid-template-columns:1fr; }
+    .m6-validation-review, .m6-closeout-row{ grid-column:auto; }
+    .review-grid{ grid-template-columns:1fr; }
+    .review-block.wide{ grid-column:auto; }
+    .conclusion-table .conclusion-head, .conclusion-table .conclusion-row{ grid-template-columns:1fr; }
+    .gaps-pair{ grid-template-columns:1fr; }
+    .governance-row, .governance-alignment{ grid-template-columns:1fr; }
+    .m6-footer{ align-items:flex-start; flex-direction:column; }
+    .m6-footer-note{ text-align:left; white-space:normal; }
+  }
+  @media print{
+    .wrap{ padding:0; max-width:none; }
+    .m6-sheet{ break-inside:avoid; padding:8px; }
+    .m6-hero{ gap:14px; padding-bottom:8px; }
+    .m6-hero h1{ font-size:34px; }
+    .m6-result, .m6-boundary, .m6-closeout{ min-height:130px; padding:8px; }
+    .m6-card-title{ font-size:13px; }
+    .m6-index{ width:20px; height:20px; border-radius:5px; }
+    .m6-validation-review{ min-height:170px; }
+    .m6-governance, .m6-footer, .m6-card-hint, .section-desc, .m6-band-hint{ font-size:9px; }
+    .local-notes{ display:none; }
+  }
+</style>
+</head>
+<body data-theme="base" data-mode="formal" data-canvas="mvl" data-page-type="module-detail" data-module="M6" data-version="1">
+<div class="wrap">
+  <main class="m6-sheet">
+    <header class="m6-hero" id="canvas-header">
+      <div>
+        <p class="eyebrow">MVL Module Detail · M6</p>
+        <h1>M6：成果收束</h1>
+        <p class="m6-hero-sub">Final Outcome / Evolution Board</p>
+        <div id="module-summary-headline" contenteditable="true" data-ph="最终结论：把最终方案、验证复盘、能力边界、进化资产和管理层结论收束为可复用成果…"></div>
+      </div>
+      <div class="m6-meta" aria-label="项目元信息">
+        <div class="m6-meta-row"><b>日期 / Date:</b><span class="m6-meta-line" contenteditable="true"></span></div>
+        <div class="m6-meta-row"><b>小组 / Group:</b><span class="m6-meta-line" contenteditable="true"></span></div>
+        <div class="m6-meta-row"><b>版本 / Version:</b><span class="m6-meta-line" id="quality-version">v1（草稿）</span></div>
+        <div class="m6-meta-row"><b>确认状态 / Status:</b><span class="m6-meta-line">pending</span></div>
+        <div class="m6-meta-row m6-back"><b>返回:</b><a href="./maau-global-canvas.html">MAAU 全局画布</a></div>
+      </div>
+    </header>
+
+    <!-- 模块概览 -->
+    <section class="m6-overview" id="module-summary" aria-label="模块概览">
+      <h2 class="m6-card-title">模块概览 <small>Module Summary</small></h2>
+      <div class="fill" id="module-summary-overview" contenteditable="true" data-ph="将最终方案、验证复盘、能力边界、进化资产与后续行动收束为可复用成果…"></div>
+    </section>
+
+    <!-- 成果收束板：第 1 行 3 列成果确认 + 第 2 行全宽验证复盘 + 第 3 行 3 列适用边界 + 第 4 行非等宽 4 列收束条 -->
+    <section class="m6-outcome-board" id="module-outputs" aria-label="M6 模块专属产出">
+      <section class="m6-card m6-result" id="m6-final-solution" aria-label="最终方案 Final Solution">
+        <h2 class="m6-card-title"><span class="m6-index">1</span><span>最终方案 <small>Final Solution</small></span></h2>
+        <p class="m6-card-hint">最终方案是什么、是否继承 M4 workflow_final、是否引入 M5 未验证假设。</p>
+        <div class="fill" contenteditable="true" data-ph="最终方案…"></div>
+        <div class="m6-output">输出 Output: 最终方案 | 继承依据 | 未验证假设</div>
+        <div class="m6-importance">Gate：须继承 M4 workflow_final，不得引入 M5 未验证假设。</div>
+      </section>
+      <section class="m6-card m6-result" id="m6-solution-comparison" aria-label="三维对比 Solution Comparison">
+        <h2 class="m6-card-title"><span class="m6-index">2</span><span>三维对比 <small>Solution Comparison</small></span></h2>
+        <p class="m6-card-hint">方案择优依据：业务价值、技术可行性、实施成本、其他讨论中明确的对比维度。</p>
+        <div class="fill" contenteditable="true" data-ph="多方案三维对比…"></div>
+        <div class="m6-output">输出 Output: 对比维度 | 选择依据 | 取舍</div>
+        <div class="m6-importance">Gate：至少三维对比。</div>
+      </section>
+      <section class="m6-card m6-result" id="m6-demo-summary" aria-label="演示结论 Demo Summary">
+        <h2 class="m6-card-title"><span class="m6-index">3</span><span>演示结论 <small>Demo Summary</small></span></h2>
+        <p class="m6-card-hint">演示内容、演示结论、反馈、未覆盖内容。</p>
+        <div class="fill" contenteditable="true" data-ph="成果演示结论…"></div>
+        <div class="m6-output">输出 Output: 演示结论 | 反馈 | 未覆盖项</div>
+      </section>
+
+      <!-- 验证复盘：全宽 -->
+      <section class="m6-validation-review" id="m6-validation-review" aria-label="验证复盘 Validation Review">
+        <h2 class="m6-band-title"><span class="m6-index">4</span><span>Validation Review <small>验证复盘</small></span></h2>
+        <p class="m6-band-hint">承接 M5 的三轮验证数据、问题整改与经验复盘；是 headline 与 takeaway 的证据基础。不得把未验证内容写成成果。</p>
+        <div class="review-grid">
+          <div class="review-block"><h4>三轮验证数据</h4><div class="fill" contenteditable="true" data-ph="三轮验证数据…"></div></div>
+          <div class="review-block"><h4>问题整改</h4><div class="fill" contenteditable="true" data-ph="问题整改…"></div></div>
+          <div class="review-block"><h4>经验复盘</h4><div class="fill" contenteditable="true" data-ph="经验复盘…"></div></div>
+          <div class="review-block wide"><h4>与 M5 结论的关系 / 对最终方案的影响</h4><div class="fill" contenteditable="true" data-ph="与 M5 结论的关系 / 对最终方案的影响…"></div></div>
+        </div>
+        <div class="m6-output">输出 Output: 验证数据 | 整改 | 经验 | 对最终方案的影响</div>
+      </section>
+
+      <!-- 适用边界：3 列 -->
+      <section class="m6-card m6-boundary" id="m6-capability-boundary" aria-label="能力边界 Capability Boundary">
+        <h2 class="m6-card-title"><span class="m6-index">5</span><span>能力边界 <small>Capability Boundary</small></span></h2>
+        <p class="m6-card-hint">能做清单、不能做清单、关键未决项、风险边界。各不少于 3 项。</p>
+        <div class="fill" contenteditable="true" data-ph="能力边界（能做 / 不能做 / 未决项）…"></div>
+        <div class="m6-output">输出 Output: 能做 | 不能做 | 未决项</div>
+        <div class="m6-importance">Gate：须含具体"能做 / 不能做"清单，各不少于 3 项。</div>
+      </section>
+      <section class="m6-card m6-boundary" id="m6-applicable-scenarios" aria-label="适用场景 Applicable Scenarios">
+        <h2 class="m6-card-title"><span class="m6-index">6</span><span>适用场景 <small>Applicable Scenarios</small></span></h2>
+        <p class="m6-card-hint">适用用户、适用业务场景、使用前提，与 M2 users 的关系。</p>
+        <div class="fill" contenteditable="true" data-ph="适配场景…"></div>
+        <div class="m6-output">输出 Output: 适用用户 | 场景 | 使用前提</div>
+      </section>
+      <section class="m6-card m6-boundary" id="m6-optimization-space" aria-label="优化空间 Optimization Space">
+        <h2 class="m6-card-title"><span class="m6-index">7</span><span>优化空间 <small>Optimization Space</small></span></h2>
+        <p class="m6-card-hint">体验优化、能力优化、数据 / 工具 / Workflow 优化、后续验证方向。</p>
+        <div class="fill" contenteditable="true" data-ph="优化空间…"></div>
+        <div class="m6-output">输出 Output: 优化项 | 影响 | 后续验证</div>
+      </section>
+
+      <!-- 成果收束条：非等宽 4 列 -->
+      <div class="m6-closeout-row" aria-label="成果收束条 Final Closeout Strip">
+        <section class="m6-card m6-closeout" id="m6-evolution-assets" aria-label="进化资产 Evolution Assets">
+          <h2 class="m6-card-title"><span class="m6-index">8</span><span>进化资产 <small>Evolution Assets</small></span></h2>
+          <p class="m6-card-hint">沉淀资产：Prompt / Workflow / SOP / Knowledge / Agent / Template / Best Practice / 数据资产，含 Owner 与可复用条件。</p>
+          <div class="fill" contenteditable="true" data-ph="可复用资产 + Owner + 可复用条件…"></div>
+          <div class="m6-output">输出 Output: 资产 | Owner | 可复用条件</div>
+          <div class="m6-importance">Gate：至少 3 项真实资产；属 business_risk，缺失可 override 但须显式标注风险。</div>
+        </section>
+        <section class="m6-card m6-closeout" id="m6-next-step-plan" aria-label="后续计划 Next Step Plan">
+          <h2 class="m6-card-title"><span class="m6-index">9</span><span>后续计划 <small>Next Step Plan</small></span></h2>
+          <p class="m6-card-hint">后续动作、Owner、时间、验收标准、依赖项。不得写成建议口号。</p>
+          <div class="fill" contenteditable="true" data-ph="后续迭代 / 规模化复制 / 生产化建议与推进计划（动作 / Owner / 时间 / 验收标准）…"></div>
+          <div class="m6-output">输出 Output: 动作 | Owner | 时间 | 验收标准</div>
+          <div class="m6-importance">Gate：每项须含动作 / Owner / 时间 / 验收标准；属 business_risk，缺失可 override 但须显式标注风险。</div>
+        </section>
+        <section class="m6-card m6-closeout" id="m6-headline" aria-label="一句话价值 Headline">
+          <h2 class="m6-card-title"><span class="m6-index">10</span><span>一句话价值 <small>Headline</small></span></h2>
+          <p class="m6-card-hint">本次 MAAU/MVL 的一句话价值主张，须与 validation_review 数据一致，不得写成未验证承诺。</p>
+          <div class="fill" contenteditable="true" data-ph="本次 MVL 的一句话价值主张…"></div>
+          <div class="m6-output">输出 Output: 一句话价值</div>
+        </section>
+        <section class="m6-card m6-closeout" id="m6-takeaway" aria-label="管理层 Takeaway">
+          <h2 class="m6-card-title"><span class="m6-index">11</span><span>管理层 Takeaway <small>Takeaway</small></span></h2>
+          <p class="m6-card-hint">管理层应带走什么结论、是否存在保留意见、后续决策建议。</p>
+          <div class="fill" contenteditable="true" data-ph="面向管理层的结论与建议…"></div>
+          <div class="m6-output">输出 Output: 管理层结论 | 决策建议</div>
+        </section>
+      </div>
+    </section>
+
+    <!-- 结论登记表：紧凑表格感 -->
+    <section class="m6-section" id="module-conclusions" aria-label="结论登记表">
+      <h2>结论登记表 <small>Conclusions</small></h2>
+      <p class="section-desc">结论 ID、内容、证据引用。突出最终方案、验证复盘、能力边界、进化资产、管理层结论。</p>
+      <div class="conclusion-table" id="conclusions-table">
+        <div class="conclusion-head"><span>结论 ID</span><span>内容</span><span>证据引用</span></div>
+        <div class="conclusion-row"><div class="fill" contenteditable="true" data-ph="ID"></div><div class="fill" contenteditable="true" data-ph="内容"></div><div class="fill" contenteditable="true" data-ph="证据引用"></div></div>
+        <div class="conclusion-row"><div class="fill" contenteditable="true" data-ph="ID"></div><div class="fill" contenteditable="true" data-ph="内容"></div><div class="fill" contenteditable="true" data-ph="证据引用"></div></div>
+        <div class="conclusion-row"><div class="fill" contenteditable="true" data-ph="ID"></div><div class="fill" contenteditable="true" data-ph="内容"></div><div class="fill" contenteditable="true" data-ph="证据引用"></div></div>
+      </div>
+    </section>
+
+    <!-- 证据索引：可追溯索引 -->
+    <section class="m6-section" id="module-evidence" aria-label="证据索引">
+      <h2>证据索引 <small>Evidence Index</small></h2>
+      <p class="section-desc">可追溯索引（仅引用 Key Points 与确认包自身 section，不引用逐字稿段落）。</p>
+      <div class="evidence-index" id="evidence-list">
+        <div class="fill" contenteditable="true" data-ph="关键证据引用…"></div>
+        <div class="fill" contenteditable="true" data-ph="关键证据引用…"></div>
+        <div class="fill" contenteditable="true" data-ph="关键证据引用…"></div>
+      </div>
+    </section>
+
+    <!-- 缺口与推断：分区 -->
+    <section class="m6-section" id="module-gaps" aria-label="缺口与推断">
+      <h2>缺口与推断 <small>Gaps &amp; Inferences</small></h2>
+      <p class="section-desc">缺口影响是否能正式渲染。尤其突出 final_solution 引入未验证假设、capability_boundary 不具体、evolution_assets / next_step_plan 缺 Owner 与条件等缺口。</p>
+      <div class="gaps-pair">
+        <div class="gaps-block">
+          <h3>缺口表 <span class="en">Gaps</span></h3>
+          <div class="fill" id="gaps-table" contenteditable="true" data-ph="未讨论 section / 对产出的影响…"></div>
+        </div>
+        <div class="gaps-block">
+          <h3>推断表 <span class="en">Inferences</span></h3>
+          <div class="fill" id="inferences-table" contenteditable="true" data-ph="区分事实 / 决策 / 假设 / 建议…"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 质量治理带 -->
+    <aside class="m6-governance" id="quality-panel" aria-label="质量与治理">
+      <div class="governance-head">
+        <h2>质量与对齐 <span class="en">Quality &amp; Alignment</span></h2>
+        <span>门禁判定源自 <code>M6-GATE-*.md</code>；M6-GATE-05/06 为 business_risk。</span>
+      </div>
+      <div class="governance-row">
+        <div class="governance-item" id="quality-approval">
+          <b>授权状态 / Approval</b>
+          <dl>
+            <dt>Gate</dt><dd id="quality-gate">pending</dd>
+            <dt>Render</dt><dd id="quality-authorized">false</dd>
+            <dt>Mode</dt><dd id="quality-mode">null</dd>
+          </dl>
+        </div>
+        <div class="governance-item">
+          <b>缺口摘要 / Gaps</b>
+          <span id="quality-gaps">—</span>
+        </div>
+        <div class="governance-item">
+          <b>风险摘要 / Risks</b>
+          <span id="quality-risks">—</span>
+        </div>
+        <div class="governance-item">
+          <b>M6 质量检查</b>
+          <dl>
+            <dt>方案择优</dt><dd class="verdict-pending">待判定</dd>
+            <dt>验证回顾完整</dt><dd class="verdict-pending">待判定</dd>
+            <dt>进化资产真实</dt><dd class="verdict-pending">待判定</dd>
+            <dt>证据支撑</dt><dd class="verdict-pending">待判定</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="governance-caveat" id="quality-caveat" hidden>
+        <b>Override 警示：</b><span id="quality-caveat-text">仅 override 时显示——Gate 建议 / override 项数量 / 高风险项数量 / 风险详情。M6 business_risk（M6-GATE-05 进化资产 / M6-GATE-06 后续计划）缺失时 override 须显式保留风险理由、确认人、确认时间与补救措施。</span>
+      </div>
+      <section class="governance-alignment" id="alignment-section">
+        <h3>对齐状态</h3>
+        <p><b>共识地图：</b><span id="alignment-consensus">—</span></p>
+        <p><b>分歧点：</b><span id="alignment-divergences">—</span></p>
+        <p><b>决策留痕：</b><span id="alignment-decisions">—</span></p>
+      </section>
+    </aside>
+
+    <section class="local-notes" id="local-notes" contenteditable="true" aria-label="本地批注"></section>
+
+    <footer class="m6-footer">
+      <span>M6 Detail Canvas</span>
+      <span>对齐 render-contract §B</span>
+      <span>A4 横版</span>
+      <a href="./maau-global-canvas.html">返回 MAAU 全局画布</a>
+      <span class="m6-footer-note">一等公民示例 · 正式渲染由 canvas-render 生成</span>
+    </footer>
+  </main>
+</div>
+
+<script type="application/json" id="canvas-data">
+{
+  "canvas_type": "mvl",
+  "page_type": "module-detail",
+  "module": "M6",
+  "version": "1",
+  "schema_version_target": "2.1",
+  "sections": {
+    "m6-final-solution": "", "m6-solution-comparison": "", "m6-demo-summary": "",
+    "m6-validation-review": "", "m6-capability-boundary": "", "m6-applicable-scenarios": "",
+    "m6-optimization-space": "", "m6-evolution-assets": "", "m6-next-step-plan": "",
+    "m6-headline": "", "m6-takeaway": ""
+  },
+  "auth": {
+    "gate_recommendation": "pending",
+    "render_authorized": false,
+    "confirmation_mode": null,
+    "override_audit": null
+  }
+}
+</script>
+</body>
+</html>

@@ -33,7 +33,7 @@
 
 > **Pratyaya MVL Expert = 面向 3 天 MVL（Minimum Verifiable Loop）工作坊的分步沉淀协作应用。**
 
-来源：2026-07-28 [MVL产品审查.md](./MVL产品审查.md) §1.3。
+来源：2026-07-28 MVL 产品审查（§1.3）。
 
 ### 1.2 三大设计原则
 

@@ -27,6 +27,89 @@
       "type": "integer",
       "minimum": 1
     },
+    "gate_recommendation": {
+      "enum": ["pass", "fail", "pending"]
+    },
+    "render_authorized": {
+      "type": "boolean"
+    },
+    "confirmation_mode": {
+      "type": ["string", "null"],
+      "enum": ["gate_pass", "override", null]
+    },
+    "override_audit": {
+      "type": "object",
+      "required": [
+        "version",
+        "items",
+        "reason",
+        "confirmed_by",
+        "confirmed_at"
+      ],
+      "properties": {
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "assessment_id",
+              "category",
+              "source_id",
+              "original_result",
+              "risk_level",
+              "impact"
+            ],
+            "properties": {
+              "assessment_id": {
+                "type": "string",
+                "pattern": "^M[1-6]-GATE-[0-9]+$"
+              },
+              "category": {
+                "enum": ["business_risk"]
+              },
+              "source_id": {
+                "type": "string"
+              },
+              "original_result": {
+                "enum": ["pass", "fail"]
+              },
+              "risk_level": {
+                "enum": ["low", "medium", "high"]
+              },
+              "impact": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "mitigation": {
+          "type": "string"
+        },
+        "confirmed_by": {
+          "type": "string",
+          "minLength": 1
+        },
+        "confirmed_role": {
+          "type": ["string", "null"]
+        },
+        "confirmed_at": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": true
+    },
     "status": {
       "enum": [
         "draft",
@@ -205,11 +288,8 @@
     },
     "gate": {
       "type": "object",
-      "required": ["render_allowed", "checked_at", "reasons"],
+      "required": ["checked_at", "reasons"],
       "properties": {
-        "render_allowed": {
-          "type": "boolean"
-        },
         "checked_at": {
           "type": ["string", "null"]
         },
