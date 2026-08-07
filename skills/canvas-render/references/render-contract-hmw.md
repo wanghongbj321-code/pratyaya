@@ -148,6 +148,8 @@ canvas-header
   → canvas-data
 ```
 
+> **顺序依据**：与执行计划（`HMW画布实现执行计划-20260807.md` §8.7 / §14.19）及设计文档（§7.2 `<main>` 结构）保持一致。
+
 任一一级模块缺失、重复或相对顺序偏离本 profile，Template Gate FAIL（`HMW-TPL-GATE-02` / `HMW-TPL-GATE-03`）。
 
 ### 稳定锚点集合（Template Gate 校验）
