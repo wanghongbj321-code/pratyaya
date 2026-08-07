@@ -131,6 +131,50 @@
 - 结论与关键指标优先，证据细节折叠但可打印附录。
 - override 画布必须保留 caveat 标识与风险详情。
 
+## 模板结构 Profile（Template Gate 判定依据）
+
+Template Gate（`audit_canvas_html.py --template examples/canvas-html/hmw-canvas.html --type hmw`）以本 profile 为判定依据，比较成品与模板的一级模块、稳定锚点与相对 DOM 顺序。**不比较**占位文本、业务文案、动态版本值或 CSS 逐字符内容。
+
+### 一级模块必需性与 DOM 相对顺序（强制）
+
+```text
+canvas-header
+  → hmw-statement
+  → hmw-quality
+  → hmw-ideas
+  → hmw-coherence
+  → quality-panel
+  → local-notes
+  → canvas-data
+```
+
+任一一级模块缺失、重复或相对顺序偏离本 profile，Template Gate FAIL（`HMW-TPL-GATE-02` / `HMW-TPL-GATE-03`）。
+
+### 稳定锚点集合（Template Gate 校验）
+
+- 页面：`data-page-type="hmw"`（`HMW-TPL-GATE-01`）
+- 陈述 4 字段：`hmw-situation` / `hmw-question` / `hmw-for` / `hmw-sothat`（`HMW-TPL-GATE-04`）
+- 质量 4 维度：`hmw-quality-preset` / `hmw-quality-vague` / `hmw-quality-moment` / `hmw-quality-tension`（`HMW-TPL-GATE-04`）
+- 想法 8 固定格：`hmw-idea-1` … `hmw-idea-8`（锚点不可缺失；未讨论格用 `data-state="placeholder"`）（`HMW-TPL-GATE-04`）
+- 对应关系：`hmw-coherence-map`（`HMW-TPL-GATE-04`）
+- 治理面板：`quality-panel` 含 `quality-version` / `quality-approval` / `quality-gaps` / `quality-risks` / `quality-caveat` 插槽（`HMW-TPL-GATE-05`）
+- 批注与数据：`local-notes`、`canvas-data`（`HMW-TPL-GATE-02`）
+- 共享主题 / 窄屏布局 / `@media print` 钩子存在，无外部网络依赖（`HMW-TPL-GATE-06`）
+
+### 隐藏检测（Template Gate 与内容/授权 Gate 共用）
+
+质量鉴别（`hmw-quality`）、想法对应（`hmw-coherence`）与治理面板（`quality-panel`）不得以任何方式隐藏。四种隐藏方式任一命中即 FAIL：
+
+1. `hidden` HTML 属性（`hidden` 属性存在）
+2. `style="display:none"` 或计算后 `display` 为 `none`
+3. `style="visibility:hidden"` 或计算后 `visibility` 为 `hidden`
+4. `class="hidden"`（约定 `.hidden { display:none; }`）
+
+### 参考样例
+
+- `internal/pratyaya-internal/docs/refs/how-might-we-canvas.html`：内部静态 worksheet（设计参考，仅作视觉/语义映射参考，非运行时模板事实源）。
+- `examples/canvas-html/hmw-canvas.html`：HMW 一等公民**版面与签名视觉事实源**（Template Gate 的比对模板）。
+
 ## 交付前自检
 
-同 MVL / GC：Python 静态审计（`audit_canvas_html.py --type hmw`）+ 浏览器视觉验收。两阶段都通过后才把状态改为 `rendered`。
+同 MVL / GC：Python 静态审计（`audit_canvas_html.py --type hmw`，正式交付追加 `--template examples/canvas-html/hmw-canvas.html` 触发双 Gate）+ 浏览器视觉验收。两阶段都通过后才把状态改为 `rendered`。

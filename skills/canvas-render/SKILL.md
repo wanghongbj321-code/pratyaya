@@ -147,15 +147,16 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 黄金圈:
 
 **所有画布**（MVL / 黄金圈 / 用户画像 / HMW / 未来新增类型）在可视化渲染时，都必须先在 `examples/canvas-html/` 目录中查找对应的画布示例，并**参照该示例生成最终画布**：
 
-1. **查找**：按 `canvas_type` 在 `examples/canvas-html/` 中匹配示例文件（允许语义别名，如 `golden-circle` → `goden-circle-canvas.html`、`persona` → `user-persona-canvas.html`）。当前示例映射：
+1. **查找**：按 `canvas_type` 在 `examples/canvas-html/` 中匹配示例文件（允许语义别名，如 `golden-circle` → `goden-circle-canvas.html`、`persona` → `user-persona-canvas.html`、`hmw` → `hmw-canvas.html`）。当前示例映射：
 
    | canvas_type | 示例文件 |
    |---|---|
    | `golden-circle` | `examples/canvas-html/goden-circle-canvas.html` |
    | `persona` | `examples/canvas-html/user-persona-canvas.html` |
-   | `mvl` / `hmw` / 其他 | 暂无示例（见第 3 条处理） |
+   | `hmw` | `examples/canvas-html/hmw-canvas.html` |
+   | `mvl` / 其他 | 暂无示例（见第 3 条处理） |
 
-2. **参照**：示例是最终画布的**版面与签名视觉事实源**——整体布局、签名图示（如 GC 三同心圆）、治理面板 / 质量面板位置、pratyaya 黑灰配色与交互骨架均须与示例一致；业务内容仍按对应 render-contract 映射到稳定锚点。
+2. **参照**：示例是最终画布的**版面与签名视觉事实源**——整体布局、签名图示（如 GC 三同心圆）、治理面板 / 质量面板位置、pratyaya 黑灰配色与交互骨架均须与示例一致；业务内容仍按对应 render-contract 映射到稳定锚点。HMW 正式输出必须按 `examples/canvas-html/hmw-canvas.html` 的版面与签名布局生成，并同时通过内容/授权审计和 Template Gate（`HMW-TPL-GATE-XX`，见 `scripts/audit_canvas_html.py --template`）。
 
 3. **未找到示例**：不阻断渲染，但必须在交付说明中显式标注"该画布类型暂无示例参照"，并在浏览器视觉验收时按 render-contract 自行核对版面；同时提示需要补建对应示例（建议命名 `{canvas_type}-canvas.html`）。
 
