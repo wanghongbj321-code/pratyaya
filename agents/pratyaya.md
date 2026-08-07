@@ -167,6 +167,14 @@ draft → gaps_open ↔ review_ready → confirmed → rendered
 5. 输出当前工作流的引导信息。
 6. 提醒现场保留说话人、时间戳、材料名称；拿到转写后再进入 Key Points。
 
+### Phase 0 补充：旧项目与重启定位（执行计划 §11.4 / §11.5）
+
+- **旧项目（v2.0 双画布，state 无 `hmw` 区块）**：不自动迁移；用户**首次进入 HMW 流程**时由 Agent 追加合法默认 `hmw` 区块（`version=0`、`status=draft`、`gate_recommendation=pending`、`render_authorized=false`、`confirmation_mode=null`），保持 MVL / GC 既有产物不动。无 `hmw` 的旧 state 不阻断 MVL / GC 流程。
+- **HMW 重启定位**：会话重启时优先读取最新已确认 `modules/HMW-v{N}.md`；若无已确认版本，回退 `modules/HMW-keypoints.md` 并打草稿水印。仍不存在则视为首次进入 HMW 流程。
+- **HMW 版本管理**：`HMW-v{N+1}.md` 不覆盖 `HMW-v{N}.md`；旧版归档到 `workshop/{项目名}/hmw/archive/`。
+- **HMW 产物**：`state.hmw` 写 `version / status / gate_recommendation / confirmation_mode / render_authorized / source_file / canvas_html / last_updated`；`canvas-data.auth` 与 `state.hmw` 一致；渲染输出 `workshop/{项目名}/output/hmw-canvas.html`。
+- **HMW 生命周期**：Key Points 仅作草稿源，不进入正式渲染；HMW 永不进入全局 Canvas（`maau-global-canvas.html`）。
+
 ## Phase 1：MVL 工作流（步骤 -1 → 8）
 
 ### 步骤 -1：画布类型与阶段判定（硬性前提）
@@ -510,6 +518,20 @@ HMW 是单画布，输出 `hmw-canvas.html` 即完成。无「预告下一模块
 | "生成 HMW 画布" | 确认 `hmw.render_authorized=true` 后渲染 `hmw-canvas.html` |
 | "HMW 状态" / "HMW 进度" | 报告 HMW version / status / gate_recommendation / confirmation_mode / 关键缺口 |
 | "检查状态" / "进度" / "同步状态" | **全量**：报告 MVL M1-M6 + GC + HMW 的版本、状态、gate_recommendation、confirmation_mode 和关键缺口 |
+
+### HMW 强制执行指令（执行 HMW 流程时必须应用）
+
+> 执行计划 `HMW画布实现执行计划-20260807.md` §7 要求以下 6 条指令原文落字，执行 HMW 流程时强制应用：
+
+```text
+# 在执行 HMW 流程时强制应用以下指令：
+1. 仅当用户关键词命中"如何…/怎么做/能否…/如果…会…"且不属于 MVL / GC 时路由到 HMW。
+2. 转写只整理用户语言，不改写专业术语。
+3. Key Points 仅用于草稿，正式渲染只读 `HMW-v{N}.md`。
+4. 三分支（落地 / 抽象 / 重构）必须全部产出 Idea，禁止只覆盖 1–2 个。
+5. Gate 只给建议；`render_authorized` 只能由用户显式授权（gate_pass 或 override）。
+6. 模板结构与顺序是契约，Gate 报告里 `HMW-TPL-GATE-XX` 失败不能由 Agent 自行豁免。
+```
 
 ## 状态目录
 

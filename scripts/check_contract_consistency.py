@@ -742,6 +742,13 @@ def check_gate_source(ctx: CheckContext) -> list[Finding]:
 # ---- GC 闸门 ---------------------------------------------------------------
 
 GC_GATE_ID_RE = re.compile(r"^GC-GATE-\d+$")
+HMW_GATE_ID_RE = re.compile(r"^HMW-GATE-\d+$")
+HMW_GATE_FILE = "skills/hmw-gate/references/HMW-gate.md"
+HMW_DISTILL_SKILL = "skills/hmw-distill/SKILL.md"
+HMW_GATE_SKILL = "skills/hmw-gate/SKILL.md"
+HMW_TEMPLATE_HTML = "examples/canvas-html/hmw-canvas.html"
+HMW_TPL_GATE_IDS = tuple(f"HMW-TPL-GATE-{n:02d}" for n in range(1, 7))
+HMW_IDEA_ANCHORS = tuple(f"hmw-idea-{n}" for n in range(1, 9))
 
 
 def _iter_gc_gate_path(path: Path) -> Path | None:
@@ -882,6 +889,274 @@ def check_gc_gate_table(ctx: CheckContext) -> list[Finding]:
                 where=GC_GATE_FILE,
                 message="GC-GATE ID 重复",
                 hint="每个 GC-GATE-xx ID 必须唯一",
+            )
+        )
+    return findings
+
+
+# ---- HMW -------------------------------------------------------------------
+
+
+def check_hmw_skill_paths(ctx: CheckContext) -> list[Finding]:
+    """执行计划 §8 规则 2：HMW Skill 路径存在且 frontmatter name 匹配。"""
+    findings: list[Finding] = []
+    for path, expected in (
+        (ctx.root / HMW_DISTILL_SKILL, "hmw-distill"),
+        (ctx.root / HMW_GATE_SKILL, "hmw-gate"),
+    ):
+        if not path.is_file():
+            findings.append(
+                Finding(
+                    code="HMW_SKILL_PATH",
+                    level="error",
+                    where=str(path.relative_to(ctx.root)),
+                    message=f"缺少 HMW Skill：{path.name}",
+                    hint="需按执行计划创建 hmw-distill / hmw-gate",
+                )
+            )
+            continue
+        text = read_text(path)
+        if not re.search(rf"^name:\s*{expected}\s*$", text, re.MULTILINE):
+            findings.append(
+                Finding(
+                    code="HMW_SKILL_NAME",
+                    level="error",
+                    where=str(path.relative_to(ctx.root)),
+                    message=f"frontmatter name 应为 {expected}",
+                    hint="SKILL.md frontmatter name 必须与目录名一致",
+                )
+            )
+    return findings
+
+
+def check_hmw_gate_table(ctx: CheckContext) -> list[Finding]:
+    """执行计划 §8 规则 3：HMW-gate.md 表格可解析，ID/分类/风险/来源合法。"""
+    findings: list[Finding] = []
+    p = ctx.root / HMW_GATE_FILE
+    if not p.is_file():
+        return [
+            Finding(
+                code="HMW_GATE_FILE_SET",
+                level="error",
+                where=HMW_GATE_FILE,
+                message="缺少 HMW 闸门策略文件 HMW-gate.md",
+                hint="需在 skills/hmw-gate/references/HMW-gate.md 写入 6 条放行条件",
+            )
+        ]
+    text = p.read_text(encoding="utf-8")
+    rows: list[dict[str, str]] = []
+    in_table = False
+    columns: list[str] = []
+    for line in text.splitlines():
+        if not line.lstrip().startswith("|"):
+            in_table = False
+            columns = []
+            continue
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if not cells:
+            continue
+        if all(set(c) <= {"-", ":", " "} for c in cells):
+            continue
+        if not in_table:
+            if cells and cells[0].strip().lower() == "id":
+                in_table = True
+                columns = [c.strip().strip("`").lower() for c in cells]
+            continue
+        first = cells[0].strip().strip("`")
+        if not HMW_GATE_ID_RE.match(first):
+            continue
+        row: dict[str, str] = {"id": first}
+        col_map = {"分类": "category", "风险等级": "risk", "来源": "source"}
+        for idx, value in enumerate(cells[1:], start=1):
+            if idx >= len(columns):
+                continue
+            header = columns[idx]
+            alias = col_map.get(header, header)
+            row[alias] = value.strip().strip("`")
+        for key in ("category", "risk", "source"):
+            if key not in row:
+                row[key] = ""
+        rows.append(row)
+    if not rows:
+        findings.append(
+            Finding(
+                code="HMW_GATE_TABLE",
+                level="error",
+                where=HMW_GATE_FILE,
+                message="HMW-gate.md 表格无数据行",
+                hint="表格需要 6 条放行条件",
+            )
+        )
+        return findings
+    ids_seen: list[str] = []
+    for row in rows:
+        gid = row.get("id", "")
+        cat = row.get("category", "")
+        risk = row.get("risk", "")
+        source = row.get("source", "")
+        if not HMW_GATE_ID_RE.match(gid):
+            findings.append(
+                Finding(
+                    code="HMW_GATE_ID_FORMAT",
+                    level="error",
+                    where=HMW_GATE_FILE,
+                    message=f"HMW-GATE ID 格式不符：{gid}（期望 HMW-GATE-NN）",
+                    hint="HMW-GATE ID 须为 HMW-GATE-01..HMW-GATE-06",
+                )
+            )
+        if cat not in ALLOWED_GATE_CATEGORIES:
+            findings.append(
+                Finding(
+                    code="HMW_GATE_CATEGORY",
+                    level="error",
+                    where=HMW_GATE_FILE,
+                    message=f"HMW-GATE {gid} 分类 {cat!r} 不在白名单 {ALLOWED_GATE_CATEGORIES}",
+                    hint="分类必须为 information_integrity 或 business_risk",
+                )
+            )
+        if risk not in ALLOWED_GATE_RISK_LEVELS:
+            findings.append(
+                Finding(
+                    code="HMW_GATE_RISK",
+                    level="error",
+                    where=HMW_GATE_FILE,
+                    message=f"HMW-GATE {gid} 风险等级 {risk!r} 不在白名单 {ALLOWED_GATE_RISK_LEVELS}",
+                    hint="风险等级必须为 low / medium / high",
+                )
+            )
+        if not source:
+            findings.append(
+                Finding(
+                    code="HMW_GATE_SOURCE",
+                    level="error",
+                    where=HMW_GATE_FILE,
+                    message=f"HMW-GATE {gid} 来源 ID 为空",
+                    hint="每条放行条件必须填写来源 ID",
+                )
+            )
+        ids_seen.append(gid)
+    if len(ids_seen) != 6:
+        findings.append(
+            Finding(
+                code="HMW_GATE_COUNT",
+                level="error",
+                where=HMW_GATE_FILE,
+                message=f"HMW-GATE 共 {len(ids_seen)} 条（期望 6 条）",
+                hint="HMW 闸门必须有 6 条放行条件：HMW-GATE-01..HMW-GATE-06",
+            )
+        )
+    if len(set(ids_seen)) != len(ids_seen):
+        findings.append(
+            Finding(
+                code="HMW_GATE_ID_UNIQUE",
+                level="error",
+                where=HMW_GATE_FILE,
+                message="HMW-GATE ID 重复",
+                hint="每个 HMW-GATE-xx ID 必须唯一",
+            )
+        )
+    return findings
+
+
+def check_hmw_template_and_anchors(ctx: CheckContext) -> list[Finding]:
+    """执行计划 §8 规则 5-6：HMW 模板存在且含 8 固定 idea 锚点；canvas-render 示例映射准确。"""
+    findings: list[Finding] = []
+    tpl = ctx.root / HMW_TEMPLATE_HTML
+    if not tpl.is_file():
+        findings.append(
+            Finding(
+                code="HMW_TEMPLATE_MISSING",
+                level="error",
+                where=HMW_TEMPLATE_HTML,
+                message="缺少 HMW 一等公民模板 hmw-canvas.html",
+                hint="需在 examples/canvas-html/hmw-canvas.html 创建 4 字段 + 8 想法格模板",
+            )
+        )
+    else:
+        text = tpl.read_text(encoding="utf-8")
+        missing_ideas = [a for a in HMW_IDEA_ANCHORS if a not in text]
+        if missing_ideas:
+            findings.append(
+                Finding(
+                    code="HMW_IDEA_ANCHORS",
+                    level="error",
+                    where=HMW_TEMPLATE_HTML,
+                    message=f"模板缺固定想法锚点：{', '.join(missing_ideas)}",
+                    hint="hmw-idea-1..hmw-idea-8 必须全部存在",
+                )
+            )
+        if "hmw-quality" not in text or "hmw-coherence" not in text or "quality-panel" not in text:
+            findings.append(
+                Finding(
+                    code="HMW_TPL_MODULES",
+                    level="error",
+                    where=HMW_TEMPLATE_HTML,
+                    message="模板必须含独立的 hmw-quality / hmw-coherence / quality-panel 模块",
+                    hint="质量鉴别、想法对应与治理面板不能只存在于 canvas-data",
+                )
+            )
+    # canvas-render 示例映射
+    render_skill = ctx.root / "skills/canvas-render/SKILL.md"
+    if render_skill.is_file():
+        render_text = read_text(render_skill)
+        if "examples/canvas-html/hmw-canvas.html" not in render_text:
+            findings.append(
+                Finding(
+                    code="HMW_RENDER_MAP",
+                    level="error",
+                    where="skills/canvas-render/SKILL.md",
+                    message="canvas-render 示例映射缺少 HMW 行",
+                    hint="在示例映射表补 `hmw` → examples/canvas-html/hmw-canvas.html",
+                )
+            )
+    return findings
+
+
+def check_hmw_id_naming(ctx: CheckContext) -> list[Finding]:
+    """执行计划 §8 规则 12：HMW 推断 ID 用 HMW-Inf-N，与想法种子 HMW-Idea-N 区分。"""
+    findings: list[Finding] = []
+    spec = ctx.root / "skills/hmw-distill/references/hmw-spec.md"
+    if spec.is_file():
+        text = read_text(spec)
+        if "HMW-Inf" not in text:
+            findings.append(
+                Finding(
+                    code="HMW_INF_ID",
+                    level="error",
+                    where=str(spec.relative_to(ctx.root)),
+                    message="hmw-spec.md 未定义推断 ID HMW-Inf-N",
+                    hint="推断 ID 必须为 HMW-Inf-N，与想法种子 HMW-Idea-N 严格区分",
+                )
+            )
+        if "HMW-Idea" not in text:
+            findings.append(
+                Finding(
+                    code="HMW_IDEA_ID",
+                    level="error",
+                    where=str(spec.relative_to(ctx.root)),
+                    message="hmw-spec.md 未定义想法种子 ID HMW-Idea-N",
+                    hint="想法种子 ID 必须为 HMW-Idea-N",
+                )
+            )
+    return findings
+
+
+def check_hmw_tpl_gate_ids(ctx: CheckContext) -> list[Finding]:
+    """执行计划 §8 规则 8：HMW-TPL-GATE-01..06 稳定 ID 定义且与 HMW-GATE-XX 区分。"""
+    findings: list[Finding] = []
+    render_skill = ctx.root / "skills/canvas-render/references/render-contract-hmw.md"
+    if not render_skill.is_file():
+        return findings
+    text = read_text(render_skill)
+    missing = [gid for gid in HMW_TPL_GATE_IDS if gid not in text]
+    if missing:
+        findings.append(
+            Finding(
+                code="HMW_TPL_GATE_UNIQUE",
+                level="error",
+                where="skills/canvas-render/references/render-contract-hmw.md",
+                message=f"render-contract-hmw.md 缺 Template Gate ID：{', '.join(missing)}",
+                hint="HMW-TPL-GATE-01..06 必须在模板结构 profile 中定义",
             )
         )
     return findings
@@ -1582,6 +1857,12 @@ RULES: tuple[Rule, ...] = (
     Rule("STATE_ENUM_SYNC", "B", "权威文档状态值在 5 态白名单内", check_state_enum),
     Rule("AUTH_FIELDS", "B", "schema 必含 4 个授权字段", check_auth_fields),
     Rule("OVERRIDE_CATEGORY", "B", "override_audit.items.category enum ⊆ {business_risk}", check_override_category),
+    # HMW（执行计划 §8）
+    Rule("HMW_SKILL_PATH", "A", "HMW Skill 路径存在且 frontmatter name 匹配", check_hmw_skill_paths),
+    Rule("HMW_GATE_FILE_SET", "A", "HMW 闸门策略文件 HMW-gate.md 存在且合法", check_hmw_gate_table),
+    Rule("HMW_TEMPLATE_MISSING", "A", "HMW 一等公民模板存在且含 8 想法锚点", check_hmw_template_and_anchors),
+    Rule("HMW_INF_ID", "A", "HMW 推断 ID 用 HMW-Inf-N（与 HMW-Idea-N 区分）", check_hmw_id_naming),
+    Rule("HMW_TPL_GATE_UNIQUE", "B", "HMW-TPL-GATE-01..06 稳定 ID 定义且与 HMW-GATE 区分", check_hmw_tpl_gate_ids),
 )
 
 
