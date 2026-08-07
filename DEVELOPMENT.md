@@ -129,7 +129,6 @@ Key Points → 提炼（确认包 v{N}.md）→ Gate（判定报告）→ 渲染
 | `python3 scripts/audit_canvas_html.py <html> --source <Mx-vN.md> --state <state.json>` | 审计正式模块 Canvas HTML |
 | `python3 scripts/audit_canvas_html.py <html> --source <GC-vN.md> --state <state.json> --type gc` | 审计黄金圈 Canvas HTML |
 | `python3 scripts/audit_canvas_html.py <html> --source <HMW-vN.md> --state <state.json> --type hmw --template examples/canvas-html/hmw-canvas.html` | 审计 HMW Canvas HTML（双 Gate：内容/授权 + Template） |
-| `python3 scripts/render_canvas.py --source <HMW-vN.md> --state <state.json> --type hmw --template examples/canvas-html/hmw-canvas.html --output <tmp>.html` | HMW 渲染 smoke 测试（确认包 → 模板骨架 → 临时 HTML） |
 | `python3 -m pytest tests/ -q` | 跑全部单元测试（schema / 契约 / 双 Gate 审计） |
 | `python3 scripts/check_contract_consistency.py` | 跑契约一致性检查器（开发辅助，**非 CI 强制**），输出规则化问题清单 |
 | `python3 scripts/check_contract_consistency.py --rules MANIFEST_JSON,GATE_TABLE_PARSE` | 只跑指定规则（逗号分隔 code） |
