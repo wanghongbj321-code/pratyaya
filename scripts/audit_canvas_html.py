@@ -31,6 +31,40 @@ GC_CONTRACT = (
 HMW_CONTRACT = (
     REPO_ROOT / "skills" / "canvas-render" / "references" / "render-contract-hmw.md"
 )
+HMW_TEMPLATE = (
+    REPO_ROOT / "examples" / "canvas-html" / "hmw-canvas.html"
+)
+HMW_TPL_MAIN_IDS = (
+    "hmw-statement",
+    "hmw-ideas",
+    "hmw-coherence",
+    "hmw-quality",
+    "quality-panel",
+    "local-notes",
+    "canvas-data",
+)
+HMW_TPL_STABLE_ANCHORS = (
+    "hmw-situation", "hmw-question", "hmw-for", "hmw-sothat",
+    "hmw-quality-preset", "hmw-quality-vague",
+    "hmw-quality-moment", "hmw-quality-tension",
+    "hmw-idea-1", "hmw-idea-2", "hmw-idea-3", "hmw-idea-4",
+    "hmw-idea-5", "hmw-idea-6", "hmw-idea-7", "hmw-idea-8",
+    "hmw-coherence-map",
+)
+HMW_TPL_GOVERN_IDS = (
+    "quality-version",
+    "quality-approval",
+    "quality-gaps",
+    "quality-risks",
+    "quality-caveat",
+)
+# 约定隐藏方式（Template Gate 与内容/授权 Gate 共用）：任一命中即视为隐藏
+HIDDEN_PATTERNS = (
+    r"hidden\b",  # hidden HTML 属性
+    r"display\s*:\s*none",  # style="display:none"
+    r"visibility\s*:\s*hidden",  # style="visibility:hidden"
+    r"class\s*=\s*[\"'][^\"']*\bhidden\b",  # class="hidden"
+)
 MODULE_MAIN_IDS = (
     "module-summary",
     "module-outputs",
@@ -281,6 +315,134 @@ def hmw_source_identity(path: Path) -> tuple[str | None, str | None]:
     first_lines = "\n".join(path.read_text(encoding="utf-8").splitlines()[:12])
     match = re.search(r"^#\s+HMW 确认包\s+(v\d+)\s*$", first_lines, re.MULTILINE)
     return ("HMW", match.group(1)) if match else (None, None)
+
+
+def load_hmw_template_profile(contract_path: Path) -> dict[str, list[str]]:
+    """从 render-contract-hmw.md 解析 HMW 模板结构 profile（一级模块顺序 + 稳定锚点）。
+
+    返回 {"main_order": [...], "stable_anchors": [...]}。
+    """
+    text = contract_path.read_text(encoding="utf-8")
+    main_order: list[str] = []
+    stable_anchors: list[str] = []
+
+    order_match = re.search(
+        r"### 一级模块必需性与 DOM 相对顺序（强制）\s*```text\s*(.*?)```",
+        text,
+        re.DOTALL,
+    )
+    if order_match:
+        for line in order_match.group(1).splitlines():
+            m = re.match(r"\s*→\s*([a-z][a-z0-9-]+)\s*$", line)
+            if m:
+                main_order.append(m.group(1))
+
+    anchor_match = re.search(
+        r"### 稳定锚点集合（Template Gate 校验）(.*?)(?=\n### |\Z)",
+        text,
+        re.DOTALL,
+    )
+    if anchor_match:
+        stable_anchors = re.findall(
+            r"`(hmw-[a-z0-9-]+|quality-[a-z0-9-]+|local-notes|canvas-data)`",
+            anchor_match.group(1),
+        )
+    return {"main_order": main_order, "stable_anchors": stable_anchors}
+
+
+def element_is_hidden(source: str, attrs: dict[str, str]) -> bool:
+    """判断元素是否以约定方式隐藏（hidden 属性 / display:none / visibility:hidden / class=hidden）。"""
+    if "hidden" in attrs:
+        return True
+    style = attrs.get("style", "")
+    if re.search(r"display\s*:\s*none", style, re.IGNORECASE):
+        return True
+    if re.search(r"visibility\s*:\s*hidden", style, re.IGNORECASE):
+        return True
+    classes = attrs.get("class", "").split()
+    if "hidden" in classes:
+        return True
+    return False
+
+
+def audit_template_gate(
+    html: HtmlSnapshot,
+    source: str,
+    template: HtmlSnapshot,
+    profile: dict[str, list[str]],
+) -> list[Finding]:
+    """Template Gate：比较成品与 HMW 模板的一级模块、稳定锚点与相对 DOM 顺序。
+
+    所有规则均为不可 override 的结构完整性检查（HMW-TPL-GATE-01..06）。
+    """
+    findings: list[Finding] = []
+    counts = Counter(html.ids)
+    main_order = profile.get("main_order") or list(HMW_TPL_MAIN_IDS)
+
+    # HMW-TPL-GATE-01: data-page-type 与模板一致
+    page_type = html.body_attrs.get("data-page-type")
+    tpl_page_type = template.body_attrs.get("data-page-type")
+    if page_type != tpl_page_type:
+        findings.append(
+            Finding(
+                "HMW-TPL-GATE-01",
+                f"data-page-type={page_type!r} 与模板 {tpl_page_type!r} 不一致",
+            )
+        )
+
+    # HMW-TPL-GATE-02: 一级模块全部存在且唯一
+    missing = [i for i in main_order if counts[i] == 0]
+    if missing:
+        findings.append(Finding("HMW-TPL-GATE-02", f"一级模块缺失: {', '.join(missing)}"))
+    duplicates = [i for i in main_order if counts[i] > 1]
+    if duplicates:
+        findings.append(Finding("HMW-TPL-GATE-02", f"一级模块重复: {', '.join(duplicates)}"))
+
+    # HMW-TPL-GATE-03: 一级模块 DOM 相对顺序符合模板 profile
+    actual = [i for i in html.ids if i in set(main_order)]
+    if actual != main_order:
+        findings.append(
+            Finding(
+                "HMW-TPL-GATE-03",
+                f"一级模块顺序偏离 profile: 期望 {main_order}, 实际 {actual}",
+            )
+        )
+
+    # HMW-TPL-GATE-04: 稳定锚点完整（4 字段 + 4 质量 + 8 想法 + coherence）
+    anchors = profile.get("stable_anchors") or list(HMW_TPL_STABLE_ANCHORS)
+    anchor_missing = [a for a in anchors if counts[a] == 0]
+    if anchor_missing:
+        findings.append(
+            Finding("HMW-TPL-GATE-04", f"稳定锚点缺失: {', '.join(anchor_missing)}")
+        )
+
+    # HMW-TPL-GATE-05: quality-panel 含版本/授权/缺口/风险/caveat 插槽
+    govern_missing = [i for i in HMW_TPL_GOVERN_IDS if counts[i] == 0]
+    if govern_missing:
+        findings.append(
+            Finding("HMW-TPL-GATE-05", f"quality-panel 缺插槽: {', '.join(govern_missing)}")
+        )
+
+    # HMW-TPL-GATE-06: 共享主题/窄屏/@media print 钩子 + 无外部依赖
+    if "@media print" not in source.lower():
+        findings.append(Finding("HMW-TPL-GATE-06", "缺少 @media print 钩子"))
+    if html.external_urls:
+        findings.append(
+            Finding("HMW-TPL-GATE-06", f"存在外部网络依赖: {', '.join(html.external_urls)}")
+        )
+
+    # 附加：质量鉴别 / 想法对应 / 治理面板不得隐藏（四态 hidden 检测）
+    for section_id in ("hmw-quality", "hmw-coherence", "quality-panel"):
+        attrs = html.attrs_by_id.get(section_id, {})
+        if counts[section_id] and element_is_hidden(source, attrs):
+            findings.append(
+                Finding(
+                    "HMW-TPL-GATE-06",
+                    f"{section_id} 被隐藏（hidden/display:none/visibility:hidden/class=hidden 任一）",
+                )
+            )
+
+    return findings
 
 
 def audit(
@@ -539,6 +701,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     _ = parser.add_argument("--state", type=Path, help="project state.json for auth/version checks")
     _ = parser.add_argument("--source", type=Path, help="confirmation package (Mx-vN.md or GC-vN.md)")
     _ = parser.add_argument(
+        "--template", type=Path,
+        help="HMW 示例模板路径（Template Gate 比对基准；HMW 正式交付必须传入）",
+    )
+    _ = parser.add_argument(
         "--type", dest="canvas_type", choices=("mvl", "gc", "hmw"), default="mvl",
         help="canvas type: mvl (default), gc (golden circle) or hmw",
     )
@@ -546,7 +712,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 
 def main(argv: list[str] | None = None) -> int:
-    """脚本入口：执行审计并打印结果，返回进程退出码。"""
+    """脚本入口：执行双 Gate 审计并打印结果，返回进程退出码。
+
+    - 内容/授权 Gate：所有画布类型（版本、事实源、授权、锚点、canvas-data、caveat、离线）。
+    - Template Gate：仅 HMW 且传入 --template 时运行（结构完整性，不可 override）。
+    """
     args = parse_args(argv)
     html_arg = cast(Path, args.html)
     canvas_type = cast(str, args.canvas_type)
@@ -560,11 +730,51 @@ def main(argv: list[str] | None = None) -> int:
         contract_arg = DEFAULT_CONTRACT
     state_arg = cast("Path | None", args.state)
     source_arg = cast("Path | None", args.source)
+    template_arg = cast("Path | None", args.template)
+
     findings = audit(html_arg, contract_arg, state_arg, source_arg, canvas_type)
-    if findings:
+    template_findings: list[Finding] = []
+
+    # Template Gate：仅 HMW 正式交付（--template 传入）时运行
+    if canvas_type == "hmw":
+        if template_arg is None:
+            if source_arg is not None or state_arg is not None:
+                template_findings.append(
+                    Finding("HMW-TPL-GATE-00", "HMW 正式交付必须传入 --template 示例模板路径")
+                )
+        else:
+            try:
+                template_source, template = parse_html(template_arg)
+                profile = load_hmw_template_profile(contract_arg)
+                if not profile["main_order"]:
+                    template_findings.append(
+                        Finding("HMW-TPL-GATE-00", "render-contract-hmw.md 模板 profile 无法解析")
+                    )
+                else:
+                    # 模板自审计：模板自身必须先通过结构检查（§6.2 步骤 13）
+                    template_findings.extend(
+                        audit_template_gate(template, template_source, template, profile)
+                    )
+                    # 成品 Template Gate（复用已解析的 html）
+                    html_source, html_snapshot = parse_html(html_arg)
+                    template_findings.extend(
+                        audit_template_gate(html_snapshot, html_source, template, profile)
+                    )
+            except (OSError, UnicodeError) as exc:
+                template_findings.append(Finding("HMW-TPL-GATE-00", f"模板读取失败: {exc}"))
+
+    content_fail = bool(findings)
+    template_fail = bool(template_findings)
+    if content_fail or template_fail:
         print(f"FAIL {html_arg}")
-        for finding in findings:
-            print(f"- [{finding.code}] {finding.message}")
+        if findings:
+            print("  [CONTENT/AUTH GATE]")
+            for finding in findings:
+                print(f"    - [{finding.code}] {finding.message}")
+        if template_findings:
+            print("  [TEMPLATE GATE]")
+            for finding in template_findings:
+                print(f"    - [{finding.code}] {finding.message}")
         return 1
     print(f"PASS {html_arg}")
     return 0

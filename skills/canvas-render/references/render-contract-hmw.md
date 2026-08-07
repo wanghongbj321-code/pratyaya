@@ -157,7 +157,7 @@ canvas-header
 - 页面：`data-page-type="hmw"`（`HMW-TPL-GATE-01`）
 - 陈述 4 字段：`hmw-situation` / `hmw-question` / `hmw-for` / `hmw-sothat`（`HMW-TPL-GATE-04`）
 - 质量 4 维度：`hmw-quality-preset` / `hmw-quality-vague` / `hmw-quality-moment` / `hmw-quality-tension`（`HMW-TPL-GATE-04`）
-- 想法 8 固定格：`hmw-idea-1` … `hmw-idea-8`（锚点不可缺失；未讨论格用 `data-state="placeholder"`）（`HMW-TPL-GATE-04`）
+- 想法 8 固定格：`hmw-idea-1` / `hmw-idea-2` / `hmw-idea-3` / `hmw-idea-4` / `hmw-idea-5` / `hmw-idea-6` / `hmw-idea-7` / `hmw-idea-8`（锚点不可缺失；未讨论格用 `data-state="placeholder"`）（`HMW-TPL-GATE-04`）
 - 对应关系：`hmw-coherence-map`（`HMW-TPL-GATE-04`）
 - 治理面板：`quality-panel` 含 `quality-version` / `quality-approval` / `quality-gaps` / `quality-risks` / `quality-caveat` 插槽（`HMW-TPL-GATE-05`）
 - 批注与数据：`local-notes`、`canvas-data`（`HMW-TPL-GATE-02`）
