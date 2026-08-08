@@ -4,7 +4,7 @@
 
 ## 1. 决策
 
-**单专家 + 多 Skill**：一个 `pratyaya` 专家包，调度十三个 Skill（`mvl-distill` / `gc-distill` / `hmw-distill` / `persona-distill` / `journey-distill` / `maau-synthesize` / `module-conclusion-gate` / `gc-gate` / `hmw-gate` / `persona-gate` / `journey-gate` / `faq-answer` / `canvas-render`）完成工作流与支持问答。每个 Skill 内部用最简、确定的契约约束 LLM 行为。五类画布（MVL / 黄金圈 / HMW / 用户画像 / 用户旅程）共享同一治理语义；MAAU 一次性综合路径是 MVL 全局画布的平行生成路径（`generation_path=transcript-direct`），不是新增画布类型；用户画像拥有独立提炼 Skill、门禁 Skill 与渲染契约，用户旅程拥有独立提炼 Skill、门禁 Skill 与渲染契约。`faq-answer` 是支持型 Skill，只回答使用、状态和异常解释问题，不进入画布状态机，不新增 Gate 或渲染契约。
+**单专家 + 多 Skill**：一个 `pratyaya` 专家包，调度十三个 Skill（`mvl-distill` / `gc-distill` / `hmw-distill` / `persona-distill` / `journey-distill` / `maau-synthesize` / `module-conclusion-gate` / `gc-gate` / `hmw-gate` / `persona-gate` / `journey-gate` / `faq-answer` / `canvas-render`）完成工作流与支持问答。每个 Skill 内部用最简、确定的契约约束 LLM 行为。五类画布（MVL / 黄金圈 / HMW / 用户画像 / 用户旅程）共享同一治理语义；MAAU 一次性综合路径是 MVL 全局画布的**默认生成路径**（`generation_path=transcript-direct`），M1-M6 六模块管线为**分步备选路径**，不是新增画布类型；用户画像拥有独立提炼 Skill、门禁 Skill 与渲染契约，用户旅程拥有独立提炼 Skill、门禁 Skill 与渲染契约。`faq-answer` 是支持型 Skill，只回答使用、状态和异常解释问题，不进入画布状态机，不新增 Gate 或渲染契约。
 
 **人仍是最终决策者**：Skill 之间通过显式的确认包（v{N}.md）交付，每一步可被工作坊组织者审阅和回退。
 
@@ -33,7 +33,7 @@
 四层流水线（画布类型决定分析层与治理层的具体 Skill）：
 
 - **原始材料层** — 转写稿、上下文快照、用户输入
-- **分析层**（mvl-distill / gc-distill / hmw-distill / persona-distill / journey-distill / maau-synthesize） — Key Points 概览（MVL：`Mx-keypoints.md`；非 MVL：`{GC|HMW|PERSONA|JOURNEY}-{slug}-keypoints.md`）+ 确认包（MVL：`Mx-v{N}.md`；非 MVL：`{GC|HMW|PERSONA|JOURNEY}-{slug}-v{N}.md`；MAAU：`MAAU-{slug}-v{N}.md`）+ 缺口 + 推断
+- **分析层**（mvl-distill / gc-distill / hmw-distill / persona-distill / journey-distill / maau-synthesize【默认综合提炼】） — Key Points 概览（MVL：`Mx-keypoints.md`；非 MVL：`{GC|HMW|PERSONA|JOURNEY}-{slug}-keypoints.md`）+ 确认包（MVL：`Mx-v{N}.md`；非 MVL：`{GC|HMW|PERSONA|JOURNEY}-{slug}-v{N}.md`；MAAU：`MAAU-{slug}-v{N}.md`）+ 缺口 + 推断
 - **治理层**（module-conclusion-gate / gc-gate / hmw-gate / persona-gate / journey-gate） — LLM Gate 评估（输出 `gate_recommendation` + `override_eligible` 建议，**不**写最终授权）+ 用户决策（主 Agent 写入 `render_authorized` + `confirmation_mode` + `override_audit`）；MAAU 路径使用 `module-conclusion-gate` 的 `references/MAAU-gate.md`（`MAAU-GATE-*` 独立 ID 空间）
 - **展示层**（canvas-render） — 模块 Canvas / 黄金圈 Canvas / HMW Canvas / Persona Canvas / Journey Canvas + 全局 Canvas + MAAU transcript-direct 实例页（`maau-global-canvas-{slug}.html`，只读 MAAU 源包）+ 管理层报告
 - **支持问答层**（faq-answer） — 使用说明、当前 group 状态解释、Gate / override / 渲染异常说明与下一步建议；只读，不写业务产物
@@ -65,7 +65,7 @@
 
 - **画布记录**：以确认包 Markdown 形式存储（MVL：`Mx-v{N}.md`；非 MVL：`{GC|HMW|PERSONA|JOURNEY}-{slug}-v{N}.md`），含业务内容节（MVL 第 1–11 节 / GC 第 6a 跨层一致性 / HMW 第 6a 质量鉴别、6b 想法种子、6c 想法↔HMW 对应 / Persona 9 基本信息 + 6 宫格 + 4 质量鉴别 / Journey 第 6 节阶段地图、6a 质量鉴别、6b 痛点与机会）+ 第 12 节"Gate 与用户决策"治理元数据，以及业务 5 字段（conclusions / gaps / inferences / alignment / evidence）+ 治理 4 字段（gate_recommendation / render_authorized / confirmation_mode / override_audit）
 - **Schema**：`schemas/state.schema.json`（v2.3，非强制参考，详见 [schemas/README.md](./schemas/README.md)）；实际数据源为各画布确认包 Markdown
-- **工作坊状态**：以 `workshop/{project_slug}/{group_id}/state.json` 形式存储，MVL 使用 `modules.M1`-`M6` 固定模块记录；非 MVL 使用 `golden_circle.{slug}` / `hmw.{slug}` / `persona.{slug}` / `journey.{slug}` instance map；MAAU 一次性综合使用 `maau.{slug}` instance map（`generation_path=transcript-direct`）；均记录各 instance 的状态/版本/审批；`project_slug` / `group_id` 为目录键，`project_name` 为显示名
+- **工作坊状态**：以 `workshop/{project_slug}/{group_id}/state.json` 形式存储，MVL 使用 `modules.M1`-`M6` 固定模块记录；非 MVL 使用 `golden_circle.{slug}` / `hmw.{slug}` / `persona.{slug}` / `journey.{slug}` instance map；MAAU 一次性综合（**默认路径**）使用 `maau.{slug}` instance map（`generation_path=transcript-direct`）；均记录各 instance 的状态/版本/审批；`project_slug` / `group_id` 为目录键，`project_name` 为显示名
 - **设计文档**：[DESIGN.md](./DESIGN.md)（本文档）
 
 ## 7. 关键不变量
@@ -81,7 +81,7 @@
 9. **跨模块 caveat 浮现**：`rendered` 模块若 `confirmation_mode=override`，下游模块若依赖被 override 的假设/未验证项，必须显式标注或回退重审；不在全局页静默修正
 10. **跨组禁读**：同项目不同 group 的 `state.json` 与产物禁止互相引用；主 Agent 一次只对一个 group 工作。只有项目级状态汇总可读取 `manifest.json` 或 enumerate 各 group state，且不得把其他 group 产物作为当前 group 输入。
 11. **非 MVL instance map**：GC / HMW / Persona / Journey 的正式状态、授权与渲染路径必须绑定 `slug`；新建 slug 必须为 kebab-case 且不得为 `default`。legacy `default` 只可由 v2.6 迁移产生，并需用户确认后继续使用或重命名。
-12. **MAAU 互斥**：MAAU 一次性综合（`generation_path=transcript-direct`，源包 `modules/MAAU-{slug}-v{N}.md`，实例页 `output/maau-global-canvas-{slug}.html`）与 M1-M6 Phase 2 全局汇总互斥——同一 group 的 MAAU 输出只能二选一，不得把 transcript-direct 实例混入 M1-M6 Phase 2 汇总。展示层只读 MAAU 源包（`modules/MAAU-{slug}-v{N}.md`），不得直接读转写渲染；不伪造 M1-M6 模块详情下钻。
+12. **MAAU 互斥**：MAAU 一次性综合（`generation_path=transcript-direct`，源包 `modules/MAAU-{slug}-v{N}.md`，实例页 `output/maau-global-canvas-{slug}.html`）与 M1-M6 Phase 2 全局汇总互斥——同一 group 的 MAAU 输出只能二选一，不得把 transcript-direct 实例混入 M1-M6 Phase 2 汇总。展示层只读 MAAU 源包（`modules/MAAU-{slug}-v{N}.md`），不得直接读转写渲染；不伪造 M1-M6 模块详情下钻。**MAAU 一次性综合为默认路径，互斥语义不受默认/备选语境影响（保持不变）。**
 
 ## 8. 为什么保留 HTML 草稿
 

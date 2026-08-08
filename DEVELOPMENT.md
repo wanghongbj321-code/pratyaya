@@ -121,14 +121,14 @@ Canvas 视觉系统由 `skills/canvas-render/visual-patterns/` 下的 Markdown �
 
 四阶段管线（数据源与闸门），五类画布共用，差异在命名空间：
 
-| 画布 | Key Points | 提炼 | Gate | 渲染 |
-|---|---|---|---|---|
-| MVL | `Mx-keypoints.md` | `Mx-v{N}.md` | `Mx-gate.md` | `module-N-canvas.html` / 全局 |
-| 黄金圈 | `GC-{slug}-keypoints.md` | `GC-{slug}-v{N}.md` | `GC-{slug}-gate-report-v{N}.md` | `gc-canvas-{slug}.html` / `gc-canvas.html` 索引 |
-| HMW | `HMW-{slug}-keypoints.md` | `HMW-{slug}-v{N}.md` | `HMW-{slug}-gate-report-v{N}.md` | `hmw-canvas-{slug}.html` / `hmw-canvas.html` 索引 |
-| Persona | `PERSONA-{slug}-keypoints.md` | `PERSONA-{slug}-v{N}.md` | `PERSONA-{slug}-gate-report-v{N}.md` | `persona-canvas-{slug}.html` / `persona-canvas.html` 索引 |
-| Journey | `JOURNEY-{slug}-keypoints.md` | `JOURNEY-{slug}-v{N}.md` | `JOURNEY-{slug}-gate-report-v{N}.md` | `journey-canvas-{slug}.html` / `journey-canvas.html` 索引 |
-| MAAU（transcript-direct） | 逐字稿存档 `maau-{slug}-raw.md` | `MAAU-{slug}-v{N}.md`（六板块源包） | `MAAU-{slug}-gate-report-v{N}.md` | `maau-global-canvas-{slug}.html` / 可选索引 |
+| 画布 | 路径 | Key Points | 提炼 | Gate | 渲染 |
+|---|---|---|---|---|---|
+| MAAU（transcript-direct） | **默认** | 逐字稿存档 `maau-{slug}-raw.md` | `MAAU-{slug}-v{N}.md`（六板块源包） | `MAAU-{slug}-gate-report-v{N}.md` | `maau-global-canvas-{slug}.html` / 可选索引 |
+| MVL（M1-M6） | **备选**（显式声明启用） | `Mx-keypoints.md` | `Mx-v{N}.md` | `Mx-gate.md` | `module-N-canvas.html` / 全局 |
+| 黄金圈 | — | `GC-{slug}-keypoints.md` | `GC-{slug}-v{N}.md` | `GC-{slug}-gate-report-v{N}.md` | `gc-canvas-{slug}.html` / `gc-canvas.html` 索引 |
+| HMW | — | `HMW-{slug}-keypoints.md` | `HMW-{slug}-v{N}.md` | `HMW-{slug}-gate-report-v{N}.md` | `hmw-canvas-{slug}.html` / `hmw-canvas.html` 索引 |
+| Persona | — | `PERSONA-{slug}-keypoints.md` | `PERSONA-{slug}-v{N}.md` | `PERSONA-{slug}-gate-report-v{N}.md` | `persona-canvas-{slug}.html` / `persona-canvas.html` 索引 |
+| Journey | — | `JOURNEY-{slug}-keypoints.md` | `JOURNEY-{slug}-v{N}.md` | `JOURNEY-{slug}-gate-report-v{N}.md` | `journey-canvas-{slug}.html` / `journey-canvas.html` 索引 |
 
 ```text
 Key Points → 提炼（确认包 v{N}.md）→ Gate（判定报告）→ 渲染（HTML）

@@ -1,11 +1,11 @@
 ---
 name: maau-synthesize
-description: 把「一次性逐字稿」综合提炼为 MAAU 六板块源包（MAAU-{slug}-v{N}.md），作为 M1-M6 管线的平行一次性路径。输入逐字稿（文本或文件路径）+ project_slug + group_id + instance_slug，输出六板块唯一事实源源包 Markdown。不编排主流程，不调用 Canvas 渲染，不执行闸门判定，不写 state。
+description: 把「一次性逐字稿」综合提炼为 MAAU 六板块源包（MAAU-{slug}-v{N}.md），作为默认路径；M1-M6 六模块管线为分步备选。输入逐字稿（文本或文件路径）+ project_slug + group_id + instance_slug，输出六板块唯一事实源源包 Markdown。不编排主流程，不调用 Canvas 渲染，不执行闸门判定，不写 state。
 ---
 
 # maau-synthesize：逐字稿 → MAAU 六板块源包
 
-把用户直接提供的一次性逐字稿综合提炼为 MAAU 全局画布的六板块源包（`modules/MAAU-{slug}-v{N}.md`），作为 M1–M6 六模块管线的**平行一次性路径**。本 Skill 只做**分析层综合提炼**，产出唯一事实源源包；Gate 评估、用户授权与 Canvas 渲染由主 Agent 编排到 `module-conclusion-gate` 与 `canvas-render`。
+把用户直接提供的一次性逐字稿综合提炼为 MAAU 全局画布的六板块源包（`modules/MAAU-{slug}-v{N}.md`），作为 **默认路径**（M1–M6 六模块管线为分步备选）。本 Skill 只做**分析层综合提炼**，产出唯一事实源源包；Gate 评估、用户授权与 Canvas 渲染由主 Agent 编排到 `module-conclusion-gate` 与 `canvas-render`。
 
 ## 定位
 

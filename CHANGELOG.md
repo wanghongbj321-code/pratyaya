@@ -3,6 +3,20 @@
 > 本文件记录 Pratyaya 专家的正式版本变更。
 > 完整 SemVer 与架构说明见 [`README.md`](./README.md) / [`DESIGN.md`](./DESIGN.md) / [docs/MVL-整体架构设计.md](./docs/MVL-整体架构设计.md)。
 
+## [v2.8.0] - 2026-08-08
+
+### 变更（MINOR）
+
+- MAAU 一次性综合（transcript-direct）提升为**默认生成路径**；M1-M6 六模块管线调整为**显式备选路径**。
+- 主 Agent 步骤 -1 路由默认翻转：收到逐字稿且未声明画布类型时默认进入 MAAU 综合（Phase 3）。
+- 文档（README / user-guide / DESIGN / DEVELOPMENT）同步默认/备选语境；`maau-synthesize` Skill 措辞同步。
+- 互斥语义保持不变：MAAU transcript-direct 与 M1-M6 Phase 2 全局汇总同一 group 二选一。
+
+### 兼容性
+
+- `state.schema.json` 顶层 `schema_version` 保持 `"2.3"`，无字段变化。
+- M1-M6 六模块管线保留原样可用，仅需显式声明触发；`module-conclusion-gate` / `canvas-render` / 各 distill / gate / `faq-answer` Skill 无契约变化。
+
 ## [v2.7.0] - 2026-08-08
 
 ### 新增功能（MINOR）

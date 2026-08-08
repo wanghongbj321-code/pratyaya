@@ -1,7 +1,7 @@
 {
   "name": "pratyaya",
-  "version": "2.7.0",
-  "description": "pratyaya: AI-native multi-canvas workshop platform — supports MVL (Minimum Verifiable Loop), Golden Circle, HMW (How Might We), User Persona and User Journey canvases. Distills traceable conclusions; blocks incomplete modules; obtains versioned human confirmation; renders Canvas HTML.",
+  "version": "2.8.0",
+  "description": "pratyaya: AI-native multi-canvas workshop platform — MAAU one-shot synthesis (default path, transcript-direct) plus MVL M1-M6 step-by-step pipeline (explicit fallback), Golden Circle, HMW (How Might We), User Persona and User Journey canvases. Distills traceable conclusions; blocks incomplete modules; obtains versioned human confirmation; renders Canvas HTML.",
   "agents": [
     "./agents/pratyaya.md"
   ],
@@ -31,8 +31,8 @@
     "zh": "Pratyaya Canvas Expert"
   },
   "displayDescription": {
-    "en": "AI-native multi-canvas workshop platform: MVL (Minimum Verifiable Loop) + Golden Circle + HMW (How Might We) + User Persona + User Journey canvases.",
-    "zh": "AI 原生多画布工作坊平台，支持 MVL、黄金圈、HMW、用户画像与用户旅程五类画布"
+    "en": "AI-native multi-canvas workshop platform: MAAU one-shot synthesis (default) + MVL M1-M6 (explicit fallback) + Golden Circle + HMW (How Might We) + User Persona + User Journey canvases.",
+    "zh": "AI 原生多画布平台：MAAU 综合（默认）为主，MVL 六模块为显式备选，支持五类画布"
   },
   "avatar": "avatars/expert.png",
   "categoryId": "12-IndustryConsultant",
@@ -61,8 +61,8 @@
       "zh": "请介绍一下你能做什么，引导我开始"
     },
     {
-      "en": "Here is the MVL workshop transcript. Distill it, audit the core value, and prepare the conclusion review pack.",
-      "zh": "这是 MVL 讨论转写，请提炼内容、审核核心价值并生成结论确认包"
+      "en": "Here is a one-shot transcript / meeting material. Synthesize the MAAU global canvas source package (default path).",
+      "zh": "这是一次性逐字稿/会议材料，请综合生成 MAAU 全局画布源包（默认路径）"
     },
     {
       "en": "I ran into a usage issue. Please explain it from the current project state and suggest the next step.",
