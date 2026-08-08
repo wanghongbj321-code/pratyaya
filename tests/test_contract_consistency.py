@@ -155,7 +155,7 @@ class TestSkillRegistration:
             assert skill in plugin["skills"], f"plugin.json missing FAQ skill {skill}"
         for skill in EXPECTED_MAAU_SKILLS:
             assert skill in plugin["skills"], f"plugin.json missing MAAU skill {skill}"
-        assert plugin["version"] == "2.7.0"
+        assert plugin["version"] == "2.8.0"
 
     def test_plugin_registers_persona_skills(self) -> None:
         plugin = json.loads(read(REPO_ROOT / ".codebuddy-plugin" / "plugin.json"))
@@ -215,8 +215,8 @@ class TestPluginMetadata:
 
         assert len(quick_prompts) == 3
         assert quick_prompts[0] == plugin["defaultInitPrompt"]
-        assert "MVL" in quick_prompts[1]["zh"]
-        assert "MVL" in quick_prompts[1]["en"]
+        assert "MAAU" in quick_prompts[1]["en"]
+        assert "MAAU" in quick_prompts[1]["zh"]
         assert "使用问题" in quick_prompts[2]["zh"]
         assert "usage issue" in quick_prompts[2]["en"]
 
@@ -560,6 +560,59 @@ class TestJourneyAgentContract:
             "render-contract-journey.md",
         ):
             assert phrase in agent
+
+
+class TestMaaDefaultPathContract:
+    """v2.8.0 MINOR：锁定主 Agent 步骤 -1 路由默认翻转文本契约。
+
+    MAAU 一次性综合为默认路径；M1-M6 六模块为显式备选；收到逐字稿且未声明画布类型
+    时默认进入 MAAU；缺 project_slug / group_id / instance_slug 时先收集元数据且不写 state。
+    同时断言旧冲突文案（重复 Persona 路由 / 多个"不明确"追问 / 旧默认兜底）已删除。
+    """
+
+    def test_agent_routes_untyped_transcript_to_maau_default(self) -> None:
+        agent = read(REPO_ROOT / "agents" / "pratyaya.md")
+        # 默认分支：提供逐字稿/材料且未声明画布类型 → 默认 MAAU
+        assert "**默认分支**" in agent
+        assert "默认进入 MAAU 一次性综合路径（Phase 3）" in agent
+        assert "**默认首选 MAAU 一次性综合；M1-M6 为显式备选**" in agent
+
+    def test_agent_requires_explicit_m1_m6_selection(self) -> None:
+        agent = read(REPO_ROOT / "agents" / "pratyaya.md")
+        assert "**M1-M6 六模块管线（显式备选，Phase 1）**" in agent
+        assert "MVL 六模块管线" in agent
+        assert "显式备选" in agent
+
+    def test_agent_collects_metadata_before_writing_state_for_maau(self) -> None:
+        agent = read(REPO_ROOT / "agents" / "pratyaya.md")
+        # 元数据前置收集：缺 project_slug/group_id/instance_slug 时先收集，确认前不写 state
+        assert "**元数据前置收集**" in agent
+        assert "`project_slug` / `group_id` / `instance_slug`" in agent
+        assert "确认前不创建目录、不写 `state.json`、不存档逐字稿、不调用 `maau-synthesize`" in agent
+
+    def test_agent_removed_legacy_default_routing_text(self) -> None:
+        agent = read(REPO_ROOT / "agents" / "pratyaya.md")
+        # 旧默认兜底（无画布类型信息时先问 MVL/画布类型和阶段）必须已删除
+        assert "如果用户的消息没有画布类型信息" not in agent
+        # 旧"平行一次性综合路径"措辞必须已删除
+        assert "平行一次性综合路径" not in agent
+        # 重复的"不明确"追问（两个不明确块）应已合并为单一分支
+        assert agent.count("不明确") <= 3
+
+    def test_agent_has_single_persona_route(self) -> None:
+        agent = read(REPO_ROOT / "agents" / "pratyaya.md")
+        # 重复 Persona 判定应已合并为单一入口（此前存在两处"用户画像/PERSONA"路由）
+        persona_route = agent.count('用户提到 "用户画像"')
+        assert persona_route == 1, f"Persona 判定应只有 1 处，实际 {persona_route} 处"
+
+    def test_plugin_json_version_and_entry_context(self) -> None:
+        plugin = json.loads(read(REPO_ROOT / ".codebuddy-plugin" / "plugin.json"))
+        assert plugin["version"] == "2.8.0"
+        # 默认入口语境：displayDescription 与 quickPrompts 已包含 MAAU 默认入口
+        assert "MAAU" in plugin["displayDescription"]["zh"]
+        assert "MAAU" in plugin["displayDescription"]["en"]
+        assert "MAAU" in plugin["quickPrompts"][1]["zh"]
+        assert "MAAU" in plugin["quickPrompts"][1]["en"]
 
 
 class TestConfirmationPackageSections:

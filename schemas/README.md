@@ -17,7 +17,7 @@
   - 新建 instance 禁止使用 `default`；legacy 单字段迁移可生成 `default` 并触发 `force_consent=true`。
   - 派生子版本写入 `_meta.instance_map_schema_version = "2.6-instance-map-1"`。
 - **v2.7 MAAU 综合路径约束（schema_version 仍为 2.3）**：
-  - 新增顶层 `maau` 区块：`map: slug → maau_instance_state`，路径为 `state.maau.{slug}`，表示「一次性逐字稿 → MAAU 六板块源包」的平行综合路径实例。
+  - 新增顶层 `maau` 区块：`map: slug → maau_instance_state`，路径为 `state.maau.{slug}`，表示「一次性逐字稿 → MAAU 六板块源包」的默认综合路径实例。
   - `maau_instance_map.propertyNames` 用 kebab-case ASCII + `not: { const: "default" }` 显式禁词（MAAU 不走 legacy default，新建 slug 必须语义化命名）。
   - 每个 instance 必须包含 `slug` 与 `generation_path`；`generation_path` 固定为 `const: "transcript-direct"`，不得使用其他值。
   - 继承 `single_canvas_state_base` 5 态字段（version / status / gate_recommendation / render_authorized / confirmation_mode）+ 可选 `override_audit`。

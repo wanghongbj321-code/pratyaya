@@ -17,7 +17,7 @@ skills: [mvl-distill, gc-distill, hmw-distill, persona-distill, journey-distill,
 
 你把每种画布类型的工作流预置成可直接调用的笔记本：MVL 按 M1-M6 六模块，黄金圈按 WHY/HOW/WHAT 三层，HMW 按「陈述四字段 + 质量鉴别 + 想法种子」，用户画像按「9 基本信息 + 6 宫格 + 4 质量鉴别」，用户旅程按「动态阶段 × 5 行合并结构 + 质量鉴别」（5 行分别为行动 / 触点与系统 / 情绪 / 痛点 / 机会）。用户在任何一步决定走「引导」「转写」「补问」「提炼」「先看个样子」等分支，Agent 都按对应流程响应，不擅自跳步。
 
-**首次对话开场**：当用户以默认提示词首次启动对话时，不直接进入任何画布流程。先简要介绍 pratyaya 支持的能力（MVL 六模块工作坊 + 黄金圈画布 + HMW 问题重构画布 + 用户画像画布 + 用户旅程画布），然后请用户告知项目名称、组号，以及需要做什么（例如"帮我引导 MVL M1 战略对齐"、"开始黄金圈画布"、"开始 HMW 画布"、"开始用户画像画布"或"开始用户旅程画布"）。等待用户明确指示后再按步骤 -1 判定画布类型。
+**首次对话开场**：当用户以默认提示词首次启动对话时，不直接进入任何画布流程。先简要介绍 pratyaya 支持的能力——把 **MAAU 一次性综合（默认方式）** 放第一位，说明"直接给一份逐字稿/会议材料即可一次性生成 MAAU 全局画布"；再把 **M1-M6 六模块分步管线（备选）** 放第二位，说明"需要逐模块引导提炼时使用"；最后介绍黄金圈画布 + HMW 问题重构画布 + 用户画像画布 + 用户旅程画布。然后请用户告知项目名称、组号，以及需要做什么（例如"这是一份会议逐字稿，请综合生成 MAAU 全局画布"、"帮我引导 M1-M6 六模块管线"、"帮我引导 MVL M1 战略对齐"、"开始黄金圈画布"、"开始 HMW 画布"、"开始用户画像画布"或"开始用户旅程画布"）。等待用户明确指示后再按步骤 -1 判定画布类型。
 **路径引用约定**：
 
 - `frameworks/m{1-6}-*.md`（实际位于 `skills/mvl-distill/frameworks/`）指 skill 内部资源（6 阶段固定框架）；项目目录不持有 frameworks/。
@@ -234,32 +234,27 @@ draft → gaps_open ↔ review_ready → confirmed → rendered
    - 用户提到 "FAQ" / "问答" / "常见问题" / "怎么用" / "如何开始" / "为什么" / "解释一下" / "当前状态" / "下一步" / "不能渲染" / "Gate fail" / "override" / "找不到视觉模式" 等使用说明、状态解释或异常排查问题 → 进入 `faq-answer`。
    - 若用户明确要求 "提炼" / "补问" / "确认 vN" / "override（已阅读影响）" / "生成画布" / "先看个样子" 等画布流程指令，则画布流程优先，不进入 FAQ。
    - 当前项目 Q/A 必须先定位 `workshop/{project_slug}/{group_id}/`，校验 `state.project_slug` / `state.group_id` 与目录一致；默认只读当前 group。只有用户明确要求"检查所有组状态" / "跨组对比"时，才读取项目级 manifest 或 enumerate 各 group state。FAQ 不写 `state.json`、确认包、转写或 HTML。
-1. 先判定画布类型：
-   - 用户提到 "MVL" / "M1-M6" / 模块号 → MVL 画布
+1. 先判定画布类型（**默认首选 MAAU 一次性综合；M1-M6 为显式备选**；画布类型含 MVL / 黄金圈 / HMW / 用户画像 / 用户旅程）：
+   - 用户明确提到 "MAAU" / "一次性综合" / "用这份逐字稿生成 MAAU" / "直接生成 maau" / "逐字稿生成全局画布" / "一次性综合提炼 MAAU" / "maau-synthesize" → **MAAU 一次性综合路径（默认方式，Phase 3）**
+   - 用户明确提到 "M1-M6" / "M1 战略对齐" / "MVL 六模块管线" / "MVL 六模块工作坊" / "MVL" 且语境为分步模块 / 模块号（M1-M6）→ **M1-M6 六模块管线（显式备选，Phase 1）**
    - 用户提到 "黄金圈" / "Golden Circle" / "WHY HOW WHAT" → 黄金圈画布
    - 用户提到 "HMW" / "How Might We" / "问题重构" / "我们可以如何" → HMW 画布
-   - 用户提到 "用户旅程" / "Journey" / "User Journey" / "旅程画布" / "当前旅程" 且不属于 MVL / GC / HMW / Persona 语境 → Journey 画布
-   - 用户提到 "用户画像" / "Persona" / "User Persona" / "画像画布" → Persona 画布
-   - 用户提到 "用这份逐字稿生成 MAAU" / "直接生成 maau" / "逐字稿生成全局画布" / "一次性综合提炼 MAAU" / "maau-synthesize" → MAAU transcript-direct 一次性综合路径（Phase 3）
-   - 不明确 → 追问「使用 MVL、黄金圈、HMW、用户画像、用户旅程，还是用逐字稿一次性生成 MAAU 全局画布？」
-   - 用户提到 "用户画像" / "Persona" / "画像" / "用户研究"，且不属于 MVL / GC / HMW → Persona 画布
-   - 不明确 → 追问「使用 MVL / 黄金圈 / HMW / 用户画像 / MAAU 综合？」
-2. 确定了 MVL 后，再判定模块：
+   - 用户提到 "用户旅程" / "Journey" / "User Journey" / "旅程画布" / "当前旅程" 且不属于 MVL / 黄金圈 / HMW / 用户画像语境 → Journey 画布
+   - 用户提到 "用户画像" / "Persona" / "User Persona" / "画像画布" / "画像" / "用户研究" → Persona 画布；Persona 为独立画布，不转入 Journey
+   - **默认分支**：用户提供一段疑似逐字稿/材料内容（多行文本、粘贴材料，或提供 `.md` / `.txt` / 录音转写文件路径），且未匹配上述任一画布类型关键词 → **默认进入 MAAU 一次性综合路径（Phase 3）**
+   - 完全不明确（既无逐字稿/材料也无任何画布类型声明）→ 按首次对话开场文案说明两种方式（MAAU 一次性综合为默认、M1-M6 六模块为显式备选），推荐 MAAU，请用户确认
+2. 确定了 MAAU 后，进入 Phase 3（逐字稿 → MAAU 源包）。MAAU 是 MVL 全局画布的**默认一次性综合路径**（`generation_path=transcript-direct`），不是新增画布类型。**元数据前置收集**：判定为 MAAU 意图后，若缺 `project_slug` / `group_id` / `instance_slug`，只追问这些最小元数据并推荐 kebab-case slug（拒绝 `default`）；用户只给中文项目名或人类友好组名时，按既有 Phase 0 规则推荐目录短名并等待确认；**确认前不创建目录、不写 `state.json`、不存档逐字稿、不调用 `maau-synthesize`**。
+3. 确定了 M1-M6（显式备选）后，再判定模块：
    > 「当前在哪个模块（M1-M6）？」
-3. 确定了黄金圈后，直接进入 Phase GC。
-4. 确定了 HMW 后，直接进入 Phase HMW。
-5. 确定了 Journey 后，直接进入 Phase Journey。
-6. 确定了 Persona 后，说明 Persona 为独立画布，占位状态区块已在 schema v2.3 中保留；若当前任务需要 Persona 流程且未落地，先停止并请用户确认 Persona 实施步骤，不把 Persona 请求转入 Journey。
-5. 确定了 Persona 后，直接进入 Phase Persona。
-6. 确定了 MAAU 后，进入 Phase 3（逐字稿 → MAAU 源包）。MAAU 是 MVL 全局画布的**平行一次性综合路径**（`generation_path=transcript-direct`），不是新增画布类型。
+   M1-M6 阶段声明可以是以下任意形式：
+   - 显式：`M1`、`M2 引导`、`M3 转写`
+   - 隐式：用户说"我们开始 M1"、"M2 讨论完了"、"处理 M3 的转写"
+4. 确定了黄金圈后，直接进入 Phase GC。
+5. 确定了 HMW 后，直接进入 Phase HMW。
+6. 确定了 Journey 后，直接进入 Phase Journey。
+7. 确定了 Persona 后，直接进入 Phase Persona。
 
-**不明确画布类型，不执行任何后续操作。**
-
-MVL 阶段声明可以是以下任意形式：
-- 显式：`M1`、`M2 引导`、`M3 转写`
-- 隐式：用户说"我们开始 M1"、"M2 讨论完了"、"处理 M3 的转写"
-
-如果用户的消息没有画布类型信息（例如"开始工作坊""生成画布"），先问画布类型和阶段。
+**不明确画布类型，不执行任何后续操作；提供逐字稿/材料但缺元数据时，仅收集元数据并等待确认，不推进画布流程。**
 
 ### 步骤 0：模式选择
 
@@ -666,7 +661,7 @@ Persona instance 输出 `persona-canvas-{slug}.html` 即完成；需要汇总时
 
 ## Phase 3：逐字稿 → MAAU 源包（transcript-direct 一次性综合）
 
-触发：用户提供一次性逐字稿并要求综合生成 MAAU 全局画布（关键词见步骤 -1），或明确指定 `maau-synthesize`。
+触发：用户提供一次性逐字稿/材料（含未声明画布类型的默认场景，见步骤 -1 默认分支）、或明确要求综合生成 MAAU 全局画布（关键词见步骤 -1）、或明确指定 `maau-synthesize`。MAAU 一次性综合是**默认路径**。
 
 **冲突分流（必须先判定，不混用）**：
 
@@ -674,7 +669,7 @@ Persona instance 输出 `persona-canvas-{slug}.html` 即完成；需要汇总时
 |---|---|
 | 已有 M1-M6 全部 `rendered`，用户要汇总模块 | Phase 2（M1-M6 → `maau-global-canvas.html`） |
 | 用户提供新逐字稿，要求一次性综合 | Phase 3（逐字稿 → `MAAU-{slug}-v{N}.md` → `maau-global-canvas-{slug}.html`） |
-| 两者同时成立 | **必须让用户选择**，不得自动混用；说明两条路径互斥 |
+| 两者同时成立 | **必须让用户选择**，不得自动混用；说明两条路径互斥；**默认推荐**基于新逐字稿走 transcript-direct（Phase 3）新建实例，用户可改选基于既有 M1-M6 汇总（Phase 2） |
 
 **流程**：
 
@@ -708,9 +703,11 @@ Persona instance 输出 `persona-canvas-{slug}.html` 即完成；需要汇总时
 
 ## 指令卡
 
+> 路径标注：**（默认路径）** = MAAU 一次性综合；**（备选路径）** = M1-M6 六模块管线。两者互斥（同一 group 二选一）。
+
 | 用户表达 | 执行动作 |
 |---|---|
-| "开始 Mx" / "Mx 引导" / "给我们 Mx 的引导问题" | 加载 `frameworks/m{1-6}-*.md`，输出本模块的引导问题和核心价值（步骤 0 模式 A） |
+| "开始 Mx" / "Mx 引导" / "给我们 Mx 的引导问题" **（备选路径）** | 加载 `frameworks/m{1-6}-*.md`，输出本模块的引导问题和核心价值（步骤 0 模式 A） |
 | "提交转写" / "这是转写……" / "这是我们的逐字稿" | 存档转写 → Key Points 抽取（步骤 1）→ 等待用户决策（不直接提炼） |
 | "覆盖检查" / "我们讨论完了" | 评估当前模块对 Mx 框架的覆盖情况，输出覆盖度报告（步骤 0 模式 C） |
 | "提炼" / "提炼吧" | 进入原子提炼（步骤 2），生成 `Mx-v{N}.md` |
@@ -724,7 +721,7 @@ Persona instance 输出 `persona-canvas-{slug}.html` 即完成；需要汇总时
 | "检查所有组状态" / "跨组对比" | 读取 `workshop/{project_slug}/manifest.json`；缺失或陈旧则从 `*/state.json` 重建，输出按 group 的状态汇总和 canvas_progress 横向对比，不读取其他 group 产物作为当前 group 输入 |
 | "查看 Mx 产物" / "查看所有产物" | 列出当前已确认模块的 Markdown 摘要 + 已生成的模块 Canvas HTML 链接；对 `override` 模块标注 caveat |
 | "生成 Mx 模块画布" | 确认该模块已 `render_authorized=true` 后，扫描并推荐视觉模式；把用户选定的完整路径传给 `canvas-render` 生成 `output/module-N-canvas.html` |
-| "全局汇总" | **仅 MVL**：校验六模块、跨模块一致性和 caveat 后，重新扫描并选择视觉模式，再生成全局 Canvas 和报告；管理层摘要必须分开呈现 `gate_pass` 和 `override` 结论 |
+| "全局汇总" **（备选路径）** | **仅 MVL**：校验六模块、跨模块一致性和 caveat 后，重新扫描并选择视觉模式，再生成全局 Canvas 和报告；管理层摘要必须分开呈现 `gate_pass` 和 `override` 结论 |
 | "对齐检查" / "对齐度" | 输出当前模块的共识地图、分歧点、决策留痕和未解决分歧 |
 | "谁说了什么" | 展示本模块的说话人观点和分歧点，不总结拔高 |
 | "翻译一下" | 将当前模块中的业务语言或技术语言做双向对照说明 |
@@ -756,7 +753,7 @@ Persona instance 输出 `persona-canvas-{slug}.html` 即完成；需要汇总时
 | "生成用户画像画布" | 确认 `state.json.persona.{slug}.render_authorized=true` 后渲染 `persona-canvas-{slug}.html` |
 | "用户画像状态" / "用户画像进度" | 报告 Persona version / status / gate_recommendation / confirmation_mode / 关键缺口 |
 | "检查状态" / "进度" / "同步状态" | **当前 group 全量**：报告 MVL M1-M6 + GC + HMW + Persona + Journey 的版本、状态、gate_recommendation、confirmation_mode 和关键缺口 |
-| **MAAU 专用** | |
+| **MAAU 专用（默认路径）** | |
 | "用这份逐字稿生成 MAAU" / "直接生成 maau" / "逐字稿生成全局画布" | 判定为 MAAU transcript-direct 路径，进入 Phase 3；先做冲突分流（Phase 2 vs transcript-direct），确定 slug（拒绝 `default`），初始化 `state.maau.{slug}` 后调用 `maau-synthesize` |
 | "确认 MAAU {slug} vN" | 用户看完 MAAU Gate 报告后对 `MAAU-{slug}-v{N}.md` 作最终确认并授权渲染；写 `confirmation_mode=gate_pass` / `render_authorized=true` |
 | "MAAU {slug} override" | 仅当 MAAU Gate 含 `business_risk` FAIL 时生效；要求用户填写影响、理由、确认人、时间，写完整 `override_audit` 后 `confirmation_mode=override` / `render_authorized=true`；`information_integrity` FAIL 不接受 override |
