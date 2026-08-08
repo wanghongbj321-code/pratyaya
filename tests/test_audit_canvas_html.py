@@ -35,7 +35,7 @@ import pytest
 REPO_ROOT = Path(__file__).resolve().parents[1]
 AUDIT = REPO_ROOT / "skills" / "canvas-render" / "scripts" / "audit_canvas_html.py"
 TEMPLATE = REPO_ROOT / "skills" / "canvas-render" / "examples" / "hmw-canvas.html"
-PACKAGE = REPO_ROOT / "examples" / "modules" / "HMW-v1.md"
+PACKAGE = REPO_ROOT / "examples" / "modules" / "HMW-retail-demo-v1.md"
 STATE = REPO_ROOT / "examples" / "state-v2-sample.json"
 PYTHON = sys.executable
 
@@ -230,13 +230,13 @@ class TestRegressions:
             [PYTHON, str(AUDIT), "--help"], capture_output=True, text=True
         )
         assert result.returncode == 0
-        assert "--type {mvl,gc,hmw,journey}" in result.stdout or "mvl" in result.stdout
+        assert "--type {mvl,gc,hmw,persona,journey}" in result.stdout or "mvl" in result.stdout
 
     def test_9b_hmw_without_template_on_formal_fails(self) -> None:
         """HMW 正式交付缺 --template 应 FAIL（HMW-TPL-GATE-00）。"""
         result = subprocess.run(
             [PYTHON, str(AUDIT), str(TEMPLATE), "--type", "hmw",
-             "--source", str(PACKAGE), "--state", str(STATE)],
+             "--source", str(PACKAGE), "--state", str(STATE), "--instance", "default"],
             capture_output=True, text=True,
         )
         assert result.returncode != 0

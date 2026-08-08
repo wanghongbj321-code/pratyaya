@@ -1,18 +1,20 @@
 ---
 name: persona-distill
-description: 把用户画像工作坊讨论产物提炼为 Markdown 资产。先做 Key Points 概览抽取（生成 9 基本信息、6 宫格、4 质量鉴别维度的覆盖度评估），再按用户决策做原子提炼，输出唯一事实源 PERSONA-v{N}.md 确认包。收到 Persona Key Points 抽取请求、原子提炼请求、确认包生成请求时使用。
+description: 把用户画像工作坊讨论产物提炼为 Markdown 资产。先做 Key Points 概览抽取（生成 9 基本信息、6 宫格、4 质量鉴别维度的覆盖度评估），再按用户决策做原子提炼，输出唯一事实源 PERSONA-{slug}-v{N}.md 确认包。收到 Persona Key Points 抽取请求、原子提炼请求、确认包生成请求时使用。
 ---
 
 # persona-distill：用户画像提炼
 
-把 Key Points 概览与 Persona 框架结合，形成经过对齐的、唯一事实源的确认包（`modules/PERSONA-v{N}.md`）。完成标准是"经业务方、产品方、运营方各自动用都能成立的用户画像资产"，不是"看起来内容丰富"。
+把 Key Points 概览与 Persona 框架结合，形成经过对齐的、唯一事实源的确认包（`modules/PERSONA-{slug}-v{N}.md`）。完成标准是"经业务方、产品方、运营方各自动用都能成立的用户画像资产"，不是"看起来内容丰富"。
+
+所有 Persona 产物必须绑定 instance slug。slug 由主 Agent 提供，必须为 kebab-case，并与 `state.persona.{slug}.slug` 一致；本 Skill 不自动生成 `default` slug。
 
 ## 定位
 
 **分步提炼流程**：本 skill 是 Pratyaya Canvas Expert 的"Persona 提炼与确认包生成"能力。完整的 Persona 工作流由主 agent 编排（见 `agents/pratyaya.md`），本 skill 不编排主流程，只在被调用时执行以下两个独立 Stage：
 
-- **Stage 1：Key Points 抽取** — 输入转写，输出 `modules/PERSONA-keypoints.md`（讨论地图，30 秒浏览）。
-- **Stage 2：原子提炼** — 输入转写 + Key Points + Persona 框架，输出 `modules/PERSONA-v{N}.md`（确认包，唯一事实源）。
+- **Stage 1：Key Points 抽取** — 输入转写，输出 `modules/PERSONA-{slug}-keypoints.md`（讨论地图，30 秒浏览）。
+- **Stage 2：原子提炼** — 输入转写 + Key Points + Persona 框架，输出 `modules/PERSONA-{slug}-v{N}.md`（确认包，唯一事实源）。
 
 调用顺序由主 agent 决定，本 skill 不强制。本 skill 不调用 Canvas 渲染、不执行闸门判定。
 
@@ -38,8 +40,8 @@ description: 把用户画像工作坊讨论产物提炼为 Markdown 资产。先
 
 | Stage | 输入 | 输出 |
 |---|---|---|
-| Stage 1：Key Points 抽取 | 逐字稿（文本或文件路径） | `modules/PERSONA-keypoints.md`（第 N 轮） |
-| Stage 2：原子提炼 | 逐字稿 + Key Points + Persona 框架 | `modules/PERSONA-v{N}.md`（确认包，唯一事实源） |
+| Stage 1：Key Points 抽取 | 逐字稿（文本或文件路径） | `modules/PERSONA-{slug}-keypoints.md`（第 N 轮） |
+| Stage 2：原子提炼 | 逐字稿 + Key Points + Persona 框架 | `modules/PERSONA-{slug}-v{N}.md`（确认包，唯一事实源） |
 
 Stage 1 与 Stage 2 可独立调用，不强制串联。但 Stage 2 的输入依赖 Stage 1 的 Key Points。
 
@@ -51,9 +53,9 @@ Stage 2 完成后交给主 agent 触发闸门（`persona-gate`），不直接进
 
 **触发**：主 agent Persona 工作流对应步骤，输入为逐字稿（已由主 agent 存档为 `transcripts/persona-TXX-raw.md`）。
 
-**输出**：`modules/PERSONA-keypoints.md`，结构如下。
+**输出**：`modules/PERSONA-{slug}-keypoints.md`，结构如下。
 
-### PERSONA-keypoints.md 模板
+### PERSONA-{slug}-keypoints.md 模板
 
 ```markdown
 # Persona Key Points（第 X 轮）
@@ -129,19 +131,19 @@ Stage 2 完成后交给主 agent 触发闸门（`persona-gate`），不直接进
 
 ## Stage 2：原子提炼
 
-**目标**：将 Key Points 转化为经过对齐的、唯一事实源的确认包 `PERSONA-v{N}.md`。
+**目标**：将 Key Points 转化为经过对齐的、唯一事实源的确认包 `PERSONA-{slug}-v{N}.md`。
 
 **触发**：主 agent Persona 工作流对应步骤（用户回复"提炼"后调用）。
 
 **输入**：
 
 - 逐字稿（已存档）
-- `modules/PERSONA-keypoints.md`（Stage 1 产物）
+- `modules/PERSONA-{slug}-keypoints.md`（Stage 1 产物）
 - `frameworks/persona-frame.md`（Persona 框架）
 
-**输出**：`modules/PERSONA-v{N}.md`，全 Markdown，结构如下。
+**输出**：`modules/PERSONA-{slug}-v{N}.md`，全 Markdown，结构如下。
 
-### PERSONA-v{N}.md 确认包模板
+### PERSONA-{slug}-v{N}.md 确认包模板
 
 ```markdown
 # User Persona 确认包 v{N}
@@ -313,7 +315,7 @@ v{N}
 - 缺口必须说明"缺失影响"，不能只说"信息不足"。
 - 不调用 Canvas 渲染、不执行闸门判定。
 - 状态写入由主 agent 在"确认 vN"后执行，不在本 skill 内部。
-- 版本号管理：升版时 vN → vN+1，旧版本归档为 `modules/PERSONA-v{N}.md.previous`，不清空。
+- 版本号管理：升版时 vN → vN+1，旧版本归档为 `modules/PERSONA-{slug}-v{N}.md.previous`，不清空。
 - **缺口表必须含 `状态` 列**（`open` / `closed` / `accepted_risk`），其中 `accepted_risk` 由确认人在确认环节写入，不由本 skill 写入。
 - **元数据必须包含**：`画布类型` / `版本` / `状态` / `生成时间`（ISO 8601 datetime，skill 生成时自动写入） / `确认人` / `确认人角色（可选）` / `确认时间`（用户填写）。
 - **第 6a 节"质量鉴别"**是 Canvas 渲染质量鉴别 section 的唯一事实源，必须在 Stage 2 中基于转写证据填写，不得留空或写泛化描述。
@@ -330,13 +332,13 @@ v{N}
 
 **规则**：
 
-- **业务内容变化**：必须 `version + 1` + `gate_recommendation=pending` + `render_authorized=false` + `confirmation_mode=null` + 清空当前版本 `override_audit`；旧版本确认包归档为 `PERSONA-v{N}.md.previous`，旧版第 12 节审计随旧版保留。
+- **业务内容变化**：必须 `version + 1` + `gate_recommendation=pending` + `render_authorized=false` + `confirmation_mode=null` + 清空当前版本 `override_audit`；旧版本确认包归档为 `PERSONA-{slug}-v{N}.md.previous`，旧版第 12 节审计随旧版保留。
 - **治理元数据写入**（仅第 12 节）：不触发升版；Gate 报告摘要与用户授权属于当前版本的元数据补充。
-- **历史版本审计**不得清空：旧版 `PERSONA-v{N}.md.previous` 的第 12 节（包括历史 override 审计）必须完整保留，用于追溯。
+- **历史版本审计**不得清空：旧版 `PERSONA-{slug}-v{N}.md.previous` 的第 12 节（包括历史 override 审计）必须完整保留，用于追溯。
 
 ## 元数据生成时间字段
 
-- `生成时间`（`PERSONA-v{N}.md` 顶部）由本 skill 在 Stage 2 生成确认包时按系统真实时间写入（ISO 8601 datetime）。
+- `生成时间`（`PERSONA-{slug}-v{N}.md` 顶部）由本 skill 在 Stage 2 生成确认包时按系统真实时间写入（ISO 8601 datetime）。
 - `确认时间`由主 Agent 在用户决策后写入；不得使用 skill 生成时间。
 - 禁止在文件名、文档标题、报告标识中编造时间戳。
 

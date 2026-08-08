@@ -37,7 +37,7 @@ def test_persona_gate_is_advisory_and_uses_confirmed_override_boundary() -> None
 def test_agent_has_persona_route_initialization_and_phase() -> None:
     text = AGENT.read_text(encoding="utf-8")
 
-    for required in ("Phase Persona", "PERSONA-gaps.md", "state.json.persona", "MVL / 黄金圈 / HMW / 用户画像"):
+    for required in ("Phase Persona", "PERSONA-{slug}-gaps.md", "state.json.persona.{slug}", "MVL / 黄金圈 / HMW / 用户画像"):
         assert required in text, f"agent missing Persona workflow element: {required}"
 
 

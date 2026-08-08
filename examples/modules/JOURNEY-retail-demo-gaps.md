@@ -1,7 +1,7 @@
 # User Journey 补问清单
 
 > 画布类型：User Journey（用户旅程）画布
-> 关联确认包：JOURNEY-v1.md
+> 关联确认包：JOURNEY-retail-demo-v1.md
 > 状态：示例
 
 | 缺口 ID | 等级 | 缺失判断点 | 缺失影响 | 最少补问 |

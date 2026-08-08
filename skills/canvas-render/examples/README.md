@@ -7,8 +7,13 @@
 | canvas_type | 示例文件 | 说明 |
 |---|---|---|
 | `golden-circle` | [`goden-circle-canvas.html`](./goden-circle-canvas.html) | 黄金圈单画布：WHY / HOW / WHAT 三层 + 跨层一致性 |
+| `golden-circle`（索引） | [`gc-canvas-index.html`](./gc-canvas-index.html) | 黄金圈 instance 索引页 |
+| `hmw` | [`hmw-canvas.html`](./hmw-canvas.html) | HMW：陈述四字段 + 质量鉴别 + 想法种子 |
+| `hmw`（索引） | [`hmw-canvas-index.html`](./hmw-canvas-index.html) | HMW instance 索引页 |
 | `persona` | [`user-persona-canvas.html`](./user-persona-canvas.html) | 用户画像：9 基本信息 + 6 宫格 |
+| `persona`（索引） | [`persona-canvas-index.html`](./persona-canvas-index.html) | 用户画像 instance 索引页 |
 | `journey` | [`user-journey-canvas.html`](./user-journey-canvas.html) | 用户旅程：动态阶段 × 5 行合并结构 + 断点摘要 + 质量鉴别 |
+| `journey`（索引） | [`journey-canvas-index.html`](./journey-canvas-index.html) | 用户旅程 instance 索引页 |
 | `mvl` | [`mvl-canvas/maau-global-canvas.html`](./mvl-canvas/maau-global-canvas.html) | MVL 全局 Canvas：六大板块汇总视图 |
 | `mvl`（模块详情） | [`mvl-canvas/module-1-canvas.html`](./mvl-canvas/module-1-canvas.html) … [`module-6-canvas.html`](./mvl-canvas/module-6-canvas.html) | MVL 六个模块各自的详情 Canvas |
 

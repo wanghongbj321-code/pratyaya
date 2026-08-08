@@ -144,7 +144,7 @@ class TestSkillRegistration:
             assert skill in plugin["skills"], f"plugin.json missing Persona skill {skill}"
         for skill in EXPECTED_FAQ_SKILLS:
             assert skill in plugin["skills"], f"plugin.json missing FAQ skill {skill}"
-        assert plugin["version"] == "2.5.0"
+        assert plugin["version"] == "2.6.0"
 
     def test_plugin_registers_persona_skills(self) -> None:
         plugin = json.loads(read(REPO_ROOT / ".codebuddy-plugin" / "plugin.json"))
@@ -231,8 +231,8 @@ class TestHmwSkillFiles:
 
     def test_distill_output_paths_fixed(self) -> None:
         text = read(DISTILL / "SKILL.md")
-        assert "modules/HMW-keypoints.md" in text
-        assert "modules/HMW-v{N}.md" in text
+        assert "modules/HMW-{slug}-keypoints.md" in text
+        assert "modules/HMW-{slug}-v{N}.md" in text
 
 
 class TestJourneySkillFiles:
@@ -260,9 +260,9 @@ class TestJourneySkillFiles:
 
     def test_distill_output_paths_fixed(self) -> None:
         text = read(JOURNEY_DISTILL / "SKILL.md")
-        assert "modules/JOURNEY-keypoints.md" in text
-        assert "modules/JOURNEY-v{N}.md" in text
-        assert "modules/JOURNEY-gaps.md" in text
+        assert "modules/JOURNEY-{slug}-keypoints.md" in text
+        assert "modules/JOURNEY-{slug}-v{N}.md" in text
+        assert "modules/JOURNEY-{slug}-gaps.md" in text
 
     def test_distill_keeps_five_row_dynamic_stage_contract(self) -> None:
         """v2.3.2 步骤 1：frame / spec 必须列出 5 行新字段（pain_point / opportunity）。"""
@@ -318,9 +318,9 @@ class TestJourneyRenderContract:
         skill = read(SKILLS / "canvas-render" / "SKILL.md")
         assert "`journey`" in skill
         assert "render-contract-journey.md" in skill
-        assert "modules/JOURNEY-v{N}.md" in skill
-        assert "modules/JOURNEY-keypoints.md" in skill
-        assert "output/journey-canvas.html" in skill
+        assert "modules/JOURNEY-{slug}-v{N}.md" in skill
+        assert "modules/JOURNEY-{slug}-keypoints.md" in skill
+        assert "output/journey-canvas-{slug}.html" in skill
         assert "skills/canvas-render/examples/user-journey-canvas.html" in skill
 
     def test_journey_render_contract_exists_and_defines_dynamic_stages(self) -> None:
@@ -405,34 +405,34 @@ class TestJourneyRenderContract:
 
 class TestJourneyExamples:
     def test_journey_example_files_exist(self) -> None:
-        for fname in ("JOURNEY-keypoints.md", "JOURNEY-v1.md", "JOURNEY-gaps.md"):
+        for fname in ("JOURNEY-retail-demo-keypoints.md", "JOURNEY-retail-demo-v1.md", "JOURNEY-retail-demo-gaps.md"):
             assert (EXAMPLES / fname).exists(), f"missing examples/modules/{fname}"
 
     def test_journey_example_package_has_required_content(self) -> None:
         """v2.3.2 步骤 1：示例包 6b 节标题为「痛点与机会」；阶段表列含「痛点/机会」。"""
-        package = read(EXAMPLES / "JOURNEY-v1.md")
+        package = read(EXAMPLES / "JOURNEY-retail-demo-v1.md")
         for section in REQUIRED_JOURNEY_PACKAGE_SECTIONS:
-            assert section in package, f"JOURNEY-v1.md 缺章节 {section}"
+            assert section in package, f"JOURNEY-retail-demo-v1.md 缺章节 {section}"
         for token in ("JOURNEY-C", "JOURNEY-G", "JOURNEY-Inf", "JOURNEY-F"):
-            assert token in package, f"JOURNEY-v1.md 缺 ID 前缀 {token}"
+            assert token in package, f"JOURNEY-retail-demo-v1.md 缺 ID 前缀 {token}"
         for key in ("user_perspective", "business_outcome", "pain_opportunity_visible", "no_solution_bias"):
-            assert key in package, f"JOURNEY-v1.md 缺质量维度 {key}"
+            assert key in package, f"JOURNEY-retail-demo-v1.md 缺质量维度 {key}"
         for forbidden in JOURNEY_LEGACY_FORBIDDEN_DIMENSIONS:
             assert forbidden not in package, (
-                f"JOURNEY-v1.md 不应再包含旧质量维度 {forbidden}（应使用 pain_opportunity_visible）"
+                f"JOURNEY-retail-demo-v1.md 不应再包含旧质量维度 {forbidden}（应使用 pain_opportunity_visible）"
             )
         stage_rows = re.findall(r"^\|\s*[1-9]\d*\s*\|", package, re.MULTILINE)
         assert len(stage_rows) >= 3
         # 主表必须列标题包含 痛点 与 机会（取代"等待与返工"与"风险节点"）
         main_table = package.split("### 6. 阶段地图", 1)[1].split("###", 1)[0]
-        assert "痛点" in main_table, "JOURNEY-v1.md §6 阶段表缺「痛点」列"
-        assert "机会" in main_table, "JOURNEY-v1.md §6 阶段表缺「机会」列"
+        assert "痛点" in main_table, "JOURNEY-retail-demo-v1.md §6 阶段表缺「痛点」列"
+        assert "机会" in main_table, "JOURNEY-retail-demo-v1.md §6 阶段表缺「机会」列"
         # 6b 节必须有 F04 这种 inferred_from_pain_point 机会
-        assert "inferred_from_pain_point" in package, "JOURNEY-v1.md 缺 inferred_from_pain_point 机会"
+        assert "inferred_from_pain_point" in package, "JOURNEY-retail-demo-v1.md 缺 inferred_from_pain_point 机会"
 
     def test_journey_gaps_example_reuses_package_gap_ids(self) -> None:
-        package = read(EXAMPLES / "JOURNEY-v1.md")
-        gaps = read(EXAMPLES / "JOURNEY-gaps.md")
+        package = read(EXAMPLES / "JOURNEY-retail-demo-v1.md")
+        gaps = read(EXAMPLES / "JOURNEY-retail-demo-gaps.md")
         package_gap_ids = set(re.findall(r"JOURNEY-G\d+", package))
         gaps_ids = set(re.findall(r"JOURNEY-G\d+", gaps))
         assert gaps_ids
@@ -458,7 +458,7 @@ class TestJourneyAgentContract:
             "不修改 MVL M2 的 `09-user-journey.md`",
             "不写 `state.modules.M2`",
             "主表忠实保留 5 行合并结构",
-            "正式渲染只读 `JOURNEY-v{N}.md`",
+            "正式渲染只读 `JOURNEY-{slug}-v{N}.md`",
             "质量鉴别必须在正式画布外显",
             "只有 `business_risk` 可 override",
             "`information_integrity` 不可 override",
@@ -470,10 +470,10 @@ class TestJourneyAgentContract:
         for phrase in (
             "state.journey",
             "transcripts/journey-TXX-raw.md",
-            "modules/JOURNEY-keypoints.md",
-            "modules/JOURNEY-v{N}.md",
-            "modules/JOURNEY-gaps.md",
-            "output/journey-canvas.html",
+            "modules/JOURNEY-{slug}-keypoints.md",
+            "modules/JOURNEY-{slug}-v{N}.md",
+            "modules/JOURNEY-{slug}-gaps.md",
+            "output/journey-canvas-{slug}.html",
             "--type journey",
             "--template skills/canvas-render/examples/user-journey-canvas.html",
             "render-contract-journey.md",
@@ -488,9 +488,9 @@ class TestConfirmationPackageSections:
             assert section in template, f"SKILL.md template missing section: {section}"
 
     def test_example_package_contains_required_sections(self) -> None:
-        example = read(EXAMPLES / "HMW-v1.md")
+        example = read(EXAMPLES / "HMW-retail-demo-v1.md")
         for section in REQUIRED_PACKAGE_SECTIONS:
-            assert section in example, f"HMW-v1.md missing section: {section}"
+            assert section in example, f"HMW-retail-demo-v1.md missing section: {section}"
 
 
 class TestIdNaming:
@@ -510,7 +510,7 @@ class TestIdNaming:
         assert "HMW-Inf-N" in gate
 
     def test_example_uses_inference_id_not_idea_confusion(self) -> None:
-        example = read(EXAMPLES / "HMW-v1.md")
+        example = read(EXAMPLES / "HMW-retail-demo-v1.md")
         assert re.search(r"HMW-Inf\d+", example), "示例推断 ID 必须用 HMW-Inf-N"
         assert re.search(r"HMW-Idea-\d+", example), "示例想法种子 ID 必须用 HMW-Idea-N"
 

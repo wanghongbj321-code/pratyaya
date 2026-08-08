@@ -7,12 +7,20 @@ from pathlib import Path
 
 import jsonschema
 
+from scripts.legacy_migration_v2_6_0 import migrate_state_to_instance_map
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 FIXTURES = REPO_ROOT / "tests" / "fixtures" / "project_manifest"
 
 
 def load_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def load_schema_ready_state(path: Path) -> dict:
+    state = load_json(path)
+    migrated, _ = migrate_state_to_instance_map(state)
+    return migrated
 
 
 def validation_errors(instance: dict, schema: dict) -> list[str]:
@@ -66,7 +74,7 @@ def test_group_meta_schema_accepts_human_friendly_fields() -> None:
 
 def test_state_schema_requires_project_slug_and_normalized_group_id() -> None:
     schema = load_json(REPO_ROOT / "schemas" / "state.schema.json")
-    state = load_json(REPO_ROOT / "tests" / "fixtures" / "state" / "hmw-draft.json")
+    state = load_schema_ready_state(REPO_ROOT / "tests" / "fixtures" / "state" / "hmw-draft.json")
 
     assert validation_errors(state, schema) == []
 
@@ -78,7 +86,7 @@ def test_state_schema_requires_project_slug_and_normalized_group_id() -> None:
 
 def test_state_schema_rejects_non_strict_kebab_case_slugs() -> None:
     schema = load_json(REPO_ROOT / "schemas" / "state.schema.json")
-    state = load_json(REPO_ROOT / "tests" / "fixtures" / "state" / "hmw-draft.json")
+    state = load_schema_ready_state(REPO_ROOT / "tests" / "fixtures" / "state" / "hmw-draft.json")
 
     state["project_slug"] = "project-"
     state["group_id"] = "group--1"

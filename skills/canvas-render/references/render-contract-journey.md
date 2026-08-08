@@ -5,12 +5,12 @@
 > **v2.3.2 PATCH**：将 5 行主表第 4 / 5 行文本重命名为「痛点 / 机会」，将 6b 节标题重命名为「痛点与机会」，将 6a 质量维度键 / 6b 锚点 / 5 行 DOM 子锚点 / stage data 字段统一为新字段体系（旧字段体系已退场）。
 > 字段映射说明见文末"v2.3.0 → v2.3.2 字段映射"表。
 
-数据源是 `modules/JOURNEY-v{N}.md`（确认包，Markdown）；`canvas-render` 读取后按本契约把确认包内容映射到稳定 HTML 锚点。渲染层只做展示映射，不重新判断质量、不生成新结论、不补写确认包中不存在的业务判断。
+数据源是 `modules/JOURNEY-{slug}-v{N}.md`（确认包，Markdown）；`canvas-render` 读取后按本契约把确认包内容映射到稳定 HTML 锚点。渲染层只做展示映射，不重新判断质量、不生成新结论、不补写确认包中不存在的业务判断。`{slug}` 必须等于 `state.json.journey.{slug}.slug`，正式输出为 `output/journey-canvas-{slug}.html`；`output/journey-canvas.html` 仅作为多 instance 索引页。
 
 ## A. Journey Canvas 页面结构
 
 ```html
-<body data-mode="formal" data-page-type="journey" data-version="1">
+<body data-mode="formal" data-page-type="journey" data-version="1" data-instance="{slug}">
   <header id="canvas-header">
     <h1>User Journey 用户旅程画布</h1>
     <div id="canvas-headline">一句话结论</div>
@@ -44,6 +44,7 @@
   <script type="application/json" id="canvas-data">
     {
       "version": "v{N}",
+      "instance": "{slug}",
       "canvas_type": "journey",
       "sections": { ...确认包 section 映射... },
       "stages": [
@@ -97,9 +98,9 @@
 - Journey 主表忠实保留 5 行合并结构：行动 / 触点与系统 / 情绪 / 痛点 / 机会。
 - 阶段根据确认包第 6 节动态生成，不固定 7 个槽位。
 - 不得新增第 6 行承载质量鉴别；质量鉴别是正式画布外显治理区块。
-- `journey-quality-*` 的数据源为 `JOURNEY-v{N}.md` 第 6a 节，不由 `canvas-render` 推断。
+- `journey-quality-*` 的数据源为 `JOURNEY-{slug}-v{N}.md` 第 6a 节，不由 `canvas-render` 推断。
 - 痛点 / 机会条目内容已并入 5 行主表的第 4 / 5 行（`pain-point` / `opportunity` 子锚点），不再以独立 section 形式承载；保留 JOURNEY-Fxx 条目 ID 用于 6b 节登记与质量鉴别 `pain_opportunity_visible` 维度判定。
-- Journey Canvas 是单画布，不存在子模块详情页和全局汇总页，不扫描 MVL 跨模块 caveat。
+- Journey Canvas 是独立一等公民画布；同一 group 可有多个 instance，不存在子模块详情页和全局汇总页，不扫描 MVL 跨模块 caveat。
 
 ## C. 动态阶段规则
 
@@ -121,7 +122,7 @@ action → touchpoint-system → emotion → pain-point → opportunity
    - `emotion`
    - `pain_point`
    - `opportunity`
-7. 阶段顺序与 `JOURNEY-v{N}.md` 第 6 节表格行顺序一致。
+7. 阶段顺序与 `JOURNEY-{slug}-v{N}.md` 第 6 节表格行顺序一致。
 
 ## 共享结构
 
@@ -130,7 +131,7 @@ action → touchpoint-system → emotion → pain-point → opportunity
 - `data-page-type` 为 `journey`。
 - 无 `data-module` 属性。
 - `canvas-data.module` 字段替换为 `canvas-data.canvas_type: "journey"`。
-- `canvas-data.auth` 字段对应 `state.json.journey`。
+- `canvas-data.auth` 字段对应 `state.json.journey.{slug}`，且 `canvas-data.instance` 必须等于同一 `{slug}`。
 
 ### Caveat 状态标识
 
@@ -151,7 +152,8 @@ action → touchpoint-system → emotion → pain-point → opportunity
 - 输出页的 `data-version` 必须等于确认包版本 `v{N}`。
 - 页面内嵌数据必须来自同一次读取。
 - 结论 ID、缺口 ID、推断 ID 与确认包 Markdown 保持一致。
-- `canvas-data` 的 `auth` 字段必须与 `state.json.journey` 完全一致。
+- `canvas-data` 的 `auth` 字段必须与 `state.json.journey.{slug}` 完全一致。
+- `body[data-instance]`、`canvas-data.instance`、确认包文件名 `{slug}` 与 `state.json.journey.{slug}.slug` 必须一致。
 - `canvas-data.quality` 必须包含 4 个质量维度：`user_perspective` / `business_outcome` / `pain_opportunity_visible` / `no_solution_bias`。
 
 ## 打印与管理层阅读
@@ -162,7 +164,7 @@ action → touchpoint-system → emotion → pain-point → opportunity
 
 ## 模板结构 Profile（Template Gate 判定依据）
 
-Template Gate（`audit_canvas_html.py --template skills/canvas-render/examples/user-journey-canvas.html --type journey`）以本 profile 为判定依据，比较成品与模板的一级模块、稳定锚点、动态阶段锚点规则与相对 DOM 顺序。**不比较**占位文本、业务文案、动态版本值或 CSS 逐字符内容。
+Template Gate（`audit_canvas_html.py --template skills/canvas-render/examples/user-journey-canvas.html --type journey --instance {slug}`）以本 profile 为判定依据，比较成品与模板的一级模块、稳定锚点、动态阶段锚点规则与相对 DOM 顺序。**不比较**占位文本、业务文案、动态版本值或 CSS 逐字符内容。
 
 ### 一级模块必需性与 DOM 相对顺序（强制）
 
@@ -223,7 +225,7 @@ canvas-header
 | 6b 摘要独立锚点（视觉层） | 删除 | 不再含 `journey-pain-opportunity-summary` 一等模块锚点 |
 | 6a 质量维度 `pain_opportunity_visible` / 对应锚点 | 保留 | 维度键、DOM 锚点 `journey-quality-pain-opportunity-visible`、判定方法均不变 |
 | 阶段 5 行主表第 4 / 5 行（`pain-point` / `opportunity`） | 保留 | 仍是 v2.3.4 内 `pain_point` / `opportunity` 数据字段的事实源 |
-| 6b 确认包 Markdown 节（标题「痛点与机会」） | 保留 | `JOURNEY-Fxx` 痛点 / 机会条目登记表仍在 `JOURNEY-v{N}.md` 第 6b 节；不进入运行时模板事实源 |
+| 6b 确认包 Markdown 节（标题「痛点与机会」） | 保留 | `JOURNEY-Fxx` 痛点 / 机会条目登记表仍在 `JOURNEY-{slug}-v{N}.md` 第 6b 节；不进入运行时模板事实源 |
 | 6b 数据列（类型 / 来源） | 保留 | `pain_point` / `opportunity` + `user_stated` / `inferred_from_pain_point` / `inferred_from_quality` 不变 |
 | Gate 来源 ID `JOURNEY-pain-opportunity` | 保留 | 仍指向确认包第 6b 节，与 DOM 锚点解耦 |
 
@@ -236,9 +238,9 @@ canvas-header
 
 ### 明确不兼容旧产物
 
-1. **旧 Journey HTML**：v2.3.1（含）之前的 `output/journey-canvas.html` 与 `user-journey-canvas.html` 不能直接复用为 v2.3.2 的渲染产物。旧 HTML 仍可阅读，但不应再通过 audit 必填检查。
-2. **旧 JOURNEY-v{N}.md 确认包**：不得直接按新契约渲染；必须迁移为新版本或重新提炼（见 §迁移映射说明）。
-3. **旧 JOURNEY-keypoints.md**：可作为背景输入，但 Stage 2（原子提炼）必须按新列头生成确认包。
+1. **旧 Journey HTML**：v2.5.0 及更早的 `output/journey-canvas.html` 与 `user-journey-canvas.html` 不能直接复用为 v2.6.0 instance 产物；旧 HTML 仍可阅读，但不应再通过 audit 必填检查。v2.6.0 起 `journey-canvas.html` 是索引页。
+2. **旧 JOURNEY-v{N}.md 确认包**：不得直接按新契约渲染；必须迁移为 `JOURNEY-{slug}-v{N}.md` 或重新提炼（见 §迁移映射说明）。
+3. **旧 JOURNEY-keypoints.md**：可作为背景输入，但 Stage 2（原子提炼）必须按新列头生成 `JOURNEY-{slug}-v{N}.md` 确认包。
 4. **旧 canvas-data.stages[]**：`wait_rework` / `risk` 不再是 v2.3.2 必填字段；audit 一旦发现产物只含旧字段，将报 `JOURNEY-TPL-GATE-04` 并 FAIL。
 5. **audit 脚本与契约一致性测试**：必须拒绝只含旧字段的 Journey HTML / canvas-data。已在 `tests/fixtures/journey/fault-cases.json` 中新增 `legacy_dom_anchors_rejected` / `legacy_quality_dimension_rejected` 两个 fixture 固化覆盖。
 
@@ -268,7 +270,7 @@ canvas-header
 ### 不在迁移范围内
 
 - **`JOURNEY-Fxx` ID 前缀**：含义切换但前缀本身保留。
-- **`state.schema.json` `schema_version`**：保持 2.3；现有 MVL / GC / HMW / Persona 业务结论无需迁移。
+- **`state.schema.json` `schema_version`**：保持 2.3；v2.6.0 通过 `_meta.instance_map_schema_version` 标记一等公民画布 instance map 子版本。旧单字段 state 需先迁移为 `state.{canvas}.{slug}`。
 - **`plugin.json` `version` 之后字段**：v2.3.2 PATCH 已落，下次升 MINOR/MAJOR 时本节再行更新。
 - **离线工作表 `internal/.../02-用户旅程画布.html`**：文案已切到新字段，但 worksheet 仍属设计参考，不进入运行时模板事实源；不参与 audit。
 
@@ -279,4 +281,4 @@ canvas-header
 
 ## 交付前自检
 
-同 MVL / GC / HMW：Python 静态审计（`skills/canvas-render/scripts/audit_canvas_html.py --type journey`，正式交付追加 `--template skills/canvas-render/examples/user-journey-canvas.html` 触发双 Gate）+ 浏览器视觉验收。两阶段都通过后才把状态改为 `rendered`。
+同 MVL / GC / HMW：Python 静态审计（`skills/canvas-render/scripts/audit_canvas_html.py --type journey --instance {slug}`，正式交付追加 `--template skills/canvas-render/examples/user-journey-canvas.html` 触发双 Gate）+ 浏览器视觉验收。两阶段都通过后才把当前 instance 状态改为 `rendered`。

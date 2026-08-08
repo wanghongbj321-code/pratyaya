@@ -1,13 +1,13 @@
 # Persona Canvas 渲染契约
 
-本契约定义 Persona Canvas HTML 的结构、锚点、数据映射与审计规则。LLM 读取 `PERSONA-v{N}.md` 确认包后，按本契约将内容映射到 HTML 锚点。
+本契约定义 Persona Canvas HTML 的结构、锚点、数据映射与审计规则。LLM 读取 `PERSONA-{slug}-v{N}.md` 确认包后，按本契约将内容映射到 HTML 锚点。`{slug}` 必须等于 `state.json.persona.{slug}.slug`，正式输出为 `output/persona-canvas-{slug}.html`；`output/persona-canvas.html` 仅作为多 instance 索引页。
 
 ---
 
 ## 1. 页面结构
 
 ```html
-<body data-mode="formal" data-page-type="persona" data-version="1">
+<body data-mode="formal" data-page-type="persona" data-version="1" data-instance="{slug}">
   <header id="canvas-header">
     <h1>用户画像画布</h1>
     <div id="canvas-headline">一句话结论</div>
@@ -58,6 +58,7 @@
   <script type="application/json" id="canvas-data">
     {
       "version": "v{N}",
+      "instance": "{slug}",
       "canvas_type": "persona",
       "sections": { ...确认包 section 映射... },
       "auth": {
@@ -116,7 +117,7 @@
 - **不通过**：显示"不通过"+ 依据
 - **未判定**：显示"未判定"并标为缺口
 
-质量鉴别的判定与依据必须来自 `PERSONA-v{N}.md` 第 6a 节，不由 canvas-render 推断。
+质量鉴别的判定与依据必须来自 `PERSONA-{slug}-v{N}.md` 第 6a 节，不由 canvas-render 推断。
 
 ### 3.3 治理面板
 
@@ -195,7 +196,8 @@ canvas-header
 ## 9. 数据完整性
 
 - `data-version` 必须等于确认包版本 `v{N}`
-- `canvas-data.auth` 必须与 `state.json.persona` 一致
+- `canvas-data.auth` 必须与 `state.json.persona.{slug}` 一致
+- `body[data-instance]`、`canvas-data.instance`、确认包文件名 `{slug}` 与 `state.json.persona.{slug}.slug` 必须一致
 - 结论 ID（`PERSONA-Cxx`）、缺口 ID（`PERSONA-Gxx`）与确认包一致
 
 ---
@@ -217,7 +219,12 @@ canvas-header
 ## 12. 交付前自检
 
 ```bash
-python skills/canvas-render/scripts/audit_canvas_html.py skills/canvas-render/examples/user-persona-canvas.html --type persona
+python skills/canvas-render/scripts/audit_canvas_html.py output/persona-canvas-{slug}.html \
+  --source modules/PERSONA-{slug}-v{N}.md \
+  --state state.json \
+  --type persona \
+  --instance {slug} \
+  --template skills/canvas-render/examples/user-persona-canvas.html
 ```
 
 Template Gate 通过后才可交付。

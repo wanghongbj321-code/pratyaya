@@ -1,6 +1,6 @@
 # Pratyaya Schemas（非强制参考）
 
-本目录下的 JSON Schema 仅作为非强制参考。**模块产物的唯一中间格式是 Markdown**（`modules/Mx-keypoints.md`、`modules/Mx-v{N}.md`、`modules/GC-keypoints.md`、`modules/GC-v{N}.md`、`modules/HMW-keypoints.md`、`modules/HMW-v{N}.md`、`modules/PERSONA-keypoints.md`、`modules/PERSONA-v{N}.md`、`modules/JOURNEY-keypoints.md`、`modules/JOURNEY-v{N}.md`），运行时不强制执行 JSON Schema 校验。
+本目录下的 JSON Schema 仅作为非强制参考。**模块产物的唯一中间格式是 Markdown**（MVL 为 `modules/Mx-keypoints.md`、`modules/Mx-v{N}.md`；非 MVL 一等公民画布为 `modules/{GC|HMW|PERSONA|JOURNEY}-{slug}-keypoints.md`、`modules/{GC|HMW|PERSONA|JOURNEY}-{slug}-v{N}.md`），运行时不强制执行 JSON Schema 校验。
 
 ## 文件说明
 
@@ -11,6 +11,11 @@
   - 新增顶层 `project_slug`，作为 `workshop/{project_slug}/{group_id}/` 的项目目录键；`project_name` 保留为人类显示名，可中文。
   - `group_id` 从任意非空字符串收紧为 kebab-case ASCII 短名，必须与 group 目录名一致。
   - 项目级 `manifest.json` 是可重建缓存，真相源仍为各 group 的 `state.json`。
+- **v2.6 instance map 约束（schema_version 仍为 2.3）**：
+  - `golden_circle` / `hmw` / `persona` / `journey` 由单对象升级为 `map: slug → instance_state`，路径为 `state.{state_key}.{slug}`。
+  - 每个 instance 必须包含 `slug`，且运行时校验 `instance.slug == map key`；JSON Schema 负责 slug 格式，动态键一致性由迁移脚本 / audit / 测试补充校验。
+  - 新建 instance 禁止使用 `default`；legacy 单字段迁移可生成 `default` 并触发 `force_consent=true`。
+  - 派生子版本写入 `_meta.instance_map_schema_version = "2.6-instance-map-1"`。
 - **v2.3 变更**：
   - `schema_version` 从 `"2.1"` 升级到 `"2.3"`（MINOR：承接 v2.2 Persona 可选区块，并新增 **Journey 可选区块**）。
   - 新增顶层 `journey` 对象，字段结构与 `golden_circle` / `hmw` 同构（`status` / `version` / `gate_recommendation` / `render_authorized` / `confirmation_mode` / `override_audit`）。
@@ -48,11 +53,11 @@
 
 | 资产 | 当前实现 |
 |---|---|
-| 状态 | `workshop/{project_slug}/{group_id}/state.json`（参考 state.schema.json v2.3，不强制校验；MVL 存 `modules`，GC 存 `golden_circle`，HMW 存 `hmw`，Persona 存 `persona`，Journey 存 `journey`） |
+| 状态 | `workshop/{project_slug}/{group_id}/state.json`（参考 state.schema.json v2.3，不强制校验；MVL 存 `modules.M1`-`M6`，非 MVL 存 `golden_circle.{slug}` / `hmw.{slug}` / `persona.{slug}` / `journey.{slug}`） |
 | 项目级汇总 | `workshop/{project_slug}/manifest.json`（派生缓存，可重建） |
-| 模块中间产物 | `modules/Mx-keypoints.md` + `modules/Mx-v{N}.md`（MVL）/ `modules/GC-keypoints.md` + `modules/GC-v{N}.md`（黄金圈）/ `modules/HMW-keypoints.md` + `modules/HMW-v{N}.md`（HMW）/ `modules/PERSONA-v{N}.md`（Persona）/ `modules/JOURNEY-keypoints.md` + `modules/JOURNEY-v{N}.md`（Journey） |
+| 模块中间产物 | `modules/Mx-keypoints.md` + `modules/Mx-v{N}.md`（MVL）/ `modules/GC-{slug}-keypoints.md` + `modules/GC-{slug}-v{N}.md`（黄金圈）/ `modules/HMW-{slug}-keypoints.md` + `modules/HMW-{slug}-v{N}.md`（HMW）/ `modules/PERSONA-{slug}-keypoints.md` + `modules/PERSONA-{slug}-v{N}.md`（Persona）/ `modules/JOURNEY-{slug}-keypoints.md` + `modules/JOURNEY-{slug}-v{N}.md`（Journey） |
 | 闸门判定 | LLM 阅读确认包 + 对应 Gate 策略文件（MVL: `Mx-gate.md` / GC: `GC-gate.md` / HMW: `HMW-gate.md` / Persona: `PERSONA-gate.md` / Journey: `JOURNEY-gate.md`），输出 Markdown 判定报告 |
-| 事实源 | `Mx-v{N}.md` / `GC-v{N}.md` / `HMW-v{N}.md` / `PERSONA-v{N}.md` / `JOURNEY-v{N}.md`（唯一事实源） |
+| 事实源 | `Mx-v{N}.md` / `GC-{slug}-v{N}.md` / `HMW-{slug}-v{N}.md` / `PERSONA-{slug}-v{N}.md` / `JOURNEY-{slug}-v{N}.md`（唯一事实源） |
 
 ## 后续评估
 

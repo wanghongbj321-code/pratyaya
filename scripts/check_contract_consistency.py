@@ -761,9 +761,9 @@ JOURNEY_FRAME = "skills/journey-distill/frameworks/journey-frame.md"
 JOURNEY_SPEC = "skills/journey-distill/references/journey-spec.md"
 JOURNEY_RENDER_CONTRACT = "skills/canvas-render/references/render-contract-journey.md"
 JOURNEY_TEMPLATE_HTML = "skills/canvas-render/examples/user-journey-canvas.html"
-JOURNEY_EXAMPLE_KEYPOINTS = "examples/modules/JOURNEY-keypoints.md"
-JOURNEY_EXAMPLE_PACKAGE = "examples/modules/JOURNEY-v1.md"
-JOURNEY_EXAMPLE_GAPS = "examples/modules/JOURNEY-gaps.md"
+JOURNEY_EXAMPLE_KEYPOINTS = "examples/modules/JOURNEY-retail-demo-keypoints.md"
+JOURNEY_EXAMPLE_PACKAGE = "examples/modules/JOURNEY-retail-demo-v1.md"
+JOURNEY_EXAMPLE_GAPS = "examples/modules/JOURNEY-retail-demo-gaps.md"
 JOURNEY_TPL_GATE_IDS = tuple(f"JOURNEY-TPL-GATE-{n:02d}" for n in range(1, 7))
 JOURNEY_STAGE_FIELDS = (
     "action",
@@ -1634,7 +1634,7 @@ def check_journey_examples(ctx: CheckContext) -> list[Finding]:
                     level="error",
                     where=str(path.relative_to(ctx.root)),
                     message=f"缺少 Journey 示例文件 {path.name}",
-                    hint="需补齐 examples/modules/JOURNEY-keypoints.md / JOURNEY-v1.md / JOURNEY-gaps.md",
+                    hint="需补齐 examples/modules/JOURNEY-retail-demo-keypoints.md / JOURNEY-retail-demo-v1.md / JOURNEY-retail-demo-gaps.md",
                 )
             )
     package_path = ctx.root / JOURNEY_EXAMPLE_PACKAGE
@@ -1656,7 +1656,7 @@ def check_journey_examples(ctx: CheckContext) -> list[Finding]:
                     code="JOURNEY_EXAMPLE_SECTION",
                     level="error",
                     where=JOURNEY_EXAMPLE_PACKAGE,
-                    message=f"JOURNEY-v1.md 缺 section {section}",
+                    message=f"JOURNEY-retail-demo-v1.md 缺 section {section}",
                     hint="确认包示例必须包含 6 / 6a / 6b / 7 / 8 / 9 / 12 节",
                 )
             )
@@ -1719,8 +1719,8 @@ def check_journey_examples(ctx: CheckContext) -> list[Finding]:
                     code="JOURNEY_GAPS_SYNC",
                     level="error",
                     where=JOURNEY_EXAMPLE_GAPS,
-                    message=f"JOURNEY-gaps.md 缺口 ID {sorted(gaps_ids)} 未全部出现在确认包第 8 节 {sorted(package_gap_ids)}",
-                    hint="JOURNEY-gaps.md 与确认包第 8 节缺口表必须同源",
+                    message=f"JOURNEY-retail-demo-gaps.md 缺口 ID {sorted(gaps_ids)} 未全部出现在确认包第 8 节 {sorted(package_gap_ids)}",
+                    hint="JOURNEY-retail-demo-gaps.md 与确认包第 8 节缺口表必须同源",
                 )
             )
     return findings

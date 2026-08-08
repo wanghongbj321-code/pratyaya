@@ -1,6 +1,6 @@
 ---
 name: canvas-render
-description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 黄金圈: GC-v{N}.md / HMW: HMW-v{N}.md / Persona: PERSONA-v{N}.md / Journey: JOURNEY-v{N}.md）按用户选定的 Markdown 视觉模式渲染为可编辑、可追溯、离线可打开的 HTML Canvas。正式渲染前置条件：state.json 的 render_authorized=true 且 confirmation_mode ∈ {gate_pass, override}；override 时必须携带完整 override_audit。主 Agent 扫描 visual-patterns frontmatter、推荐候选并传递完整模式路径 + canvas_type 参数；本 Skill 不自动选模式。
+description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 非 MVL: {GC|HMW|PERSONA|JOURNEY}-{slug}-v{N}.md）按用户选定的 Markdown 视觉模式渲染为可编辑、可追溯、离线可打开的 HTML Canvas。正式渲染前置条件：state.json 的 render_authorized=true 且 confirmation_mode ∈ {gate_pass, override}；非 MVL 必须传 instance_slug 并读取 state.{state_key}.{slug}；override 时必须携带完整 override_audit。主 Agent 扫描 visual-patterns frontmatter、推荐候选并传递完整模式路径 + canvas_type 参数；本 Skill 不自动选模式。
 ---
 
 # Canvas 渲染
@@ -39,26 +39,27 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 黄金圈:
 1. `canvas_type`：画布类型，`"mvl"`（默认）、`"golden-circle"`、`"hmw"`、`"persona"` 或 `"journey"`。
 2. 确认包路径：按当前项目工作目录解析。
    - MVL：`modules/Mx-v{N}.md`
-   - GC：`modules/GC-v{N}.md`
-   - HMW：`modules/HMW-v{N}.md`
-   - Persona：`modules/PERSONA-v{N}.md`
-   - Journey：`modules/JOURNEY-v{N}.md`
+   - GC：`modules/GC-{slug}-v{N}.md`
+   - HMW：`modules/HMW-{slug}-v{N}.md`
+   - Persona：`modules/PERSONA-{slug}-v{N}.md`
+   - Journey：`modules/JOURNEY-{slug}-v{N}.md`
 3. 用户授权（来自 `state.json`）：
    - MVL：对应模块 `render_authorized = true` 且 `confirmation_mode ∈ {gate_pass, override}`
-   - GC：`golden_circle.render_authorized = true` 且 `golden_circle.confirmation_mode ∈ {gate_pass, override}`
-   - HMW：`hmw.render_authorized = true` 且 `hmw.confirmation_mode ∈ {gate_pass, override}`
-   - Persona：`persona.render_authorized = true` 且 `persona.confirmation_mode ∈ {gate_pass, override}`
-   - Journey：`journey.render_authorized = true` 且 `journey.confirmation_mode ∈ {gate_pass, override}`
+   - GC：`golden_circle.{slug}.render_authorized = true` 且 `golden_circle.{slug}.confirmation_mode ∈ {gate_pass, override}`
+   - HMW：`hmw.{slug}.render_authorized = true` 且 `hmw.{slug}.confirmation_mode ∈ {gate_pass, override}`
+   - Persona：`persona.{slug}.render_authorized = true` 且 `persona.{slug}.confirmation_mode ∈ {gate_pass, override}`
+   - Journey：`journey.{slug}.render_authorized = true` 且 `journey.{slug}.confirmation_mode ∈ {gate_pass, override}`
    - override 时 `override_audit` 完整（含 items、reason、confirmed_by、confirmed_at）。
-4. Gate 建议（来自同版本 Gate 报告）：`gate_recommendation`（pass / fail）。
-5. 用户选定模式的完整仓库相对路径。
+4. 非 MVL `instance_slug`：kebab-case slug，必须与确认包文件名、HTML `data-instance` 与 `canvas-data.instance` 一致。
+5. Gate 建议（来自同版本 Gate 报告）：`gate_recommendation`（pass / fail）。
+6. 用户选定模式的完整仓库相对路径。
 
 草稿模式数据源：
 - MVL：`modules/Mx-keypoints.md`
-- GC：`modules/GC-keypoints.md`
-- HMW：`modules/HMW-keypoints.md`
-- Persona：`modules/PERSONA-keypoints.md`
-- Journey：`modules/JOURNEY-keypoints.md`
+- GC：`modules/GC-{slug}-keypoints.md`
+- HMW：`modules/HMW-{slug}-keypoints.md`
+- Persona：`modules/PERSONA-{slug}-keypoints.md`
+- Journey：`modules/JOURNEY-{slug}-keypoints.md`
 
 收到模式路径后必须校验：
 
@@ -74,11 +75,11 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 黄金圈:
 
 1. 读取确认包文件，不以聊天上下文、Key Points 或转写作为正式事实源。
 2. **模块状态为 `confirmed` 或 `rendered`**，且输出版本等于确认包 `v{N}`。
-3. **用户授权**：`state.json` 中同模块 `render_authorized = true`。
+3. **用户授权**：`state.json` 中同模块或同 instance `render_authorized = true`。
 4. **确认模式**：`confirmation_mode ∈ {gate_pass, override}`，且与确认包版本一致。
 5. **override 审计完整性**（仅 `confirmation_mode=override` 时）：`override_audit.items` 非空、所有 `category=business_risk`、`reason` / `confirmed_by` / `confirmed_at` 必填。
 6. 本 Skill 只读取上述状态，不重新评估 Gate，也不得把 `gate_recommendation=fail` 改成 `pass`。
-7. 用户已在主 Agent 步骤 7 中明确选定视觉模式。
+7. 用户已在主 Agent 步骤 7 中明确选定视觉模式；非 MVL 正式页还必须写入 `data-instance="{slug}"` 与 `canvas-data.instance`。
 8. 条件不满足时返回阻断原因，不生成无水印正式页面。
 
 ## 三种模式
@@ -110,7 +111,7 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 黄金圈:
 ### 黄金圈正式模式
 
 - 输入 `canvas_type=golden-circle`，状态为 `confirmed` 或 `rendered`，且 `render_authorized=true`。
-- 输出 `output/gc-canvas.html`；Python 静态审计 + 浏览器视觉验收通过后才算成功。
+- 输出 `output/gc-canvas-{slug}.html`；Python 静态审计 + 浏览器视觉验收通过后才算成功。
 - 按 `render-contract-gc.md` 展示 WHY / HOW / WHAT 三层 + 跨层一致性。
 - **必须参照 `examples/goden-circle-canvas.html` 实现 `gc-diagram` 3 圈同心圆图示**（WHY / HOW / WHAT 环带标签 + pratyaya 黑灰配色），不得省略、不得用其他图形替代（`render-contract-gc.md` §C）。
 - 显示版本、确认、缺口、风险、结论 ID、证据摘要和 caveat 状态。
@@ -119,8 +120,8 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 黄金圈:
 ### 黄金圈草稿模式
 
 - 仅在用户明确要求"用草稿辅助继续讨论"时生成。
-- 数据源：`modules/GC-keypoints.md`。
-- 输出 `output/gc-canvas.html`，带永久"草稿 / 未确认 / 禁止用于管理层决策"水印。
+- 数据源：`modules/GC-{slug}-keypoints.md`。
+- 输出 `output/gc-canvas-{slug}.html`，带永久"草稿 / 未确认 / 禁止用于管理层决策"水印。
 - 同样**必须参照 `examples/goden-circle-canvas.html` 实现 `gc-diagram` 3 圈图示**（`render-contract-gc.md` §C）。
 - 空字段显示"未讨论"或"待确认"，不得补写。
 - 不改变模块状态，不进入正式输出。
@@ -128,7 +129,7 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 黄金圈:
 ### HMW 正式模式
 
 - 输入 `canvas_type=hmw`，状态为 `confirmed` 或 `rendered`，且 `render_authorized=true`。
-- 输出 `output/hmw-canvas.html`；Python 静态审计 + 浏览器视觉验收通过后才算成功。
+- 输出 `output/hmw-canvas-{slug}.html`；Python 静态审计 + 浏览器视觉验收通过后才算成功。
 - 按 `render-contract-hmw.md` 展示 HMW 陈述（situation / question / for / so_that）+ 质量鉴别 + 想法种子（8 固定格）+ 想法↔HMW 对应。
 - 显示版本、确认、缺口、风险、结论 ID、证据摘要和 caveat 状态。
 - **不触发全局 Canvas**，不扫描跨模块 caveat。HMW 是单画布。
@@ -136,15 +137,15 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 黄金圈:
 ### HMW 草稿模式
 
 - 仅在用户明确要求"用草稿辅助继续讨论"时生成。
-- 数据源：`modules/HMW-keypoints.md`。
-- 输出 `output/hmw-canvas.html`，带永久"草稿 / 未确认 / 禁止用于管理层决策"水印。
+- 数据源：`modules/HMW-{slug}-keypoints.md`。
+- 输出 `output/hmw-canvas-{slug}.html`，带永久"草稿 / 未确认 / 禁止用于管理层决策"水印。
 - 空字段显示"未讨论"或"待确认"，不得补写。
 - 不改变模块状态，不进入正式输出。
 
 ### Persona 正式模式
 
-- 输入 `canvas_type=persona`，状态为 `confirmed` 或 `rendered`，且 `state.persona.render_authorized=true`。
-- 输出 `output/persona-canvas.html`；Python 静态审计 + 浏览器视觉验收通过后才算成功。
+- 输入 `canvas_type=persona`，状态为 `confirmed` 或 `rendered`，且 `state.persona.{slug}.render_authorized=true`。
+- 输出 `output/persona-canvas-{slug}.html`；Python 静态审计 + 浏览器视觉验收通过后才算成功。
 - 按 `render-contract-persona.md` 展示 9 基本信息 + 6 宫格 + 4 质量鉴别维度 + 治理面板。
 - 显示版本、确认、缺口、风险、结论 ID、证据摘要和 caveat 状态。
 - **不触发全局 Canvas**，不扫描跨模块 caveat。Persona 是单画布。
@@ -152,17 +153,17 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 黄金圈:
 ### Persona 草稿模式
 
 - 仅在用户明确要求"用草稿辅助继续讨论"时生成。
-- 数据源：`modules/PERSONA-keypoints.md`。
-- 输出 `output/persona-canvas.html`，带永久"草稿 / 未确认 / 禁止用于管理层决策"水印。
+- 数据源：`modules/PERSONA-{slug}-keypoints.md`。
+- 输出 `output/persona-canvas-{slug}.html`，带永久"草稿 / 未确认 / 禁止用于管理层决策"水印。
 - 空字段显示"未讨论"或"待确认"，不得补写。
 - 不改变模块状态，不进入正式输出。
 
 ### Journey 正式模式
 
-- 输入 `canvas_type=journey`，状态为 `confirmed` 或 `rendered`，且 `state.journey.render_authorized=true`。
-- 输出 `output/journey-canvas.html`；Python 静态审计 + 浏览器视觉验收通过后才算成功。
+- 输入 `canvas_type=journey`，状态为 `confirmed` 或 `rendered`，且 `state.journey.{slug}.render_authorized=true`。
+- 输出 `output/journey-canvas-{slug}.html`；Python 静态审计 + 浏览器视觉验收通过后才算成功。
 - 按 `render-contract-journey.md` 展示动态阶段 × 5 行合并结构 + 痛点与机会 + 正式画布外显质量鉴别。
-- 阶段数量由 `JOURNEY-v{N}.md` 第 6 节表格行动态生成，不固定 7 个槽位；每阶段必须保留 `action / touchpoint_system / emotion / pain_point / opportunity` 五个字段。
+- 阶段数量由 `JOURNEY-{slug}-v{N}.md` 第 6 节表格行动态生成，不固定 7 个槽位；每阶段必须保留 `action / touchpoint_system / emotion / pain_point / opportunity` 五个字段。
 - 显示版本、确认、缺口、风险、结论 ID、证据摘要和 caveat 状态。
 - **不触发全局 Canvas**，不扫描跨模块 caveat，不读取或写入 MVL M2。Journey 是单画布。
 - Journey 默认推荐视觉模式仍为现有 `10-black-gray-professional`；不新增 Journey 专属视觉模式。
@@ -170,10 +171,19 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 黄金圈:
 ### Journey 草稿模式
 
 - 仅在用户明确要求"用草稿辅助继续讨论"时生成。
-- 数据源：`modules/JOURNEY-keypoints.md`。
-- 输出 `output/journey-canvas.html`，带永久"草稿 / 未确认 / 禁止用于管理层决策"水印。
+- 数据源：`modules/JOURNEY-{slug}-keypoints.md`。
+- 输出 `output/journey-canvas-{slug}.html`，带永久"草稿 / 未确认 / 禁止用于管理层决策"水印。
 - 空字段显示"未讨论"或"待确认"，不得补写。
 - 不改变模块状态，不进入正式输出。
+
+### 非 MVL 索引页模式
+
+- 适用于 GC / HMW / Persona / Journey。
+- 输入为 `state.{state_key}` 的全部 instance map，不读取转写，不重新渲染任何详情页。
+- 输出固定为 `output/{canvas}-canvas.html`，其中 `{canvas}` 为 `gc` / `hmw` / `persona` / `journey`。
+- 页面按 slug 字典序列出每个 instance 的 slug、version、status、gate_recommendation、updated_at（如有）与详情页链接 `output/{canvas}-canvas-{slug}.html`。
+- index 页不写入任一 instance 的 `output_file`；它是派生视图，可随时从 state 与现有详情页重建。
+- 生成后运行 `audit_canvas_html.py --type {gc|hmw|persona|journey} --index --state workshop/{project_slug}/{group_id}/state.json`。
 
 ## 视觉模式实现
 
@@ -211,7 +221,7 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 黄金圈:
 
 ## 内容与数据契约
 
-- 正式页面内容只来自同版本确认包（MVL: `modules/Mx-v{N}.md` / GC: `modules/GC-v{N}.md` / HMW: `modules/HMW-v{N}.md` / Persona: `modules/PERSONA-v{N}.md` / Journey: `modules/JOURNEY-v{N}.md`）。
+- 正式页面内容只来自同版本确认包（MVL: `modules/Mx-v{N}.md` / GC: `modules/GC-{slug}-v{N}.md` / HMW: `modules/HMW-{slug}-v{N}.md` / Persona: `modules/PERSONA-{slug}-v{N}.md` / Journey: `modules/JOURNEY-{slug}-v{N}.md`）。
 - MVL 全局页只使用规定的六大板块；过程材料留在模块详情页并提供下钻入口。
 - GC 使用规定的 WHY / HOW / WHAT 三层 + 跨层一致性板块，无子模块详情页。
 - Workflow 必须分别呈现 Agent 执行、人工操作 / 确认、人审 + Agent 执行三类节点。
@@ -253,20 +263,22 @@ GC 正式画布审计：
 
 ```bash
 python3 skills/canvas-render/scripts/audit_canvas_html.py \
-  workshop/{project_slug}/{group_id}/output/gc-canvas.html \
-  --source workshop/{project_slug}/{group_id}/modules/GC-v{N}.md \
+  workshop/{project_slug}/{group_id}/output/gc-canvas-{slug}.html \
+  --source workshop/{project_slug}/{group_id}/modules/GC-{slug}-v{N}.md \
   --state workshop/{project_slug}/{group_id}/state.json \
-  --type gc
+  --type gc \
+  --instance {slug}
 ```
 
 HMW 正式画布审计：
 
 ```bash
 python3 skills/canvas-render/scripts/audit_canvas_html.py \
-  workshop/{project_slug}/{group_id}/output/hmw-canvas.html \
-  --source workshop/{project_slug}/{group_id}/modules/HMW-v{N}.md \
+  workshop/{project_slug}/{group_id}/output/hmw-canvas-{slug}.html \
+  --source workshop/{project_slug}/{group_id}/modules/HMW-{slug}-v{N}.md \
   --state workshop/{project_slug}/{group_id}/state.json \
   --type hmw \
+  --instance {slug} \
   --template skills/canvas-render/examples/hmw-canvas.html
 ```
 
@@ -274,10 +286,11 @@ Persona 正式画布审计：
 
 ```bash
 python3 skills/canvas-render/scripts/audit_canvas_html.py \
-  workshop/{project_slug}/{group_id}/output/persona-canvas.html \
-  --source workshop/{project_slug}/{group_id}/modules/PERSONA-v{N}.md \
+  workshop/{project_slug}/{group_id}/output/persona-canvas-{slug}.html \
+  --source workshop/{project_slug}/{group_id}/modules/PERSONA-{slug}-v{N}.md \
   --state workshop/{project_slug}/{group_id}/state.json \
   --type persona \
+  --instance {slug} \
   --template skills/canvas-render/examples/user-persona-canvas.html
 ```
 
@@ -285,10 +298,11 @@ Journey 正式画布审计：
 
 ```bash
 python3 skills/canvas-render/scripts/audit_canvas_html.py \
-  workshop/{project_slug}/{group_id}/output/journey-canvas.html \
-  --source workshop/{project_slug}/{group_id}/modules/JOURNEY-v{N}.md \
+  workshop/{project_slug}/{group_id}/output/journey-canvas-{slug}.html \
+  --source workshop/{project_slug}/{group_id}/modules/JOURNEY-{slug}-v{N}.md \
   --state workshop/{project_slug}/{group_id}/state.json \
   --type journey \
+  --instance {slug} \
   --template skills/canvas-render/examples/user-journey-canvas.html
 ```
 

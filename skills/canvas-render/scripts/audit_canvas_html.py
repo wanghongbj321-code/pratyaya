@@ -209,6 +209,12 @@ AUTH_FIELDS = (
     "confirmation_mode",
     "override_audit",
 )
+INSTANCE_STATE_KEYS = {
+    "gc": "golden_circle",
+    "hmw": "hmw",
+    "persona": "persona",
+    "journey": "journey",
+}
 VOID_TAGS = {
     "area",
     "base",
@@ -1022,12 +1028,105 @@ def audit_hmw_content_mapping(html: HtmlSnapshot, source_path: Path) -> list[Fin
     return findings
 
 
+def select_instance_state(
+    state: JsonDict,
+    canvas_type: str,
+    instance_slug: str | None,
+) -> JsonDict | None:
+    """Select a non-MVL canvas instance from state.{state_key}.{slug}."""
+    state_key = INSTANCE_STATE_KEYS[canvas_type]
+    if instance_slug is None:
+        raise ValueError(f"--instance is required when auditing --type {canvas_type} with --state")
+    instances = state.get(state_key)
+    if not isinstance(instances, dict):
+        return None
+    instance = instances.get(instance_slug)
+    if not isinstance(instance, dict):
+        return None
+    if instance.get("slug") != instance_slug:
+        raise ValueError(f"state.{state_key}.{instance_slug}.slug must match map key")
+    return cast(JsonDict, instance)
+
+
+def audit_index_page(
+    html: HtmlSnapshot,
+    source: str,
+    state_path: Path | None,
+    canvas_type: str,
+) -> list[Finding]:
+    """Audit a non-MVL canvas instance index page."""
+    findings: list[Finding] = []
+    if canvas_type not in INSTANCE_STATE_KEYS:
+        findings.append(Finding("INDEX", "--index is only supported for gc/hmw/persona/journey"))
+        return findings
+
+    expected_page_type = f"{canvas_type}-index" if canvas_type != "gc" else "golden-circle-index"
+    page_type = html.body_attrs.get("data-page-type")
+    if page_type != expected_page_type:
+        findings.append(
+            Finding("PAGE_TYPE", f"index page data-page-type must be {expected_page_type!r}, got {page_type!r}")
+        )
+
+    if "canvas-data" not in html.ids:
+        findings.append(Finding("CANVAS_DATA", "index page requires canvas-data"))
+
+    canvas_data: JsonDict | None = None
+    if html.canvas_data_text:
+        try:
+            loaded = json.loads(html.canvas_data_text)
+            if isinstance(loaded, dict):
+                canvas_data = cast(JsonDict, loaded)
+            else:
+                findings.append(Finding("CANVAS_DATA", "canvas-data must be a JSON object"))
+        except json.JSONDecodeError as exc:
+            findings.append(Finding("CANVAS_DATA", str(exc)))
+
+    if state_path is None:
+        return findings
+
+    try:
+        state = load_json(state_path)
+        state_key = INSTANCE_STATE_KEYS[canvas_type]
+        instances = state.get(state_key)
+        if not isinstance(instances, dict):
+            raise ValueError(f"state.json has no {state_key} instance map")
+    except (OSError, json.JSONDecodeError, ValueError) as exc:
+        findings.append(Finding("STATE_READ", str(exc)))
+        return findings
+
+    slugs = sorted(instances)
+    if len(slugs) != len(set(slugs)):
+        findings.append(Finding("INDEX", "duplicate instance slugs"))
+
+    data_instances = None
+    if canvas_data is not None:
+        data_instances = canvas_data.get("instances")
+        if not isinstance(data_instances, list):
+            findings.append(Finding("INDEX_DATA", "canvas-data.instances must be an array"))
+        else:
+            data_slugs = sorted(item.get("slug") for item in data_instances if isinstance(item, dict))
+            if data_slugs != slugs:
+                findings.append(Finding("INDEX_DATA", f"canvas-data slugs {data_slugs!r} != state slugs {slugs!r}"))
+
+    for slug in slugs:
+        if slug not in html.text:
+            findings.append(Finding("INDEX", f"missing slug text: {slug}"))
+        output_prefix = "gc" if canvas_type == "gc" else canvas_type
+        expected_href = f"{output_prefix}-canvas-{slug}.html"
+        if expected_href not in source:
+            findings.append(Finding("INDEX_LINK", f"missing link href: {expected_href}"))
+
+    return findings
+
+
 def audit(
     html_path: Path,
     contract_path: Path = DEFAULT_CONTRACT,
     state_path: Path | None = None,
     source_path: Path | None = None,
     canvas_type: str = "mvl",
+    instance_slug: str | None = None,
+    index: bool = False,
 ) -> list[Finding]:
     """对照 render-contract / state.json / 确认包，审计单个 Canvas HTML 文件。"""
     is_gc = canvas_type == "gc"
@@ -1067,6 +1166,9 @@ def audit(
     except (OSError, UnicodeError) as exc:
         return [Finding("HTML_READ", str(exc))]
 
+    if index:
+        return audit_index_page(html, source, state_path, canvas_type)
+
     counts = Counter(html.ids)
     duplicates = sorted(element_id for element_id, count in counts.items() if count > 1)
     if duplicates:
@@ -1074,6 +1176,7 @@ def audit(
 
     page_type = html.body_attrs.get("data-page-type")
     module = html.body_attrs.get("data-module")
+    body_instance = html.body_attrs.get("data-instance")
     body_version = normalize_version(html.body_attrs.get("data-version"))
     if is_gc:
         valid_types = {"golden-circle"}
@@ -1089,6 +1192,11 @@ def audit(
         findings.append(Finding("PAGE_TYPE", f"unsupported data-page-type: {page_type!r}"))
     if not body_version:
         findings.append(Finding("VERSION", "body data-version must be an integer or vN"))
+    if canvas_type in INSTANCE_STATE_KEYS and instance_slug is not None:
+        if body_instance != instance_slug:
+            findings.append(
+                Finding("INSTANCE", f"body data-instance={body_instance!r} must match --instance {instance_slug!r}")
+            )
 
     required: list[str] = list(SHARED_IDS)
     if is_gc or is_hmw or is_journey or is_persona:
@@ -1197,6 +1305,12 @@ def audit(
             findings.append(
                 Finding("CANVAS_TYPE", f"canvas-data.canvas_type must be 'persona', got {canvas_data.get('canvas_type')!r}")
             )
+        if canvas_type in INSTANCE_STATE_KEYS and instance_slug is not None:
+            data_instance = canvas_data.get("instance") or canvas_data.get("instance_slug")
+            if data_instance != instance_slug:
+                findings.append(
+                    Finding("INSTANCE", f"canvas-data instance={data_instance!r} must match --instance {instance_slug!r}")
+                )
         sections = canvas_data.get("sections")
         if expected_anchors and isinstance(sections, dict):
             section_missing = [anchor for anchor in expected_anchors if anchor not in sections]
@@ -1299,21 +1413,21 @@ def audit(
         try:
             state = load_json(state_path)
             if is_gc:
-                state_module = state.get("golden_circle")
+                state_module = select_instance_state(state, "gc", instance_slug)
                 if not isinstance(state_module, dict):
-                    raise ValueError("state.json has no golden_circle record")
+                    raise ValueError("state.json has no golden_circle instance record")
             elif is_hmw:
-                state_module = state.get("hmw")
+                state_module = select_instance_state(state, "hmw", instance_slug)
                 if not isinstance(state_module, dict):
-                    raise ValueError("state.json has no hmw record")
+                    raise ValueError("state.json has no hmw instance record")
             elif is_journey:
-                state_module = state.get("journey")
+                state_module = select_instance_state(state, "journey", instance_slug)
                 if not isinstance(state_module, dict):
-                    raise ValueError("state.json has no journey record")
+                    raise ValueError("state.json has no journey instance record")
             elif is_persona:
-                state_module = state.get("persona")
+                state_module = select_instance_state(state, "persona", instance_slug)
                 if not isinstance(state_module, dict):
-                    raise ValueError("state.json has no persona record")
+                    raise ValueError("state.json has no persona instance record")
             else:
                 modules = state.get("modules", {})
                 state_module = (
@@ -1361,6 +1475,16 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="HMW/Persona/Journey 示例模板路径（Template Gate 比对基准；正式交付必须传入）",
     )
     _ = parser.add_argument(
+        "--instance",
+        dest="instance_slug",
+        help="non-MVL canvas instance slug; required with --state for gc/hmw/persona/journey",
+    )
+    _ = parser.add_argument(
+        "--index",
+        action="store_true",
+        help="audit a non-MVL canvas index page instead of a single instance page",
+    )
+    _ = parser.add_argument(
         "--type",
         dest="canvas_type",
         choices=("mvl", "gc", "hmw", "persona", "journey"),
@@ -1394,12 +1518,16 @@ def main(argv: list[str] | None = None) -> int:
     state_arg = cast("Path | None", args.state)
     source_arg = cast("Path | None", args.source)
     template_arg = cast("Path | None", args.template)
+    instance_slug = cast("str | None", args.instance_slug)
+    index = cast(bool, args.index)
 
-    findings = audit(html_arg, contract_arg, state_arg, source_arg, canvas_type)
+    findings = audit(html_arg, contract_arg, state_arg, source_arg, canvas_type, instance_slug, index)
     template_findings: list[Finding] = []
 
     # Template Gate：HMW / Persona / Journey 正式交付（--template 传入）时运行
-    if canvas_type == "hmw":
+    if index:
+        template_findings = []
+    elif canvas_type == "hmw":
         if template_arg is None:
             if source_arg is not None or state_arg is not None:
                 template_findings.append(

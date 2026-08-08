@@ -39,6 +39,26 @@ skills: [mvl-distill, gc-distill, hmw-distill, persona-distill, journey-distill,
 - 读取失败后**不得**在同一错误路径上重复 glob；只允许检查对应 skill 的目标目录一次。
 - 仍无法唯一定位时**停止当前动作**，报告预期路径与已检查目录，**不**创建或修改项目 `state.json`、转写、确认包或 Canvas。
 
+## v2.6 Instance Map 规则（覆盖后文旧单画布表述）
+
+GC / HMW / Persona / Journey 是非 MVL 一等公民画布，均按 instance map 管理：
+
+| 画布 | state key | 文件前缀 | 输出前缀 |
+|---|---|---|---|
+| GC / 黄金圈 | `golden_circle` | `GC` | `gc` |
+| HMW | `hmw` | `HMW` | `hmw` |
+| Persona / 用户画像 | `persona` | `PERSONA` | `persona` |
+| Journey / 用户旅程 | `journey` | `JOURNEY` | `journey` |
+
+强制规则：
+
+1. 非 MVL 画布每次进入流程必须先确定 `instance_slug`；新建 slug 必须为 kebab-case，且不得为 `default`。
+2. 正式状态路径为 `state.{state_key}.{instance_slug}`，不得再读写 `state.{state_key}.render_authorized` 这类旧单字段路径。
+3. Key Points / 确认包 / 补问 / Gate 报告命名为 `modules/{PREFIX}-{slug}-keypoints.md`、`modules/{PREFIX}-{slug}-v{N}.md`、`modules/{PREFIX}-{slug}-gaps.md`、`modules/{PREFIX}-{slug}-gate-report-v{N}.md`。
+4. 单 instance HTML 输出为 `output/{output_prefix}-canvas-{slug}.html`；`output/{output_prefix}-canvas.html` 是索引页，列出全部 instances。
+5. 调用 `canvas-render` 时必须传 `canvas_type` + `instance_slug`；正式审计必须传 `--instance {slug}`，并校验 HTML `data-instance` 与 `canvas-data.instance`。
+6. 旧单字段 state 进入非 MVL 流程时，先调用 v2.6 legacy migration 语义迁移为 `{state_key}.default`，写入 `group_meta.json.legacy_migrations.v2_6_0_instance_map`，并向用户提示重命名或确认暂时保留 legacy default；确认前不得正式渲染该 legacy instance。
+
 ## 定位
 
 **分步沉淀协作应用**：对每场 MVL 工作坊的每个模块，提前预置好：
@@ -176,10 +196,10 @@ draft → gaps_open ↔ review_ready → confirmed → rendered
    - Persona：若用户明确选择用户画像，初始化 `persona` 状态区块；完整 Persona 流程按后续独立设计执行，当前 Agent 不把 Persona 路由到 Journey。
 3. 建立 `state.json`，初始包含五个区块：
    - MVL：M1-M6 初始 `version=0`、`status=draft`、`gate_recommendation=pending`、`render_authorized=false`、`confirmation_mode=null`。
-   - GC：`golden_circle` 初始 `version=0`、`status=draft`、`gate_recommendation=pending`、`render_authorized=false`、`confirmation_mode=null`。
-   - HMW：`hmw` 初始 `version=0`、`status=draft`、`gate_recommendation=pending`、`render_authorized=false`、`confirmation_mode=null`。
-   - Persona：`persona` 初始 `version=0`、`status=draft`、`gate_recommendation=pending`、`render_authorized=false`、`confirmation_mode=null`。
-   - Journey：`journey` 初始 `version=0`、`status=draft`、`gate_recommendation=pending`、`render_authorized=false`、`confirmation_mode=null`。
+   - GC：用户提供 slug 后写入 `golden_circle.{slug}` 初始 `slug={slug}`、`version=0`、`status=draft`、`gate_recommendation=pending`、`render_authorized=false`、`confirmation_mode=null`、`source_file=null`、`output_file=null`。
+   - HMW：用户提供 slug 后写入 `hmw.{slug}` 初始 `slug={slug}`、`version=0`、`status=draft`、`gate_recommendation=pending`、`render_authorized=false`、`confirmation_mode=null`、`source_file=null`、`output_file=null`。
+   - Persona：用户提供 slug 后写入 `persona.{slug}` 初始 `slug={slug}`、`version=0`、`status=draft`、`gate_recommendation=pending`、`render_authorized=false`、`confirmation_mode=null`、`source_file=null`、`output_file=null`。
+   - Journey：用户提供 slug 后写入 `journey.{slug}` 初始 `slug={slug}`、`version=0`、`status=draft`、`gate_recommendation=pending`、`render_authorized=false`、`confirmation_mode=null`、`source_file=null`、`output_file=null`。
 4. 按画布类型加载对应框架：
    - MVL：`skills/mvl-distill/frameworks/m{1-6}-*.md`
    - GC：`skills/gc-distill/frameworks/gc-golden-circle.md`
@@ -192,16 +212,16 @@ draft → gaps_open ↔ review_ready → confirmed → rendered
 ### Phase 0 补充：旧项目与重启定位（执行计划 §11.4 / §11.5）
 
 - **旧项目（v2.0 双画布，state 无 `hmw` 区块）**：目录层迁移后不自动补业务区块；用户**首次进入 HMW 流程**时由 Agent 追加合法默认 `hmw` 区块（`version=0`、`status=draft`、`gate_recommendation=pending`、`render_authorized=false`、`confirmation_mode=null`），保持 MVL / GC 既有产物不动。无 `hmw` 的旧 state 不阻断 MVL / GC 流程。
-- **HMW 重启定位**：会话重启时优先读取最新已确认 `modules/HMW-v{N}.md`；若无已确认版本，回退 `modules/HMW-keypoints.md` 并打草稿水印。仍不存在则视为首次进入 HMW 流程。
-- **HMW 版本管理**：`HMW-v{N+1}.md` 不覆盖 `HMW-v{N}.md`；旧版归档到 `workshop/{project_slug}/{group_id}/modules/hmw/archive/`。
-- **HMW 产物**：`state.hmw` 写 `version / status / gate_recommendation / confirmation_mode / render_authorized / source_file / canvas_html / last_updated`；`canvas-data.auth` 与 `state.hmw` 一致；渲染输出 `workshop/{project_slug}/{group_id}/output/hmw-canvas.html`。
+- **HMW 重启定位**：会话重启时先确定 active instance slug，再优先读取最新已确认 `modules/HMW-{slug}-v{N}.md`；若无已确认版本，回退 `modules/HMW-{slug}-keypoints.md` 并打草稿水印。仍不存在则视为该 instance 首次进入 HMW 流程。
+- **HMW 版本管理**：`HMW-{slug}-v{N+1}.md` 不覆盖 `HMW-{slug}-v{N}.md`；旧版归档到 `workshop/{project_slug}/{group_id}/modules/hmw/archive/`。
+- **HMW 产物**：`state.hmw.{slug}` 写 `version / status / gate_recommendation / confirmation_mode / render_authorized / source_file / output_file / last_updated`；`canvas-data.auth` 与 `state.hmw.{slug}` 一致；渲染输出 `workshop/{project_slug}/{group_id}/output/hmw-canvas-{slug}.html`。
 - **HMW 生命周期**：Key Points 仅作草稿源，不进入正式渲染；HMW 永不进入全局 Canvas（`maau-global-canvas.html`）。
 - **旧项目（v2.2 或更早，state 无 `journey` 区块）**：目录层迁移后不自动补业务区块；用户**首次进入 Journey 流程**时由 Agent 追加合法默认 `journey` 区块（`version=0`、`status=draft`、`gate_recommendation=pending`、`render_authorized=false`、`confirmation_mode=null`），保持 MVL / GC / HMW / Persona 既有产物不动。无 `journey` 的旧 state 不阻断非 Journey 流程。
-- **Journey 重启定位**：会话重启时优先读取最新已确认 `modules/JOURNEY-v{N}.md`；若无已确认版本，回退 `modules/JOURNEY-keypoints.md` 并打草稿水印。仍不存在则视为首次进入 Journey 流程。
-- **Journey 版本管理**：`JOURNEY-v{N+1}.md` 不覆盖 `JOURNEY-v{N}.md`；旧版归档到 `workshop/{project_slug}/{group_id}/modules/journey/archive/`。
-- **Journey 产物**：`state.journey` 写 `version / status / gate_recommendation / confirmation_mode / render_authorized / source_file / canvas_html / last_updated`；`canvas-data.auth` 与 `state.journey` 一致；渲染输出 `workshop/{project_slug}/{group_id}/output/journey-canvas.html`。
+- **Journey 重启定位**：会话重启时先确定 active instance slug，再优先读取最新已确认 `modules/JOURNEY-{slug}-v{N}.md`；若无已确认版本，回退 `modules/JOURNEY-{slug}-keypoints.md` 并打草稿水印。仍不存在则视为该 instance 首次进入 Journey 流程。
+- **Journey 版本管理**：`JOURNEY-{slug}-v{N+1}.md` 不覆盖 `JOURNEY-{slug}-v{N}.md`；旧版归档到 `workshop/{project_slug}/{group_id}/modules/journey/archive/`。
+- **Journey 产物**：`state.journey.{slug}` 写 `version / status / gate_recommendation / confirmation_mode / render_authorized / source_file / output_file / last_updated`；`canvas-data.auth` 与 `state.journey.{slug}` 一致；渲染输出 `workshop/{project_slug}/{group_id}/output/journey-canvas-{slug}.html`。
 - **Journey 生命周期**：Key Points 仅作草稿源，不进入正式渲染；Journey 永不进入全局 Canvas（`maau-global-canvas.html`），不读取或写入 `state.modules.M2`。
-- **Persona 旧项目**：无 `persona` 的旧 state 不阻断 MVL / GC / HMW；只有用户首次进入 Persona 时，才追加合法默认 `persona` 区块。重启时优先读取最新 `modules/PERSONA-v{N}.md`，否则回退 `modules/PERSONA-keypoints.md` 并标草稿；补问清单固定为 `modules/PERSONA-gaps.md`。
+- **Persona 旧项目**：无 `persona` 的旧 state 不阻断 MVL / GC / HMW；只有用户首次进入 Persona instance 时，才在用户提供 slug 后追加 `state.persona.{slug}`。重启时优先读取最新 `modules/PERSONA-{slug}-v{N}.md`，否则回退 `modules/PERSONA-{slug}-keypoints.md` 并标草稿；补问清单固定为 `modules/PERSONA-{slug}-gaps.md`。
 
 ## Phase 1：MVL 工作流（步骤 -1 → 8）
 
@@ -398,24 +418,24 @@ MVL 阶段声明可以是以下任意形式：
 ### GC 步骤 1：Key Points 抽取
 
 - 输入：逐字稿。存档为 `transcripts/gc-TXX-raw.md`。
-- 调用 `gc-distill` Stage 1，输出 `modules/GC-keypoints.md`。
+- 调用 `gc-distill` Stage 1，输出 `modules/GC-{slug}-keypoints.md`。
 - 末尾用户决策提示：「基于以上概览，请选择：**提炼** / **补问** / **先看个样子**」
 
 ### GC 步骤 2-4：用户决策分支
 
-- **提炼** → 调用 `gc-distill` Stage 2，生成 `modules/GC-v{N}.md`，状态 → `review_ready`。
-- **补问** → 输出补问清单 `modules/GC-gaps.md`，状态 → `gaps_open`。
+- **提炼** → 调用 `gc-distill` Stage 2，生成 `modules/GC-{slug}-v{N}.md`，状态 → `review_ready`。
+- **补问** → 输出补问清单 `modules/GC-{slug}-gaps.md`，状态 → `gaps_open`。
 - **先看个样子** → 调用 `canvas-render` 生成 GC 草稿 Canvas（`canvas_type=golden-circle`，`data-mode=draft`），带永久水印，不改变状态。
 
 ### GC 步骤 5：确认包展示
 
-展示 `GC-v{N}.md` 的必展项（一句话结论 / 对齐摘要 / 阻塞项 / 缺口速览 / 待确认版本），自动进入 GC Gate。
+展示 `GC-{slug}-v{N}.md` 的必展项（一句话结论 / 对齐摘要 / 阻塞项 / 缺口速览 / 待确认版本），自动进入 GC Gate。
 
 ### GC 步骤 6：GC Gate + 用户决策
 
-- 调用 `gc-gate`，读取 `GC-v{N}.md` + `references/GC-gate.md`。
+- 调用 `gc-gate`，读取 `GC-{slug}-v{N}.md` + `references/GC-gate.md`，输出 `GC-{slug}-gate-report-v{N}.md`。
 - 输出 Gate 报告（`gate_recommendation` + `override_eligible`）。
-- Gate 写入 `state.json.golden_circle.gate_recommendation`（由主 Agent 写入），不写最终授权。
+- Gate 写入 `state.json.golden_circle.{slug}.gate_recommendation`（由主 Agent 写入），不写最终授权。
 - 用户决策后写入 `confirmation_mode` / `render_authorized`，状态 → `confirmed`。
 - override 时写入完整的 `override_audit`。
 
@@ -425,13 +445,13 @@ MVL 阶段声明可以是以下任意形式：
 - 扫描 10 个视觉模式，推荐 1-2 个（以 zh_name 展示）。
 - 默认推荐 `10-black-gray-professional`（黑灰专业·打印版）。
 - 用户选定后调用 `canvas-render`，传递 `canvas_type=golden-circle`。
-- 生成 `output/gc-canvas.html`。
-- 运行 `python3 skills/canvas-render/scripts/audit_canvas_html.py output/gc-canvas.html --source modules/GC-v{N}.md --state state.json --type gc`。
+- 生成 `output/gc-canvas-{slug}.html`。
+- 运行 `python3 skills/canvas-render/scripts/audit_canvas_html.py output/gc-canvas-{slug}.html --source modules/GC-{slug}-v{N}.md --state state.json --type gc --instance {slug}`。
 - 审计 + 浏览器验收通过后状态 → `rendered`。
 
 ### GC 步骤 8：完成
 
-GC 是单画布，输出 `gc-canvas.html` 即完成。无「预告下一模块」。
+GC instance 输出 `gc-canvas-{slug}.html` 即完成；需要汇总时再生成 `gc-canvas.html` 索引页。无「预告下一模块」。
 
 ## Phase HMW：HMW 问题重构工作流
 
@@ -450,24 +470,24 @@ GC 是单画布，输出 `gc-canvas.html` 即完成。无「预告下一模块�
 ### HMW 步骤 1：Key Points 抽取
 
 - 输入：逐字稿。存档为 `transcripts/hmw-TXX-raw.md`。
-- 调用 `hmw-distill` Stage 1，输出 `modules/HMW-keypoints.md`。
+- 调用 `hmw-distill` Stage 1，输出 `modules/HMW-{slug}-keypoints.md`。
 - 末尾用户决策提示：「基于以上概览，请选择：**提炼** / **补问** / **先看个样子**」
 
 ### HMW 步骤 2-4：用户决策分支
 
-- **提炼** → 调用 `hmw-distill` Stage 2，生成 `modules/HMW-v{N}.md`，状态 → `review_ready`。
-- **补问** → 输出补问清单 `modules/HMW-gaps.md`，状态 → `gaps_open`。
+- **提炼** → 调用 `hmw-distill` Stage 2，生成 `modules/HMW-{slug}-v{N}.md`，状态 → `review_ready`。
+- **补问** → 输出补问清单 `modules/HMW-{slug}-gaps.md`，状态 → `gaps_open`。
 - **先看个样子** → 调用 `canvas-render` 生成 HMW 草稿 Canvas（`canvas_type=hmw`，`data-mode=draft`），带永久水印，不改变状态。
 
 ### HMW 步骤 5：确认包展示
 
-展示 `HMW-v{N}.md` 的必展项（一句话结论 / 对齐摘要 / 阻塞项 / 缺口速览 / 待确认版本），自动进入 HMW Gate。
+展示 `HMW-{slug}-v{N}.md` 的必展项（一句话结论 / 对齐摘要 / 阻塞项 / 缺口速览 / 待确认版本），自动进入 HMW Gate。
 
 ### HMW 步骤 6：HMW Gate + 用户决策
 
-- 调用 `hmw-gate`，读取 `HMW-v{N}.md` + `references/HMW-gate.md`。
+- 调用 `hmw-gate`，读取 `HMW-{slug}-v{N}.md` + `references/HMW-gate.md`，输出 `HMW-{slug}-gate-report-v{N}.md`。
 - 输出 Gate 报告（`gate_recommendation` + `override_eligible`）。
-- Gate 写入 `state.json.hmw.gate_recommendation`（由主 Agent 写入），不写最终授权。
+- Gate 写入 `state.json.hmw.{slug}.gate_recommendation`（由主 Agent 写入），不写最终授权。
 - 用户决策后写入 `confirmation_mode` / `render_authorized`，状态 → `confirmed`。
 - override 时写入完整的 `override_audit`。
 
@@ -477,13 +497,13 @@ GC 是单画布，输出 `gc-canvas.html` 即完成。无「预告下一模块�
 - 扫描 10 个视觉模式，推荐 1-2 个（以 zh_name 展示）。
 - 默认推荐 `10-black-gray-professional`（黑灰专业·打印版）。
 - 用户选定后调用 `canvas-render`，传递 `canvas_type=hmw`。
-- 生成 `output/hmw-canvas.html`。
-- 运行 `python3 skills/canvas-render/scripts/audit_canvas_html.py output/hmw-canvas.html --source modules/HMW-v{N}.md --state state.json --type hmw`。
+- 生成 `output/hmw-canvas-{slug}.html`。
+- 运行 `python3 skills/canvas-render/scripts/audit_canvas_html.py output/hmw-canvas-{slug}.html --source modules/HMW-{slug}-v{N}.md --state state.json --type hmw --instance {slug} --template skills/canvas-render/examples/hmw-canvas.html`。
 - 审计 + 浏览器验收通过后状态 → `rendered`。
 
 ### HMW 步骤 8：完成
 
-HMW 是单画布，输出 `hmw-canvas.html` 即完成。无「预告下一模块」。
+HMW instance 输出 `hmw-canvas-{slug}.html` 即完成；需要汇总时再生成 `hmw-canvas.html` 索引页。无「预告下一模块」。
 
 ## Phase Journey：用户旅程工作流
 
@@ -502,19 +522,19 @@ HMW 是单画布，输出 `hmw-canvas.html` 即完成。无「预告下一模块
 ### Journey 步骤 1：Key Points 抽取
 
 - 输入：逐字稿。存档为 `transcripts/journey-TXX-raw.md`。
-- 调用 `journey-distill` Stage 1，输出 `modules/JOURNEY-keypoints.md`。
+- 调用 `journey-distill` Stage 1，输出 `modules/JOURNEY-{slug}-keypoints.md`。
 - Key Points 只用于讨论地图和草稿，不作为正式渲染事实源。
 - 末尾用户决策提示：「基于以上概览，请选择：**提炼** / **补问** / **先看个样子**」
 
 ### Journey 步骤 2-4：用户决策分支
 
-- **提炼** → 调用 `journey-distill` Stage 2，生成 `modules/JOURNEY-v{N}.md`，状态 → `review_ready`。
-- **补问** → 输出补问清单 `modules/JOURNEY-gaps.md`，状态 → `gaps_open`。补问清单与确认包第 8 节缺口表同源。
+- **提炼** → 调用 `journey-distill` Stage 2，生成 `modules/JOURNEY-{slug}-v{N}.md`，状态 → `review_ready`。
+- **补问** → 输出补问清单 `modules/JOURNEY-{slug}-gaps.md`，状态 → `gaps_open`。补问清单与确认包第 8 节缺口表同源。
 - **先看个样子** → 调用 `canvas-render` 生成 Journey 草稿 Canvas（`canvas_type=journey`，`data-mode=draft`），带永久水印，不改变状态。
 
 ### Journey 步骤 5：确认包展示
 
-展示 `JOURNEY-v{N}.md` 的必展项（一句话结论 / 对齐摘要 / 阻塞项 / 缺口速览 / 待确认版本），自动进入 Journey Gate。
+展示 `JOURNEY-{slug}-v{N}.md` 的必展项（一句话结论 / 对齐摘要 / 阻塞项 / 缺口速览 / 待确认版本），自动进入 Journey Gate。
 
 详情区必须让用户看到：
 
@@ -526,9 +546,9 @@ HMW 是单画布，输出 `hmw-canvas.html` 即完成。无「预告下一模块
 
 ### Journey 步骤 6：Journey Gate + 用户决策
 
-- 调用 `journey-gate`，读取 `JOURNEY-v{N}.md` + `references/JOURNEY-gate.md`。
+- 调用 `journey-gate`，读取 `JOURNEY-{slug}-v{N}.md` + `references/JOURNEY-gate.md`，输出 `JOURNEY-{slug}-gate-report-v{N}.md`。
 - 输出 Gate 报告（`gate_recommendation` + `override_eligible`）。
-- Gate 写入 `state.json.journey.gate_recommendation`（由主 Agent 写入），不写最终授权。
+- Gate 写入 `state.json.journey.{slug}.gate_recommendation`（由主 Agent 写入），不写最终授权。
 - Gate 全 PASS 时，用户明确回复「确认 v{N}」后写入 `confirmation_mode=gate_pass` / `render_authorized=true` / `status=confirmed`。
 - 仅 `business_risk` FAIL 时，用户可显式 override；必须填写影响确认、override 理由、确认人、可选角色、确认时间，写入完整 `override_audit` 后才可 `confirmation_mode=override` / `render_authorized=true` / `status=confirmed`。
 - 任一 `information_integrity` FAIL 时不可 override，只能返回补问或修订，保持 `review_ready` 或回 `gaps_open`。
@@ -541,15 +561,16 @@ HMW 是单画布，输出 `hmw-canvas.html` 即完成。无「预告下一模块
 - 扫描 10 个视觉模式，推荐 1-2 个（以 zh_name 展示）。
 - 默认推荐 `10-black-gray-professional`（黑灰专业·打印版），但仍必须等待用户明确选择，不自动使用默认模式。
 - 用户选定后调用 `canvas-render`，传递 `canvas_type=journey`。
-- 正式数据源固定为同版本 `modules/JOURNEY-v{N}.md`。
-- 输出固定为 `output/journey-canvas.html`。
+- 正式数据源固定为同版本 `modules/JOURNEY-{slug}-v{N}.md`。
+- 输出固定为 `output/journey-canvas-{slug}.html`。
 - 运行：
 
   ```bash
-  python3 skills/canvas-render/scripts/audit_canvas_html.py output/journey-canvas.html \
-    --source modules/JOURNEY-v{N}.md \
+  python3 skills/canvas-render/scripts/audit_canvas_html.py output/journey-canvas-{slug}.html \
+    --source modules/JOURNEY-{slug}-v{N}.md \
     --state state.json \
     --type journey \
+    --instance {slug} \
     --template skills/canvas-render/examples/user-journey-canvas.html
   ```
 
@@ -558,7 +579,7 @@ HMW 是单画布，输出 `hmw-canvas.html` 即完成。无「预告下一模块
 
 ### Journey 步骤 8：完成
 
-Journey 是单画布，输出 `journey-canvas.html` 即完成。无「预告下一模块」，不进入 `maau-global-canvas.html`。
+Journey instance 输出 `journey-canvas-{slug}.html` 即完成；需要汇总时再生成 `journey-canvas.html` 索引页。无「预告下一模块」，不进入 `maau-global-canvas.html`。
 ## Phase Persona：用户画像工作流
 
 触发：用户选择用户画像 / Persona 画布类型。Persona 是独立单画布，不改造 MVL M2 的 `08-user-persona.md`，也不生成全局汇总。
@@ -576,31 +597,31 @@ Journey 是单画布，输出 `journey-canvas.html` 即完成。无「预告下�
 ### Persona 步骤 1：Key Points 抽取
 
 - 存档转写为 `transcripts/persona-TXX-raw.md`。
-- 调用 `persona-distill` Stage 1，输出 `modules/PERSONA-keypoints.md`。
+- 调用 `persona-distill` Stage 1，输出 `modules/PERSONA-{slug}-keypoints.md`。
 - 展示覆盖度初判，等待用户选择：**提炼** / **补问** / **先看个样子**。
 
 ### Persona 步骤 2-4：用户决策分支
 
-- **提炼** → 调用 `persona-distill` Stage 2，输出 `modules/PERSONA-v{N}.md`，状态为 `review_ready`。
-- **补问** → 输出 `modules/PERSONA-gaps.md`，缺口 ID 与确认包 §8 的 `PERSONA-Gxx` 同源，状态为 `gaps_open`。
-- **先看个样子** → 调用 `canvas-render` 生成 `canvas_type=persona` 草稿，唯一数据源是 `modules/PERSONA-keypoints.md`，永久显示草稿水印且不改变状态。
+- **提炼** → 调用 `persona-distill` Stage 2，输出 `modules/PERSONA-{slug}-v{N}.md`，状态为 `review_ready`。
+- **补问** → 输出 `modules/PERSONA-{slug}-gaps.md`，缺口 ID 与确认包 §8 的 `PERSONA-Gxx` 同源，状态为 `gaps_open`。
+- **先看个样子** → 调用 `canvas-render` 生成 `canvas_type=persona` 草稿，唯一数据源是 `modules/PERSONA-{slug}-keypoints.md`，永久显示草稿水印且不改变状态。
 
 ### Persona 步骤 5-6：确认包、Gate 与用户决策
 
-- 展示 `PERSONA-v{N}.md` 的一句话结论、对齐摘要、阻塞项、缺口速览与待确认版本，再调用 `persona-gate`。
-- `persona-gate` 只输出 `gate_recommendation` 与 `override_eligible` 建议。主 Agent 写入 `state.json.persona.gate_recommendation` 和确认包 §12.1。
+- 展示 `PERSONA-{slug}-v{N}.md` 的一句话结论、对齐摘要、阻塞项、缺口速览与待确认版本，再调用 `persona-gate`。
+- `persona-gate` 只输出 `gate_recommendation` 与 `override_eligible` 建议。主 Agent 写入 `state.json.persona.{slug}.gate_recommendation` 和确认包 §12.1。
 - Gate PASS 时等待用户"确认 vN"；仅 `PERSONA-GATE-03 / 04` 的 business_risk FAIL 可在用户提供理由、影响、确认人和时间后 override。
 - 含 information_integrity FAIL 时不提供 override，返回补问或修订。未经用户明确确认，`render_authorized=false`、`confirmation_mode=null`。
 
 ### Persona 步骤 7：视觉模式与渲染
 
-- 用户明确选择视觉模式后调用 `canvas-render`，传递 `canvas_type=persona`、同版本 `PERSONA-v{N}.md` 和 `state.persona` 授权元数据。
-- 输出 `output/persona-canvas.html`；必须执行 `skills/canvas-render/scripts/audit_canvas_html.py --type persona --template skills/canvas-render/examples/user-persona-canvas.html` 并完成桌面、窄屏、打印验收。
+- 用户明确选择视觉模式后调用 `canvas-render`，传递 `canvas_type=persona`、`instance_slug={slug}`、同版本 `PERSONA-{slug}-v{N}.md` 和 `state.persona.{slug}` 授权元数据。
+- 输出 `output/persona-canvas-{slug}.html`；必须执行 `skills/canvas-render/scripts/audit_canvas_html.py --type persona --instance {slug} --template skills/canvas-render/examples/user-persona-canvas.html` 并完成桌面、窄屏、打印验收。
 - 审计与浏览器验收都通过才将状态写为 `rendered`；失败保持 `confirmed`。
 
 ### Persona 步骤 8：完成
 
-Persona 输出 `persona-canvas.html` 即完成；不预告下一模块、不生成全局 Canvas、不扫描 MVL 跨模块 caveat。
+Persona instance 输出 `persona-canvas-{slug}.html` 即完成；需要汇总时再生成 `persona-canvas.html` 索引页。不预告下一模块、不生成全局 Canvas、不扫描 MVL 跨模块 caveat。
 
 ## Phase 2：MVL 全局汇总
 
@@ -665,20 +686,20 @@ Persona 输出 `persona-canvas.html` 即完成；不预告下一模块、不生�
 | **黄金圈专用** | |
 | "黄金圈" / "Golden Circle" / "开始黄金圈" / "GC" | 判定为黄金圈画布类型，加载 `frameworks/gc-golden-circle.md` 引导问题 |
 | "黄金圈转写" / "这是黄金圈的逐字稿" | 存档 `transcripts/gc-TXX-raw.md` → GC Key Points 抽取 |
-| "黄金圈门禁" / "黄金圈质量检查" | 调用 `gc-gate`，评估 `GC-v{N}.md` |
-| "生成黄金圈画布" | 确认 `golden_circle.render_authorized=true` 后渲染 `gc-canvas.html` |
+| "黄金圈门禁" / "黄金圈质量检查" | 调用 `gc-gate`，评估 `GC-{slug}-v{N}.md` |
+| "生成黄金圈画布" | 确认 `golden_circle.{slug}.render_authorized=true` 后渲染 `gc-canvas-{slug}.html` |
 | "黄金圈状态" / "黄金圈进度" | 报告 GC version / status / gate_recommendation / confirmation_mode / 关键缺口 |
 | **HMW 专用** | |
 | "HMW" / "How Might We" / "问题重构" / "开始 HMW" / "我们可以如何" | 判定为 HMW 画布类型，加载 `frameworks/hmw-frame.md` 引导问题 |
 | "HMW 转写" / "这是 HMW 的逐字稿" | 存档 `transcripts/hmw-TXX-raw.md` → HMW Key Points 抽取 |
-| "HMW 门禁" / "HMW 质量检查" | 调用 `hmw-gate`，评估 `HMW-v{N}.md` |
-| "生成 HMW 画布" | 确认 `hmw.render_authorized=true` 后渲染 `hmw-canvas.html` |
+| "HMW 门禁" / "HMW 质量检查" | 调用 `hmw-gate`，评估 `HMW-{slug}-v{N}.md` |
+| "生成 HMW 画布" | 确认 `hmw.{slug}.render_authorized=true` 后渲染 `hmw-canvas-{slug}.html` |
 | "HMW 状态" / "HMW 进度" | 报告 HMW version / status / gate_recommendation / confirmation_mode / 关键缺口 |
 | **用户旅程专用** | |
 | "用户旅程" / "Journey" / "User Journey" / "旅程画布" / "当前旅程" | 判定为 Journey 画布类型，加载 `frameworks/journey-frame.md` 引导问题 |
 | "用户旅程转写" / "这是 Journey 的逐字稿" | 存档 `transcripts/journey-TXX-raw.md` → Journey Key Points 抽取 |
-| "用户旅程门禁" / "Journey 质量检查" | 调用 `journey-gate`，评估 `JOURNEY-v{N}.md` |
-| "生成用户旅程画布" / "生成 Journey 画布" | 确认 `journey.render_authorized=true` 后渲染 `journey-canvas.html` |
+| "用户旅程门禁" / "Journey 质量检查" | 调用 `journey-gate`，评估 `JOURNEY-{slug}-v{N}.md` |
+| "生成用户旅程画布" / "生成 Journey 画布" | 确认 `journey.{slug}.render_authorized=true` 后渲染 `journey-canvas-{slug}.html` |
 | "用户旅程状态" / "Journey 进度" | 报告 Journey version / status / gate_recommendation / confirmation_mode / 关键缺口 |
 | **用户画像专用** | |
 | "用户画像" / "Persona" / "User Persona" / "画像画布" | 判定为 Persona 独立画布；若 Persona 流程尚未落地，停止并请用户确认 Persona 实施步骤，不转入 Journey |
@@ -686,8 +707,8 @@ Persona 输出 `persona-canvas.html` 即完成；不预告下一模块、不生�
 | **Persona 专用** | |
 | "用户画像" / "Persona" / "画像" / "用户研究" | 判定为 Persona 画布类型，加载 `frameworks/persona-frame.md` 引导问题 |
 | "用户画像转写" / "这是用户画像的逐字稿" | 存档 `transcripts/persona-TXX-raw.md` → Persona Key Points 抽取 |
-| "用户画像门禁" / "用户画像质量检查" | 调用 `persona-gate`，评估 `PERSONA-v{N}.md` |
-| "生成用户画像画布" | 确认 `state.json.persona.render_authorized=true` 后渲染 `persona-canvas.html` |
+| "用户画像门禁" / "用户画像质量检查" | 调用 `persona-gate`，评估 `PERSONA-{slug}-v{N}.md` |
+| "生成用户画像画布" | 确认 `state.json.persona.{slug}.render_authorized=true` 后渲染 `persona-canvas-{slug}.html` |
 | "用户画像状态" / "用户画像进度" | 报告 Persona version / status / gate_recommendation / confirmation_mode / 关键缺口 |
 | "检查状态" / "进度" / "同步状态" | **当前 group 全量**：报告 MVL M1-M6 + GC + HMW + Persona + Journey 的版本、状态、gate_recommendation、confirmation_mode 和关键缺口 |
 
@@ -699,7 +720,7 @@ Persona 输出 `persona-canvas.html` 即完成；不预告下一模块、不生�
 # 在执行 HMW 流程时强制应用以下指令：
 1. 仅当用户关键词命中"如何…/怎么做/能否…/如果…会…"且不属于 MVL / GC 时路由到 HMW。
 2. 转写只整理用户语言，不改写专业术语。
-3. Key Points 仅用于草稿，正式渲染只读 `HMW-v{N}.md`。
+3. Key Points 仅用于草稿，正式渲染只读 `HMW-{slug}-v{N}.md`。
 4. 三分支（落地 / 抽象 / 重构）必须全部产出 Idea，禁止只覆盖 1–2 个。
 5. Gate 只给建议；`render_authorized` 只能由用户显式授权（gate_pass 或 override）。
 6. 模板结构与顺序是契约，Gate 报告里 `HMW-TPL-GATE-XX` 失败不能由 Agent 自行豁免。
@@ -713,7 +734,7 @@ Persona 输出 `persona-canvas.html` 即完成；不预告下一模块、不生�
 2. Journey 是独立一等公民画布，不修改 MVL M2 的 `09-user-journey.md`，不写 `state.modules.M2`。
 3. 主表忠实保留 5 行合并结构：行动 / 触点与系统 / 情绪 / 痛点 / 机会；不得改成七要素。
 4. 阶段按实际阶段动态生成，最低 3 个有效阶段；单次运行只承载一条 Journey。
-5. Key Points 仅用于草稿，正式渲染只读 `JOURNEY-v{N}.md`。
+5. Key Points 仅用于草稿，正式渲染只读 `JOURNEY-{slug}-v{N}.md`。
 6. 质量鉴别必须在正式画布外显，但不得进入主表成为第 6 行。
 7. Gate 只给建议；`render_authorized` 只能由用户显式授权（gate_pass 或 override）。
 8. 只有 `business_risk` 可 override；`information_integrity` 不可 override。
@@ -723,7 +744,7 @@ Persona 输出 `persona-canvas.html` 即完成；不预告下一模块、不生�
 # 在执行 Persona 流程时强制应用以下指令：
 1. 仅当用户关键词命中"用户画像 / Persona / 画像 / 用户研究"且不属于 MVL / GC / HMW 时路由到 Persona。
 2. 转写只整理用户语言，不改写专业术语，不把推断写成事实。
-3. Key Points 仅用于草稿，正式渲染只读 `PERSONA-v{N}.md`。
+3. Key Points 仅用于草稿，正式渲染只读 `PERSONA-{slug}-v{N}.md`。
 4. 六宫格 6 区必须全部有内容或显式标为缺口；关键基本信息 name / job_title / industry 必须有值。
 5. Gate 只给建议；`render_authorized` 只能由用户显式授权（gate_pass 或 override）。
 6. Persona 是独立单画布，不生成全局汇总，不改造 MVL M2 的 `08-user-persona.md`。
@@ -751,18 +772,18 @@ workshop/{project_slug}/
     │   ├── M1-v1.md                 # MVL 确认包 v1（含第 12 节治理元数据）
     │   ├── M1-v2.md                 # MVL 确认包 v2（升版后）
     │   ├── M1-gaps.md               # MVL 补问清单
-    │   ├── GC-keypoints.md          # GC 第 1 轮 Key Points
-    │   ├── GC-v1.md                 # GC 确认包
-    │   ├── GC-gaps.md               # GC 补问清单
-    │   ├── HMW-keypoints.md         # HMW Key Points
-    │   ├── HMW-v1.md                # HMW 确认包
-    │   ├── HMW-gaps.md              # HMW 补问清单
-    │   ├── PERSONA-keypoints.md     # Persona Key Points
-    │   ├── PERSONA-v1.md            # Persona 确认包
-    │   ├── PERSONA-gaps.md          # Persona 补问清单
-    │   ├── JOURNEY-keypoints.md     # Journey Key Points
-    │   ├── JOURNEY-v1.md            # Journey 确认包
-    │   ├── JOURNEY-gaps.md          # Journey 补问清单
+    │   ├── GC-{slug}-keypoints.md   # GC 第 1 轮 Key Points
+    │   ├── GC-{slug}-v1.md          # GC 确认包
+    │   ├── GC-{slug}-gaps.md        # GC 补问清单
+    │   ├── HMW-{slug}-keypoints.md  # HMW Key Points
+    │   ├── HMW-{slug}-v1.md         # HMW 确认包
+    │   ├── HMW-{slug}-gaps.md       # HMW 补问清单
+    │   ├── PERSONA-{slug}-keypoints.md # Persona Key Points
+    │   ├── PERSONA-{slug}-v1.md     # Persona 确认包
+    │   ├── PERSONA-{slug}-gaps.md   # Persona 补问清单
+    │   ├── JOURNEY-{slug}-keypoints.md # Journey Key Points
+    │   ├── JOURNEY-{slug}-v1.md     # Journey 确认包
+    │   ├── JOURNEY-{slug}-gaps.md   # Journey 补问清单
     │   ├── hmw/archive/
     │   ├── journey/archive/
     │   └── ...
@@ -770,10 +791,14 @@ workshop/{project_slug}/
         ├── module-1-canvas.html
         ├── maau-global-canvas.html
         ├── mvl-final-report.html
-        ├── gc-canvas.html           # 黄金圈输出
-        ├── hmw-canvas.html          # HMW 输出
-        ├── persona-canvas.html      # Persona 输出
-        └── journey-canvas.html      # Journey 输出
+        ├── gc-canvas.html           # 黄金圈索引页
+        ├── gc-canvas-{slug}.html    # 黄金圈 instance 输出
+        ├── hmw-canvas.html          # HMW 索引页
+        ├── hmw-canvas-{slug}.html   # HMW instance 输出
+        ├── persona-canvas.html      # Persona 索引页
+        ├── persona-canvas-{slug}.html # Persona instance 输出
+        ├── journey-canvas.html      # Journey 索引页
+        └── journey-canvas-{slug}.html # Journey instance 输出
 ```
 
 **文件语义**：
@@ -784,19 +809,17 @@ workshop/{project_slug}/
 - `transcripts/*.md`：原始逐字稿存档（不可信数据，仅供回溯）。
 - `modules/Mx-keypoints.md`：MVL Key Points 概览（**非事实源**，是讨论地图）。
 - `modules/Mx-v{N}.md`：MVL 确认包（**唯一事实源**）。
-- `modules/GC-keypoints.md`：GC Key Points 概览。
-- `modules/GC-v{N}.md`：GC 确认包（**唯一事实源**）。
-- `modules/HMW-keypoints.md`：HMW Key Points 概览。
-- `modules/HMW-v{N}.md`：HMW 确认包（**唯一事实源**）。
-- `modules/PERSONA-keypoints.md`：Persona Key Points 概览。
-- `modules/PERSONA-v{N}.md`：Persona 确认包（**唯一事实源**）。
-- `modules/JOURNEY-keypoints.md`：Journey Key Points 概览。
-- `modules/JOURNEY-v{N}.md`：Journey 确认包（**唯一事实源**）。
+- `modules/GC-{slug}-keypoints.md`：GC Key Points 概览。
+- `modules/GC-{slug}-v{N}.md`：GC 确认包（**唯一事实源**）。
+- `modules/HMW-{slug}-keypoints.md`：HMW Key Points 概览。
+- `modules/HMW-{slug}-v{N}.md`：HMW 确认包（**唯一事实源**）。
+- `modules/PERSONA-{slug}-keypoints.md`：Persona Key Points 概览。
+- `modules/PERSONA-{slug}-v{N}.md`：Persona 确认包（**唯一事实源**）。
+- `modules/JOURNEY-{slug}-keypoints.md`：Journey Key Points 概览。
+- `modules/JOURNEY-{slug}-v{N}.md`：Journey 确认包（**唯一事实源**）。
 - `output/module-N-canvas.html`：MVL 模块 Canvas。
-- `output/gc-canvas.html`：GC Canvas。
-- `output/hmw-canvas.html`：HMW Canvas。
-- `output/persona-canvas.html`：Persona Canvas。
-- `output/journey-canvas.html`：Journey Canvas。
+- `output/{gc|hmw|persona|journey}-canvas.html`：非 MVL instance 索引页。
+- `output/{gc|hmw|persona|journey}-canvas-{slug}.html`：非 MVL instance Canvas。
 
 `state.json` 每次状态变化后立即写入，并同步 patch 项目级 `manifest.json`。Markdown 确认包是业务事实源，HTML 是同版本展示物，两者不可互相代替。
 

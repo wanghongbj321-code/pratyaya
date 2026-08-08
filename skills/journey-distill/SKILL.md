@@ -1,11 +1,13 @@
 ---
 name: journey-distill
-description: 把 User Journey（用户旅程）工作坊讨论产物提炼为 Markdown 资产。先做 Key Points 概览抽取（生成动态阶段、5 行合并结构、痛点与机会和质量信号的讨论地图），再按用户决策做原子提炼，输出唯一事实源 JOURNEY-v{N}.md 确认包。收到 Journey Key Points 抽取请求、原子提炼请求、确认包生成请求时使用。
+description: 把 User Journey（用户旅程）工作坊讨论产物提炼为 Markdown 资产。先做 Key Points 概览抽取（生成动态阶段、5 行合并结构、痛点与机会和质量信号的讨论地图），再按用户决策做原子提炼，输出唯一事实源 JOURNEY-{slug}-v{N}.md 确认包。收到 Journey Key Points 抽取请求、原子提炼请求、确认包生成请求时使用。
 ---
 
 # journey-distill：用户旅程提炼
 
-把 Key Points 概览与 Journey 框架结合，形成经过对齐的、唯一事实源的确认包（`modules/JOURNEY-v{N}.md`）。完成标准是“真实呈现用户当前旅程、痛点与机会和质量判断”，不是“画出完整漂亮的流程图”。
+把 Key Points 概览与 Journey 框架结合，形成经过对齐的、唯一事实源的确认包（`modules/JOURNEY-{slug}-v{N}.md`）。完成标准是“真实呈现用户当前旅程、痛点与机会和质量判断”，不是“画出完整漂亮的流程图”。
+
+所有 Journey 产物必须绑定 instance slug。slug 由主 Agent 提供，必须为 kebab-case，并与 `state.journey.{slug}.slug` 一致；本 Skill 不自动生成 `default` slug。
 
 质量鉴别采用正式画布外显方式：`user_perspective`、`business_outcome`、`pain_opportunity_visible`、`no_solution_bias` 四维度必须写入确认包第 6a 节，并在后续 Canvas 中作为治理区块呈现，而不是只作为 Gate 内部判断。
 
@@ -13,8 +15,8 @@ description: 把 User Journey（用户旅程）工作坊讨论产物提炼为 Ma
 
 **分步提炼流程**：本 skill 是 Pratyaya Canvas Expert 的“Journey 提炼与确认包生成”能力。完整的 Journey 工作流由主 agent 编排（见 `agents/pratyaya.md`），本 skill 不编排主流程，只在被调用时执行以下两个独立 Stage：
 
-- **Stage 1：Key Points 抽取** — 输入转写，输出 `modules/JOURNEY-keypoints.md`（讨论地图，30 秒浏览）。
-- **Stage 2：原子提炼** — 输入转写 + Key Points + Journey 框架，输出 `modules/JOURNEY-v{N}.md`（确认包，唯一事实源）。
+- **Stage 1：Key Points 抽取** — 输入转写，输出 `modules/JOURNEY-{slug}-keypoints.md`（讨论地图，30 秒浏览）。
+- **Stage 2：原子提炼** — 输入转写 + Key Points + Journey 框架，输出 `modules/JOURNEY-{slug}-v{N}.md`（确认包，唯一事实源）。
 
 调用顺序由主 agent 决定，本 skill 不强制。本 skill 不调用 Canvas 渲染、不执行闸门判定。
 
@@ -49,9 +51,9 @@ Journey 是独立一等公民画布，不影响 MVL：
 
 | Stage | 输入 | 输出 |
 |---|---|---|
-| Stage 1：Key Points 抽取 | 逐字稿（文本或文件路径） | `modules/JOURNEY-keypoints.md`（第 N 轮） |
-| Stage 2：原子提炼 | 逐字稿 + Key Points + Journey 框架 | `modules/JOURNEY-v{N}.md`（确认包，唯一事实源） |
-| 补问分支 | 确认包缺口 / Key Points 缺口 | `modules/JOURNEY-gaps.md` |
+| Stage 1：Key Points 抽取 | 逐字稿（文本或文件路径） | `modules/JOURNEY-{slug}-keypoints.md`（第 N 轮） |
+| Stage 2：原子提炼 | 逐字稿 + Key Points + Journey 框架 | `modules/JOURNEY-{slug}-v{N}.md`（确认包，唯一事实源） |
+| 补问分支 | 确认包缺口 / Key Points 缺口 | `modules/JOURNEY-{slug}-gaps.md` |
 
 Stage 1 与 Stage 2 可独立调用，不强制串联。但 Stage 2 的输入依赖 Stage 1 的 Key Points。
 
@@ -63,9 +65,9 @@ Stage 2 完成后交给主 agent 触发闸门（`journey-gate`），不直接进
 
 **触发**：主 agent Journey 工作流对应步骤，输入为逐字稿（已由主 agent 存档为 `transcripts/journey-TXX-raw.md`）。
 
-**输出**：`modules/JOURNEY-keypoints.md`，结构如下。
+**输出**：`modules/JOURNEY-{slug}-keypoints.md`，结构如下。
 
-### JOURNEY-keypoints.md 模板
+### JOURNEY-{slug}-keypoints.md 模板
 
 ```markdown
 # User Journey Key Points（第 X 轮）
@@ -131,19 +133,19 @@ Stage 2 完成后交给主 agent 触发闸门（`journey-gate`），不直接进
 
 ## Stage 2：原子提炼
 
-**目标**：将 Key Points 转化为经过对齐的、唯一事实源的确认包 `JOURNEY-v{N}.md`。
+**目标**：将 Key Points 转化为经过对齐的、唯一事实源的确认包 `JOURNEY-{slug}-v{N}.md`。
 
 **触发**：主 agent Journey 工作流对应步骤（用户回复“提炼”后调用）。
 
 **输入**：
 
 - 逐字稿（已存档）
-- `modules/JOURNEY-keypoints.md`（Stage 1 产物）
+- `modules/JOURNEY-{slug}-keypoints.md`（Stage 1 产物）
 - `frameworks/journey-frame.md`（Journey 框架）
 
-**输出**：`modules/JOURNEY-v{N}.md`，全 Markdown，结构如下。
+**输出**：`modules/JOURNEY-{slug}-v{N}.md`，全 Markdown，结构如下。
 
-### JOURNEY-v{N}.md 确认包模板
+### JOURNEY-{slug}-v{N}.md 确认包模板
 
 ```markdown
 # User Journey 确认包 v{N}
@@ -247,16 +249,16 @@ v{N}
 （治理元数据，由 Gate 流程与主 Agent 写入，不触发业务升版）
 ```
 
-## 补问分支：JOURNEY-gaps.md
+## 补问分支：JOURNEY-{slug}-gaps.md
 
-用户选择“补问”时，输出 `modules/JOURNEY-gaps.md`。每条补问必须包含：
+用户选择“补问”时，输出 `modules/JOURNEY-{slug}-gaps.md`。每条补问必须包含：
 
 - 缺口 ID（`JOURNEY-Gxx`）
 - 缺失判断点
 - 缺失影响
 - 最少补问
 
-`JOURNEY-gaps.md` 与确认包第 8 节缺口表同源，不引入独立 ID 空间。
+`JOURNEY-{slug}-gaps.md` 与确认包第 8 节缺口表同源，不引入独立 ID 空间。
 
 ## 质量红线
 

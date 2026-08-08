@@ -88,7 +88,7 @@
 
 主 Agent 引导：M5 验证后生成 M6 收尾，再生成全局 Canvas。
 
-### 4.2 黄金圈（单画布）
+### 4.2 黄金圈（多 instance 画布）
 
 一次引导完成 WHY / HOW / WHAT 三层：
 
@@ -96,9 +96,9 @@
 2. **HOW**：原则 / 差异化 / 方法
 3. **WHAT**：产品 / 服务 / 证据
 
-主 Agent 引导三层讨论 → 提炼 `GC-v{N}.md` → Gate → 确认 → 生成 `gc-canvas.html`。
+主 Agent 引导三层讨论 → 提炼 `GC-{slug}-v{N}.md` → Gate → 确认 → 生成 `gc-canvas-{slug}.html`。同一 group 可有多个黄金圈 instance；`gc-canvas.html` 是索引页。
 
-### 4.3 HMW（单画布）
+### 4.3 HMW（多 instance 画布）
 
 问题重构工作坊，一次完成四步：
 
@@ -107,13 +107,13 @@
 3. **想法种子**：三分支（落地 / 抽象 / 重构）各产出想法，填 8 固定想法格
 4. **想法↔HMW 对应**：每条想法回应问句、对应质量维度、一致性判断
 
-主 Agent 引导讨论 → 提炼 `HMW-v{N}.md` → Gate → 确认 → 生成 `hmw-canvas.html`。HMW 正式渲染走**双 Gate**（内容/授权 + 结构 Template Gate），结构问题不能自行豁免（详见 [DEVELOPMENT.md §3.1](../DEVELOPMENT.md#31-python-静态审计)）。
+主 Agent 引导讨论 → 提炼 `HMW-{slug}-v{N}.md` → Gate → 确认 → 生成 `hmw-canvas-{slug}.html`。HMW 正式渲染走**双 Gate**（内容/授权 + 结构 Template Gate），结构问题不能自行豁免（详见 [DEVELOPMENT.md §3.1](../DEVELOPMENT.md#31-python-静态审计)）。`hmw-canvas.html` 是索引页。
 
-### 4.4 用户画像（单画布）
+### 4.4 用户画像（多 instance 画布）
 
-用户画像固定覆盖 9 基本信息、6 宫格和 4 项质量鉴别。主 Agent 引导讨论 → 提炼 `PERSONA-v{N}.md` → Persona Gate → 用户确认或合规 override → 生成 `persona-canvas.html`。正式渲染同样经过内容/授权与 Template 双 Gate；只有 `PERSONA-GATE-03/04` 的业务风险可以显式 override。
+用户画像固定覆盖 9 基本信息、6 宫格和 4 项质量鉴别。主 Agent 引导讨论 → 提炼 `PERSONA-{slug}-v{N}.md` → Persona Gate → 用户确认或合规 override → 生成 `persona-canvas-{slug}.html`。正式渲染同样经过内容/授权与 Template 双 Gate；只有 `PERSONA-GATE-03/04` 的业务风险可以显式 override。`persona-canvas.html` 是索引页。
 
-### 4.5 用户旅程（单画布）
+### 4.5 用户旅程（多 instance 画布）
 
 当前旅程工作坊，一次完成四步：
 
@@ -122,7 +122,9 @@
 3. **痛点与机会**：痛点、机会与情绪低点形成的痛点与机会摘要（v2.3.2 起）。
 4. **质量鉴别**：用户视角 / 到达业务结果 / 痛点与机会可见 / 未预设方案，正式画布外显，但不进入主表成为第 6 行。
 
-主 Agent 引导讨论 → 提炼 `JOURNEY-v{N}.md` → Journey Gate → 确认 / override → 生成 `journey-canvas.html`。Journey 正式渲染走**双 Gate**（内容/授权 + 动态阶段 Template Gate），结构问题不能自行豁免。
+主 Agent 引导讨论 → 提炼 `JOURNEY-{slug}-v{N}.md` → Journey Gate → 确认 / override → 生成 `journey-canvas-{slug}.html`。Journey 正式渲染走**双 Gate**（内容/授权 + 动态阶段 Template Gate），结构问题不能自行豁免。`journey-canvas.html` 是索引页。
+
+非 MVL 画布开始时请提供 instance slug，例如 `decision-maker` / `frontline-operator`。slug 必须是小写英文、数字和连字符组成的 kebab-case；新建时不能使用 `default`。
 
 > 独立 Journey Canvas 不修改 MVL M2 的 `09-user-journey.md`，不写 `state.modules.M2`；如需把 Journey 结论带入 MVL，只能由用户人工引用。
 
@@ -185,6 +187,8 @@
 
 **全局阶段**：
 
+- "开始用户画像 instance decision-maker，项目名中软国际 Power 商机评估，项目短名 zhongruan-power，组号 group-a"
+- "列举 Persona instances" / "切到 Persona instance decision-maker" / "生成 Persona 全部 instance 画布"
 - "生成全局 Canvas" / "M5 验证" / "M6 收尾"
 
 > **快速指令（quickPrompts）**：plugin.json 中 `quickPrompts` 字段定义的 3 个推荐入口指令，可一键触发。本指南不复制具体指令，统一以 plugin.json 为权威来源。
@@ -236,7 +240,7 @@
 | 特征 | 草稿 Canvas | 正式 Canvas |
 |---|---|---|
 | 顶部字样 | 草稿 / 未确认 / 禁止用于管理层决策 | 画布名 + 版本号（MVL Canvas / Golden Circle / HMW Canvas / Persona Canvas / Journey Canvas） |
-| 数据源 | 对应 Key Points（非确认包） | 对应确认包（`Mx-v{N}.md` / `GC-v{N}.md` / `HMW-v{N}.md` / `PERSONA-v{N}.md` / `JOURNEY-v{N}.md`） |
+| 数据源 | 对应 Key Points（非确认包） | 对应确认包（`Mx-v{N}.md` / `GC-{slug}-v{N}.md` / `HMW-{slug}-v{N}.md` / `PERSONA-{slug}-v{N}.md` / `JOURNEY-{slug}-v{N}.md`） |
 | 视觉来源 | 用户选定的 `visual-patterns/NN-{id}.md` | 用户选定的 `visual-patterns/NN-{id}.md` |
 | 视觉系统 | 用户选定 | 用户选定 |
 | 状态变化 | 不改变画布状态 | 画布状态改为 `rendered` |
