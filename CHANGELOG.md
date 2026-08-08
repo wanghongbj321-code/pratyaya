@@ -3,6 +3,29 @@
 > 本文件记录 Pratyaya 专家的正式版本变更。
 > 完整 SemVer 与架构说明见 [`README.md`](./README.md) / [`DESIGN.md`](./DESIGN.md) / [docs/MVL-整体架构设计.md](./docs/MVL-整体架构设计.md)。
 
+## [v2.3.4] - 2026-08-08
+
+### 重构（PATCH）
+
+- **删除冗余「痛点与机会」独立 section**：Journey 一等公民画布的独立 6b 视觉 section（`<section id="journey-pain-opportunities">` 与摘要锚点 `journey-pain-opportunity-summary`）已合并入 5 行主表的第 4 / 5 行（`pain-point` / `opportunity` 子锚点）；6b 独立 visual section 不再渲染。痛点 / 机会条目登记（`JOURNEY-Fxx`）仍保留在 `JOURNEY-v{N}.md` 确认包第 6b 节（Markdown 层，不进运行时模板）。
+- **契约 / audit / 示例同步**：`render-contract-journey.md` 移除对应一级模块、锚点映射、Template Gate Profile、稳定锚点集合、隐藏检测清单；`audit_canvas_html.py` 中 `JOURNEY_TPL_MAIN_IDS` / `JOURNEY_MAIN_IDS` / `JOURNEY_ANCHORS` 与 2 处隐藏检测循环同步切；`examples/user-journey-canvas.html` 同步删除冗余 section、CSS（`.pain-opportunities` / `.pain-opportunity-list` / `.pain-opportunity-item`）、响应式 grid 与 canvas-data 引用。
+- **契约检查器与测试同步**：`scripts/check_contract_consistency.py` 的 `required_anchors` 移除被删锚点；`tests/test_contract_consistency.py` 同步 `JOURNEY_PAIN_OPPORTUNITY_ANCHORS_V232`（重定义为 4 个质量锚点）、`assert plugin["version"] == "2.3.4"`、示例模板锚点白名单；`tests/test_journey_canvas_audit.py` 中 `test_missing_quality_or_pain_opportunity_anchor_fails` 改为 `test_missing_quality_anchor_fails`（仅覆盖 6a 四锚点），`test_swap_main_order_fails_template_gate` 主序交换目标改为 `journey-map` ↔ `journey-quality`，`test_legacy_only_template_fails` 中的 dead-code 替换同步移除；`tests/fixtures/journey/fault-cases.json` 删除 `missing_pain_opportunity_summary` 故障用例。
+- **Spec / Agent 文档同步**：`skills/journey-distill/references/journey-spec.md` 移除 Canvas 映射表中 6b 独立锚点行，并新增 v2.3.4 PATCH 说明段；`agents/pratyaya.md` 高层描述将"动态阶段 × 5 行合并结构 + 质量鉴别 + 断点摘要"精简为"动态阶段 × 5 行合并结构 + 质量鉴别（5 行分别为行动 / 触点与系统 / 情绪 / 痛点 / 机会）"。
+- **plugin.json 升 version**：2.3.2 → **2.3.4**（PATCH）。
+
+### 不变项
+
+- 字段语义（`pain_point` / `opportunity` / `pain_opportunity_visible`、6b 数据列「类型 / 来源」）保持 v2.3.2。
+- `state.schema.json` `schema_version` 保持 2.3。
+- `JOURNEY-Fxx` 条目 ID 含义与前缀含义保持 v2.3.2。
+- Gate 来源 ID `JOURNEY-pain-opportunity` 与 6 条放行条件（`JOURNEY-GATE-01` ~ `06`）保持不变。
+- 6 个仓库根文档（README / DEVELOPMENT / DESIGN / docs/installation / docs/MVL-整体架构设计 / docs/user-guide）按「文档版本号去重原则」不写 v2.3.4 字样；权威版本以 `plugin.json` `version` 字段为准。
+
+### 兼容性
+
+- v2.3.2 / v2.3.1 / v2.3.0 产物 HTML 若仍含独立 6b visual section，新 audit 反向 FAIL（**预期行为**，与原方案一致）。
+- v2.3.3 编号本次跳过（PATCH 升 1 号位未占用），下次升 PATCH 用 `2.3.5`，下次升 MINOR 从 `2.4.0` 起。
+
 ## [v2.3.2] - 2026-08-08
 
 ### 重构（PATCH）

@@ -32,11 +32,6 @@
       "replace": [["id=\"journey-quality-pain-opportunity-visible\"", "id=\"journey-quality-pain-opportunity-visible-x\""]]
     },
     {
-      "id": "missing_pain_opportunity_summary",
-      "expect": "journey-pain-opportunity-summary",
-      "replace": [["id=\"journey-pain-opportunity-summary\"", "id=\"journey-pain-opportunity-summary-x\""]]
-    },
-    {
       "id": "stage_child_order_wrong",
       "expect": "JOURNEY_STAGE_ORDER",
       "replace": [

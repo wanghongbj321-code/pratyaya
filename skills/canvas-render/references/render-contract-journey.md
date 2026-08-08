@@ -26,9 +26,6 @@
       </article>
       <!-- journey-stage-{n} 根据确认包第 6 节动态生成 -->
     </section>
-    <section id="journey-pain-opportunities">
-      <div id="journey-pain-opportunity-summary">痛点与机会</div>
-    </section>
     <section id="journey-quality">
       <div id="journey-quality-user-perspective">用户视角判定</div>
       <div id="journey-quality-business-outcome">到达业务结果判定</div>
@@ -89,8 +86,6 @@
 | `journey-stage-{n}-emotion` | 6：第 n 个阶段的情绪 |
 | `journey-stage-{n}-pain-point` | 6：第 n 个阶段的痛点 |
 | `journey-stage-{n}-opportunity` | 6：第 n 个阶段的机会 |
-| `journey-pain-opportunities` | 6b：痛点与机会 |
-| `journey-pain-opportunity-summary` | 6b：痛点与机会摘要 |
 | `journey-quality` | 6a：质量鉴别 |
 | `journey-quality-user-perspective` | 6a：user_perspective（用户视角） |
 | `journey-quality-business-outcome` | 6a：business_outcome（到达业务结果） |
@@ -103,7 +98,7 @@
 - 阶段根据确认包第 6 节动态生成，不固定 7 个槽位。
 - 不得新增第 6 行承载质量鉴别；质量鉴别是正式画布外显治理区块。
 - `journey-quality-*` 的数据源为 `JOURNEY-v{N}.md` 第 6a 节，不由 `canvas-render` 推断。
-- `journey-pain-opportunity-summary` 的数据源为 `JOURNEY-v{N}.md` 第 6b 节，不由 `canvas-render` 推断。
+- 痛点 / 机会条目内容已并入 5 行主表的第 4 / 5 行（`pain-point` / `opportunity` 子锚点），不再以独立 section 形式承载；保留 JOURNEY-Fxx 条目 ID 用于 6b 节登记与质量鉴别 `pain_opportunity_visible` 维度判定。
 - Journey Canvas 是单画布，不存在子模块详情页和全局汇总页，不扫描 MVL 跨模块 caveat。
 
 ## C. 动态阶段规则
@@ -174,7 +169,6 @@ Template Gate（`audit_canvas_html.py --template skills/canvas-render/examples/u
 ```text
 canvas-header
   → journey-map
-  → journey-pain-opportunities
   → journey-quality
   → quality-panel
   → local-notes
@@ -187,7 +181,6 @@ canvas-header
 
 - 页面：`data-page-type="journey"`（`JOURNEY-TPL-GATE-01`）
 - 主表：`journey-map`、动态 `journey-stage-{n}` 与每阶段 5 子锚点（`JOURNEY-TPL-GATE-04`）
-- 痛点与机会摘要：`journey-pain-opportunities`、`journey-pain-opportunity-summary`（`JOURNEY-TPL-GATE-04`）
 - 质量 4 维度：`journey-quality-user-perspective` / `journey-quality-business-outcome` / `journey-quality-pain-opportunity-visible` / `journey-quality-no-solution-bias`（`JOURNEY-TPL-GATE-04`）
 - 治理面板：`quality-panel` 含 `quality-version` / `quality-approval` / `quality-gaps` / `quality-risks` / `quality-caveat` 插槽（`JOURNEY-TPL-GATE-05`）
 - 批注与数据：`local-notes`、`canvas-data`（`JOURNEY-TPL-GATE-02`）
@@ -195,7 +188,7 @@ canvas-header
 
 ### 隐藏检测（Template Gate 与内容/授权 Gate 共用）
 
-阶段地图（`journey-map`）、痛点与机会摘要（`journey-pain-opportunities`）、质量鉴别（`journey-quality`）与治理面板（`quality-panel`）不得以任何方式隐藏。四种隐藏方式任一命中即 FAIL：
+阶段地图（`journey-map`）、质量鉴别（`journey-quality`）与治理面板（`quality-panel`）不得以任何方式隐藏。以下隐藏方式任一命中即 FAIL：
 
 1. `hidden` HTML 属性（`hidden` 属性存在）
 2. `style="display:none"` 或计算后 `display` 为 `none`
@@ -220,7 +213,24 @@ canvas-header
 
 > **迁移提示**：v2.3.1 历史渲染产物在阅读或迁移时使用对应的新字段名读写；在 audit 中 v2.3.0 字段不属于 v2.3.2 必填集合。
 
-## 兼容性边界（v2.3.2 起）
+## v2.3.2 → v2.3.4 字段映射（v2.3.4 PATCH）
+
+> **本次 PATCH**：删除 Journey 画布上独立的 6b「痛点与机会」section（视觉冗余消除）。痛点 / 机会内容已在 5 行主表的第 4 / 5 行（`pain-point` / `opportunity` 子锚点）保留；6b 节（确认包 Markdown 层）仍存在，承载 `JOURNEY-Fxx` 条目登记。
+
+| 概念 / 类别 | v2.3.2 → v2.3.4 走向 | 说明 |
+|---|---|---|
+| 6b 独立 section（视觉层） | 删除 | 痛点 / 机会内容已并入 5 行主表的 4 / 5 行子锚点；不再作为单独 `<section id="journey-pain-opportunities">` 渲染 |
+| 6b 摘要独立锚点（视觉层） | 删除 | 不再含 `journey-pain-opportunity-summary` 一等模块锚点 |
+| 6a 质量维度 `pain_opportunity_visible` / 对应锚点 | 保留 | 维度键、DOM 锚点 `journey-quality-pain-opportunity-visible`、判定方法均不变 |
+| 阶段 5 行主表第 4 / 5 行（`pain-point` / `opportunity`） | 保留 | 仍是 v2.3.4 内 `pain_point` / `opportunity` 数据字段的事实源 |
+| 6b 确认包 Markdown 节（标题「痛点与机会」） | 保留 | `JOURNEY-Fxx` 痛点 / 机会条目登记表仍在 `JOURNEY-v{N}.md` 第 6b 节；不进入运行时模板事实源 |
+| 6b 数据列（类型 / 来源） | 保留 | `pain_point` / `opportunity` + `user_stated` / `inferred_from_pain_point` / `inferred_from_quality` 不变 |
+| Gate 来源 ID `JOURNEY-pain-opportunity` | 保留 | 仍指向确认包第 6b 节，与 DOM 锚点解耦 |
+
+> **关键不变量**：本次 PATCH 不动 stage 5 行主表结构、不动 6a 质量维度、不动 6b 数据列字段；仅在"DOM 层是否还有独立 6b 视觉 section"上做减法。
+> **不兼容边界**：v2.3.2 / v2.3.1 / v2.3.0 产物 HTML 若仍含独立 6b section，新 audit 反向 FAIL（按预期行为）。
+
+## 兼容性边界（v2.3.2 / v2.3.4 起）
 
 > **核心规则**：旧 HTML 不做就地兼容；如需新语义，必须用新确认包重渲染。
 
