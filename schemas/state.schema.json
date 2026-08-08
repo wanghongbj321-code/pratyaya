@@ -229,6 +229,10 @@
     "journey": {
       "$ref": "#/$defs/journey_instance_map"
     },
+    "maau": {
+      "$ref": "#/$defs/maau_instance_map",
+      "description": "MAAU 全局画布一次性综合提炼源包实例 map（generation_path=transcript-direct）。每个 slug 一个源包实例，与 M1-M6 Phase 2 全局汇总互斥隔离；不使用 legacy `default` slug。"
+    },
     "updated_at": {
       "type": "string",
       "minLength": 1
@@ -240,7 +244,8 @@
     { "required": ["golden_circle"] },
     { "required": ["hmw"] },
     { "required": ["persona"] },
-    { "required": ["journey"] }
+    { "required": ["journey"] },
+    { "required": ["maau"] }
   ],
   "$defs": {
     "single_canvas_state_base": {
@@ -546,6 +551,48 @@
                     "properties": {
                       "assessment_id": {
                         "pattern": "^JOURNEY-GATE-[0-9]+$"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "maau_instance_map": {
+      "type": "object",
+      "propertyNames": {
+        "maxLength": 64,
+        "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+        "not": { "const": "default" }
+      },
+      "patternProperties": {
+        "^[a-z0-9]+(-[a-z0-9]+)*$": {
+          "$ref": "#/$defs/maau_instance_state"
+        }
+      },
+      "additionalProperties": false,
+      "description": "MAAU 一次性综合源包实例 map。map key 必须为 kebab-case ASCII，且不得为 `default`（MAAU 不走 legacy default，新建 slug 必须语义化命名）。"
+    },
+    "maau_instance_state": {
+      "allOf": [
+        { "$ref": "#/$defs/single_canvas_state_base" },
+        {
+          "required": ["slug", "generation_path"],
+          "properties": {
+            "generation_path": {
+              "const": "transcript-direct",
+              "description": "MAAU 实例的生成路径；本计划仅支持一次性逐字稿综合提炼（transcript-direct），不得使用其他值。"
+            },
+            "override_audit": {
+              "properties": {
+                "items": {
+                  "items": {
+                    "properties": {
+                      "assessment_id": {
+                        "pattern": "^MAAU-GATE-[0-9]+$"
                       }
                     }
                   }
