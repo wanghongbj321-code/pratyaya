@@ -179,7 +179,7 @@
 | 字段 | 内容 |
 |---|---|
 | 问题 | HTML 产物在哪里？ |
-| 短答 | 工作坊产物位于 `workshop/{project_slug}/{group_id}/output/`。MVL 模块页通常是 `module-N-canvas.html`，全局页是 `maau-global-canvas.html`；单画布分别是 `gc-canvas.html`、`hmw-canvas.html`、`persona-canvas.html`、`journey-canvas.html`。 |
+| 短答 | 工作坊产物位于 `workshop/{project_slug}/{group_id}/output/`。MVL 模块页通常是 `module-N-canvas.html`，全局页是 `maau-global-canvas.html`；非 MVL 一等公民 instance 页是 `gc-canvas-{slug}.html`、`hmw-canvas-{slug}.html`、`persona-canvas-{slug}.html`、`journey-canvas-{slug}.html`，不带 slug 的 `*-canvas.html` 是同类画布索引页。 |
 | 依据 | `README.md`、`docs/user-guide.md`、`DEVELOPMENT.md` |
 | 下一步 | 可以问：`项目 xxx，组 yyy，当前画布 HTML 在哪里？` |
 | 边界 | 只有通过授权和审计的正式 HTML 才应作为交付物使用。 |
@@ -201,7 +201,7 @@
 | 字段 | 内容 |
 |---|---|
 | 问题 | 当前 group 到哪一步怎么看？ |
-| 短答 | 查看当前 group 的 `state.json`，重点看目标画布的 `status`、`version`、`gate_recommendation`、`render_authorized` 与 `confirmation_mode`。 |
+| 短答 | 查看当前 group 的 `state.json`。MVL 看 `modules.Mx`；非 MVL 一等公民画布看 `golden_circle.{slug}` / `hmw.{slug}` / `persona.{slug}` / `journey.{slug}`，重点检查 `status`、`version`、`gate_recommendation`、`render_authorized`、`confirmation_mode` 与 `slug` 是否匹配。 |
 | 依据 | `README.md`、`DESIGN.md`、`agents/pratyaya.md` |
 | 下一步 | 可以说：`项目 zhongruan-power，组 group-a，请解释当前状态和下一步。` |
 | 边界 | 默认只读当前 group；跨组汇总必须由用户明确要求。 |
@@ -227,4 +227,3 @@
 | 依据 | `DEVELOPMENT.md`、`agents/pratyaya.md`、`skills/canvas-render/visual-patterns/README.md` |
 | 下一步 | 说：`请重新扫描视觉模式候选并让我选择。` |
 | 边界 | FAQ 只解释处理方式；正式渲染仍由 `canvas-render` Skill 完成。 |
-

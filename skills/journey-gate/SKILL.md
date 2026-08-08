@@ -1,6 +1,6 @@
 ---
 name: journey-gate
-description: 对 User Journey（用户旅程）工作坊的确认包（JOURNEY-v{N}.md）做质量建议与风险分级，输出 gate_recommendation 供主 Agent 决策。Gate 只输出建议，不决定最终渲染授权；用户授权由主 Agent 根据 Gate 报告与用户决策写入。本 skill 不生成 HTML，也不替用户补结论。
+description: 对 User Journey（用户旅程）工作坊的确认包（JOURNEY-{slug}-v{N}.md）做质量建议与风险分级，输出 gate_recommendation 供主 Agent 决策。Gate 只输出建议，不决定最终渲染授权；用户授权由主 Agent 根据 Gate 报告与用户决策写入。本 skill 不生成 HTML，也不替用户补结论。
 ---
 
 # User Journey 结论质量建议
@@ -19,7 +19,7 @@ description: 对 User Journey（用户旅程）工作坊的确认包（JOURNEY-v
 
 **输入**：
 
-- `modules/JOURNEY-v{N}.md`（确认包，Markdown 格式，唯一事实源）
+- `modules/JOURNEY-{slug}-v{N}.md`（确认包，Markdown 格式，唯一事实源）
 - `references/JOURNEY-gate.md`（Journey 放行条件与稳定 ID，位于本 Skill 的 `references/` 子目录）
 - 当前状态（来自主 agent 维护的 `state.json` 的 `journey` 区块）
 
@@ -34,7 +34,8 @@ description: 对 User Journey（用户旅程）工作坊的确认包（JOURNEY-v
 
 **触发**：主 agent Journey 工作流对应步骤——确认包已生成、状态为 `review_ready`，主 Agent 自动调用本 skill。
 
-1. 读取 `modules/JOURNEY-v{N}.md`（确认包第 1–11 节业务内容；第 12 节为治理元数据，不参与评估）；
+1. 读取 `modules/JOURNEY-{slug}-v{N}.md`（确认包第 1–11 节业务内容；第 12 节为治理元数据，不参与评估）；
+2. 输出 Gate 报告文件名使用 `modules/JOURNEY-{slug}-gate-report-v{N}.md`；slug 不进入 `JOURNEY-GATE-XX` 稳定 ID。
 2. 读取 `references/JOURNEY-gate.md`（Journey 放行条件 + 稳定 ID + 分类 + 风险等级）；
 3. 逐项对照评估，输出 Gate 建议报告（Markdown）：
 
@@ -133,7 +134,7 @@ Gate 评估时额外检查：
 
 - 草稿 Canvas 仅用于继续讨论，必须带“草稿 / 未确认 / 禁止用于管理层决策”水印。
 - 草稿不进入正式输出。
-- 正式 Canvas 必须来自已确认的同一版本确认包，且 `state.json.journey.render_authorized=true`、`confirmation_mode ∈ {gate_pass, override}`。
+- 正式 Canvas 必须来自已确认的同一版本确认包，且对应 `state.json.journey.{slug}.render_authorized=true`、`confirmation_mode ∈ {gate_pass, override}`；确认包 `{slug}`、state key、`state.json.journey.{slug}.slug` 与输出文件名必须一致。
 - 闸门评估未完成时（`gate_recommendation=pending`），不得调用 Canvas 渲染；只输出“待评估”状态与下一轮最少补问。
 
 ## 质量红线

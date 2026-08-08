@@ -3,7 +3,7 @@
 > 品牌：pratyaya
 > 版本：2.3.0
 
-多画布工作坊平台——支持 **MVL**（Minimum Verifiable Loop，最小可验证自治闭环）、**黄金圈**（Golden Circle）、**HMW**（How Might We，问题重构）、**用户画像**（User Persona）与 **用户旅程**（User Journey）五类画布。对话式引导 + 转写提炼 + 质量门禁 + 模块化智能体画布（Canvas）生成，并提供 FAQ Q/A 支持使用、状态和异常解释。
+多画布工作坊平台——支持 **MVL**（Minimum Verifiable Loop，最小可验证自治闭环）、**黄金圈**（Golden Circle）、**HMW**（How Might We，问题重构）、**用户画像**（User Persona）与 **用户旅程**（User Journey）五类画布。对话式引导 + 转写提炼 + 质量门禁 + 模块化智能体画布（Canvas）生成，并提供 FAQ Q/A 支持使用、状态和异常解释。非 MVL 四类一等公民画布支持同一 project/group 下的多 instance 并存。
 
 详细专家定位、标签、快速指令以 `.codebuddy-plugin/plugin.json` 为权威来源。
 
@@ -12,17 +12,17 @@
 | 画布 | 结构 | 流程 |
 |---|---|---|
 | MVL | M1-M6 六模块 | 转写 → Key Points → 确认包 → Gate → 渲染 |
-| 黄金圈 | WHY/HOW/WHAT 三层 | 同上四阶段管线 |
-| HMW | 陈述四字段 + 质量鉴别 + 想法种子 | 同上四阶段管线 |
-| 用户画像 | 9 基本信息 + 6 宫格 + 4 质量鉴别 | 同上四阶段管线 |
-| 用户旅程 | 动态阶段 × 5 行合并结构 + 断点摘要 + 质量鉴别 | 同上四阶段管线 |
+| 黄金圈 | WHY/HOW/WHAT 三层 | 同上四阶段管线；`golden_circle.{slug}` instance map |
+| HMW | 陈述四字段 + 质量鉴别 + 想法种子 | 同上四阶段管线；`hmw.{slug}` instance map |
+| 用户画像 | 9 基本信息 + 6 宫格 + 4 质量鉴别 | 同上四阶段管线；`persona.{slug}` instance map |
+| 用户旅程 | 动态阶段 × 5 行合并结构 + 断点摘要 + 质量鉴别 | 同上四阶段管线；`journey.{slug}` instance map |
 
 ## 核心架构
 
 ```mermaid
 flowchart LR
-    A["Key Points<br/>Mx / GC / HMW / PERSONA / JOURNEY-keypoints.md"]
-    B["提炼<br/>Mx / GC / HMW / PERSONA / JOURNEY-v{N}.md"]
+    A["Key Points<br/>Mx-keypoints.md / PREFIX-{slug}-keypoints.md"]
+    B["提炼<br/>Mx-v{N}.md / PREFIX-{slug}-v{N}.md"]
     C["Gate<br/>LLM 评估"]
     D["渲染<br/>HTML Canvas"]
     A -->|用户决策| B
@@ -39,6 +39,8 @@ draft → gaps_open ↔ review_ready → confirmed → rendered
 ```
 
 5 态转换（MVL 模块级 / GC / HMW / Persona / Journey 画布级）：草稿在 `gaps_open` 与 `review_ready` 之间反复直到全部缺口解决，用户决策（`gate_pass` / `override`）后升至 `confirmed`，最后渲染为 `rendered`。`confirmation_mode` 是属性（`gate_pass` / `override` / `null`），不是状态；`rendered` 模块若 `confirmation_mode=override` 仍参与跨模块 caveat 检查（仅 MVL）。
+
+非 MVL 状态路径为 `state.{state_key}.{slug}`：GC 使用 `golden_circle.{slug}`，HMW 使用 `hmw.{slug}`，Persona 使用 `persona.{slug}`，Journey 使用 `journey.{slug}`。slug 必须为 kebab-case；`default` 仅作为 legacy 迁移逃生口，不用于新建 instance。
 
 ## 项目结构
 

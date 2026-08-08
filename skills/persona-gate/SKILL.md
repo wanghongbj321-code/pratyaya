@@ -1,6 +1,6 @@
 ---
 name: persona-gate
-description: 用户画像闸门。对 PERSONA-v{N}.md 确认包执行 6 项放行条件检查，只输出 gate_recommendation 与 override_eligible 建议。
+description: 用户画像闸门。对 PERSONA-{slug}-v{N}.md 确认包执行 6 项放行条件检查，只输出 gate_recommendation 与 override_eligible 建议。
 triggers:
   - "用户画像闸门"
   - "persona gate"
@@ -9,11 +9,11 @@ triggers:
 
 # Persona Gate（用户画像闸门）
 
-> 对 `PERSONA-v{N}.md` 确认包执行确定性的 6 项放行条件检查。Gate 是建议者：只输出 Markdown 报告，绝不修改 `state.json`、确认包治理字段或最终渲染授权。
+> 对 `PERSONA-{slug}-v{N}.md` 确认包执行确定性的 6 项放行条件检查。Gate 是建议者：只输出 Markdown 报告，绝不修改 `state.json`、确认包治理字段或最终渲染授权。
 
 ## 输入
 
-- 当前版本 `modules/PERSONA-v{N}.md`
+- 当前版本 `modules/PERSONA-{slug}-v{N}.md`
 - `references/PERSONA-gate.md`
 
 读取确认包的 9 基本信息、6 宫格、6a 质量鉴别和 §8 缺口表；只引用确认包与 Key Points，不把逐字稿写成正式事实。
@@ -66,7 +66,8 @@ triggers:
 ## 授权边界
 
 - 本 Skill 不决定 `render_authorized`，不决定 `confirmation_mode`，不写 `override_audit`。
-- 主 Agent 在用户已阅读报告并作出明确选择后，才将 `gate_recommendation`、用户确认和 override 审计写入 `state.persona` 与确认包 §12。
+- 输出 Gate 报告文件名使用 `modules/PERSONA-{slug}-gate-report-v{N}.md`；slug 不进入 `PERSONA-GATE-XX` 稳定 ID。
+- 主 Agent 在用户已阅读报告并作出明确选择后，才将 `gate_recommendation`、用户确认和 override 审计写入 `state.persona.{slug}` 与确认包 §12。
 - 本 Skill 不渲染 Canvas；正式渲染仍须由 `canvas-render` 在用户授权后执行。
 
 ## 质量红线

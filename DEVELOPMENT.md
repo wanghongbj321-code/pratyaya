@@ -10,7 +10,7 @@
 
 画布结论闸门（Gate）由 LLM 评估；旧 Python 脚本 `check_gate.py` 已删除。执行流程（按画布类型对应 Skill）：
 
-1. LLM 读取确认包 Markdown（MVL：`Mx-v{N}.md` / 黄金圈：`GC-v{N}.md` / HMW：`HMW-v{N}.md` / Persona：`PERSONA-v{N}.md` / Journey：`JOURNEY-v{N}.md`）
+1. LLM 读取确认包 Markdown（MVL：`Mx-v{N}.md` / 黄金圈：`GC-{slug}-v{N}.md` / HMW：`HMW-{slug}-v{N}.md` / Persona：`PERSONA-{slug}-v{N}.md` / Journey：`JOURNEY-{slug}-v{N}.md`）
 2. 对照对应 Gate Skill 的判定规则（MVL 34 条放行条件；黄金圈 / HMW / Persona / Journey 各 6 条稳定放行条件 + 稳定 ID + 分类与风险等级）
 3. 输出 Markdown 判定报告（`references/Mx-gate.md` / `GC-gate.md` / `HMW-gate.md` / `PERSONA-gate.md` / `JOURNEY-gate.md`），含 `gate_recommendation: pass/fail/pending` + `override_eligible: true/false`；**不**写最终授权
 
@@ -35,17 +35,19 @@ python3 skills/canvas-render/scripts/audit_canvas_html.py \
 
 ```bash
 python3 skills/canvas-render/scripts/audit_canvas_html.py \
-  workshop/{project_slug}/{group_id}/output/hmw-canvas.html \
-  --source workshop/{project_slug}/{group_id}/modules/HMW-v{N}.md \
+  workshop/{project_slug}/{group_id}/output/hmw-canvas-{slug}.html \
+  --source workshop/{project_slug}/{group_id}/modules/HMW-{slug}-v{N}.md \
   --state workshop/{project_slug}/{group_id}/state.json \
   --type hmw \
+  --instance {slug} \
   --template skills/canvas-render/examples/hmw-canvas.html
 
 python3 skills/canvas-render/scripts/audit_canvas_html.py \
-  workshop/{project_slug}/{group_id}/output/persona-canvas.html \
-  --source workshop/{project_slug}/{group_id}/modules/PERSONA-v{N}.md \
+  workshop/{project_slug}/{group_id}/output/persona-canvas-{slug}.html \
+  --source workshop/{project_slug}/{group_id}/modules/PERSONA-{slug}-v{N}.md \
   --state workshop/{project_slug}/{group_id}/state.json \
   --type persona \
+  --instance {slug} \
   --template skills/canvas-render/examples/user-persona-canvas.html
 ```
 
@@ -92,10 +94,10 @@ Canvas 视觉系统由 `skills/canvas-render/visual-patterns/` 下的 Markdown �
 | 画布 | Key Points | 提炼 | Gate | 渲染 |
 |---|---|---|---|---|
 | MVL | `Mx-keypoints.md` | `Mx-v{N}.md` | `Mx-gate.md` | `module-N-canvas.html` / 全局 |
-| 黄金圈 | `GC-keypoints.md` | `GC-v{N}.md` | `GC-gate.md` | `gc-canvas.html` |
-| HMW | `HMW-keypoints.md` | `HMW-v{N}.md` | `HMW-gate.md` | `hmw-canvas.html` |
-| Persona | `PERSONA-keypoints.md` | `PERSONA-v{N}.md` | `PERSONA-gate.md` | `persona-canvas.html` |
-| Journey | `JOURNEY-keypoints.md` | `JOURNEY-v{N}.md` | `JOURNEY-gate.md` | `journey-canvas.html` |
+| 黄金圈 | `GC-{slug}-keypoints.md` | `GC-{slug}-v{N}.md` | `GC-{slug}-gate-report-v{N}.md` | `gc-canvas-{slug}.html` / `gc-canvas.html` 索引 |
+| HMW | `HMW-{slug}-keypoints.md` | `HMW-{slug}-v{N}.md` | `HMW-{slug}-gate-report-v{N}.md` | `hmw-canvas-{slug}.html` / `hmw-canvas.html` 索引 |
+| Persona | `PERSONA-{slug}-keypoints.md` | `PERSONA-{slug}-v{N}.md` | `PERSONA-{slug}-gate-report-v{N}.md` | `persona-canvas-{slug}.html` / `persona-canvas.html` 索引 |
+| Journey | `JOURNEY-{slug}-keypoints.md` | `JOURNEY-{slug}-v{N}.md` | `JOURNEY-{slug}-gate-report-v{N}.md` | `journey-canvas-{slug}.html` / `journey-canvas.html` 索引 |
 
 ```text
 Key Points → 提炼（确认包 v{N}.md）→ Gate（判定报告）→ 渲染（HTML）
@@ -163,10 +165,11 @@ python scripts/check_contract_consistency.py
 # 在 agent 中按 skills/journey-gate/SKILL.md 流程执行
 
 # 3. 渲染前 audit 必填检查
-python skills/canvas-render/scripts/audit_canvas_html.py output/journey-canvas.html \
-  --source modules/JOURNEY-v{N}.md \
+python skills/canvas-render/scripts/audit_canvas_html.py output/journey-canvas-{slug}.html \
+  --source modules/JOURNEY-{slug}-v{N}.md \
   --state tests/fixtures/state/journey-gate-pass.json \
   --type journey \
+  --instance {slug} \
   --template skills/canvas-render/examples/user-journey-canvas.html
 ```
 
@@ -175,7 +178,7 @@ python skills/canvas-render/scripts/audit_canvas_html.py output/journey-canvas.h
 ### 6.4 不在迁移范围内
 
 - **`JOURNEY-Fxx` ID 前缀**：含义已切换为「痛点 / 机会条目」，但前缀本身保留；迁移期不强制替换。
-- **`state.schema.json` `schema_version`**：保持 2.3；MVL / GC / HMW / Persona 业务结论无需迁移。
+- **`state.schema.json` `schema_version`**：保持 2.3；v2.6.0 通过 `_meta.instance_map_schema_version` 标记一等公民画布 instance map 子版本。旧 GC / HMW / Persona / Journey 单字段 state 需先迁移为 `state.{canvas}.{slug}`。
 - **离线工作表** `internal/.../02-用户旅程画布.html`：文案已切到新字段，但属设计参考；不参与 audit。
 
 ## 7. 命令速查
@@ -190,10 +193,11 @@ python skills/canvas-render/scripts/audit_canvas_html.py output/journey-canvas.h
 | `find skills/canvas-render/visual-patterns -maxdepth 1 -type f -name '[0-9][0-9]-*.md' \| sort` | 列出视觉模式候选 |
 | `rg -n '^id:|^visual_system:|^layout:|^formality:|^density:|^best_for:' skills/canvas-render/visual-patterns/*.md` | 复核选择元数据 |
 | `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/output/module-N-canvas.html --source workshop/{project_slug}/{group_id}/modules/Mx-vN.md --state workshop/{project_slug}/{group_id}/state.json` | 审计正式模块 Canvas HTML |
-| `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/output/gc-canvas.html --source workshop/{project_slug}/{group_id}/modules/GC-vN.md --state workshop/{project_slug}/{group_id}/state.json --type gc` | 审计黄金圈 Canvas HTML |
-| `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/output/hmw-canvas.html --source workshop/{project_slug}/{group_id}/modules/HMW-vN.md --state workshop/{project_slug}/{group_id}/state.json --type hmw --template skills/canvas-render/examples/hmw-canvas.html` | 审计 HMW Canvas HTML（双 Gate：内容/授权 + Template） |
-| `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/output/persona-canvas.html --source workshop/{project_slug}/{group_id}/modules/PERSONA-vN.md --state workshop/{project_slug}/{group_id}/state.json --type persona --template skills/canvas-render/examples/user-persona-canvas.html` | 审计 Persona Canvas HTML（双 Gate：内容/授权 + Template） |
-| `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/output/journey-canvas.html --source workshop/{project_slug}/{group_id}/modules/JOURNEY-vN.md --state workshop/{project_slug}/{group_id}/state.json --type journey --template skills/canvas-render/examples/user-journey-canvas.html` | 审计 Journey Canvas HTML（动态阶段 + 双 Gate） |
+| `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/output/gc-canvas-{slug}.html --source workshop/{project_slug}/{group_id}/modules/GC-{slug}-vN.md --state workshop/{project_slug}/{group_id}/state.json --type gc --instance {slug}` | 审计黄金圈 Canvas HTML |
+| `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/output/hmw-canvas-{slug}.html --source workshop/{project_slug}/{group_id}/modules/HMW-{slug}-vN.md --state workshop/{project_slug}/{group_id}/state.json --type hmw --instance {slug} --template skills/canvas-render/examples/hmw-canvas.html` | 审计 HMW Canvas HTML（双 Gate：内容/授权 + Template） |
+| `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/output/persona-canvas-{slug}.html --source workshop/{project_slug}/{group_id}/modules/PERSONA-{slug}-vN.md --state workshop/{project_slug}/{group_id}/state.json --type persona --instance {slug} --template skills/canvas-render/examples/user-persona-canvas.html` | 审计 Persona Canvas HTML（双 Gate：内容/授权 + Template） |
+| `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/output/journey-canvas-{slug}.html --source workshop/{project_slug}/{group_id}/modules/JOURNEY-{slug}-vN.md --state workshop/{project_slug}/{group_id}/state.json --type journey --instance {slug} --template skills/canvas-render/examples/user-journey-canvas.html` | 审计 Journey Canvas HTML（动态阶段 + 双 Gate） |
+| `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/output/persona-canvas.html --state workshop/{project_slug}/{group_id}/state.json --type persona --index` | 审计 Persona instance 索引页 |
 | `python3 -m pytest tests/ -q` | 跑全部单元测试（schema / 契约 / 双 Gate 审计） |
 | `python3 scripts/check_contract_consistency.py` | 跑契约一致性检查器（开发辅助，**非 CI 强制**），输出规则化问题清单 |
 | `python3 scripts/check_contract_consistency.py --rules MANIFEST_JSON,GATE_TABLE_PARSE` | 只跑指定规则（逗号分隔 code） |

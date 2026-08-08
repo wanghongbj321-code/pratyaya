@@ -10,6 +10,10 @@ from pathlib import Path
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(REPO_ROOT))
+
+from scripts.legacy_migration_v2_6_0 import migrate_state_to_instance_map
+
 _AUDIT_PATH = REPO_ROOT / "skills" / "canvas-render" / "scripts" / "audit_canvas_html.py"
 _spec = importlib.util.spec_from_file_location("audit_canvas_html", _AUDIT_PATH)
 _audit_mod = importlib.util.module_from_spec(_spec)
@@ -38,9 +42,11 @@ PERSONA_SECTIONS = (
 def write_formal_persona(tmp_path: Path, auth: dict | None) -> Path:
     """从示例生成只用于审计的最小正式 Persona 页面。"""
     text = TEMPLATE.read_text(encoding="utf-8")
+    text = text.replace("<body ", '<body data-instance="default" ', 1)
     text = text.replace('<header class="canvas-head">', '<header class="canvas-head" id="canvas-header">')
     data: dict[str, object] = {
         "canvas_type": "persona",
+        "instance": "default",
         "version": "1",
         "sections": {section: {} for section in PERSONA_SECTIONS},
     }
@@ -61,13 +67,14 @@ def write_formal_persona(tmp_path: Path, auth: dict | None) -> Path:
 def test_persona_formal_page_requires_canvas_data_auth(tmp_path: Path) -> None:
     page = write_formal_persona(tmp_path, auth=None)
 
-    findings = audit(page, PERSONA_CONTRACT, STATE_GATE_PASS, None, "persona")
+    findings = audit(page, PERSONA_CONTRACT, STATE_GATE_PASS, None, "persona", "default")
 
     assert any(finding.code == "AUTH" for finding in findings)
 
 
 def test_persona_override_requires_visible_caveat(tmp_path: Path) -> None:
-    state = json.loads(STATE_OVERRIDE.read_text(encoding="utf-8"))["persona"]
+    migrated_state, _migration = migrate_state_to_instance_map(json.loads(STATE_OVERRIDE.read_text(encoding="utf-8")))
+    state = migrated_state["persona"]["default"]
     page = write_formal_persona(
         tmp_path,
         {
@@ -78,7 +85,9 @@ def test_persona_override_requires_visible_caveat(tmp_path: Path) -> None:
         },
     )
 
-    findings = audit(page, PERSONA_CONTRACT, STATE_OVERRIDE, None, "persona")
+    state_file = tmp_path / "state.json"
+    state_file.write_text(json.dumps(migrated_state, ensure_ascii=False), encoding="utf-8")
+    findings = audit(page, PERSONA_CONTRACT, state_file, None, "persona", "default")
 
     assert any(finding.code == "CAVEAT" for finding in findings)
 
@@ -91,7 +100,8 @@ def test_persona_source_identity_accepts_design_confirmation_title(tmp_path: Pat
 
 
 def test_persona_formal_page_rejects_source_content_drift(tmp_path: Path) -> None:
-    state = json.loads(STATE_GATE_PASS.read_text(encoding="utf-8"))["persona"]
+    migrated_state, _migration = migrate_state_to_instance_map(json.loads(STATE_GATE_PASS.read_text(encoding="utf-8")))
+    state = migrated_state["persona"]["default"]
     page = write_formal_persona(
         tmp_path,
         {
@@ -114,6 +124,63 @@ def test_persona_formal_page_rejects_source_content_drift(tmp_path: Path) -> Non
         encoding="utf-8",
     )
 
-    findings = audit(page, PERSONA_CONTRACT, STATE_GATE_PASS, package, "persona")
+    state_file = tmp_path / "state.json"
+    state_file.write_text(json.dumps(migrated_state, ensure_ascii=False), encoding="utf-8")
+    findings = audit(page, PERSONA_CONTRACT, state_file, package, "persona", "default")
 
     assert any(finding.code == "CONTENT_MAPPING" for finding in findings)
+
+
+def test_persona_index_audit_matches_state_instances(tmp_path: Path) -> None:
+    state = {
+        "schema_version": "2.3",
+        "project_slug": "demo",
+        "project_name": "Demo",
+        "group_id": "group-a",
+        "updated_at": "2026-08-08T00:00:00+08:00",
+        "persona": {
+            "buyer": {
+                "slug": "buyer",
+                "version": 1,
+                "status": "rendered",
+                "gate_recommendation": "pass",
+                "render_authorized": True,
+                "confirmation_mode": "gate_pass",
+                "source_file": "modules/PERSONA-buyer-v1.md",
+                "output_file": "output/persona-canvas-buyer.html",
+            },
+            "operator": {
+                "slug": "operator",
+                "version": 2,
+                "status": "confirmed",
+                "gate_recommendation": "pass",
+                "render_authorized": True,
+                "confirmation_mode": "gate_pass",
+                "source_file": "modules/PERSONA-operator-v2.md",
+                "output_file": "output/persona-canvas-operator.html",
+            },
+        },
+    }
+    state_file = tmp_path / "state.json"
+    state_file.write_text(json.dumps(state, ensure_ascii=False), encoding="utf-8")
+    page = tmp_path / "persona-canvas.html"
+    page.write_text(
+        """<!doctype html>
+<html lang="zh-CN">
+<body data-page-type="persona-index">
+<main id="instance-index">
+<a href="persona-canvas-buyer.html">buyer</a>
+<a href="persona-canvas-operator.html">operator</a>
+</main>
+<script type="application/json" id="canvas-data">
+{"canvas_type":"persona","instances":[{"slug":"buyer"},{"slug":"operator"}]}
+</script>
+</body>
+</html>
+""",
+        encoding="utf-8",
+    )
+
+    findings = audit(page, PERSONA_CONTRACT, state_file, None, "persona", None, True)
+
+    assert findings == []

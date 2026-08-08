@@ -20,6 +20,10 @@ from pathlib import Path
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(REPO_ROOT))
+
+from scripts.legacy_migration_v2_6_0 import migrate_state_to_instance_map
+
 AUDIT = REPO_ROOT / "skills" / "canvas-render" / "scripts" / "audit_canvas_html.py"
 TEMPLATE = REPO_ROOT / "skills" / "canvas-render" / "examples" / "user-journey-canvas.html"
 PACKAGE = REPO_ROOT / "tests" / "fixtures" / "journey" / "JOURNEY-v1.md"
@@ -75,6 +79,13 @@ def replace_canvas_data(html: Path, data: dict) -> None:
     html.write_text(text, encoding="utf-8")
 
 
+def add_instance_attr(html: Path, slug: str = "default") -> None:
+    text = html.read_text(encoding="utf-8")
+    if "data-instance=" not in text:
+        text = text.replace("<body ", f'<body data-instance="{slug}" ', 1)
+    html.write_text(text, encoding="utf-8")
+
+
 def canvas_data(html: Path) -> dict:
     text = html.read_text(encoding="utf-8")
     match = re.search(
@@ -89,10 +100,19 @@ def canvas_data(html: Path) -> dict:
 def formal_html(tmp_path: Path) -> Path:
     out = copy_template(tmp_path, "formal-journey.html")
     data = canvas_data(out)
-    state = json.loads(STATE.read_text(encoding="utf-8"))
-    data["auth"] = state["journey"]
+    state, _migration = migrate_state_to_instance_map(json.loads(STATE.read_text(encoding="utf-8")))
+    data["auth"] = state["journey"]["default"]
+    data["instance"] = "default"
     replace_canvas_data(out, data)
+    add_instance_attr(out)
     return out
+
+
+def migrated_state_path(tmp_path: Path, source: Path = STATE) -> Path:
+    state, _migration = migrate_state_to_instance_map(json.loads(source.read_text(encoding="utf-8")))
+    path = tmp_path / f"migrated-{source.name}"
+    path.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
+    return path
 
 
 def load_fault_cases() -> list[dict]:
@@ -108,7 +128,9 @@ class TestJourneyAuditPositive:
 
     def test_formal_page_passes_with_source_and_state(self, tmp_path: Path) -> None:
         out = formal_html(tmp_path)
-        result = run_audit(out, "--source", str(PACKAGE), "--state", str(STATE))
+        result = run_audit(
+            out, "--source", str(PACKAGE), "--state", str(migrated_state_path(tmp_path)), "--instance", "default"
+        )
         assert result.returncode == 0, result.stdout + result.stderr
 
     def test_draft_without_source_or_state_passes_structure(self) -> None:
@@ -226,7 +248,9 @@ class TestJourneyDynamicStages:
             PACKAGE.read_text(encoding="utf-8").replace("阶段名待填写", "另一个阶段", 1),
             encoding="utf-8",
         )
-        result = run_audit(out, "--source", str(source), "--state", str(STATE))
+        result = run_audit(
+            out, "--source", str(source), "--state", str(migrated_state_path(tmp_path)), "--instance", "default"
+        )
         assert result.returncode != 0
         assert "JOURNEY_SOURCE_ORDER" in result.stdout
 
@@ -260,7 +284,9 @@ class TestJourneyRequiredAnchorsAndAuth:
         data = canvas_data(out)
         data["auth"]["render_authorized"] = False
         replace_canvas_data(out, data)
-        result = run_audit(out, "--source", str(PACKAGE), "--state", str(STATE))
+        result = run_audit(
+            out, "--source", str(PACKAGE), "--state", str(migrated_state_path(tmp_path)), "--instance", "default"
+        )
         assert result.returncode != 0
         assert "AUTH_MISMATCH" in result.stdout
 
@@ -268,7 +294,9 @@ class TestJourneyRequiredAnchorsAndAuth:
         out = formal_html(tmp_path)
         source = tmp_path / "JOURNEY-v2.md"
         source.write_text(PACKAGE.read_text(encoding="utf-8").replace("v1", "v2", 1), encoding="utf-8")
-        result = run_audit(out, "--source", str(source), "--state", str(STATE))
+        result = run_audit(
+            out, "--source", str(source), "--state", str(migrated_state_path(tmp_path)), "--instance", "default"
+        )
         assert result.returncode != 0
         assert "SOURCE_VERSION" in result.stdout
 
@@ -279,15 +307,18 @@ class TestJourneyRequiredAnchorsAndAuth:
             '{"schema_version":"2.3","group_id":"group-1","project_name":"x","project_slug":"x"}',
             encoding="utf-8",
         )
-        result = run_audit(out, "--source", str(PACKAGE), "--state", str(state))
+        result = run_audit(out, "--source", str(PACKAGE), "--state", str(state), "--instance", "default")
         assert result.returncode != 0
-        assert "state.json has no journey record" in result.stdout
+        assert "state.json has no journey instance record" in result.stdout
 
     def test_override_caveat_hidden_fails(self, tmp_path: Path) -> None:
         out = copy_template(tmp_path)
         data = canvas_data(out)
-        data["auth"] = json.loads(OVERRIDE_STATE.read_text(encoding="utf-8"))["journey"]
+        override_state, _migration = migrate_state_to_instance_map(json.loads(OVERRIDE_STATE.read_text(encoding="utf-8")))
+        data["auth"] = override_state["journey"]["default"]
+        data["instance"] = "default"
         replace_canvas_data(out, data)
+        add_instance_attr(out)
         result = run_audit(out)
         assert result.returncode != 0
         assert "CAVEAT" in result.stdout
@@ -408,7 +439,19 @@ class TestJourneyTemplateGate:
 
     def test_formal_delivery_without_template_fails(self) -> None:
         result = subprocess.run(
-            [PYTHON, str(AUDIT), str(TEMPLATE), "--type", "journey", "--source", str(PACKAGE), "--state", str(STATE)],
+            [
+                PYTHON,
+                str(AUDIT),
+                str(TEMPLATE),
+                "--type",
+                "journey",
+                "--source",
+                str(PACKAGE),
+                "--state",
+                str(STATE),
+                "--instance",
+                "default",
+            ],
             capture_output=True,
             text=True,
         )

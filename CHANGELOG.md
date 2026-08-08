@@ -3,6 +3,23 @@
 > 本文件记录 Pratyaya 专家的正式版本变更。
 > 完整 SemVer 与架构说明见 [`README.md`](./README.md) / [`DESIGN.md`](./DESIGN.md) / [docs/MVL-整体架构设计.md](./docs/MVL-整体架构设计.md)。
 
+## [v2.6.0] - 2026-08-08
+
+### 新增功能（MINOR）
+
+- **非 MVL 一等公民画布 instance map**：黄金圈 / HMW / Persona / Journey 从单实例 state 升级为 `state.{state_key}.{slug}`，同一 project/group 可持有多张并列 instance；MVL M1-M6 固定模块结构不变。
+- **instance slug 治理**：新增 kebab-case slug 约束；新建 instance 禁止使用 `default`，旧单字段 state 自动迁移时使用 legacy `default` 并触发 `force_consent=true` 提示。
+- **多 instance 文件命名**：非 MVL 确认包、Key Points、补问与 Gate 报告采用 `PREFIX-{slug}-...` 命名；正式 HTML 输出采用 `output/{canvas}-canvas-{slug}.html`，原 `output/{canvas}-canvas.html` 转为索引页。
+- **legacy 迁移工具**：新增 `scripts/legacy_migration_v2_6_0.py`，把旧单画布 state 迁移为 instance map，并在 `group_meta.json.legacy_migrations.v2_6_0_instance_map` 写入回溯记录。
+- **audit instance 支持**：`skills/canvas-render/scripts/audit_canvas_html.py` 新增 `--instance` 与 `--index`，正式非 MVL 审计按 `state.{state_key}.{slug}` 校验授权与 HTML `data-instance` / `canvas-data.instance` 一致性。
+- **索引页模板**：新增 GC / HMW / Persona / Journey 四个 instance index 示例模板。
+
+### 兼容性
+
+- `state.schema.json` 的顶层 `schema_version` 仍保持 `"2.3"`，新增 `_meta.instance_map_schema_version = "2.6-instance-map-1"` 作为派生子版本信号。
+- 旧单字段 state 必须先迁移；新流程不再把 `state.persona.render_authorized` 等单字段路径作为正式授权来源。
+- `default` 只作为 legacy 迁移逃生口存在；用户确认前不得让 legacy `default` instance 进入正式渲染。
+
 ## [v2.5.0] - 2026-08-08
 
 ### 新增功能（MINOR）

@@ -14,7 +14,7 @@
 
 ## GC 确认包固定 section
 
-确认包 `GC-v{N}.md` 的必填 section（写入业务内容，名称固定）：
+确认包 `GC-{slug}-v{N}.md` 的必填 section（写入业务内容，名称固定）：
 
 | 节号 | section 名称 | 内容 |
 |---|---|---|

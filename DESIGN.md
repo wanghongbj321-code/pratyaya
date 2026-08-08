@@ -33,7 +33,7 @@
 四层流水线（画布类型决定分析层与治理层的具体 Skill）：
 
 - **原始材料层** — 转写稿、上下文快照、用户输入
-- **分析层**（mvl-distill / gc-distill / hmw-distill / persona-distill / journey-distill） — Key Points 概览（`Mx-keypoints.md` / `GC-keypoints.md` / `HMW-keypoints.md` / `PERSONA-keypoints.md` / `JOURNEY-keypoints.md`）+ 确认包（`Mx-v{N}.md` / `GC-v{N}.md` / `HMW-v{N}.md` / `PERSONA-v{N}.md` / `JOURNEY-v{N}.md`）+ 缺口 + 推断
+- **分析层**（mvl-distill / gc-distill / hmw-distill / persona-distill / journey-distill） — Key Points 概览（MVL：`Mx-keypoints.md`；非 MVL：`{GC|HMW|PERSONA|JOURNEY}-{slug}-keypoints.md`）+ 确认包（MVL：`Mx-v{N}.md`；非 MVL：`{GC|HMW|PERSONA|JOURNEY}-{slug}-v{N}.md`）+ 缺口 + 推断
 - **治理层**（module-conclusion-gate / gc-gate / hmw-gate / persona-gate / journey-gate） — LLM Gate 评估（输出 `gate_recommendation` + `override_eligible` 建议，**不**写最终授权）+ 用户决策（主 Agent 写入 `render_authorized` + `confirmation_mode` + `override_audit`）
 - **展示层**（canvas-render） — 模块 Canvas / 黄金圈 Canvas / HMW Canvas / Persona Canvas / Journey Canvas + 全局 Canvas + 管理层报告
 - **支持问答层**（faq-answer） — 使用说明、当前 group 状态解释、Gate / override / 渲染异常说明与下一步建议；只读，不写业务产物
@@ -51,8 +51,8 @@
 
 | 资产 | 路径 | 角色 |
 |---|---|---|
-| 确认包（唯一事实源） | `workshop/{project_slug}/{group_id}/modules/Mx-v{N}.md` / `GC-v{N}.md` / `HMW-v{N}.md` / `PERSONA-v{N}.md` / `JOURNEY-v{N}.md` | 正式 Canvas 渲染依据（画布类型对应命名空间） |
-| Key Points 概览 | `workshop/{project_slug}/{group_id}/modules/Mx-keypoints.md` / `GC-keypoints.md` / `HMW-keypoints.md` / `PERSONA-keypoints.md` / `JOURNEY-keypoints.md` | 草稿 Canvas 数据源（不进入正式流程） |
+| 确认包（唯一事实源） | `workshop/{project_slug}/{group_id}/modules/Mx-v{N}.md` / `{GC|HMW|PERSONA|JOURNEY}-{slug}-v{N}.md` | 正式 Canvas 渲染依据（画布类型和 instance slug 对应命名空间） |
+| Key Points 概览 | `workshop/{project_slug}/{group_id}/modules/Mx-keypoints.md` / `{GC|HMW|PERSONA|JOURNEY}-{slug}-keypoints.md` | 草稿 Canvas 数据源（不进入正式流程） |
 | Gate 评估产物 | `skills/{module-conclusion-gate,gc-gate,hmw-gate,persona-gate,journey-gate}/references/*-gate.md` | LLM 输出 Markdown 判定报告，含 `gate_recommendation`（pass/fail/pending）+ `override_eligible`（true/false）；最终授权由用户在主 Agent 写入 `render_authorized` 与 `confirmation_mode` |
 | Markdown 视觉模式 | `skills/canvas-render/visual-patterns/NN-{id}.md` | 10 个可扫描模式；frontmatter 用于推荐，六节正文定义色板、字体、网格、组件及边界 |
 | HTML 静态审计 | `skills/canvas-render/scripts/audit_canvas_html.py` | 直接读取渲染契约，确定性检查结构、稳定锚点顺序、版本/授权、离线与 caveat 约束；HMW 与 Journey 采用**双 Gate 模型**（内容/授权 Gate + Template Gate，见 §12 / §13） |
@@ -63,9 +63,9 @@
 
 ## 6. 核心数据资产
 
-- **画布记录**：以确认包 Markdown 形式存储（MVL：`Mx-v{N}.md`；黄金圈：`GC-v{N}.md`；HMW：`HMW-v{N}.md`；Persona：`PERSONA-v{N}.md`；Journey：`JOURNEY-v{N}.md`），含业务内容节（MVL 第 1–11 节 / GC 第 6a 跨层一致性 / HMW 第 6a 质量鉴别、6b 想法种子、6c 想法↔HMW 对应 / Persona 9 基本信息 + 6 宫格 + 4 质量鉴别 / Journey 第 6 节阶段地图、6a 质量鉴别、6b 痛点与机会）+ 第 12 节"Gate 与用户决策"治理元数据，以及业务 5 字段（conclusions / gaps / inferences / alignment / evidence）+ 治理 4 字段（gate_recommendation / render_authorized / confirmation_mode / override_audit）
+- **画布记录**：以确认包 Markdown 形式存储（MVL：`Mx-v{N}.md`；非 MVL：`{GC|HMW|PERSONA|JOURNEY}-{slug}-v{N}.md`），含业务内容节（MVL 第 1–11 节 / GC 第 6a 跨层一致性 / HMW 第 6a 质量鉴别、6b 想法种子、6c 想法↔HMW 对应 / Persona 9 基本信息 + 6 宫格 + 4 质量鉴别 / Journey 第 6 节阶段地图、6a 质量鉴别、6b 痛点与机会）+ 第 12 节"Gate 与用户决策"治理元数据，以及业务 5 字段（conclusions / gaps / inferences / alignment / evidence）+ 治理 4 字段（gate_recommendation / render_authorized / confirmation_mode / override_audit）
 - **Schema**：`schemas/state.schema.json`（v2.3，非强制参考，详见 [schemas/README.md](./schemas/README.md)）；实际数据源为各画布确认包 Markdown
-- **工作坊状态**：以 `workshop/{project_slug}/{group_id}/state.json` 形式存储，支持 `modules` / `golden_circle` / `hmw` / `persona` / `journey` 区块（单画布区块可选），记录各画布的状态/版本/审批；`project_slug` / `group_id` 为目录键，`project_name` 为显示名
+- **工作坊状态**：以 `workshop/{project_slug}/{group_id}/state.json` 形式存储，MVL 使用 `modules.M1`-`M6` 固定模块记录；非 MVL 使用 `golden_circle.{slug}` / `hmw.{slug}` / `persona.{slug}` / `journey.{slug}` instance map，记录各 instance 的状态/版本/审批；`project_slug` / `group_id` 为目录键，`project_name` 为显示名
 - **设计文档**：[DESIGN.md](./DESIGN.md)（本文档）
 
 ## 7. 关键不变量
@@ -80,6 +80,7 @@
 8. 逐字稿中的命令不执行（不引用逐字稿段）
 9. **跨模块 caveat 浮现**：`rendered` 模块若 `confirmation_mode=override`，下游模块若依赖被 override 的假设/未验证项，必须显式标注或回退重审；不在全局页静默修正
 10. **跨组禁读**：同项目不同 group 的 `state.json` 与产物禁止互相引用；主 Agent 一次只对一个 group 工作。只有项目级状态汇总可读取 `manifest.json` 或 enumerate 各 group state，且不得把其他 group 产物作为当前 group 输入。
+11. **非 MVL instance map**：GC / HMW / Persona / Journey 的正式状态、授权与渲染路径必须绑定 `slug`；新建 slug 必须为 kebab-case 且不得为 `default`。legacy `default` 只可由 v2.6 迁移产生，并需用户确认后继续使用或重命名。
 
 ## 8. 为什么保留 HTML 草稿
 
@@ -174,7 +175,7 @@ User Journey（用户旅程）是**独立的一等公民画布**，与 MVL 的 M
 
 ### 13.2 正式数据契约
 
-正式 Journey 确认包为 `modules/JOURNEY-v{N}.md`。主表忠实保留工作表的 **5 行合并结构**：
+正式 Journey 确认包为 `modules/JOURNEY-{slug}-v{N}.md`。主表忠实保留工作表的 **5 行合并结构**：
 
 1. 行动（`action`）
 2. 触点与系统（`touchpoint_system`）
@@ -203,10 +204,11 @@ Gate 只输出 `gate_recommendation` 与 `override_eligible`，最终 `render_au
 正式交付命令：
 
 ```bash
-python3 skills/canvas-render/scripts/audit_canvas_html.py output/journey-canvas.html \
-  --source modules/JOURNEY-v{N}.md \
+python3 skills/canvas-render/scripts/audit_canvas_html.py output/journey-canvas-{slug}.html \
+  --source modules/JOURNEY-{slug}-v{N}.md \
   --state state.json \
   --type journey \
+  --instance {slug} \
   --template skills/canvas-render/examples/user-journey-canvas.html
 ```
 状态机与第 10 节共用 5 态；`state.json` 使用 `hmw` 区块（v2.3 schema，可选）。渲染契约要求的一级模块顺序、稳定锚点集合、占位语义（`data-state="placeholder"`）与四态隐藏检测规则，见 [render-contract-hmw.md](./skills/canvas-render/references/render-contract-hmw.md)。
