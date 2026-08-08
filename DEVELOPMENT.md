@@ -123,6 +123,54 @@ Key Points → 提炼（确认包 v{N}.md）→ Gate（判定报告）→ 渲染
 
 **派生关系**：`name` / `agentName` / `plugin` 三个字段值同源（当前均为 `pratyaya`）。创建专家身份时三个必须一致；否则专家市场注册信息会与本地配置脱节。
 
+## 6. Journey 画布迁移边界（v2.3.2 PATCH 起）
+
+> 本节固化 `render-contract-journey.md` 的迁移边界条目，供开发者或 agent 在跨版本渲染时强一致识别。
+
+### 6.1 不兼容的旧产物
+
+| 产物类型 | 范围 | 处置 |
+|---|---|---|
+| v2.3.1 及更早 `output/journey-canvas.html` | HTML | 不能直接复用为 v2.3.2 渲染产物；仅作阅读用 |
+| v2.3.1 及更早 `JOURNEY-v{N}.md` 确认包 | Markdown | 不得直接按新契约渲染；需迁移为新版本或重新提炼 |
+| v2.3.1 及更早 `JOURNEY-keypoints.md` | Markdown | 可作为 Stage 2 的背景输入，但 Stage 2 必须按新列头生成确认包 |
+| v2.3.1 及更早 `canvas-data.stages[]` 中 `wait_rework` / `risk` | canvas data | 不再是新契约字段；audit 报 `JOURNEY-TPL-GATE-04` FAIL |
+
+### 6.2 迁移映射规范
+
+| 旧字段 | 新字段 | 开发者必须做的 |
+|---|---|---|
+| `wait_rework` | `pain_point` | 改写为期望与现实落差导致的痛点 |
+| `risk` | `opportunity` | 只有从痛点导出改进方向时才写入；推断型机会登记 `JOURNEY-Infxx` |
+| `friction_visible` | `pain_opportunity_visible` | 6a 维度键切换；判定方法不变 |
+
+### 6.3 验收硬要求
+
+迁移后的确认包必须重新跑 `journey-gate`，**不能沿用旧 Gate 结论**。具体验收命令：
+
+```bash
+# 1. 契约一致性检查
+python scripts/check_contract_consistency.py
+
+# 2. 跑 Journey 6 条放行条件（Stage 2 的 journey-gate 评估）
+# 在 agent 中按 skills/journey-gate/SKILL.md 流程执行
+
+# 3. 渲染前 audit 必填检查
+python skills/canvas-render/scripts/audit_canvas_html.py output/journey-canvas.html \
+  --source modules/JOURNEY-v{N}.md \
+  --state tests/fixtures/state/journey-gate-pass.json \
+  --type journey \
+  --template skills/canvas-render/examples/user-journey-canvas.html
+```
+
+3 条命令全部 PASS 后方可视为 v2.3.2 新契约产物。audit 中的任何 `JOURNEY-TPL-GATE-*` FAIL 都属于**不可 override** 的 Template Gate 错误。
+
+### 6.4 不在迁移范围内
+
+- **`JOURNEY-Fxx` ID 前缀**：含义已切换为「痛点 / 机会条目」，但前缀本身保留；迁移期不强制替换。
+- **`state.schema.json` `schema_version`**：保持 2.3；MVL / GC / HMW / Persona 业务结论无需迁移。
+- **离线工作表** `internal/.../02-用户旅程画布.html`：文案已切到新字段，但属设计参考；不参与 audit。
+
 ## 7. 命令速查
 
 | 命令 | 用途 |

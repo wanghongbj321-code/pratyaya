@@ -70,7 +70,7 @@ HMW_TPL_GOVERN_IDS = (
 JOURNEY_TPL_MAIN_IDS = (
     "canvas-header",
     "journey-map",
-    "journey-frictions",
+    "journey-pain-opportunities",
     "journey-quality",
     "quality-panel",
     "local-notes",
@@ -80,8 +80,8 @@ JOURNEY_STAGE_FIELDS = (
     "action",
     "touchpoint-system",
     "emotion",
-    "wait-rework",
-    "risk",
+    "pain-point",
+    "opportunity",
 )
 JOURNEY_STAGE_DATA_FIELDS = (
     "stage_index",
@@ -89,29 +89,29 @@ JOURNEY_STAGE_DATA_FIELDS = (
     "action",
     "touchpoint_system",
     "emotion",
-    "wait_rework",
-    "risk",
+    "pain_point",
+    "opportunity",
 )
 JOURNEY_QUALITY_KEYS = (
     "user_perspective",
     "business_outcome",
-    "friction_visible",
+    "pain_opportunity_visible",
     "no_solution_bias",
 )
 JOURNEY_QUALITY_ANCHORS = (
     "journey-quality-user-perspective",
     "journey-quality-business-outcome",
-    "journey-quality-friction-visible",
+    "journey-quality-pain-opportunity-visible",
     "journey-quality-no-solution-bias",
 )
 JOURNEY_MAIN_IDS = (
     "journey-map",
-    "journey-frictions",
+    "journey-pain-opportunities",
     "journey-quality",
 )
 JOURNEY_ANCHORS = (
     "canvas-headline",
-    "journey-friction-summary",
+    "journey-pain-opportunity-summary",
     *JOURNEY_QUALITY_ANCHORS,
 )
 PERSONA_MAIN_IDS = (
@@ -861,7 +861,7 @@ def audit_journey_template_gate(
     if "overflow-x:auto" not in source.replace(" ", ""):
         findings.append(Finding("JOURNEY-TPL-GATE-06", "缺少横向滚动钩子 overflow-x:auto"))
 
-    for section_id in ("journey-map", "journey-frictions", "journey-quality", "quality-panel"):
+    for section_id in ("journey-map", "journey-pain-opportunities", "journey-quality", "quality-panel"):
         attrs = html.attrs_by_id.get(section_id, {})
         if counts[section_id] and (
             element_is_hidden(source, attrs) or stylesheet_hides_element(source, section_id)
@@ -1255,7 +1255,7 @@ def audit(
             elif mode == "gate_pass" and counts["quality-caveat"] and "hidden" not in caveat_attrs:
                 findings.append(Finding("CAVEAT", "gate_pass quality-caveat must be hidden"))
     if is_journey:
-        for section_id in ("journey-map", "journey-frictions", "journey-quality", "quality-panel"):
+        for section_id in ("journey-map", "journey-pain-opportunities", "journey-quality", "quality-panel"):
             attrs = html.attrs_by_id.get(section_id, {})
             if counts[section_id] and (
                 element_is_hidden(source, attrs) or stylesheet_hides_element(source, section_id)

@@ -3,6 +3,34 @@
 > 本文件记录 Pratyaya 专家的正式版本变更。
 > 完整 SemVer 与架构说明见 [`README.md`](./README.md) / [`DESIGN.md`](./DESIGN.md) / [docs/MVL-整体架构设计.md](./docs/MVL-整体架构设计.md)。
 
+## [v2.3.2] - 2026-08-08
+
+### 重构（PATCH）
+
+- **User Journey 一等公民画布语义对齐**：将 `journey-frame.md` / `journey-spec.md` 5 行主表的第 4 行从 `wait_rework` / 「等待与返工」切换为 `pain_point` / 「痛点」，第 5 行从 `risk` / 「风险节点」切换为 `opportunity` / 「机会」。6a 质量鉴别维度键从 `friction_visible` 切换为 `pain_opportunity_visible`，6b 节标题从「关键断点与机会」切换为「痛点与机会」。`JOURNEY-Fxx` ID 前缀含义由「断点 / 机会」切换为「痛点 / 机会条目」，仍保留该 ID 前缀；6b 数据列新增「来源」列（取值 `user_stated` / `inferred_from_pain_point` / `inferred_from_quality`）。
+- **canvas-render 一等公民模板与契约切换**：`user-journey-canvas.html` 与 `render-contract-journey.md` 同步切换：DOM 子锚点从 `journey-stage-{n}-wait-rework` / `-risk` 切换为 `journey-stage-{n}-pain-point` / `-opportunity`；6b section id 从 `journey-frictions` 切换为 `journey-pain-opportunities`；6a / 6b 摘要锚点分别切换为 `journey-quality-pain-opportunity-visible` / `journey-pain-opportunity-summary`。`canvas-data.stages[]` 必填 snake_case 字段从 `wait_rework` / `risk` 切换为 `pain_point` / `opportunity`。
+- **audit / 契约检查器同步**：`audit_canvas_html.py` 与 `check_contract_consistency.py` 的 `JOURNEY_STAGE_FIELDS` / `JOURNEY_STAGE_DATA_FIELDS` / `JOURNEY_QUALITY_KEYS` / `JOURNEY_QUALITY_ANCHORS` / `JOURNEY_ANCHORS` / `JOURNEY_MAIN_IDS` / `JOURNEY_TPL_MAIN_IDS` / `required_anchors` 全部切换；反向白名单落地：审计任意产品不再接受旧 anchor / 旧 data 字段，2 个新增故障夹具（`legacy_dom_anchors_rejected` / `legacy_quality_dimension_rejected`）覆盖旧契约拒绝。
+- **JOURNEY-gate 6 条放行条件同步**：`JOURNEY-GATE-03` 的覆盖要求由「至少 2 个等待 / 返工信息、1 个风险节点」切换为「至少 2 个痛点、1 个机会」；GATE-03 / GATE-06 的来源字段由 `friction_visible` 切到 `pain_opportunity_visible`；来源 ID `JOURNEY-friction` 切到 `JOURNEY-pain-opportunity`。
+- **示例 / fixtures / 测试资产同步**：`examples/modules/JOURNEY-{keypoints,v1,gaps}.md` 与 `tests/fixtures/journey/` 全部按新字段重写；新增 `JOURNEY-Inf01` 推断（用于支撑 F04 `inferred_from_pain_point` 机会）。
+- **离线工作表重构**：`internal/.../docs/refs/canvas-templates/02-用户旅程画布.html`（worksheet）的第 4 / 5 行文案与及格线同步切到新字段；保持 5 行结构、配色切换、emoji 情绪选择、`.mood` 行为不变；不进入运行时模板事实源。
+- **plugin.json 升 version**：2.3.1 → **2.3.2**（PATCH）。
+- **plugin quickPrompt 切到新口径**：Journey quick prompt 英文与中文文案同步从 `friction points` / 「关键断点」切换为 `pain points and opportunities` / 「痛点与机会」。
+- **顶层文档兜底**：`README.md` / `DESIGN.md` / `DEVELOPMENT.md` / `docs/user-guide.md` / `agents/pratyaya.md` 中 5 行主表 / 关键断点 / 痛点与机会摘要措辞同步切换。
+
+### 兼容性
+
+- 旧字段体系（v2.3.1 期）所有相关概念在 v2.3.2 已退场；audit 不再接受旧 anchor / 旧 stage data 字段为合法输入。具体退场概念类别：阶段 5 行主表第 4 / 5 行文本 → 「痛点 / 机会」；6b 节标题 → 「痛点与机会」；6a 质量维度英文键 / 质量鉴别四维度 → 切换为 `pain_opportunity_visible` 统一字段；6b section id / 摘要锚点 / 6a 维度锚点 → pain-opportunity 系列；阶段 DOM 子锚点 / stage data snake_case 字段 → pain_point / opportunity 系列；Gate 来源 ID → `JOURNEY-pain-opportunity` 系列。
+- `JOURNEY-Fxx` ID 前缀保留；其内部含义已切换为「痛点 / 机会条目」，但前缀继续指向同一类条目，迁移期不需要替换。
+- `state.schema.json` `schema_version` 保持 2.3 不动；现有 MVL / GC / HMW / Persona 业务结论无需迁移。
+
+### 不兼容边界与迁移验收
+
+- **旧 Journey HTML**：v2.3.1 及更早的 `output/journey-canvas.html` 与 `user-journey-canvas.html` 不做就地兼容；如需新语义，必须用新确认包重渲染。旧 HTML 仅作阅读用。
+- **旧 JOURNEY-v{N}.md 确认包**：不得直接按新契约渲染；必须迁移为新版本或重新提炼（见 `render-contract-journey.md` 兼容性边界段）。
+- **旧 JOURNEY-keypoints.md**：可作为 Stage 2 的背景输入，但 Stage 2 必须按新列头生成确认包。
+- **旧 canvas-data.stages[]**：`wait_rework` / `risk` 不再是 v2.3.2 必填字段；audit 一旦发现产物只含旧字段，将报 `JOURNEY-TPL-GATE-04` 并 FAIL。
+- **迁移验收硬要求**：迁移后的确认包必须重新跑 `journey-gate`，**不能沿用旧 Gate 结论**。具体三步验收：① `python scripts/check_contract_consistency.py`；② 在 agent 中按 `skills/journey-gate/SKILL.md` 流程跑 6 条放行条件（`JOURNEY-GATE-01` 至 `JOURNEY-GATE-06`）；③ 渲染前 audit 必填检查（`audit_canvas_html.py --type journey --template skills/canvas-render/examples/user-journey-canvas.html --source ... --state ...`）。3 条命令全部 PASS 后方可视为 v2.3.2 新契约产物。audit 中的任何 `JOURNEY-TPL-GATE-*` FAIL 都属于**不可 override** 的 Template Gate 错误。
+
 ## [v2.3.1] - 2026-08-08
 
 ### 修复（PATCH）

@@ -12,7 +12,7 @@
 
 ## 2. 北极星目标
 
-- 一份能被生产团队复用的结论资产：MVL 覆盖目标、用户、Agent Team、Workflow、Context、Validation 六角度；黄金圈覆盖 WHY/HOW/WHAT 三层；HMW 覆盖问题陈述四字段与想法种子；Journey 覆盖动态阶段、等待返工、风险节点、关键断点与质量鉴别
+- 一份能被生产团队复用的结论资产：MVL 覆盖目标、用户、Agent Team、Workflow、Context、Validation 六角度；黄金圈覆盖 WHY/HOW/WHAT 三层；HMW 覆盖问题陈述四字段与想法种子；Journey 覆盖动态阶段、痛点与机会和质量鉴别
 - 同一份资产同时支撑：模块化智能体画布、对外汇报、长期复盘
 - 一类画布输出同一套治理语义：版本化确认包 + Gate 建议 + 用户授权 + 可审计渲染
 
@@ -61,7 +61,7 @@
 
 ## 6. 核心数据资产
 
-- **画布记录**：以确认包 Markdown 形式存储（MVL：`Mx-v{N}.md`；黄金圈：`GC-v{N}.md`；HMW：`HMW-v{N}.md`；Persona：`PERSONA-v{N}.md`；Journey：`JOURNEY-v{N}.md`），含业务内容节（MVL 第 1–11 节 / GC 第 6a 跨层一致性 / HMW 第 6a 质量鉴别、6b 想法种子、6c 想法↔HMW 对应 / Persona 9 基本信息 + 6 宫格 + 4 质量鉴别 / Journey 第 6 节阶段地图、6a 质量鉴别、6b 关键断点与机会）+ 第 12 节"Gate 与用户决策"治理元数据，以及业务 5 字段（conclusions / gaps / inferences / alignment / evidence）+ 治理 4 字段（gate_recommendation / render_authorized / confirmation_mode / override_audit）
+- **画布记录**：以确认包 Markdown 形式存储（MVL：`Mx-v{N}.md`；黄金圈：`GC-v{N}.md`；HMW：`HMW-v{N}.md`；Persona：`PERSONA-v{N}.md`；Journey：`JOURNEY-v{N}.md`），含业务内容节（MVL 第 1–11 节 / GC 第 6a 跨层一致性 / HMW 第 6a 质量鉴别、6b 想法种子、6c 想法↔HMW 对应 / Persona 9 基本信息 + 6 宫格 + 4 质量鉴别 / Journey 第 6 节阶段地图、6a 质量鉴别、6b 痛点与机会）+ 第 12 节"Gate 与用户决策"治理元数据，以及业务 5 字段（conclusions / gaps / inferences / alignment / evidence）+ 治理 4 字段（gate_recommendation / render_authorized / confirmation_mode / override_audit）
 - **Schema**：`schemas/state.schema.json`（v2.3，非强制参考，详见 [schemas/README.md](./schemas/README.md)）；实际数据源为各画布确认包 Markdown
 - **工作坊状态**：以 `state.json` 形式存储，支持 `modules` / `golden_circle` / `hmw` / `persona` / `journey` 区块（单画布区块可选），记录各画布的状态/版本/审批
 - **设计文档**：[DESIGN.md](./DESIGN.md)（本文档）
@@ -175,10 +175,10 @@ User Journey（用户旅程）是**独立的一等公民画布**，与 MVL 的 M
 1. 行动（`action`）
 2. 触点与系统（`touchpoint_system`）
 3. 情绪（`emotion`）
-4. 等待与返工（`wait_rework`）
-5. 风险节点（`risk`）
+4. 痛点（`pain_point`）
+5. 机会（`opportunity`）
 
-阶段按确认包第 6 节表格数据行动态生成，不固定 7 个槽位；最低 3 个有效阶段。第 6a 节“质量鉴别”是正式画布外显能力，包含 `user_perspective` / `business_outcome` / `friction_visible` / `no_solution_bias` 四维度，但不得进入主表成为第 6 行。
+阶段按确认包第 6 节表格数据行动态生成，不固定 7 个槽位；最低 3 个有效阶段。第 6a 节“质量鉴别”是正式画布外显能力，包含 `user_perspective` / `business_outcome` / `pain_opportunity_visible` / `no_solution_bias` 四维度，但不得进入主表成为第 6 行。
 
 ### 13.3 Gate 与 override
 

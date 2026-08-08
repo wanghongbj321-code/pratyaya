@@ -1,5 +1,5 @@
 {
-  "description": "Journey HTML 静态审计故障用例定义；测试按这些 replace 规则从模板生成临时故障 HTML。",
+  "description": "Journey HTML 静态审计故障用例定义；测试按这些 replace 规则从模板生成临时故障 HTML。v2.3.2 起以新字段 pain-point/opportunity 为约束；旧字段 wait-rework/risk/关键断点已废弃。",
   "cases": [
     {
       "id": "missing_stage",
@@ -12,9 +12,14 @@
       "replace": [["id=\"journey-stage-2\"", "id=\"journey-stage-4\""]]
     },
     {
-      "id": "missing_child_anchor",
-      "expect": "journey-stage-2-wait-rework",
-      "replace": [["id=\"journey-stage-2-wait-rework\"", "id=\"journey-stage-2-wait-rework-x\""]]
+      "id": "missing_child_anchor_pain_point",
+      "expect": "journey-stage-2-pain-point",
+      "replace": [["id=\"journey-stage-2-pain-point\"", "id=\"journey-stage-2-pain-point-x\""]]
+    },
+    {
+      "id": "missing_child_anchor_opportunity",
+      "expect": "journey-stage-2-opportunity",
+      "replace": [["id=\"journey-stage-2-opportunity\"", "id=\"journey-stage-2-opportunity-x\""]]
     },
     {
       "id": "missing_quality_anchor",
@@ -22,14 +27,49 @@
       "replace": [["id=\"journey-quality-no-solution-bias\"", "id=\"journey-quality-no-solution-bias-x\""]]
     },
     {
-      "id": "missing_friction_summary",
-      "expect": "journey-friction-summary",
-      "replace": [["id=\"journey-friction-summary\"", "id=\"journey-friction-summary-x\""]]
+      "id": "missing_pain_opportunity_visible_anchor",
+      "expect": "journey-quality-pain-opportunity-visible",
+      "replace": [["id=\"journey-quality-pain-opportunity-visible\"", "id=\"journey-quality-pain-opportunity-visible-x\""]]
+    },
+    {
+      "id": "missing_pain_opportunity_summary",
+      "expect": "journey-pain-opportunity-summary",
+      "replace": [["id=\"journey-pain-opportunity-summary\"", "id=\"journey-pain-opportunity-summary-x\""]]
+    },
+    {
+      "id": "stage_child_order_wrong",
+      "expect": "JOURNEY_STAGE_ORDER",
+      "replace": [
+        ["id=\"journey-stage-1-action\"", "id=\"journey-stage-1-action-x\""],
+        ["id=\"journey-stage-1-emotion\"", "id=\"journey-stage-1-action\""],
+        ["id=\"journey-stage-1-action-x\"", "id=\"journey-stage-1-emotion\""]
+      ]
     },
     {
       "id": "hidden_quality",
       "expect": "JOURNEY-TPL-GATE-06",
       "replace": [["<section class=\"journey-quality\" id=\"journey-quality\"", "<section class=\"journey-quality hidden\" id=\"journey-quality\""]]
+    },
+    {
+      "id": "legacy_dom_anchors_rejected",
+      "_comment": "v2.3.2 起：新契约 DOM 子锚点是 pain-point/opportunity，旧锚点 wait-rework/risk 不得通过审计。",
+      "expect": "JOURNEY-TPL-GATE-04",
+      "replace": [
+        ["id=\"journey-stage-1-pain-point\"", "id=\"journey-stage-1-wait-rework\""],
+        ["id=\"journey-stage-2-pain-point\"", "id=\"journey-stage-2-wait-rework\""],
+        ["id=\"journey-stage-3-pain-point\"", "id=\"journey-stage-3-wait-rework\""],
+        ["id=\"journey-stage-1-opportunity\"", "id=\"journey-stage-1-risk\""],
+        ["id=\"journey-stage-2-opportunity\"", "id=\"journey-stage-2-risk\""],
+        ["id=\"journey-stage-3-opportunity\"", "id=\"journey-stage-3-risk\""]
+      ]
+    },
+    {
+      "id": "legacy_quality_dimension_rejected",
+      "_comment": "v2.3.2 起：quality 维度锚点是 pain_opportunity_visible，旧锚点 friction_visible 不得通过审计。",
+      "expect": "JOURNEY-TPL-GATE-04",
+      "replace": [
+        ["id=\"journey-quality-pain-opportunity-visible\"", "id=\"journey-quality-friction-visible\""]
+      ]
     }
   ]
 }

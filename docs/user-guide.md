@@ -105,9 +105,9 @@
 当前旅程工作坊，一次完成四步：
 
 1. **阶段地图**：阶段按实际旅程动态生成，最低 3 个有效阶段，不固定 7 个槽位。
-2. **5 行主表**：行动 / 触点与系统 / 情绪 / 等待与返工 / 风险节点。
-3. **关键断点与机会**：等待、返工、风险、情绪低点形成的断点摘要。
-4. **质量鉴别**：用户视角 / 到达业务结果 / 断点可见 / 未预设方案，正式画布外显，但不进入主表成为第 6 行。
+2. **5 行主表**：行动 / 触点与系统 / 情绪 / 痛点 / 机会。
+3. **痛点与机会**：痛点、机会与情绪低点形成的痛点与机会摘要（v2.3.2 起）。
+4. **质量鉴别**：用户视角 / 到达业务结果 / 痛点与机会可见 / 未预设方案，正式画布外显，但不进入主表成为第 6 行。
 
 主 Agent 引导讨论 → 提炼 `JOURNEY-v{N}.md` → Journey Gate → 确认 / override → 生成 `journey-canvas.html`。Journey 正式渲染走**双 Gate**（内容/授权 + 动态阶段 Template Gate），结构问题不能自行豁免。
 
@@ -141,6 +141,29 @@
 
 - "用户旅程提炼" / "用户旅程补问" / "用户旅程先看个样子" / "用户旅程确认 v1" / "用户旅程 override（已阅读影响）"
 - "生成用户旅程画布" / "Journey 状态"
+
+### Journey 画布迁移边界（v2.3.2 PATCH 起）
+
+> 详细说明见 [skills/canvas-render/references/render-contract-journey.md 兼容性边界段](../skills/canvas-render/references/render-contract-journey.md)；本节为用户视角摘要。
+
+不兼容产物：
+
+- v2.3.1 及更早的 `output/journey-canvas.html` 仅作阅读用，不能直接复用为 v2.3.2 渲染产物。
+- v2.3.1 及更早的 `JOURNEY-v{N}.md` 确认包不得按新契约直接渲染；需重新提炼。
+- 旧字段 `wait_rework` / `risk` / `friction_visible` 等已退场；audit 必填检查会 FAIL 含旧字段的产物。
+
+迁移验收（必要步骤）：
+
+1. 用 v2.3.2 的 `journey-distill` 重新提炼确认包（或在新版本下追加修订）。
+2. 重跑 `python scripts/check_contract_consistency.py`，error 必须为 0。
+3. 重跑 `journey-gate` 的 6 条放行条件（`JOURNEY-GATE-01` 至 `JOURNEY-GATE-06`），必须 PASS。
+4. 渲染前 audit 必须通过（`JOURNEY-TPL-GATE-*` 不可 override；只有 6 条中 `business_risk` 类 Gate 可在 override 时接受，且填写理由）。
+
+**关键约束**：
+
+- `JOURNEY-Fxx` ID 前缀保留（含义切到「痛点 / 机会条目」，但不需要替换 ID）。
+- `state.schema.json` `schema_version` 保持 2.3。
+- **不要沿用旧 Gate 结论**：v2.3.2 重构后 `journey-gate` 的覆盖要求已切到「至少 2 个痛点、1 个机会」，旧 Gate 的「等待 / 返工 + 风险节点」结论不适用于新契约。
 
 **全局阶段**：
 

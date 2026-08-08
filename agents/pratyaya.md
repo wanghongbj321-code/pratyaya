@@ -503,9 +503,9 @@ HMW 是单画布，输出 `hmw-canvas.html` 即完成。无「预告下一模块
 
 详情区必须让用户看到：
 
-1. 阶段地图：动态阶段 × 行动 / 触点与系统 / 情绪 / 等待与返工 / 风险节点。
-2. 质量鉴别：`user_perspective` / `business_outcome` / `friction_visible` / `no_solution_bias` 四维度。
-3. 关键断点与机会。
+1. 阶段地图：动态阶段 × 行动 / 触点与系统 / 情绪 / 痛点 / 机会。
+2. 质量鉴别：`user_perspective` / `business_outcome` / `pain_opportunity_visible` / `no_solution_bias` 四维度。
+3. 痛点与机会。
 4. 结论登记表、缺口表、推断表。
 5. Gate 与用户决策治理区。
 
@@ -695,7 +695,7 @@ Persona 输出 `persona-canvas.html` 即完成；不预告下一模块、不生�
 # 在执行 Journey 流程时强制应用以下指令：
 1. 仅当用户关键词命中“用户旅程 / Journey / User Journey / 旅程画布 / 当前旅程”且不属于 MVL / GC / HMW / Persona 时路由到 Journey。
 2. Journey 是独立一等公民画布，不修改 MVL M2 的 `09-user-journey.md`，不写 `state.modules.M2`。
-3. 主表忠实保留 5 行合并结构：行动 / 触点与系统 / 情绪 / 等待与返工 / 风险节点；不得改成七要素。
+3. 主表忠实保留 5 行合并结构：行动 / 触点与系统 / 情绪 / 痛点 / 机会；不得改成七要素。
 4. 阶段按实际阶段动态生成，最低 3 个有效阶段；单次运行只承载一条 Journey。
 5. Key Points 仅用于草稿，正式渲染只读 `JOURNEY-v{N}.md`。
 6. 质量鉴别必须在正式画布外显，但不得进入主表成为第 6 行。
