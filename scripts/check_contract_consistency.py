@@ -769,8 +769,8 @@ JOURNEY_STAGE_FIELDS = (
     "action",
     "touchpoint-system",
     "emotion",
-    "wait-rework",
-    "risk",
+    "pain-point",
+    "opportunity",
 )
 JOURNEY_STAGE_DATA_FIELDS = (
     "stage_index",
@@ -778,19 +778,19 @@ JOURNEY_STAGE_DATA_FIELDS = (
     "action",
     "touchpoint_system",
     "emotion",
-    "wait_rework",
-    "risk",
+    "pain_point",
+    "opportunity",
 )
 JOURNEY_QUALITY_KEYS = (
     "user_perspective",
     "business_outcome",
-    "friction_visible",
+    "pain_opportunity_visible",
     "no_solution_bias",
 )
 JOURNEY_QUALITY_ANCHORS = (
     "journey-quality-user-perspective",
     "journey-quality-business-outcome",
-    "journey-quality-friction-visible",
+    "journey-quality-pain-opportunity-visible",
     "journey-quality-no-solution-bias",
 )
 PERSONA_DISTILL_SKILL = "skills/persona-distill/SKILL.md"
@@ -1512,8 +1512,8 @@ def check_journey_render_contract_sync(ctx: CheckContext) -> list[Finding]:
 
     required_anchors = (
         "journey-map",
-        "journey-frictions",
-        "journey-friction-summary",
+        "journey-pain-opportunities",
+        "journey-pain-opportunity-summary",
         "journey-quality",
         *JOURNEY_QUALITY_ANCHORS,
         "quality-panel",
@@ -1646,7 +1646,7 @@ def check_journey_examples(ctx: CheckContext) -> list[Finding]:
     for section in (
         "### 6. 阶段地图",
         "### 6a. 质量鉴别",
-        "### 6b. 关键断点与机会",
+        "### 6b. 痛点与机会",
         "### 7. 结论登记表",
         "### 8. 缺口表",
         "### 9. 推断表",
@@ -1680,7 +1680,7 @@ def check_journey_examples(ctx: CheckContext) -> list[Finding]:
                 level="error",
                 where=JOURNEY_EXAMPLE_PACKAGE,
                 message="确认包示例缺 JOURNEY-Fxx 断点 / 机会 ID",
-                hint="第 6b 节至少包含 1 条关键断点与机会",
+                hint="第 6b 节至少包含 1 条痛点或机会",
             )
         )
     for key in JOURNEY_QUALITY_KEYS:

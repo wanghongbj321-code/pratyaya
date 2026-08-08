@@ -161,8 +161,8 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 黄金圈:
 
 - 输入 `canvas_type=journey`，状态为 `confirmed` 或 `rendered`，且 `state.journey.render_authorized=true`。
 - 输出 `output/journey-canvas.html`；Python 静态审计 + 浏览器视觉验收通过后才算成功。
-- 按 `render-contract-journey.md` 展示动态阶段 × 5 行合并结构 + 关键断点与机会 + 正式画布外显质量鉴别。
-- 阶段数量由 `JOURNEY-v{N}.md` 第 6 节表格行动态生成，不固定 7 个槽位；每阶段必须保留 action / touchpoint_system / emotion / wait_rework / risk 五个字段。
+- 按 `render-contract-journey.md` 展示动态阶段 × 5 行合并结构 + 痛点与机会 + 正式画布外显质量鉴别。
+- 阶段数量由 `JOURNEY-v{N}.md` 第 6 节表格行动态生成，不固定 7 个槽位；每阶段必须保留 `action / touchpoint_system / emotion / pain_point / opportunity` 五个字段。
 - 显示版本、确认、缺口、风险、结论 ID、证据摘要和 caveat 状态。
 - **不触发全局 Canvas**，不扫描跨模块 caveat，不读取或写入 MVL M2。Journey 是单画布。
 - Journey 默认推荐视觉模式仍为现有 `10-black-gray-professional`；不新增 Journey 专属视觉模式。

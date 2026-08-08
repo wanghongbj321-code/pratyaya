@@ -1,6 +1,6 @@
 {
   "name": "pratyaya",
-  "version": "2.3.1",
+  "version": "2.3.2",
   "description": "pratyaya: AI-native multi-canvas workshop platform — supports MVL (Minimum Verifiable Loop), Golden Circle, HMW (How Might We), User Persona and User Journey canvases. Distills traceable conclusions; blocks incomplete modules; obtains versioned human confirmation; renders Canvas HTML.",
   "agents": [
     "./agents/pratyaya.md"
@@ -63,8 +63,8 @@
       "zh": "这是 MVL 讨论转写，请提炼内容、审核核心价值并生成结论确认包"
     },
     {
-      "en": "Please guide a User Journey canvas workshop to map the current journey and friction points.",
-      "zh": "请引导用户旅程画布工作坊，帮助我梳理当前旅程与关键断点"
+      "en": "Please guide a User Journey canvas workshop: map current stages and surface pain points and opportunities.",
+      "zh": "请引导用户旅程画布工作坊：逐步梳理当前旅程中的痛点与机会。"
     }
   ]
 }

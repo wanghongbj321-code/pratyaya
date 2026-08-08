@@ -5,6 +5,10 @@
 - 确认包规范包含 6 / 6a / 6b / 6c / 12 节。
 - HMW-Cxx / HMW-Gxx / HMW-Inf-N / HMW-Idea-N 命名互不冲突。
 - hmw-spec.md、Gate 与 render contract 对章节事实源的引用一致。
+
+v2.3.2 PATCH 重构：Journey 阶段字段从 `wait_rework / risk` 切换为
+`pain_point / opportunity`；6a 维度 `friction_visible` → `pain_opportunity_visible`；
+6b 节标题与列结构调整；旧字段不得再列为必填。
 """
 
 from __future__ import annotations
@@ -26,6 +30,7 @@ PERSONA_GATE = SKILLS / "persona-gate"
 CONTRACT = SKILLS / "canvas-render" / "references" / "render-contract-hmw.md"
 JOURNEY_CONTRACT = SKILLS / "canvas-render" / "references" / "render-contract-journey.md"
 PERSONA_CONTRACT = SKILLS / "canvas-render" / "references" / "render-contract-persona.md"
+AUDIT = SKILLS / "canvas-render" / "scripts" / "audit_canvas_html.py"
 EXAMPLES = REPO_ROOT / "examples" / "modules"
 CANVAS_EXAMPLES = REPO_ROOT / "skills" / "canvas-render" / "examples"
 
@@ -69,18 +74,58 @@ REQUIRED_PACKAGE_SECTIONS = (
 REQUIRED_JOURNEY_PACKAGE_SECTIONS = (
     "6. 阶段地图",
     "6a. 质量鉴别",
-    "6b. 关键断点与机会",
+    "6b. 痛点与机会",
     "7. 结论登记表",
     "8. 缺口表",
     "9. 推断表",
     "12. Gate 与用户决策",
 )
+
+# v2.3.2 新契约 stage 字段（snake_case，用于 frame / spec 文档断言）
 JOURNEY_ROWS = (
     "action",
     "touchpoint_system",
     "emotion",
+    "pain_point",
+    "opportunity",
+)
+
+# v2.3.2 新契约 DOM 子锚点后缀（kebab-case，用于 contract / template 断言）
+JOURNEY_DOM_FIELDS = (
+    "action",
+    "touchpoint-system",
+    "emotion",
+    "pain-point",
+    "opportunity",
+)
+
+# v2.3.2 新契约稳定锚点（替换旧 friction 锚点）
+JOURNEY_QUALITY_ANCHORS_V232 = (
+    "journey-quality-user-perspective",
+    "journey-quality-business-outcome",
+    "journey-quality-pain-opportunity-visible",
+    "journey-quality-no-solution-bias",
+)
+JOURNEY_PAIN_OPPORTUNITY_ANCHORS_V232 = (
+    "journey-pain-opportunity-summary",
+    *JOURNEY_QUALITY_ANCHORS_V232,
+)
+
+# v2.3.2 已废弃的旧锚点（必须不再出现）
+JOURNEY_LEGACY_FORBIDDEN_ANCHORS = (
+    "journey-quality-friction-visible",
+    "journey-friction-summary",
+)
+JOURNEY_LEGACY_FORBIDDEN_DOM = (
+    "journey-stage-{n}-wait-rework",
+    "journey-stage-{n}-risk",
+)
+JOURNEY_LEGACY_FORBIDDEN_DATA = (
     "wait_rework",
     "risk",
+)
+JOURNEY_LEGACY_FORBIDDEN_DIMENSIONS = (
+    "friction_visible",
 )
 
 
@@ -97,7 +142,7 @@ class TestSkillRegistration:
             assert skill in plugin["skills"], f"plugin.json missing Journey skill {skill}"
         for skill in EXPECTED_PERSONA_SKILLS:
             assert skill in plugin["skills"], f"plugin.json missing Persona skill {skill}"
-        assert plugin["version"] == "2.3.1"
+        assert plugin["version"] == "2.3.2"
 
     def test_plugin_registers_persona_skills(self) -> None:
         plugin = json.loads(read(REPO_ROOT / ".codebuddy-plugin" / "plugin.json"))
@@ -217,11 +262,12 @@ class TestJourneySkillFiles:
         assert "modules/JOURNEY-gaps.md" in text
 
     def test_distill_keeps_five_row_dynamic_stage_contract(self) -> None:
+        """v2.3.2 步骤 1：frame / spec 必须列出 5 行新字段（pain_point / opportunity）。"""
         frame = read(JOURNEY_DISTILL / "frameworks" / "journey-frame.md")
         spec = read(JOURNEY_DISTILL / "references" / "journey-spec.md")
         for row in JOURNEY_ROWS:
-            assert row in frame
-            assert row in spec
+            assert row in frame, f"frame.md missing row {row}"
+            assert row in spec, f"spec.md missing row {row}"
         assert "5 行合并结构" in frame
         assert "动态生成" in frame
         assert "不得写入 MVL" in frame
@@ -241,10 +287,10 @@ class TestJourneySkillFiles:
             "business_outcome",
             "user_perspective",
             "no_solution_bias",
-            "friction_visible",
+            "pain_opportunity_visible",
         ):
-            assert dimension in skill
-            assert dimension in spec
+            assert dimension in skill, f"skill.md missing dimension {dimension}"
+            assert dimension in spec, f"spec.md missing dimension {dimension}"
 
     def test_journey_gate_has_six_stable_ids(self) -> None:
         gate = read(JOURNEY_GATE / "references" / "JOURNEY-gate.md")
@@ -255,7 +301,7 @@ class TestJourneySkillFiles:
         gate = read(JOURNEY_GATE / "references" / "JOURNEY-gate.md")
         assert gate.count("information_integrity") >= 3
         assert gate.count("business_risk") >= 3
-        for src in ("JOURNEY-map", "JOURNEY-friction", "JOURNEY-quality"):
+        for src in ("JOURNEY-map", "JOURNEY-pain-opportunity", "JOURNEY-quality"):
             assert src in gate, f"Journey Gate 缺来源 ID: {src}"
 
     def test_journey_gate_does_not_authorize_rendering(self) -> None:
@@ -275,60 +321,84 @@ class TestJourneyRenderContract:
         assert "skills/canvas-render/examples/user-journey-canvas.html" in skill
 
     def test_journey_render_contract_exists_and_defines_dynamic_stages(self) -> None:
+        """v2.3.2 步骤 1：render contract 必须列出 5 行新 DOM 子锚点；旧字段不得出现。"""
         contract = read(JOURNEY_CONTRACT)
         for anchor in (
             "journey-map",
             "journey-stage-{n}",
-            "journey-stage-{n}-action",
-            "journey-stage-{n}-touchpoint-system",
-            "journey-stage-{n}-emotion",
-            "journey-stage-{n}-wait-rework",
-            "journey-stage-{n}-risk",
-            "journey-frictions",
-            "journey-friction-summary",
-            "journey-quality-user-perspective",
-            "journey-quality-business-outcome",
-            "journey-quality-friction-visible",
-            "journey-quality-no-solution-bias",
         ):
-            assert anchor in contract
+            assert anchor in contract, f"contract 缺锚点 {anchor}"
+        for field in JOURNEY_DOM_FIELDS:
+            assert f"journey-stage-{{n}}-{field}" in contract, f"contract 缺 stage 子锚点 journey-stage-{{n}}-{field}"
+        for anchor in JOURNEY_PAIN_OPPORTUNITY_ANCHORS_V232:
+            assert anchor in contract, f"contract 缺新契约锚点 {anchor}"
+        for forbidden in JOURNEY_LEGACY_FORBIDDEN_ANCHORS:
+            assert forbidden not in contract, f"contract 不应再包含旧锚点 {forbidden}"
+        for forbidden in JOURNEY_LEGACY_FORBIDDEN_DOM:
+            assert forbidden not in contract, f"contract 不应再包含旧 DOM 子锚点 {forbidden}"
         assert 'data-page-type="journey"' in contract
         assert "阶段数量不少于 3" in contract
-        assert "action → touchpoint-system → emotion → wait-rework → risk" in contract
+        assert "action → touchpoint-system → emotion → pain-point → opportunity" in contract
 
     def test_journey_example_has_template_profile_anchors(self) -> None:
+        """v2.3.2 步骤 1：示例 HTML 必须含新契约 DOM 子锚点。"""
         example = read(CANVAS_EXAMPLES / "user-journey-canvas.html")
         for anchor in (
             'id="canvas-header"',
             'id="journey-map"',
-            'id="journey-frictions"',
+            'id="journey-pain-opportunities"',
             'id="journey-quality"',
             'id="quality-panel"',
             'id="local-notes"',
             'id="canvas-data"',
         ):
-            assert anchor in example
+            assert anchor in example, f"示例 HTML 缺 id={anchor}"
         assert 'data-page-type="journey"' in example
         assert '"canvas_type": "journey"' in example
         for number in range(1, 4):
             assert f'id="journey-stage-{number}"' in example
-            for field in ("action", "touchpoint-system", "emotion", "wait-rework", "risk"):
-                assert f'id="journey-stage-{number}-{field}"' in example
+            for field in JOURNEY_DOM_FIELDS:
+                assert f'id="journey-stage-{number}-{field}"' in example, f"示例 HTML 缺 id=journey-stage-{number}-{field}"
 
-    def test_journey_contract_audit_script_and_example_share_quality_anchors(self) -> None:
+    def test_journey_contract_audit_script_and_example_share_pain_opportunity_anchors(self) -> None:
+        """v2.3.2 步骤 1：contract / audit 脚本 / example 三方必须共享新契约锚点。"""
         contract = read(JOURNEY_CONTRACT)
-        audit = read(REPO_ROOT / "skills" / "canvas-render" / "scripts" / "audit_canvas_html.py")
+        audit = read(AUDIT)
         example = read(CANVAS_EXAMPLES / "user-journey-canvas.html")
-        for anchor in (
-            "journey-quality-user-perspective",
-            "journey-quality-business-outcome",
-            "journey-quality-friction-visible",
-            "journey-quality-no-solution-bias",
-            "journey-friction-summary",
-        ):
-            assert anchor in contract
-            assert anchor in audit
-            assert anchor in example
+        for anchor in JOURNEY_PAIN_OPPORTUNITY_ANCHORS_V232:
+            assert anchor in contract, f"contract 缺 {anchor}"
+            assert anchor in audit, f"audit 脚本缺 {anchor}"
+            assert anchor in example, f"example 缺 {anchor}"
+        for forbidden in JOURNEY_LEGACY_FORBIDDEN_ANCHORS:
+            assert forbidden not in audit, f"audit 脚本不应再包含旧锚点 {forbidden}"
+            assert forbidden not in example, f"example 不应再包含旧锚点 {forbidden}"
+
+    def test_journey_audit_script_does_not_require_legacy_stage_data_fields(self) -> None:
+        """v2.3.2 步骤 1：audit 脚本不得将 wait_rework / risk 列为 stage data 必填字段。"""
+        audit = read(AUDIT)
+        # 旧 snake_case 字段不得在「Journey stage data 必填」上下文出现
+        for forbidden in JOURNEY_LEGACY_FORBIDDEN_DATA:
+            # 当前实现会在 JOURNEY_STAGE_DATA_FIELDS 中包含；本断言要求移除该必填。
+            # 用正则匹配「Journey stage data」上下文内的引用，避免误报文档中的"旧字段说明"。
+            legacy_stage_field_pattern = re.compile(
+                rf"\"{re.escape(forbidden)}\"\s*,", re.MULTILINE
+            )
+            assert not legacy_stage_field_pattern.search(audit), (
+                f"audit 脚本不应再把 {forbidden} 列为 Journey stage data 必填字段"
+            )
+
+    def test_journey_stage_data_required_fields_are_pain_point_and_opportunity(self) -> None:
+        """v2.3.2 步骤 1：JOURNEY_STAGE_DATA_FIELDS 必须包含 pain_point / opportunity。"""
+        audit = read(AUDIT)
+        # 通过简单成员性查找 contract 字段集合（精确度高，避开注释）
+        # audit 脚本中定义 JOURNEY_STAGE_DATA_FIELDS = (...) 的元组
+        match = re.search(r"JOURNEY_STAGE_DATA_FIELDS\s*=\s*\((.*?)\)", audit, re.DOTALL)
+        assert match, "audit 脚本缺 JOURNEY_STAGE_DATA_FIELDS 定义"
+        field_block = match.group(1)
+        for field in ("pain_point", "opportunity"):
+            assert f'"{field}"' in field_block, f"JOURNEY_STAGE_DATA_FIELDS 缺 {field}"
+        for forbidden in JOURNEY_LEGACY_FORBIDDEN_DATA:
+            assert f'"{forbidden}"' not in field_block, f"JOURNEY_STAGE_DATA_FIELDS 仍含旧字段 {forbidden}"
 
 
 class TestJourneyExamples:
@@ -337,15 +407,26 @@ class TestJourneyExamples:
             assert (EXAMPLES / fname).exists(), f"missing examples/modules/{fname}"
 
     def test_journey_example_package_has_required_content(self) -> None:
+        """v2.3.2 步骤 1：示例包 6b 节标题为「痛点与机会」；阶段表列含「痛点/机会」。"""
         package = read(EXAMPLES / "JOURNEY-v1.md")
         for section in REQUIRED_JOURNEY_PACKAGE_SECTIONS:
-            assert section in package
+            assert section in package, f"JOURNEY-v1.md 缺章节 {section}"
         for token in ("JOURNEY-C", "JOURNEY-G", "JOURNEY-Inf", "JOURNEY-F"):
-            assert token in package
-        for key in ("user_perspective", "business_outcome", "friction_visible", "no_solution_bias"):
-            assert key in package
+            assert token in package, f"JOURNEY-v1.md 缺 ID 前缀 {token}"
+        for key in ("user_perspective", "business_outcome", "pain_opportunity_visible", "no_solution_bias"):
+            assert key in package, f"JOURNEY-v1.md 缺质量维度 {key}"
+        for forbidden in JOURNEY_LEGACY_FORBIDDEN_DIMENSIONS:
+            assert forbidden not in package, (
+                f"JOURNEY-v1.md 不应再包含旧质量维度 {forbidden}（应使用 pain_opportunity_visible）"
+            )
         stage_rows = re.findall(r"^\|\s*[1-9]\d*\s*\|", package, re.MULTILINE)
         assert len(stage_rows) >= 3
+        # 主表必须列标题包含 痛点 与 机会（取代"等待与返工"与"风险节点"）
+        main_table = package.split("### 6. 阶段地图", 1)[1].split("###", 1)[0]
+        assert "痛点" in main_table, "JOURNEY-v1.md §6 阶段表缺「痛点」列"
+        assert "机会" in main_table, "JOURNEY-v1.md §6 阶段表缺「机会」列"
+        # 6b 节必须有 F04 这种 inferred_from_pain_point 机会
+        assert "inferred_from_pain_point" in package, "JOURNEY-v1.md 缺 inferred_from_pain_point 机会"
 
     def test_journey_gaps_example_reuses_package_gap_ids(self) -> None:
         package = read(EXAMPLES / "JOURNEY-v1.md")

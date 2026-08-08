@@ -1,13 +1,13 @@
 ---
 name: journey-distill
-description: 把 User Journey（用户旅程）工作坊讨论产物提炼为 Markdown 资产。先做 Key Points 概览抽取（生成动态阶段、5 行合并结构、断点与质量信号的讨论地图），再按用户决策做原子提炼，输出唯一事实源 JOURNEY-v{N}.md 确认包。收到 Journey Key Points 抽取请求、原子提炼请求、确认包生成请求时使用。
+description: 把 User Journey（用户旅程）工作坊讨论产物提炼为 Markdown 资产。先做 Key Points 概览抽取（生成动态阶段、5 行合并结构、痛点与机会和质量信号的讨论地图），再按用户决策做原子提炼，输出唯一事实源 JOURNEY-v{N}.md 确认包。收到 Journey Key Points 抽取请求、原子提炼请求、确认包生成请求时使用。
 ---
 
 # journey-distill：用户旅程提炼
 
-把 Key Points 概览与 Journey 框架结合，形成经过对齐的、唯一事实源的确认包（`modules/JOURNEY-v{N}.md`）。完成标准是“真实呈现用户当前旅程、断点和质量判断”，不是“画出完整漂亮的流程图”。
+把 Key Points 概览与 Journey 框架结合，形成经过对齐的、唯一事实源的确认包（`modules/JOURNEY-v{N}.md`）。完成标准是“真实呈现用户当前旅程、痛点与机会和质量判断”，不是“画出完整漂亮的流程图”。
 
-质量鉴别采用正式画布外显方式：`user_perspective`、`business_outcome`、`friction_visible`、`no_solution_bias` 四维度必须写入确认包第 6a 节，并在后续 Canvas 中作为治理区块呈现，而不是只作为 Gate 内部判断。
+质量鉴别采用正式画布外显方式：`user_perspective`、`business_outcome`、`pain_opportunity_visible`、`no_solution_bias` 四维度必须写入确认包第 6a 节，并在后续 Canvas 中作为治理区块呈现，而不是只作为 Gate 内部判断。
 
 ## 定位
 
@@ -59,7 +59,7 @@ Stage 2 完成后交给主 agent 触发闸门（`journey-gate`），不直接进
 
 ## Stage 1：Key Points 抽取
 
-**目标**：在 30 秒内让用户了解“这次讨论了什么、阶段覆盖度如何、断点和质量信号在哪里、缺什么”。
+**目标**：在 30 秒内让用户了解“这次讨论了什么、阶段覆盖度如何、痛点与机会和质量信号在哪里、缺什么”。
 
 **触发**：主 agent Journey 工作流对应步骤，输入为逐字稿（已由主 agent 存档为 `transcripts/journey-TXX-raw.md`）。
 
@@ -84,11 +84,11 @@ Stage 2 完成后交给主 agent 触发闸门（`journey-gate`），不直接进
 
 ## 2. 关键主张
 
-按「阶段 / 断点 / 质量信号」组织（每项 1-2 句）：
+按「阶段 / 痛点与机会 / 质量信号」组织（每项 1-2 句）：
 
 - **阶段**：...
   - 主张 1：...
-- **断点**：...
+- **痛点**：...
   - 主张 1：...
 - **质量信号**：...
   - 主张 1：...
@@ -104,7 +104,7 @@ Stage 2 完成后交给主 agent 触发闸门（`journey-gate`），不直接进
 
 对照 Journey 框架（`frameworks/journey-frame.md`），粗略评估覆盖情况：
 
-| 阶段序号 | 阶段名 | 行动 | 触点与系统 | 情绪 | 等待与返工 | 风险节点 | 覆盖状态 | 简评 |
+| 阶段序号 | 阶段名 | 行动 | 触点与系统 | 情绪 | 痛点 | 机会 | 覆盖状态 | 简评 |
 |---|---|---|---|---|---|---|---|---|
 | 1 | ... | 已覆盖 / 部分覆盖 / 未涉及 | ... | ... | ... | ... | 已覆盖 / 部分覆盖 / 未涉及 | ... |
 
@@ -114,7 +114,7 @@ Stage 2 完成后交给主 agent 触发闸门（`journey-gate`），不直接进
 |---|---|---|
 | user_perspective | 已判定 / 未判定 | ... |
 | business_outcome | 已判定 / 未判定 | ... |
-| friction_visible | 已判定 / 未判定 | ... |
+| pain_opportunity_visible | 已判定 / 未判定 | ... |
 | no_solution_bias | 已判定 / 未判定 | ... |
 
 ## 6. 用户决策提示
@@ -162,7 +162,7 @@ Stage 2 完成后交给主 agent 触发闸门（`journey-gate`），不直接进
 
 ### 1. 一句话结论
 
-{≤50 字，概括这条旅程的核心断点与机会}
+{≤50 字，概括这条旅程的核心痛点与机会}
 
 ### 2. 对齐摘要
 
@@ -190,7 +190,7 @@ v{N}
 
 ### 6. 阶段地图
 
-| 阶段序号 | 阶段名 | 行动 | 触点与系统 | 情绪 | 等待与返工 | 风险节点 | 来源引用 |
+| 阶段序号 | 阶段名 | 行动 | 触点与系统 | 情绪 | 痛点 | 机会 | 来源引用 |
 |---|---|---|---|---|---|---|---|
 | 1 | ... | ... | ... | ... | ... | ... | Journey 关键主张 X |
 | 2 | ... | ... | ... | ... | ... | ... | ... |
@@ -203,14 +203,14 @@ v{N}
 |---|---|---|
 | user_perspective（用户视角） | 通过 / 不通过 | ... |
 | business_outcome（到达业务结果） | 通过 / 不通过 | ... |
-| friction_visible（断点可见） | 通过 / 不通过 | ... |
+| pain_opportunity_visible（痛点与机会可见） | 通过 / 不通过 | ... |
 | no_solution_bias（未预设方案） | 通过 / 不通过 | ... |
 
-### 6b. 关键断点与机会
+### 6b. 痛点与机会
 
-| ID | 阶段 | 断点类型 | 描述 | 影响 | 机会判断 | 来源引用 |
-|---|---|---|---|---|---|---|
-| JOURNEY-F01 | 阶段 2 | wait_rework / risk / emotion | ... | ... | ... | ... |
+| ID | 阶段 | 类型 | 来源 | 描述 | 影响 | 机会判断 | 来源引用 |
+|---|---|---|---|---|---|---|---|
+| JOURNEY-F01 | 阶段 2 | pain_point / opportunity | user_stated / inferred_from_pain_point / inferred_from_quality | ... | ... | ... | ... |
 
 ### 7. 结论登记表
 
