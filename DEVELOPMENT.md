@@ -103,6 +103,8 @@ Key Points → 提炼（确认包 v{N}.md）→ Gate（判定报告）→ 渲染
 
 每个阶段的输入/输出/状态变化由对应 Skill 定义，详见 [skills/mvl-distill/SKILL.md](./skills/mvl-distill/SKILL.md) / [skills/gc-distill/SKILL.md](./skills/gc-distill/SKILL.md) / [skills/hmw-distill/SKILL.md](./skills/hmw-distill/SKILL.md) / [skills/persona-distill/SKILL.md](./skills/persona-distill/SKILL.md) / [skills/journey-distill/SKILL.md](./skills/journey-distill/SKILL.md) / [skills/module-conclusion-gate/SKILL.md](./skills/module-conclusion-gate/SKILL.md) / [skills/gc-gate/SKILL.md](./skills/gc-gate/SKILL.md) / [skills/hmw-gate/SKILL.md](./skills/hmw-gate/SKILL.md) / [skills/persona-gate/SKILL.md](./skills/persona-gate/SKILL.md) / [skills/journey-gate/SKILL.md](./skills/journey-gate/SKILL.md) / [skills/canvas-render/SKILL.md](./skills/canvas-render/SKILL.md)。
 
+`faq-answer` 是支持型 Skill，负责使用、状态和异常解释，不进入 `Key Points → 提炼 → Gate → 渲染` 四阶段管线，不写 `state.json`、确认包或 HTML。维护入口见 [skills/faq-answer/SKILL.md](./skills/faq-answer/SKILL.md)。
+
 以上文件路径均相对当前 group 工作目录 `workshop/{project_slug}/{group_id}/`；项目级 `manifest.json` 仅用于跨组汇总，可从各 group 的 `state.json` 重建。
 
 ## 6. 版本与发布

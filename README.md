@@ -3,7 +3,7 @@
 > 品牌：pratyaya
 > 版本：2.3.0
 
-多画布工作坊平台——支持 **MVL**（Minimum Verifiable Loop，最小可验证自治闭环）、**黄金圈**（Golden Circle）、**HMW**（How Might We，问题重构）、**用户画像**（User Persona）与 **用户旅程**（User Journey）五类画布。对话式引导 + 转写提炼 + 质量门禁 + 模块化智能体画布（Canvas）生成。
+多画布工作坊平台——支持 **MVL**（Minimum Verifiable Loop，最小可验证自治闭环）、**黄金圈**（Golden Circle）、**HMW**（How Might We，问题重构）、**用户画像**（User Persona）与 **用户旅程**（User Journey）五类画布。对话式引导 + 转写提炼 + 质量门禁 + 模块化智能体画布（Canvas）生成，并提供 FAQ Q/A 支持使用、状态和异常解释。
 
 详细专家定位、标签、快速指令以 `.codebuddy-plugin/plugin.json` 为权威来源。
 
@@ -46,7 +46,7 @@ draft → gaps_open ↔ review_ready → confirmed → rendered
 pratyaya/
 ├── .codebuddy-plugin/   # 专家包元数据
 ├── agents/              # 主 Agent（pratyaya.md）
-├── skills/              # 十一个 Skill
+├── skills/              # 十二个 Skill
 │   ├── mvl-distill/     # MVL 提炼
 │   ├── gc-distill/      # 黄金圈提炼
 │   ├── hmw-distill/     # HMW 提炼
@@ -57,6 +57,7 @@ pratyaya/
 │   ├── hmw-gate/        # HMW 门禁
 │   ├── persona-gate/    # 用户画像门禁
 │   ├── journey-gate/    # 用户旅程门禁
+│   ├── faq-answer/      # FAQ Q/A（使用、状态、异常解释；不进入画布状态机）
 │   └── canvas-render/   # 统一渲染（画布类型感知）
 │       └── visual-patterns/ # 10 个视觉模式（所有画布复用）
 ├── schemas/             # 非强制参考 Schema（v2.3 状态 + v2.4 project/group 路径分层）

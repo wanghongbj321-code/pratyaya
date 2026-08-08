@@ -4,7 +4,7 @@
 
 ## 1. 决策
 
-**单专家 + 多 Skill**：一个 `pratyaya` 专家包，调度十一个 Skill（`mvl-distill` / `gc-distill` / `hmw-distill` / `persona-distill` / `journey-distill` / `module-conclusion-gate` / `gc-gate` / `hmw-gate` / `persona-gate` / `journey-gate` / `canvas-render`）完成工作流。每个 Skill 内部用最简、确定的契约约束 LLM 行为。五类画布（MVL / 黄金圈 / HMW / 用户画像 / 用户旅程）共享同一治理语义；用户画像拥有独立提炼 Skill、门禁 Skill 与渲染契约，用户旅程拥有独立提炼 Skill、门禁 Skill 与渲染契约。
+**单专家 + 多 Skill**：一个 `pratyaya` 专家包，调度十二个 Skill（`mvl-distill` / `gc-distill` / `hmw-distill` / `persona-distill` / `journey-distill` / `module-conclusion-gate` / `gc-gate` / `hmw-gate` / `persona-gate` / `journey-gate` / `faq-answer` / `canvas-render`）完成工作流与支持问答。每个 Skill 内部用最简、确定的契约约束 LLM 行为。五类画布（MVL / 黄金圈 / HMW / 用户画像 / 用户旅程）共享同一治理语义；用户画像拥有独立提炼 Skill、门禁 Skill 与渲染契约，用户旅程拥有独立提炼 Skill、门禁 Skill 与渲染契约。`faq-answer` 是支持型 Skill，只回答使用、状态和异常解释问题，不进入画布状态机，不新增 Gate 或渲染契约。
 
 **人仍是最终决策者**：Skill 之间通过显式的确认包（v{N}.md）交付，每一步可被工作坊组织者审阅和回退。
 
@@ -36,6 +36,7 @@
 - **分析层**（mvl-distill / gc-distill / hmw-distill / persona-distill / journey-distill） — Key Points 概览（`Mx-keypoints.md` / `GC-keypoints.md` / `HMW-keypoints.md` / `PERSONA-keypoints.md` / `JOURNEY-keypoints.md`）+ 确认包（`Mx-v{N}.md` / `GC-v{N}.md` / `HMW-v{N}.md` / `PERSONA-v{N}.md` / `JOURNEY-v{N}.md`）+ 缺口 + 推断
 - **治理层**（module-conclusion-gate / gc-gate / hmw-gate / persona-gate / journey-gate） — LLM Gate 评估（输出 `gate_recommendation` + `override_eligible` 建议，**不**写最终授权）+ 用户决策（主 Agent 写入 `render_authorized` + `confirmation_mode` + `override_audit`）
 - **展示层**（canvas-render） — 模块 Canvas / 黄金圈 Canvas / HMW Canvas / Persona Canvas / Journey Canvas + 全局 Canvas + 管理层报告
+- **支持问答层**（faq-answer） — 使用说明、当前 group 状态解释、Gate / override / 渲染异常说明与下一步建议；只读，不写业务产物
 
 ## 5. 数据源与视觉模式
 
@@ -119,7 +120,8 @@ stateDiagram-v2
 
 ### 已实现
 
-- 单专家调度十一个 Skill（`mvl-distill` / `gc-distill` / `hmw-distill` / `persona-distill` / `journey-distill` / `module-conclusion-gate` / `gc-gate` / `hmw-gate` / `persona-gate` / `journey-gate` / `canvas-render`）
+- 单专家调度十二个 Skill（`mvl-distill` / `gc-distill` / `hmw-distill` / `persona-distill` / `journey-distill` / `module-conclusion-gate` / `gc-gate` / `hmw-gate` / `persona-gate` / `journey-gate` / `faq-answer` / `canvas-render`）
+- **FAQ Q/A 支持能力**：`faq-answer` 解释使用、当前 group 状态、Gate / override / 渲染异常与下一步；不进入画布状态机，不新增 `state.faq`，不新增渲染契约
 - **五状态画布生命周期**（`draft → gaps_open ↔ review_ready → confirmed → rendered`），五类画布共用
 - 模块和全局质量策略（MVL）与单画布质量策略（黄金圈 / HMW / Persona / Journey）
 - JSON Schema（当前标注为非强制参考，详见 [schemas/README.md](./schemas/README.md)）

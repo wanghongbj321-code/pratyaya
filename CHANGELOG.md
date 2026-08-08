@@ -3,6 +3,21 @@
 > 本文件记录 Pratyaya 专家的正式版本变更。
 > 完整 SemVer 与架构说明见 [`README.md`](./README.md) / [`DESIGN.md`](./DESIGN.md) / [docs/MVL-整体架构设计.md](./docs/MVL-整体架构设计.md)。
 
+## [v2.5.0] - 2026-08-08
+
+### 新增功能（MINOR）
+
+- **FAQ Q/A 支持能力**：新增 `faq-answer` Skill，回答 pratyaya 使用、当前 group 状态、Gate / override / 渲染异常与下一步建议。
+- **主 Agent FAQ 路由**：`agents/pratyaya.md` 增加 FAQ / 问答 / 当前状态 / 不能渲染 / Gate fail / override 等只读解释入口；明确流程指令（提炼 / 补问 / 确认 / override / 生成画布）仍优先进入原画布流程。
+- **WorkBuddy 元数据同步**：`plugin.json` 注册 `./skills/faq-answer`，版本升至 `2.5.0`，第三条 quickPrompt 改为 FAQ 入口；`tags` 仍保持 3 个，专家身份字段不变。
+- **文档同步**：README、DESIGN、DEVELOPMENT 与用户指南补充 FAQ 是支持型 Skill，不进入画布状态机、不新增 Gate、不新增渲染契约、不写业务产物。
+
+### 不变项
+
+- `expertType` 保持 `agent`，不转 Team。
+- 五类画布列表、确认包命名空间、Gate 与 Canvas 渲染契约不变。
+- `schemas/state.schema.json` 与 `state.schema_version` 不变，不新增 `state.faq`。
+
 ## [v2.4.0] - 2026-08-08
 
 ### 新增功能（MINOR）
