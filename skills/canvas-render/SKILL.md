@@ -14,6 +14,10 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 非 MVL: {
 - `journey`：User Journey 用户旅程单画布
 - `persona`：用户画像单画布
 
+`mvl` 下存在两条生成路径：
+- **Phase 2 全局汇总**：M1-M6 六模块 → `output/maau-global-canvas.html`（沿用现有 MVL 全局模式）。
+- **transcript-direct 一次性综合**：`generation_path=transcript-direct`，从 `modules/MAAU-{slug}-v{N}.md` 一次性六板块源包渲染，输出 `output/maau-global-canvas-{slug}.html`，授权读取 `state.maau.{slug}`。两条路径**互斥**，不混用。
+
 执行前按需读取：
 
 - `../mvl-distill/references/workshop-canvas-map.md`：MVL 全局 Canvas 大小模块映射。
@@ -43,14 +47,16 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 非 MVL: {
    - HMW：`modules/HMW-{slug}-v{N}.md`
    - Persona：`modules/PERSONA-{slug}-v{N}.md`
    - Journey：`modules/JOURNEY-{slug}-v{N}.md`
+   - **MAAU（transcript-direct）**：`modules/MAAU-{slug}-v{N}.md`
 3. 用户授权（来自 `state.json`）：
    - MVL：对应模块 `render_authorized = true` 且 `confirmation_mode ∈ {gate_pass, override}`
    - GC：`golden_circle.{slug}.render_authorized = true` 且 `golden_circle.{slug}.confirmation_mode ∈ {gate_pass, override}`
    - HMW：`hmw.{slug}.render_authorized = true` 且 `hmw.{slug}.confirmation_mode ∈ {gate_pass, override}`
    - Persona：`persona.{slug}.render_authorized = true` 且 `persona.{slug}.confirmation_mode ∈ {gate_pass, override}`
    - Journey：`journey.{slug}.render_authorized = true` 且 `journey.{slug}.confirmation_mode ∈ {gate_pass, override}`
+   - **MAAU**：`maau.{slug}.render_authorized = true` 且 `maau.{slug}.confirmation_mode ∈ {gate_pass, override}`，且 `generation_path = "transcript-direct"`
    - override 时 `override_audit` 完整（含 items、reason、confirmed_by、confirmed_at）。
-4. 非 MVL `instance_slug`：kebab-case slug，必须与确认包文件名、HTML `data-instance` 与 `canvas-data.instance` 一致。
+4. 非 MVL `instance_slug`：kebab-case slug，必须与确认包文件名、HTML `data-instance` 与 `canvas-data.instance` 一致（MAAU 一次性路径同样必须写 `data-instance="{slug}"` 与 `canvas-data.instance`）。
 5. Gate 建议（来自同版本 Gate 报告）：`gate_recommendation`（pass / fail）。
 6. 用户选定模式的完整仓库相对路径。
 
@@ -92,6 +98,16 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 非 MVL: {
 - 显示版本、确认人、时间、剩余 minor 缺口、风险、override caveat 与最后更新时间。
 - 保留结论 ID，并用普通相对链接下钻到模块详情 Canvas。
 - **全局 caveat 浮现**：扫描六模块 `confirmation_mode`，对 `override` 模块在全局页和管理层摘要中显式标注 caveat 与风险摘要。
+
+### MAAU transcript-direct 正式模式
+
+- 输入 `canvas_type=mvl` + `page_type=global` + `generation_path=transcript-direct`，数据源为 `modules/MAAU-{slug}-v{N}.md`，授权读取 `state.maau.{slug}`。
+- 输出 `output/maau-global-canvas-{slug}.html`；Python 静态审计 + 浏览器视觉验收通过后才算成功。
+- HTML 必须写 `data-instance="{slug}"` 与 `canvas-data.instance`。
+- 展示 Intent / User / Agent Team / Workflow / Context / Validation 六大板块。
+- `canvas-data` 记录 `generation_path=transcript-direct`、`instance`、`source_file`、`auth`；页面必须含 `[来源: transcript-direct]` 标头。
+- **不伪造 M1-M6 模块详情下钻**：transcript-direct 是单源一次性综合，无六模块详情页；无模块详情时不得生成虚假的下钻链接，只展示六板块或按 render-contract 规则处理。
+- 与 Phase 2 全局页（`output/maau-global-canvas.html`）互斥：同一 group 的 MAAU 输出只能二选一（transcript-direct 实例页或 M1-M6 Phase 2 全局页），不得同时作为正式输出。
 
 ### 模块详情模式
 
@@ -221,7 +237,7 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 非 MVL: {
 
 ## 内容与数据契约
 
-- 正式页面内容只来自同版本确认包（MVL: `modules/Mx-v{N}.md` / GC: `modules/GC-{slug}-v{N}.md` / HMW: `modules/HMW-{slug}-v{N}.md` / Persona: `modules/PERSONA-{slug}-v{N}.md` / Journey: `modules/JOURNEY-{slug}-v{N}.md`）。
+- 正式页面内容只来自同版本确认包（MVL: `modules/Mx-v{N}.md` / MAAU(transcript-direct): `modules/MAAU-{slug}-v{N}.md` / GC: `modules/GC-{slug}-v{N}.md` / HMW: `modules/HMW-{slug}-v{N}.md` / Persona: `modules/PERSONA-{slug}-v{N}.md` / Journey: `modules/JOURNEY-{slug}-v{N}.md`）。
 - MVL 全局页只使用规定的六大板块；过程材料留在模块详情页并提供下钻入口。
 - GC 使用规定的 WHY / HOW / WHAT 三层 + 跨层一致性板块，无子模块详情页。
 - Workflow 必须分别呈现 Agent 执行、人工操作 / 确认、人审 + Agent 执行三类节点。
@@ -306,7 +322,20 @@ python3 skills/canvas-render/scripts/audit_canvas_html.py \
   --template skills/canvas-render/examples/user-journey-canvas.html
 ```
 
-全局页不绑定单一确认包，运行 `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/output/maau-global-canvas.html`。草稿页没有正式授权元数据，只传 HTML；仍须满足适用的结构、离线和草稿标记检查。
+全局页不绑定单一确认包，运行 `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/output/maau-global-canvas.html`。MAAU transcript-direct 实例页审计：
+
+```bash
+python3 skills/canvas-render/scripts/audit_canvas_html.py \
+  workshop/{project_slug}/{group_id}/output/maau-global-canvas-{slug}.html \
+  --source workshop/{project_slug}/{group_id}/modules/MAAU-{slug}-v{N}.md \
+  --state workshop/{project_slug}/{group_id}/state.json \
+  --type mvl \
+  --page-type global \
+  --instance {slug} \
+  --generation-path transcript-direct
+```
+
+草稿页没有正式授权元数据，只传 HTML；仍须满足适用的结构、离线和草稿标记检查。
 
 脚本负责检查：
 

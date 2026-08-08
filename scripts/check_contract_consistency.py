@@ -93,6 +93,8 @@ ALLOWED_GATE_RISK_LEVELS = {"low", "medium", "high"}
 # 实际：5 列 | ID | 条件 | 分类 | 风险等级 | 来源 |
 # 解析器按表头行决定列映射，兼容两种格式
 GATE_ID_RE = re.compile(r"^M(\d)-GATE-(\d{2})$")
+MAAU_GATE_ID_RE = re.compile(r"^MAAU-GATE-(\d+)$")
+MAAU_GATE_FILE = "skills/module-conclusion-gate/references/MAAU-gate.md"
 GATE_TABLE_HEADER_RE = re.compile(
     r"^\|\s*`?(M\d-GATE-\d{2})`?\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|\s*$"
 )
@@ -477,7 +479,7 @@ def check_changelog_version(ctx: CheckContext) -> list[Finding]:
 # ---- Gate 文件 ------------------------------------------------------------
 
 
-def _parse_gate_file(path: Path) -> list[dict[str, str]]:
+def _parse_gate_file(path: Path, id_re: "re.Pattern[str]" = GATE_ID_RE) -> list[dict[str, str]]:
     """解析 Mx-gate.md 中的 GATE 表格，输出每行字典。
 
     支持两种列格式（按表头识别）：
@@ -519,7 +521,7 @@ def _parse_gate_file(path: Path) -> list[dict[str, str]]:
                 columns = [c.strip().strip("`").lower() for c in cells]
             continue
         first = cells[0].strip().strip("`")
-        if not GATE_ID_RE.match(first):
+        if not id_re.match(first):
             continue
         row: dict[str, str] = {"id": first}
         for idx, value in enumerate(cells[1:], start=1):
@@ -569,7 +571,7 @@ def _iter_gate_rows(ctx: CheckContext) -> list[tuple[Path, dict[str, str]]]:
     base = ctx.root / GATE_REFERENCES_DIR
     if not base.is_dir():
         return out
-    for path in sorted(base.glob("M*-gate.md")):
+    for path in sorted(base.glob("M?-gate.md")):
         for row in _parse_gate_file(path):
             out.append((path, row))
     return out
@@ -581,7 +583,7 @@ def check_gate_table_parse(ctx: CheckContext) -> list[Finding]:
     base = ctx.root / GATE_REFERENCES_DIR
     if not base.is_dir():
         return findings
-    for path in sorted(base.glob("M*-gate.md")):
+    for path in sorted(base.glob("M?-gate.md")):
         rows = _parse_gate_file(path)
         if not rows:
             findings.append(
@@ -602,7 +604,7 @@ def check_gate_table_width(ctx: CheckContext) -> list[Finding]:
     base = ctx.root / GATE_REFERENCES_DIR
     if not base.is_dir():
         return findings
-    for path in sorted(base.glob("M*-gate.md")):
+    for path in sorted(base.glob("M?-gate.md")):
         text = read_text(path)
         # 找到首条 ID 行的列数
         for line in text.splitlines():
@@ -738,6 +740,89 @@ def check_gate_source(ctx: CheckContext) -> list[Finding]:
                     where=str(path.relative_to(ctx.root)),
                     message=f"行 {row['id']} 缺来源 ID",
                     hint="来源 ID 必填（如 M{N}-Gxx / section 引用）",
+                )
+            )
+    return findings
+
+
+# ---- MAAU 闸门 -------------------------------------------------------------
+
+
+def check_maau_gate_table(ctx: CheckContext) -> list[Finding]:
+    """MAAU-gate.md 表格可解析，ID/分类/风险/来源合法（独立 MAAU-GATE-* ID 空间）。"""
+    findings: list[Finding] = []
+    path = ctx.root / MAAU_GATE_FILE
+    if not path.is_file():
+        findings.append(
+            Finding(
+                code="MAAU_GATE_FILE",
+                level="error",
+                where=MAAU_GATE_FILE,
+                message="缺少 MAAU 闸门策略文件 MAAU-gate.md",
+                hint="补齐 references/MAAU-gate.md（MAAU-GATE-01..09）",
+            )
+        )
+        return findings
+    rows = _parse_gate_file(path, MAAU_GATE_ID_RE)
+    if not rows:
+        findings.append(
+            Finding(
+                code="MAAU_GATE_PARSE",
+                level="error",
+                where=MAAU_GATE_FILE,
+                message="MAAU-gate.md 未解析到任何 GATE 表格行",
+                hint="表头首列为 ID，行内首列为 MAAU-GATE-01..09",
+            )
+        )
+        return findings
+    seen: set[str] = set()
+    for row in rows:
+        gid = row["id"]
+        if not MAAU_GATE_ID_RE.match(gid):
+            findings.append(
+                Finding(
+                    code="MAAU_GATE_ID",
+                    level="error",
+                    where=MAAU_GATE_FILE,
+                    message=f"行 ID {gid!r} 不符合 MAAU-GATE-<NN> 格式",
+                    hint="MAAU 稳定 ID 必须为 MAAU-GATE-01..09，且不得复用 M1-GATE-* 到 M6-GATE-*",
+                )
+            )
+        if gid in seen:
+            findings.append(
+                Finding(
+                    code="MAAU_GATE_ID",
+                    level="error",
+                    where=MAAU_GATE_FILE,
+                    message=f"稳定 ID {gid} 重复",
+                )
+            )
+        seen.add(gid)
+        if row["category"] not in ALLOWED_GATE_CATEGORIES:
+            findings.append(
+                Finding(
+                    code="MAAU_GATE_CATEGORY",
+                    level="error",
+                    where=MAAU_GATE_FILE,
+                    message=f"行 {gid} 分类 {row['category']!r} 不在 {sorted(ALLOWED_GATE_CATEGORIES)} 内",
+                )
+            )
+        if row["risk"] not in ALLOWED_GATE_RISK_LEVELS:
+            findings.append(
+                Finding(
+                    code="MAAU_GATE_RISK",
+                    level="error",
+                    where=MAAU_GATE_FILE,
+                    message=f"行 {gid} 风险等级 {row['risk']!r} 不在 {sorted(ALLOWED_GATE_RISK_LEVELS)} 内",
+                )
+            )
+        if not row["source"] or row["source"] in {"-", "—", "/"}:
+            findings.append(
+                Finding(
+                    code="MAAU_GATE_SOURCE",
+                    level="error",
+                    where=MAAU_GATE_FILE,
+                    message=f"行 {gid} 缺来源 ID",
                 )
             )
     return findings
@@ -2433,6 +2518,7 @@ RULES: tuple[Rule, ...] = (
     Rule("VERSION_FORMAT", "A", "plugin.json version 必须为 SemVer", check_version_format),
     Rule("CHANGELOG_VERSION", "A", "CHANGELOG.md 必含当前版本标题", check_changelog_version),
     Rule("GATE_FILE_SET", "A", "M1-M6 闸门策略文件齐全", check_gate_file_set),
+    Rule("MAAU_GATE_TABLE", "A", "MAAU-gate.md 表格可解析且 ID/分类/风险/来源合法", check_maau_gate_table),
     Rule("GATE_TABLE_PARSE", "A", "Mx-gate.md 表格可解析", check_gate_table_parse),
     Rule("GATE_TABLE_WIDTH", "A", "Mx-gate.md 表格列数（设计 8 列）", check_gate_table_width),
     Rule("GATE_ID_FORMAT", "A", "GATE ID 格式 M{N}-GATE-{NN}", check_gate_id_format),

@@ -8,7 +8,7 @@ profession:
   en: "Pratyaya Canvas Expert"
   zh: "Pratyaya Canvas Expert"
 maxTurns: 100
-skills: [mvl-distill, gc-distill, hmw-distill, persona-distill, journey-distill, module-conclusion-gate, gc-gate, hmw-gate, persona-gate, journey-gate, faq-answer, canvas-render]
+skills: [mvl-distill, gc-distill, hmw-distill, persona-distill, journey-distill, module-conclusion-gate, gc-gate, hmw-gate, persona-gate, journey-gate, faq-answer, maau-synthesize, canvas-render]
 ---
 
 # Pratyaya Canvas Expert：多画布工作坊分步沉淀协作应用
@@ -170,8 +170,9 @@ draft → gaps_open ↔ review_ready → confirmed → rendered
 2. 读取当前 group 的 `state.json`；校验 `state.project_slug == {project_slug}`、`state.group_id == {group_id}`，若存在 `group_meta.json` 则校验 `group_meta.group_id == {group_id}`。
 3. `workshop/{project_slug}/manifest.json` 是可重建缓存：缺失、陈旧或条目缺失时先 enumerate `workshop/{project_slug}/*/state.json` 自重建；重建失败或重建后仍不一致才阻断。
 4. 明确当前项目显示名、项目目录短名、组号、模块、版本、状态、`gate_recommendation` 与 `confirmation_mode`。
+4a. 读取 `state.maau`（若存在），报告当前 MAAU transcript-direct instances（仅当前 group）：列出每个 `slug` 的版本、状态、`gate_recommendation` 与 `confirmation_mode`。不跨 group 读取 MAAU 源包或 state。
 5. 只读取当前 group 目录；不同项目之间禁止交叉读写，同项目不同 group 的 `state.json` 与产物也禁止互相引用。只有用户明确要求"检查所有组状态"时，才读取项目级 manifest / 各 group state 做汇总，不把其他 group 产物作为当前 group 输入。
-6. 说明本轮要完成的状态跃迁（例如"从 gaps_open 推进到 review_ready"或"已完成 Gate 评估，等待用户决策"），不要笼统说"生成成果"。
+6. 说明本轮要完成的状态跃迁（例如"从 gaps_open 推进到 review_ready"或"已完成 Gate 评估，等待用户决策"或"把逐字稿综合为 MAAU 源包"），不要笼统说"生成成果"。
 
 ## Phase 0：初始化
 
@@ -239,9 +240,10 @@ draft → gaps_open ↔ review_ready → confirmed → rendered
    - 用户提到 "HMW" / "How Might We" / "问题重构" / "我们可以如何" → HMW 画布
    - 用户提到 "用户旅程" / "Journey" / "User Journey" / "旅程画布" / "当前旅程" 且不属于 MVL / GC / HMW / Persona 语境 → Journey 画布
    - 用户提到 "用户画像" / "Persona" / "User Persona" / "画像画布" → Persona 画布
-   - 不明确 → 追问「使用 MVL、黄金圈、HMW、用户画像还是用户旅程画布？」
+   - 用户提到 "用这份逐字稿生成 MAAU" / "直接生成 maau" / "逐字稿生成全局画布" / "一次性综合提炼 MAAU" / "maau-synthesize" → MAAU transcript-direct 一次性综合路径（Phase 3）
+   - 不明确 → 追问「使用 MVL、黄金圈、HMW、用户画像、用户旅程，还是用逐字稿一次性生成 MAAU 全局画布？」
    - 用户提到 "用户画像" / "Persona" / "画像" / "用户研究"，且不属于 MVL / GC / HMW → Persona 画布
-   - 不明确 → 追问「使用 MVL / 黄金圈 / HMW / 用户画像？」
+   - 不明确 → 追问「使用 MVL / 黄金圈 / HMW / 用户画像 / MAAU 综合？」
 2. 确定了 MVL 后，再判定模块：
    > 「当前在哪个模块（M1-M6）？」
 3. 确定了黄金圈后，直接进入 Phase GC。
@@ -249,6 +251,7 @@ draft → gaps_open ↔ review_ready → confirmed → rendered
 5. 确定了 Journey 后，直接进入 Phase Journey。
 6. 确定了 Persona 后，说明 Persona 为独立画布，占位状态区块已在 schema v2.3 中保留；若当前任务需要 Persona 流程且未落地，先停止并请用户确认 Persona 实施步骤，不把 Persona 请求转入 Journey。
 5. 确定了 Persona 后，直接进入 Phase Persona。
+6. 确定了 MAAU 后，进入 Phase 3（逐字稿 → MAAU 源包）。MAAU 是 MVL 全局画布的**平行一次性综合路径**（`generation_path=transcript-direct`），不是新增画布类型。
 
 **不明确画布类型，不执行任何后续操作。**
 
@@ -661,6 +664,48 @@ Persona instance 输出 `persona-canvas-{slug}.html` 即完成；需要汇总时
     - 补救动作（Owner + 日期）。
     不得把 override 结论混入"已完全验证"或"无风险"的成果表述。
 
+## Phase 3：逐字稿 → MAAU 源包（transcript-direct 一次性综合）
+
+触发：用户提供一次性逐字稿并要求综合生成 MAAU 全局画布（关键词见步骤 -1），或明确指定 `maau-synthesize`。
+
+**冲突分流（必须先判定，不混用）**：
+
+| 情况 | 走哪条路径 |
+|---|---|
+| 已有 M1-M6 全部 `rendered`，用户要汇总模块 | Phase 2（M1-M6 → `maau-global-canvas.html`） |
+| 用户提供新逐字稿，要求一次性综合 | Phase 3（逐字稿 → `MAAU-{slug}-v{N}.md` → `maau-global-canvas-{slug}.html`） |
+| 两者同时成立 | **必须让用户选择**，不得自动混用；说明两条路径互斥 |
+
+**流程**：
+
+1. 确定 `instance_slug`：用户指定或推荐 kebab-case ASCII slug；**拒绝 `default`**。
+2. 初始化 `state.maau.{slug}`：`slug={slug}`、`generation_path=transcript-direct`、`version=0`、`status=draft`、`gate_recommendation=pending`、`render_authorized=false`、`confirmation_mode=null`、`source_file=null`、`output_file=null`。
+3. 存档转写为 `transcripts/maau-{slug}-raw.md`，更新 `transcripts/manifest.json`。
+4. 调用 `maau-synthesize`，读取 `skills/maau-synthesize/references/maau-synth-spec.md` + `skills/mvl-distill/references/mvl-canvas-spec.md` + `skills/mvl-distill/references/workshop-canvas-map.md`。
+5. 写 `modules/MAAU-{slug}-v1.md`（六板块源包，唯一事实源）。
+6. 状态按缺口进入 `gaps_open` 或 `review_ready`。
+7. 调用 `module-conclusion-gate` 的 MAAU 模式（`gate_reference=references/MAAU-gate.md`），输出 `modules/MAAU-{slug}-gate-report-v{N}.md`；`gate_recommendation` 写入 `state.maau.{slug}`。
+8. 展示 Gate 报告，等用户 **确认 vN / override / 补问**。
+9. 授权后（`render_authorized=true`）调用 `canvas-render`（`canvas_type=mvl`、`page_type=global`、`generation_path=transcript-direct`、`instance_slug={slug}`），输出 `output/maau-global-canvas-{slug}.html`。
+10. 运行审计 + 浏览器验收通过后置 `rendered`：
+    ```bash
+    python3 skills/canvas-render/scripts/audit_canvas_html.py output/maau-global-canvas-{slug}.html \
+      --source modules/MAAU-{slug}-v{N}.md \
+      --state state.json \
+      --type mvl \
+      --page-type global \
+      --instance {slug} \
+      --generation-path transcript-direct
+    ```
+
+**关键约束**：
+
+- MAAU 源包不引用逐字稿段落；来源线索基于 Key Points / 源包自身 section。
+- Workflow 三类节点（Agent 执行 / 人工操作确认 / 人审 + Agent 执行）缺类标 `information_integrity` 缺口，不自动补写。
+- Context 只列逐字稿讨论确认项并说明可获得性，不按常见做法自动补全。
+- `information_integrity` FAIL 不接受 override；`business_risk` 可 override（`override_audit.items[].assessment_id` 为 `MAAU-GATE-*` 且 `category=business_risk`）。
+- 实例页**不伪造 M1-M6 模块详情下钻**；与 Phase 2 全局页互斥，不把 transcript-direct 实例混入 M1-M6 Phase 2 汇总。
+
 ## 指令卡
 
 | 用户表达 | 执行动作 |
@@ -711,6 +756,13 @@ Persona instance 输出 `persona-canvas-{slug}.html` 即完成；需要汇总时
 | "生成用户画像画布" | 确认 `state.json.persona.{slug}.render_authorized=true` 后渲染 `persona-canvas-{slug}.html` |
 | "用户画像状态" / "用户画像进度" | 报告 Persona version / status / gate_recommendation / confirmation_mode / 关键缺口 |
 | "检查状态" / "进度" / "同步状态" | **当前 group 全量**：报告 MVL M1-M6 + GC + HMW + Persona + Journey 的版本、状态、gate_recommendation、confirmation_mode 和关键缺口 |
+| **MAAU 专用** | |
+| "用这份逐字稿生成 MAAU" / "直接生成 maau" / "逐字稿生成全局画布" | 判定为 MAAU transcript-direct 路径，进入 Phase 3；先做冲突分流（Phase 2 vs transcript-direct），确定 slug（拒绝 `default`），初始化 `state.maau.{slug}` 后调用 `maau-synthesize` |
+| "确认 MAAU {slug} vN" | 用户看完 MAAU Gate 报告后对 `MAAU-{slug}-v{N}.md` 作最终确认并授权渲染；写 `confirmation_mode=gate_pass` / `render_authorized=true` |
+| "MAAU {slug} override" | 仅当 MAAU Gate 含 `business_risk` FAIL 时生效；要求用户填写影响、理由、确认人、时间，写完整 `override_audit` 后 `confirmation_mode=override` / `render_authorized=true`；`information_integrity` FAIL 不接受 override |
+| "MAAU 状态" / "MAAU 进度" | 报告 `state.maau` 各 instance 的 version / status / gate_recommendation / confirmation_mode / 关键缺口 |
+| "列出 MAAU 实例" | 列出当前 group 全部 `state.maau.{slug}` instance 及状态 |
+| "生成 MAAU 索引页" | 先检查 `output/maau-global-canvas.html` 是否已是 M1-M6 Phase 2 全局页；若是则**不静默覆盖**，提示用户保留、另存索引或归档旧页 |
 
 ### HMW 强制执行指令（执行 HMW 流程时必须应用）
 
@@ -766,7 +818,8 @@ workshop/{project_slug}/
     │   ├── gc-T02-raw.md
     │   ├── hmw-T01-raw.md           # HMW 转写
     │   ├── persona-T01-raw.md       # Persona 转写
-    │   └── journey-T01-raw.md       # Journey 转写
+    │   ├── journey-T01-raw.md       # Journey 转写
+    │   └── maau-{slug}-raw.md       # MAAU 一次性综合逐字稿存档
     ├── modules/
     │   ├── M1-keypoints.md          # MVL 第 1 轮 Key Points
     │   ├── M1-v1.md                 # MVL 确认包 v1（含第 12 节治理元数据）
@@ -784,12 +837,17 @@ workshop/{project_slug}/
     │   ├── JOURNEY-{slug}-keypoints.md # Journey Key Points
     │   ├── JOURNEY-{slug}-v1.md     # Journey 确认包
     │   ├── JOURNEY-{slug}-gaps.md   # Journey 补问清单
+    │   ├── MAAU-{slug}-v{N}.md      # MAAU 六板块源包（transcript-direct，唯一事实源）
+    │   ├── MAAU-{slug}-gaps.md      # MAAU 补问清单
+    │   ├── MAAU-{slug}-gate-report-v{N}.md # MAAU Gate 报告
     │   ├── hmw/archive/
     │   ├── journey/archive/
+    │   ├── maau/archive/            # MAAU 源包旧版归档
     │   └── ...
     └── output/
         ├── module-1-canvas.html
-        ├── maau-global-canvas.html
+        ├── maau-global-canvas.html          # Phase 2 全局页 或 MAAU 实例索引页（二选一，不混用）
+        ├── maau-global-canvas-{slug}.html   # MAAU transcript-direct 实例输出
         ├── mvl-final-report.html
         ├── gc-canvas.html           # 黄金圈索引页
         ├── gc-canvas-{slug}.html    # 黄金圈 instance 输出
@@ -817,6 +875,8 @@ workshop/{project_slug}/
 - `modules/PERSONA-{slug}-v{N}.md`：Persona 确认包（**唯一事实源**）。
 - `modules/JOURNEY-{slug}-keypoints.md`：Journey Key Points 概览。
 - `modules/JOURNEY-{slug}-v{N}.md`：Journey 确认包（**唯一事实源**）。
+- `modules/MAAU-{slug}-v{N}.md`：MAAU 六板块源包（transcript-direct，**唯一事实源**）。
+- `output/maau-global-canvas-{slug}.html`：MAAU transcript-direct 实例 Canvas。
 - `output/module-N-canvas.html`：MVL 模块 Canvas。
 - `output/{gc|hmw|persona|journey}-canvas.html`：非 MVL instance 索引页。
 - `output/{gc|hmw|persona|journey}-canvas-{slug}.html`：非 MVL instance Canvas。
@@ -833,7 +893,8 @@ workshop/{project_slug}/
 - **`gc-distill`**：框架（`skills/gc-distill/frameworks/gc-golden-circle.md`）、spec（`skills/gc-distill/references/gc-spec.md`）。
 - **`hmw-distill`**：框架（`skills/hmw-distill/frameworks/hmw-frame.md`）、spec（`skills/hmw-distill/references/hmw-spec.md`）。
 - **`journey-distill`**：框架（`skills/journey-distill/frameworks/journey-frame.md`）、spec（`skills/journey-distill/references/journey-spec.md`）。
-- **`module-conclusion-gate`**：当前模块策略（`skills/module-conclusion-gate/references/Mx-gate.md`，其中 Mx 为当前用户指令中的模块）。
+- **`maau-synthesize`**：源包契约（`skills/maau-synthesize/references/maau-synth-spec.md`）、示例（`skills/maau-synthesize/references/maau-synthesize-example.md`）。
+- **`module-conclusion-gate`**：当前模块策略（`skills/module-conclusion-gate/references/Mx-gate.md`，其中 Mx 为当前用户指令中的模块）；MAAU 路径用 `references/MAAU-gate.md`。
 - **`gc-gate`**：放行条件（`skills/gc-gate/references/GC-gate.md`）。
 - **`hmw-gate`**：放行条件（`skills/hmw-gate/references/HMW-gate.md`）。
 - **`journey-gate`**：放行条件（`skills/journey-gate/references/JOURNEY-gate.md`）。

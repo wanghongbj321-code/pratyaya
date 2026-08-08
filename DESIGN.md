@@ -4,11 +4,11 @@
 
 ## 1. 决策
 
-**单专家 + 多 Skill**：一个 `pratyaya` 专家包，调度十二个 Skill（`mvl-distill` / `gc-distill` / `hmw-distill` / `persona-distill` / `journey-distill` / `module-conclusion-gate` / `gc-gate` / `hmw-gate` / `persona-gate` / `journey-gate` / `faq-answer` / `canvas-render`）完成工作流与支持问答。每个 Skill 内部用最简、确定的契约约束 LLM 行为。五类画布（MVL / 黄金圈 / HMW / 用户画像 / 用户旅程）共享同一治理语义；用户画像拥有独立提炼 Skill、门禁 Skill 与渲染契约，用户旅程拥有独立提炼 Skill、门禁 Skill 与渲染契约。`faq-answer` 是支持型 Skill，只回答使用、状态和异常解释问题，不进入画布状态机，不新增 Gate 或渲染契约。
+**单专家 + 多 Skill**：一个 `pratyaya` 专家包，调度十三个 Skill（`mvl-distill` / `gc-distill` / `hmw-distill` / `persona-distill` / `journey-distill` / `maau-synthesize` / `module-conclusion-gate` / `gc-gate` / `hmw-gate` / `persona-gate` / `journey-gate` / `faq-answer` / `canvas-render`）完成工作流与支持问答。每个 Skill 内部用最简、确定的契约约束 LLM 行为。五类画布（MVL / 黄金圈 / HMW / 用户画像 / 用户旅程）共享同一治理语义；MAAU 一次性综合路径是 MVL 全局画布的平行生成路径（`generation_path=transcript-direct`），不是新增画布类型；用户画像拥有独立提炼 Skill、门禁 Skill 与渲染契约，用户旅程拥有独立提炼 Skill、门禁 Skill 与渲染契约。`faq-answer` 是支持型 Skill，只回答使用、状态和异常解释问题，不进入画布状态机，不新增 Gate 或渲染契约。
 
 **人仍是最终决策者**：Skill 之间通过显式的确认包（v{N}.md）交付，每一步可被工作坊组织者审阅和回退。
 
-**画布类型路由**：主 Agent 在步骤 -1 判定画布类型（MVL / 黄金圈 / HMW / Persona / Journey），加载对应框架与确认包命名空间，各画布互不串扰（详见 [agents/pratyaya.md](./agents/pratyaya.md)）。
+**画布类型路由**：主 Agent 在步骤 -1 判定画布类型（MVL / 黄金圈 / HMW / Persona / Journey / MAAU 一次性综合），加载对应框架与确认包命名空间，各画布互不串扰（详见 [agents/pratyaya.md](./agents/pratyaya.md)）。
 
 ## 2. 北极星目标
 
@@ -33,9 +33,9 @@
 四层流水线（画布类型决定分析层与治理层的具体 Skill）：
 
 - **原始材料层** — 转写稿、上下文快照、用户输入
-- **分析层**（mvl-distill / gc-distill / hmw-distill / persona-distill / journey-distill） — Key Points 概览（MVL：`Mx-keypoints.md`；非 MVL：`{GC|HMW|PERSONA|JOURNEY}-{slug}-keypoints.md`）+ 确认包（MVL：`Mx-v{N}.md`；非 MVL：`{GC|HMW|PERSONA|JOURNEY}-{slug}-v{N}.md`）+ 缺口 + 推断
-- **治理层**（module-conclusion-gate / gc-gate / hmw-gate / persona-gate / journey-gate） — LLM Gate 评估（输出 `gate_recommendation` + `override_eligible` 建议，**不**写最终授权）+ 用户决策（主 Agent 写入 `render_authorized` + `confirmation_mode` + `override_audit`）
-- **展示层**（canvas-render） — 模块 Canvas / 黄金圈 Canvas / HMW Canvas / Persona Canvas / Journey Canvas + 全局 Canvas + 管理层报告
+- **分析层**（mvl-distill / gc-distill / hmw-distill / persona-distill / journey-distill / maau-synthesize） — Key Points 概览（MVL：`Mx-keypoints.md`；非 MVL：`{GC|HMW|PERSONA|JOURNEY}-{slug}-keypoints.md`）+ 确认包（MVL：`Mx-v{N}.md`；非 MVL：`{GC|HMW|PERSONA|JOURNEY}-{slug}-v{N}.md`；MAAU：`MAAU-{slug}-v{N}.md`）+ 缺口 + 推断
+- **治理层**（module-conclusion-gate / gc-gate / hmw-gate / persona-gate / journey-gate） — LLM Gate 评估（输出 `gate_recommendation` + `override_eligible` 建议，**不**写最终授权）+ 用户决策（主 Agent 写入 `render_authorized` + `confirmation_mode` + `override_audit`）；MAAU 路径使用 `module-conclusion-gate` 的 `references/MAAU-gate.md`（`MAAU-GATE-*` 独立 ID 空间）
+- **展示层**（canvas-render） — 模块 Canvas / 黄金圈 Canvas / HMW Canvas / Persona Canvas / Journey Canvas + 全局 Canvas + MAAU transcript-direct 实例页（`maau-global-canvas-{slug}.html`，只读 MAAU 源包）+ 管理层报告
 - **支持问答层**（faq-answer） — 使用说明、当前 group 状态解释、Gate / override / 渲染异常说明与下一步建议；只读，不写业务产物
 
 ## 5. 数据源与视觉模式
@@ -51,9 +51,9 @@
 
 | 资产 | 路径 | 角色 |
 |---|---|---|
-| 确认包（唯一事实源） | `workshop/{project_slug}/{group_id}/modules/Mx-v{N}.md` / `{GC|HMW|PERSONA|JOURNEY}-{slug}-v{N}.md` | 正式 Canvas 渲染依据（画布类型和 instance slug 对应命名空间） |
+| 确认包（唯一事实源） | `workshop/{project_slug}/{group_id}/modules/Mx-v{N}.md` / `{GC|HMW|PERSONA|JOURNEY}-{slug}-v{N}.md` / `MAAU-{slug}-v{N}.md` | 正式 Canvas 渲染依据（画布类型和 instance slug 对应命名空间；MAAU 为一次性综合源包） |
 | Key Points 概览 | `workshop/{project_slug}/{group_id}/modules/Mx-keypoints.md` / `{GC|HMW|PERSONA|JOURNEY}-{slug}-keypoints.md` | 草稿 Canvas 数据源（不进入正式流程） |
-| Gate 评估产物 | `skills/{module-conclusion-gate,gc-gate,hmw-gate,persona-gate,journey-gate}/references/*-gate.md` | LLM 输出 Markdown 判定报告，含 `gate_recommendation`（pass/fail/pending）+ `override_eligible`（true/false）；最终授权由用户在主 Agent 写入 `render_authorized` 与 `confirmation_mode` |
+| Gate 评估产物 | `skills/{module-conclusion-gate,gc-gate,hmw-gate,persona-gate,journey-gate}/references/*-gate.md`（MAAU 用 `references/MAAU-gate.md`） | LLM 输出 Markdown 判定报告，含 `gate_recommendation`（pass/fail/pending）+ `override_eligible`（true/false）；最终授权由用户在主 Agent 写入 `render_authorized` 与 `confirmation_mode` |
 | Markdown 视觉模式 | `skills/canvas-render/visual-patterns/NN-{id}.md` | 10 个可扫描模式；frontmatter 用于推荐，六节正文定义色板、字体、网格、组件及边界 |
 | HTML 静态审计 | `skills/canvas-render/scripts/audit_canvas_html.py` | 直接读取渲染契约，确定性检查结构、稳定锚点顺序、版本/授权、离线与 caveat 约束；HMW 与 Journey 采用**双 Gate 模型**（内容/授权 Gate + Template Gate，见 §12 / §13） |
 | Schema（非强制参考） | `schemas/*.schema.json` | 详见 [schemas/README.md](./schemas/README.md) |
@@ -65,7 +65,7 @@
 
 - **画布记录**：以确认包 Markdown 形式存储（MVL：`Mx-v{N}.md`；非 MVL：`{GC|HMW|PERSONA|JOURNEY}-{slug}-v{N}.md`），含业务内容节（MVL 第 1–11 节 / GC 第 6a 跨层一致性 / HMW 第 6a 质量鉴别、6b 想法种子、6c 想法↔HMW 对应 / Persona 9 基本信息 + 6 宫格 + 4 质量鉴别 / Journey 第 6 节阶段地图、6a 质量鉴别、6b 痛点与机会）+ 第 12 节"Gate 与用户决策"治理元数据，以及业务 5 字段（conclusions / gaps / inferences / alignment / evidence）+ 治理 4 字段（gate_recommendation / render_authorized / confirmation_mode / override_audit）
 - **Schema**：`schemas/state.schema.json`（v2.3，非强制参考，详见 [schemas/README.md](./schemas/README.md)）；实际数据源为各画布确认包 Markdown
-- **工作坊状态**：以 `workshop/{project_slug}/{group_id}/state.json` 形式存储，MVL 使用 `modules.M1`-`M6` 固定模块记录；非 MVL 使用 `golden_circle.{slug}` / `hmw.{slug}` / `persona.{slug}` / `journey.{slug}` instance map，记录各 instance 的状态/版本/审批；`project_slug` / `group_id` 为目录键，`project_name` 为显示名
+- **工作坊状态**：以 `workshop/{project_slug}/{group_id}/state.json` 形式存储，MVL 使用 `modules.M1`-`M6` 固定模块记录；非 MVL 使用 `golden_circle.{slug}` / `hmw.{slug}` / `persona.{slug}` / `journey.{slug}` instance map；MAAU 一次性综合使用 `maau.{slug}` instance map（`generation_path=transcript-direct`）；均记录各 instance 的状态/版本/审批；`project_slug` / `group_id` 为目录键，`project_name` 为显示名
 - **设计文档**：[DESIGN.md](./DESIGN.md)（本文档）
 
 ## 7. 关键不变量
@@ -81,6 +81,7 @@
 9. **跨模块 caveat 浮现**：`rendered` 模块若 `confirmation_mode=override`，下游模块若依赖被 override 的假设/未验证项，必须显式标注或回退重审；不在全局页静默修正
 10. **跨组禁读**：同项目不同 group 的 `state.json` 与产物禁止互相引用；主 Agent 一次只对一个 group 工作。只有项目级状态汇总可读取 `manifest.json` 或 enumerate 各 group state，且不得把其他 group 产物作为当前 group 输入。
 11. **非 MVL instance map**：GC / HMW / Persona / Journey 的正式状态、授权与渲染路径必须绑定 `slug`；新建 slug 必须为 kebab-case 且不得为 `default`。legacy `default` 只可由 v2.6 迁移产生，并需用户确认后继续使用或重命名。
+12. **MAAU 互斥**：MAAU 一次性综合（`generation_path=transcript-direct`，源包 `modules/MAAU-{slug}-v{N}.md`，实例页 `output/maau-global-canvas-{slug}.html`）与 M1-M6 Phase 2 全局汇总互斥——同一 group 的 MAAU 输出只能二选一，不得把 transcript-direct 实例混入 M1-M6 Phase 2 汇总。展示层只读 MAAU 源包（`modules/MAAU-{slug}-v{N}.md`），不得直接读转写渲染；不伪造 M1-M6 模块详情下钻。
 
 ## 8. 为什么保留 HTML 草稿
 
@@ -121,7 +122,8 @@ stateDiagram-v2
 
 ### 已实现
 
-- 单专家调度十二个 Skill（`mvl-distill` / `gc-distill` / `hmw-distill` / `persona-distill` / `journey-distill` / `module-conclusion-gate` / `gc-gate` / `hmw-gate` / `persona-gate` / `journey-gate` / `faq-answer` / `canvas-render`）
+- 单专家调度十三个 Skill（`mvl-distill` / `gc-distill` / `hmw-distill` / `persona-distill` / `journey-distill` / `maau-synthesize` / `module-conclusion-gate` / `gc-gate` / `hmw-gate` / `persona-gate` / `journey-gate` / `faq-answer` / `canvas-render`）
+- **MAAU 一次性综合路径**：`maau-synthesize` 把一次性逐字稿综合为 MVL 全局画布六板块源包（`MAAU-{slug}-v{N}.md`），走 `MAAU-GATE-01~09` 独立闸门 ID 空间，渲染为 `maau-global-canvas-{slug}.html`；与 M1-M6 Phase 2 全局汇总互斥
 - **FAQ Q/A 支持能力**：`faq-answer` 解释使用、当前 group 状态、Gate / override / 渲染异常与下一步；不进入画布状态机，不新增 `state.faq`，不新增渲染契约
 - **五状态画布生命周期**（`draft → gaps_open ↔ review_ready → confirmed → rendered`），五类画布共用
 - 模块和全局质量策略（MVL）与单画布质量策略（黄金圈 / HMW / Persona / Journey）
