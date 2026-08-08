@@ -46,6 +46,9 @@ EXPECTED_PERSONA_SKILLS = (
     "./skills/persona-distill",
     "./skills/persona-gate",
 )
+EXPECTED_FAQ_SKILLS = (
+    "./skills/faq-answer",
+)
 EXPECTED_HMW_FILES = (
     "SKILL.md",
     "frameworks/hmw-frame.md",
@@ -139,7 +142,9 @@ class TestSkillRegistration:
             assert skill in plugin["skills"], f"plugin.json missing Journey skill {skill}"
         for skill in EXPECTED_PERSONA_SKILLS:
             assert skill in plugin["skills"], f"plugin.json missing Persona skill {skill}"
-        assert plugin["version"] == "2.4.0"
+        for skill in EXPECTED_FAQ_SKILLS:
+            assert skill in plugin["skills"], f"plugin.json missing FAQ skill {skill}"
+        assert plugin["version"] == "2.5.0"
 
     def test_plugin_registers_persona_skills(self) -> None:
         plugin = json.loads(read(REPO_ROOT / ".codebuddy-plugin" / "plugin.json"))
@@ -183,7 +188,8 @@ class TestSkillRegistration:
             "hmw-gate": 1,
             "persona-gate": 1,
             "journey-gate": 1,
-            "canvas-render": 2,
+            "faq-answer": 2,
+            "canvas-render": 3,
         }
         ranks = [workflow_rank[name] for name in plugin_order]
         assert ranks == sorted(ranks), f"plugin skills order violates distill→gate→render: {plugin_order}"
@@ -198,8 +204,8 @@ class TestPluginMetadata:
         assert quick_prompts[0] == plugin["defaultInitPrompt"]
         assert "MVL" in quick_prompts[1]["zh"]
         assert "MVL" in quick_prompts[1]["en"]
-        assert "用户旅程" in quick_prompts[2]["zh"]
-        assert "User Journey" in quick_prompts[2]["en"]
+        assert "使用问题" in quick_prompts[2]["zh"]
+        assert "usage issue" in quick_prompts[2]["en"]
 
     def test_workbuddy_zh_display_description_length(self) -> None:
         plugin = json.loads(read(REPO_ROOT / ".codebuddy-plugin" / "plugin.json"))
