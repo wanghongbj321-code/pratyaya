@@ -3,6 +3,22 @@
 > 本文件记录 Pratyaya 专家的正式版本变更。
 > 完整 SemVer 与架构说明见 [`README.md`](./README.md) / [`DESIGN.md`](./DESIGN.md) / [docs/MVL-整体架构设计.md](./docs/MVL-整体架构设计.md)。
 
+## [v2.7.0] - 2026-08-08
+
+### 新增功能（MINOR）
+
+- **MAAU 一次性综合路径（`transcript-direct`）**：新增 `maau-synthesize` Skill，把用户直接提供的一次性逐字稿综合提炼为 MVL 全局画布的六板块源包（Intent / User / Agent Team / Workflow / Context / Validation），产出 `modules/MAAU-{slug}-v{N}.md`。MAAU 综合不是新增画布类型，而是 MVL 全局画布的**平行一次性生成路径**，与 M1-M6 Phase 2 全局汇总互斥（同一 group 的 MAAU 输出只能二选一）。
+- **MAAU 独立闸门 ID 空间**：`module-conclusion-gate` 新增 `references/MAAU-gate.md`，`MAAU-GATE-01~09`；`information_integrity` 类 FAIL 不接受 override，`business_risk` 类可 override。
+- **MAAU 渲染契约与审计**：`canvas-render` 新增 MAAU transcript-direct 正式模式（实例页 `output/maau-global-canvas-{slug}.html` + `[来源: transcript-direct]` 标头 + 不伪造 M1-M6 下钻）；`audit_canvas_html.py` 新增 `--page-type` / `--generation-path` 与 MAAU 校验（`MAAU_GENERATION` / `MAAU_HEADER` / `MAAU_OVERRIDE` / `MAAU_STATE`）。
+- **主 Agent Phase 3**：`agents/pratyaya.md` 新增 Phase 3「逐字稿 → MAAU 源包」编排（冲突分流 / 提炼 / Gate / 授权 / 渲染）+ MAAU 专用指令卡。
+- **MAAU schema**：`state.schema.json` 新增顶层 `maau` 区块（`maau.{slug}` instance map，`generation_path` 固定 `transcript-direct`，显式禁 `default`）。
+
+### 兼容性
+
+- `state.schema.json` 的顶层 `schema_version` 仍保持 `"2.3"`；`maau` 为可选区块，无 `maau` 的旧 state 不阻断其他流程（懒加载）。
+- MAAU 走独立 `MAAU-GATE-*` ID 空间，不改动 M1-M6 的 Gate 条件与稳定 ID。
+- `check_contract_consistency.py` 的 M1-M6 GATE 检查范围调整为 `M?-gate.md`，另增 `MAAU_GATE_TABLE` 专项 Rule 校验 `MAAU-gate.md`。
+
 ## [v2.6.0] - 2026-08-08
 
 ### 新增功能（MINOR）

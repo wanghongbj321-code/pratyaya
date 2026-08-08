@@ -3,6 +3,7 @@
 
 # 工作坊运行时状态（助教使用时生成的组目录）
 mvl-workshop/
+workshop/
 
 # 真实转写测试素材（业务敏感，不入库）
 test-transcripts/

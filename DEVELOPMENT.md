@@ -10,9 +10,9 @@
 
 画布结论闸门（Gate）由 LLM 评估；旧 Python 脚本 `check_gate.py` 已删除。执行流程（按画布类型对应 Skill）：
 
-1. LLM 读取确认包 Markdown（MVL：`Mx-v{N}.md` / 黄金圈：`GC-{slug}-v{N}.md` / HMW：`HMW-{slug}-v{N}.md` / Persona：`PERSONA-{slug}-v{N}.md` / Journey：`JOURNEY-{slug}-v{N}.md`）
-2. 对照对应 Gate Skill 的判定规则（MVL 34 条放行条件；黄金圈 / HMW / Persona / Journey 各 6 条稳定放行条件 + 稳定 ID + 分类与风险等级）
-3. 输出 Markdown 判定报告（`references/Mx-gate.md` / `GC-gate.md` / `HMW-gate.md` / `PERSONA-gate.md` / `JOURNEY-gate.md`），含 `gate_recommendation: pass/fail/pending` + `override_eligible: true/false`；**不**写最终授权
+1. LLM 读取确认包 Markdown（MVL：`Mx-v{N}.md` / 黄金圈：`GC-{slug}-v{N}.md` / HMW：`HMW-{slug}-v{N}.md` / Persona：`PERSONA-{slug}-v{N}.md` / Journey：`JOURNEY-{slug}-v{N}.md` / MAAU：`MAAU-{slug}-v{N}.md`）
+2. 对照对应 Gate Skill 的判定规则（MVL 34 条放行条件；黄金圈 / HMW / Persona / Journey 各 6 条稳定放行条件 + 稳定 ID + 分类与风险等级；MAAU 用 `MAAU-GATE-01~09` 独立 ID 空间，见 `references/MAAU-gate.md`）
+3. 输出 Markdown 判定报告（`references/Mx-gate.md` / `GC-gate.md` / `HMW-gate.md` / `PERSONA-gate.md` / `JOURNEY-gate.md` / `MAAU-{slug}-gate-report-v{N}.md`），含 `gate_recommendation: pass/fail/pending` + `override_eligible: true/false`；**不**写最终授权
 
 详细规则、缺口等级、推断术语、版本绑定的完整定义见 [skills/module-conclusion-gate/SKILL.md](./skills/module-conclusion-gate/SKILL.md)（MVL）、[skills/gc-gate/SKILL.md](./skills/gc-gate/SKILL.md)（黄金圈）、[skills/hmw-gate/SKILL.md](./skills/hmw-gate/SKILL.md)（HMW）、[skills/persona-gate/SKILL.md](./skills/persona-gate/SKILL.md)（Persona）、[skills/journey-gate/SKILL.md](./skills/journey-gate/SKILL.md)（Journey）。
 
@@ -51,7 +51,22 @@ python3 skills/canvas-render/scripts/audit_canvas_html.py \
   --template skills/canvas-render/examples/user-persona-canvas.html
 ```
 
-脚本使用 Python 标准库，负责（MVL / GC / HMW / Persona / Journey 通用）：
+**MAAU transcript-direct 实例页**（`--type mvl --page-type global --instance {slug} --generation-path transcript-direct`）：
+
+```bash
+python3 skills/canvas-render/scripts/audit_canvas_html.py \
+  workshop/{project_slug}/{group_id}/output/maau-global-canvas-{slug}.html \
+  --source workshop/{project_slug}/{group_id}/modules/MAAU-{slug}-v{N}.md \
+  --state workshop/{project_slug}/{group_id}/state.json \
+  --type mvl \
+  --page-type global \
+  --instance {slug} \
+  --generation-path transcript-direct
+```
+
+MAAU 实例页 audit 校验：`generation_path=transcript-direct`、`data-instance`/`canvas-data.instance` 与 slug 一致、`canvas-data.source_file` 与源包一致、`[来源: transcript-direct]` 标头必填、override 时 `override_audit.items[].assessment_id` 为 `MAAU-GATE-*` 且 `category=business_risk`；缺 `--state` 时**不作为正式验收**（`MAAU_STATE` FAIL）。
+
+脚本使用 Python 标准库，负责（MVL / GC / HMW / Persona / Journey / MAAU 通用）：
 
 1. 页面类型、画布和版本元数据；
 2. 契约大模块、共享结构、稳定锚点存在且唯一；
@@ -73,6 +88,21 @@ Python PASS 后再检查：
 4. 选定视觉模式的色板、字体、网格、组件及 caveat 视觉结果。
 
 浏览器阶段不重复检查锚点、JSON、授权字段或离线字符串。详细依据见 [skills/canvas-render/SKILL.md](./skills/canvas-render/SKILL.md) 与 [skills/canvas-render/references/render-contract.md](./skills/canvas-render/references/render-contract.md)。
+
+### 3.3 MAAU 综合路径调试（常见阻断场景）
+
+MAAU 一次性综合（`generation_path=transcript-direct`）从逐字稿直接生成 MVL 全局画布六板块源包 `modules/MAAU-{slug}-v{N}.md`，再经 Gate + 授权渲染为 `output/maau-global-canvas-{slug}.html`。常见阻断与处置：
+
+| 场景 | 现象 | 处置 |
+|---|---|---|
+| 源包缺 slug / generation_path | `maau_source_identity` 解析失败，audit 报 `SOURCE` | 检查 `MAAU-{slug}-v{N}.md` 头部是否含 `> slug：{slug}` 与 `> 生成路径：transcript-direct` |
+| 缺 `--state` | audit 报 `MAAU_STATE` FAIL | MAAU 正式验收必须传 `--state` 读取 `state.maau.{slug}` 授权；无授权不得 `rendered` |
+| state 未授权 | `AUTH_MISMATCH`（render_authorized=false 或 confirmation_mode 非法） | 让用户确认 vN 或 override 后写入 `render_authorized=true` |
+| `generation_path` 错 | `MAAU_GENERATION`（HTML 或 state 非 transcript-direct） | 统一为 `transcript-direct`，不混用 M1-M6 Phase 2 |
+| 缺 `[来源: transcript-direct]` 标头 | `MAAU_HEADER` FAIL | 实例页必须含该标头 |
+| override 项 ID/分类错误 | `MAAU_OVERRIDE` FAIL | `override_audit.items[].assessment_id` 为 `MAAU-GATE-*` 且 `category=business_risk`；`information_integrity` 不接受 override |
+| `data-instance` 与 source slug 不一致 | `INSTANCE` / `MAAU_SOURCE_SLUG` | HTML `data-instance` 与 `canvas-data.instance`、源包 slug、`--instance` 四者一致 |
+| 误把 transcript-direct 混入 M1-M6 Phase 2 全局页 | — | 同一 group 的 MAAU 输出只能二选一；实例页不伪造 `module-{1-6}-canvas.html` 下钻 |
 
 ## 4. Canvas 视觉模式维护
 
@@ -98,6 +128,7 @@ Canvas 视觉系统由 `skills/canvas-render/visual-patterns/` 下的 Markdown �
 | HMW | `HMW-{slug}-keypoints.md` | `HMW-{slug}-v{N}.md` | `HMW-{slug}-gate-report-v{N}.md` | `hmw-canvas-{slug}.html` / `hmw-canvas.html` 索引 |
 | Persona | `PERSONA-{slug}-keypoints.md` | `PERSONA-{slug}-v{N}.md` | `PERSONA-{slug}-gate-report-v{N}.md` | `persona-canvas-{slug}.html` / `persona-canvas.html` 索引 |
 | Journey | `JOURNEY-{slug}-keypoints.md` | `JOURNEY-{slug}-v{N}.md` | `JOURNEY-{slug}-gate-report-v{N}.md` | `journey-canvas-{slug}.html` / `journey-canvas.html` 索引 |
+| MAAU（transcript-direct） | 逐字稿存档 `maau-{slug}-raw.md` | `MAAU-{slug}-v{N}.md`（六板块源包） | `MAAU-{slug}-gate-report-v{N}.md` | `maau-global-canvas-{slug}.html` / 可选索引 |
 
 ```text
 Key Points → 提炼（确认包 v{N}.md）→ Gate（判定报告）→ 渲染（HTML）
@@ -197,6 +228,7 @@ python skills/canvas-render/scripts/audit_canvas_html.py output/journey-canvas-{
 | `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/output/hmw-canvas-{slug}.html --source workshop/{project_slug}/{group_id}/modules/HMW-{slug}-vN.md --state workshop/{project_slug}/{group_id}/state.json --type hmw --instance {slug} --template skills/canvas-render/examples/hmw-canvas.html` | 审计 HMW Canvas HTML（双 Gate：内容/授权 + Template） |
 | `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/output/persona-canvas-{slug}.html --source workshop/{project_slug}/{group_id}/modules/PERSONA-{slug}-vN.md --state workshop/{project_slug}/{group_id}/state.json --type persona --instance {slug} --template skills/canvas-render/examples/user-persona-canvas.html` | 审计 Persona Canvas HTML（双 Gate：内容/授权 + Template） |
 | `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/output/journey-canvas-{slug}.html --source workshop/{project_slug}/{group_id}/modules/JOURNEY-{slug}-vN.md --state workshop/{project_slug}/{group_id}/state.json --type journey --instance {slug} --template skills/canvas-render/examples/user-journey-canvas.html` | 审计 Journey Canvas HTML（动态阶段 + 双 Gate） |
+| `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/output/maau-global-canvas-{slug}.html --source workshop/{project_slug}/{group_id}/modules/MAAU-{slug}-vN.md --state workshop/{project_slug}/{group_id}/state.json --type mvl --page-type global --instance {slug} --generation-path transcript-direct` | 审计 MAAU transcript-direct 实例页 HTML（`MAAU_GENERATION` / `[来源: transcript-direct]` / `MAAU-GATE-*` override） |
 | `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/output/persona-canvas.html --state workshop/{project_slug}/{group_id}/state.json --type persona --index` | 审计 Persona instance 索引页 |
 | `python3 -m pytest tests/ -q` | 跑全部单元测试（schema / 契约 / 双 Gate 审计） |
 | `python3 scripts/check_contract_consistency.py` | 跑契约一致性检查器（开发辅助，**非 CI 强制**），输出规则化问题清单 |

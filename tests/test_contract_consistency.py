@@ -27,6 +27,7 @@ JOURNEY_DISTILL = SKILLS / "journey-distill"
 JOURNEY_GATE = SKILLS / "journey-gate"
 PERSONA_DISTILL = SKILLS / "persona-distill"
 PERSONA_GATE = SKILLS / "persona-gate"
+MVL_CONTRACT = SKILLS / "canvas-render" / "references" / "render-contract.md"
 CONTRACT = SKILLS / "canvas-render" / "references" / "render-contract-hmw.md"
 JOURNEY_CONTRACT = SKILLS / "canvas-render" / "references" / "render-contract-journey.md"
 PERSONA_CONTRACT = SKILLS / "canvas-render" / "references" / "render-contract-persona.md"
@@ -48,6 +49,14 @@ EXPECTED_PERSONA_SKILLS = (
 )
 EXPECTED_FAQ_SKILLS = (
     "./skills/faq-answer",
+)
+EXPECTED_MAAU_SKILLS = (
+    "./skills/maau-synthesize",
+)
+EXPECTED_MAAU_FILES = (
+    "SKILL.md",
+    "references/maau-synth-spec.md",
+    "references/maau-synthesize-example.md",
 )
 EXPECTED_HMW_FILES = (
     "SKILL.md",
@@ -144,7 +153,9 @@ class TestSkillRegistration:
             assert skill in plugin["skills"], f"plugin.json missing Persona skill {skill}"
         for skill in EXPECTED_FAQ_SKILLS:
             assert skill in plugin["skills"], f"plugin.json missing FAQ skill {skill}"
-        assert plugin["version"] == "2.6.0"
+        for skill in EXPECTED_MAAU_SKILLS:
+            assert skill in plugin["skills"], f"plugin.json missing MAAU skill {skill}"
+        assert plugin["version"] == "2.7.0"
 
     def test_plugin_registers_persona_skills(self) -> None:
         plugin = json.loads(read(REPO_ROOT / ".codebuddy-plugin" / "plugin.json"))
@@ -162,6 +173,7 @@ class TestSkillRegistration:
         assert "persona-gate" in skills
         assert "journey-distill" in skills
         assert "journey-gate" in skills
+        assert "maau-synthesize" in skills
 
     def test_agent_and_plugin_skills_have_identical_order(self) -> None:
         plugin = json.loads(read(REPO_ROOT / ".codebuddy-plugin" / "plugin.json"))
@@ -189,6 +201,7 @@ class TestSkillRegistration:
             "persona-gate": 1,
             "journey-gate": 1,
             "faq-answer": 2,
+            "maau-synthesize": 2,
             "canvas-render": 3,
         }
         ranks = [workflow_rank[name] for name in plugin_order]
@@ -311,6 +324,74 @@ class TestJourneySkillFiles:
         skill = read(JOURNEY_GATE / "SKILL.md")
         assert "不写入 render_authorized" in skill
         assert "gate_recommendation" in skill
+
+
+class TestMaauSkillFiles:
+    @pytest.mark.parametrize("fname", EXPECTED_MAAU_FILES)
+    def test_maau_file_exists(self, fname: str) -> None:
+        assert (SKILLS / "maau-synthesize" / fname).exists(), f"missing skills/maau-synthesize/{fname}"
+
+    def test_maau_distill_frontmatter_name(self) -> None:
+        assert re.search(
+            r"^name:\s*maau-synthesize\s*$",
+            read(SKILLS / "maau-synthesize" / "SKILL.md"),
+            re.MULTILINE,
+        )
+
+    def test_maau_skill_does_not_render_or_gate_or_write_state(self) -> None:
+        skill = read(SKILLS / "maau-synthesize" / "SKILL.md")
+        assert "不调用 Canvas 渲染" in skill
+        assert "不执行闸门判定" in skill
+        assert "不写 state" in skill
+
+    def test_maau_skill_output_path_fixed(self) -> None:
+        skill = read(SKILLS / "maau-synthesize" / "SKILL.md")
+        assert "modules/MAAU-{slug}-v{N}.md" in skill
+
+    def test_maau_spec_has_generation_path_and_six_boards(self) -> None:
+        spec = read(SKILLS / "maau-synthesize" / "references" / "maau-synth-spec.md")
+        assert "transcript-direct" in spec
+        for board in ("Intent", "User", "Agent Team", "Workflow", "Context", "Validation"):
+            assert board in spec, f"maau-synth-spec.md 缺板块 {board}"
+
+
+class TestMaauRenderContract:
+    def test_render_contract_and_skill_contain_maau_source_and_generation_path(self) -> None:
+        contract = read(MVL_CONTRACT)
+        skill = read(SKILLS / "canvas-render" / "SKILL.md")
+        for token in ("MAAU-{slug}-v{N}.md", "transcript-direct", "state.maau.{slug}", "maau-global-canvas-{slug}.html"):
+            assert token in contract, f"render-contract.md 缺 {token}"
+            assert token in skill, f"canvas-render/SKILL.md 缺 {token}"
+
+    def test_render_contract_and_skill_require_instance_and_generation_path_in_canvas_data(self) -> None:
+        contract = read(MVL_CONTRACT)
+        skill = read(SKILLS / "canvas-render" / "SKILL.md")
+        for token in ('"instance"', '"generation_path"', '"source_file"'):
+            assert token in contract, f"render-contract.md 缺 canvas-data 字段 {token}"
+        assert 'data-instance="{slug}"' in skill or "data-instance=\"{slug}\"" in skill
+
+    def test_transcript_direct_header_mandatory(self) -> None:
+        contract = read(MVL_CONTRACT)
+        assert "[来源: transcript-direct]" in contract
+
+    def test_no_module_drilldown_rule_for_transcript_direct(self) -> None:
+        contract = read(MVL_CONTRACT)
+        assert "无模块详情" in contract
+        assert "不得生成指向" in contract
+
+    def test_optional_index_page_conflict_rule(self) -> None:
+        contract = read(MVL_CONTRACT)
+        assert "冲突规则" in contract
+        assert "二选一" in contract
+
+    def test_skill_registers_maau_transcript_direct_formal_mode(self) -> None:
+        skill = read(SKILLS / "canvas-render" / "SKILL.md")
+        assert "MAAU transcript-direct 正式模式" in skill
+        assert "generation_path=transcript-direct" in skill
+
+    def test_skill_reuses_existing_global_example(self) -> None:
+        skill = read(SKILLS / "canvas-render" / "SKILL.md")
+        assert "examples/mvl-canvas/maau-global-canvas.html" in skill
 
 
 class TestJourneyRenderContract:

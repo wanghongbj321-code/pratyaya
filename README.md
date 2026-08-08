@@ -3,7 +3,7 @@
 > 品牌：pratyaya
 > 版本：2.3.0
 
-多画布工作坊平台——支持 **MVL**（Minimum Verifiable Loop，最小可验证自治闭环）、**黄金圈**（Golden Circle）、**HMW**（How Might We，问题重构）、**用户画像**（User Persona）与 **用户旅程**（User Journey）五类画布。对话式引导 + 转写提炼 + 质量门禁 + 模块化智能体画布（Canvas）生成，并提供 FAQ Q/A 支持使用、状态和异常解释。非 MVL 四类一等公民画布支持同一 project/group 下的多 instance 并存。
+多画布工作坊平台——支持 **MVL**（Minimum Verifiable Loop，最小可验证自治闭环）、**黄金圈**（Golden Circle）、**HMW**（How Might We，问题重构）、**用户画像**（User Persona）与 **用户旅程**（User Journey）五类画布，并提供 **MAAU 一次性综合路径**（把一次性逐字稿直接综合为 MVL 全局画布的六板块源包）。对话式引导 + 转写提炼 + 质量门禁 + 模块化智能体画布（Canvas）生成，并提供 FAQ Q/A 支持使用、状态和异常解释。非 MVL 四类一等公民画布支持同一 project/group 下的多 instance 并存。
 
 详细专家定位、标签、快速指令以 `.codebuddy-plugin/plugin.json` 为权威来源。
 
@@ -16,6 +16,9 @@
 | HMW | 陈述四字段 + 质量鉴别 + 想法种子 | 同上四阶段管线；`hmw.{slug}` instance map |
 | 用户画像 | 9 基本信息 + 6 宫格 + 4 质量鉴别 | 同上四阶段管线；`persona.{slug}` instance map |
 | 用户旅程 | 动态阶段 × 5 行合并结构 + 断点摘要 + 质量鉴别 | 同上四阶段管线；`journey.{slug}` instance map |
+| MAAU 综合（transcript-direct） | MVL 全局画布六板块（Intent/User/Agent Team/Workflow/Context/Validation） | 逐字稿 → 一次性综合 → `MAAU-{slug}-v{N}.md` 源包 → Gate → 渲染 `maau-global-canvas-{slug}.html`；`maau.{slug}` instance map |
+
+> MAAU 综合路径**不是新增画布类型**，而是 MVL 全局画布的**平行一次性生成路径**：把用户直接提供的一次性逐字稿综合提炼为六板块源包（`generation_path=transcript-direct`），与 M1-M6 Phase 2 全局汇总互斥（同一 group 的 MAAU 输出只能二选一）。
 
 ## 核心架构
 
@@ -48,12 +51,13 @@ draft → gaps_open ↔ review_ready → confirmed → rendered
 pratyaya/
 ├── .codebuddy-plugin/   # 专家包元数据
 ├── agents/              # 主 Agent（pratyaya.md）
-├── skills/              # 十二个 Skill
+├── skills/              # 十三个 Skill
 │   ├── mvl-distill/     # MVL 提炼
 │   ├── gc-distill/      # 黄金圈提炼
 │   ├── hmw-distill/     # HMW 提炼
 │   ├── persona-distill/ # 用户画像提炼
 │   ├── journey-distill/ # 用户旅程提炼
+│   ├── maau-synthesize/ # 逐字稿 → MAAU 六板块源包（一次性综合）
 │   ├── module-conclusion-gate/  # MVL 门禁
 │   ├── gc-gate/         # 黄金圈门禁
 │   ├── hmw-gate/        # HMW 门禁

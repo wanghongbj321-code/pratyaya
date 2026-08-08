@@ -39,6 +39,7 @@
 | **HMW** | "开始 HMW 画布" / "How Might We" | 问题陈述四字段 + 想法种子，单画布 |
 | **用户画像** | "开始用户画像画布" / "Persona" | 9 基本信息 + 6 宫格 + 4 质量鉴别，单画布 |
 | **用户旅程** | "开始用户旅程画布" / "Journey" | 动态阶段 × 5 行合并结构，单画布 |
+| **MAAU 综合** | "用这份逐字稿生成 MAAU" / "直接生成 maau" | 一次性逐字稿 → MVL 全局画布六板块源包，单实例（见 §4.6） |
 
 **模式**（各画布共用；具体字段由对应 Skill 定义）：
 
@@ -128,6 +129,22 @@
 
 > 独立 Journey Canvas 不修改 MVL M2 的 `09-user-journey.md`，不写 `state.modules.M2`；如需把 Journey 结论带入 MVL，只能由用户人工引用。
 
+### 4.6 MAAU 一次性综合（transcript-direct）
+
+如果你有**一次性逐字稿**（会议录音转写、规划材料等），可以直接让主 Agent 综合生成 MVL 全局画布的六板块源包，而不必走 M1-M6 六模块管线：
+
+1. 提供逐字稿（文本或文件路径），并指定 `project_slug` / `group_id` 与一个 instance `slug`（kebab-case，如 `retail-demo` / `power-market`）。
+2. 主 Agent 调用 `maau-synthesize` 综合为六板块源包：**Intent** / **User** / **Agent Team** / **Workflow** / **Context** / **Validation**，产出 `modules/MAAU-{slug}-v{N}.md`。
+3. 运行 MAAU Gate（`MAAU-GATE-01~09`）并展示报告，等你在"确认 vN / override / 补问"中选择。
+4. 授权后渲染为 `output/maau-global-canvas-{slug}.html`（含 `[来源: transcript-direct]` 标头）。
+
+**关键点**：
+
+- **slug**：每个 MAAU 综合是一个独立实例，同一 group 可并列多个（`maau.{slug}`）。slug 必须为小写英文、数字和连字符组成的 kebab-case；**新建时不能使用 `default`**。
+- **Gate / override**：`MAAU-GATE-*` 中 `information_integrity` 类 FAIL **不接受 override**，必须补问或升版；`business_risk` 类可 override（填写理由、确认人、时间）。
+- **多实例输出**：每个 slug 生成一个实例页 `maau-global-canvas-{slug}.html`；可选生成索引页 `maau-global-canvas.html` 汇总全部实例。
+- **互斥**：MAAU 一次性综合与 M1-M6 Phase 2 全局汇总互斥——同一 group 的 MAAU 输出只能二选一，不把逐字稿综合实例混入六模块汇总。
+
 ## 5. 常用指令速查
 
 按使用阶段组织。完整指令集见 `agents/pratyaya.md` 的指令卡章节。
@@ -161,6 +178,12 @@
 
 - "用户旅程提炼" / "用户旅程补问" / "用户旅程先看个样子" / "用户旅程确认 v1" / "用户旅程 override（已阅读影响）"
 - "生成用户旅程画布" / "Journey 状态"
+
+**MAAU 综合阶段**：
+
+- "用这份逐字稿生成 MAAU" / "直接生成 maau"（提供逐字稿 + slug，如 `retail-demo`）
+- "MAAU 确认 v1" / "MAAU override（已阅读影响）"
+- "MAAU 状态" / "列出 MAAU 实例" / "生成 MAAU 索引页"
 
 ### Journey 画布迁移边界（v2.3.2 PATCH 起）
 
@@ -240,7 +263,7 @@
 | 特征 | 草稿 Canvas | 正式 Canvas |
 |---|---|---|
 | 顶部字样 | 草稿 / 未确认 / 禁止用于管理层决策 | 画布名 + 版本号（MVL Canvas / Golden Circle / HMW Canvas / Persona Canvas / Journey Canvas） |
-| 数据源 | 对应 Key Points（非确认包） | 对应确认包（`Mx-v{N}.md` / `GC-{slug}-v{N}.md` / `HMW-{slug}-v{N}.md` / `PERSONA-{slug}-v{N}.md` / `JOURNEY-{slug}-v{N}.md`） |
+| 数据源 | 对应 Key Points（非确认包） | 对应确认包（`Mx-v{N}.md` / `GC-{slug}-v{N}.md` / `HMW-{slug}-v{N}.md` / `PERSONA-{slug}-v{N}.md` / `JOURNEY-{slug}-v{N}.md` / `MAAU-{slug}-v{N}.md`） |
 | 视觉来源 | 用户选定的 `visual-patterns/NN-{id}.md` | 用户选定的 `visual-patterns/NN-{id}.md` |
 | 视觉系统 | 用户选定 | 用户选定 |
 | 状态变化 | 不改变画布状态 | 画布状态改为 `rendered` |
