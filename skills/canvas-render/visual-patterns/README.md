@@ -216,3 +216,51 @@ visual-patterns/blue-professional-balanced.md
 - 学术场景输出
 - 黑白设备展示
 - 不确定用户偏好的默认回退
+
+默认模式同时也是所有 10 模式的 [Pan-Mode Invariants](#pan-mode-invariants-跨模式通用规则) 锚定基准。
+
+## Pan-Mode Invariants（跨模式通用规则）
+
+> 自 v2.3.5 起，所有 10 个视觉模式共享以下 13 条不变量（跨模式通用规则）。任何新模式或现有模式的实现层落地都应以此为最低约定。每条不变量下注明**例外清单**（当前仅 §10 默认模式与 §03/04 Signal 例外，其他 7 模式无例外）。
+
+### 13 条不变量
+
+1. **Hero 永远白纸底**（无大面积主色 / 渐变作为 hero 背景）。例外：03 / 04 Signal 使用灰棕纸张主题底（Signal 视觉标识）；05 / 09 使用品牌色 1px 极细底线（视觉差异保留）。
+2. **Hero 标题色 = 本模式主色 token**（不放品牌色块作背景；不放 `--brand-pale`）。
+3. **Hero eyebrow = 10px / 700 / `.2em` 字距 / 主色 token / 大写**（统一字号字距；不与 h1 同色块）。
+4. **Hero 规则线粗细统一**：默认 4px 主色实线。例外：05 McKinsey 6px（咨询结论的厚重感）、09 Roland Berger 1px（极致克制）。
+5. **行动摘要位置 = hero 与 canvas 之间**（嵌 header 内合理，保留 DOM 一级模块顺序 canvas-header → ... 不变）。
+6. **行动摘要配色公式**：`<本模式 pale 色>` 背景 + `5px <本模式主色>` 左边框 + 黑文字 + 主色实底白字 action tag（位于 hero 与第一个 section 之间）。
+7. **Section 标题标识统一公式**：`<主色 token> 文字 + 3px 主色左线 + 大写 + 透明背景`（不整片染色；不依赖位置）。
+8. **Section / Card 卡背景永不变色**：永远白纸底（或本模式专属纸张底如 Signal 灰棕），仅头部 3px 左线作信号；不使用品牌色作为 section 背景填充。
+9. **表格三段式统一**：`pale 色表头 + 主色文字 + 2px 主色底线`；正文保持黑色 / 主文字色，避免整表染色。
+10. **页脚主色实底白字**：唯一允许"整片染主色"的位置。footer 视觉权重控制 ≤ 5–7% 页面面积（按模式语气）；页脚内部 `<footer-tag>` 用深色 token（`--dark`）提供二级对比。
+11. **禁用视觉滥用**：禁用 `box-shadow`、禁用复杂 `linear-gradient`（品牌视觉标识除外，如 06 Accenture top bar）、禁用 "圆润胶囊" 按钮（Bain Red §反例 第 2 条）。
+12. **质量判定仅靠字重 + 下划线 + 灰度**：不引入彩色 PASS 绿 / FAIL 红（10 模式统一）；失败判定用 `<del> 或 underline wavy <主色>`。
+13. **SVG / emoji 不作信号**：状态图标、判定、风险等级只通过字重 / 下划线 / 灰度区分。
+
+### 例外清单（当前 10 模式中已批准的）
+
+| 模式 | 例外维度 | 例外值 | 理由 |
+|---|---|---|---|
+| 03 Signal Balanced / 04 Signal Flow | Hero 底色 | 灰棕纸张 `#d9d6cf` | Signal 视觉标识（机构档案感）；非"主色整片染色" |
+| 05 McKinsey Blue Conclusion | Hero 规则线粗细 | 6px | 咨询结论的厚重感 |
+| 09 Roland Berger Dark Blue Gray | Hero 规则线粗细 | 1px | 极致克制（视觉哲学即克制） |
+| 10 Black Gray Professional | 全维度 | 全部不变量 | 锚定基准模式，本身即正确答案 |
+
+### 反例（违反任一即视为该模式实现不正确）
+
+- 在 hero 整片铺主色 / 渐变 / 大面积伪深色——视觉 token 反用为容器底色
+- section / card 卡背景染品牌色——触发 §反例 第 1 条
+- 表格 / 状态使用彩色 PASS 绿 / FAIL 红——违反 Invariant #12
+- 模式规格 §Hero 段没有约束"#cc0000 等主色整片染色"——视为 spec 不完整
+- 示例库 `<body>` 无 `data-visual-mode` 属性——视为示例库元数据缺失
+
+## 新增 Pan-Mode Invariants 段
+
+新增 Pan-Mode Invariants 段之前，必须由用户确认设计范围、是否影响既有 9 模式规格、再按以下流程：
+
+1. 在 `visual-patterns/README.md` 维护这 13 条不变量。
+2. 对每个模式的 §组件库 · Hero 段补一行 `Pan-Mode Invariants (v2.3.5+): ...` 锚定本模式适用例外的版本时间戳。
+3. 不引入新模式时不增不变量；变更既有不变量需用户拍板（变更 → PATCH 升级）。
+4. 验证：跑 §7 静态审计 + 浏览器视觉验证。

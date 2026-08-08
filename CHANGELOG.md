@@ -3,6 +3,36 @@
 > 本文件记录 Pratyaya 专家的正式版本变更。
 > 完整 SemVer 与架构说明见 [`README.md`](./README.md) / [`DESIGN.md`](./DESIGN.md) / [docs/MVL-整体架构设计.md](./docs/MVL-整体架构设计.md)。
 
+## [v2.3.5] - 2026-08-08
+
+### 重构（PATCH）
+
+- **视觉模式 Pan-Mode Calibration**：HMW 一等公民画布示例（`examples/hmw-canvas.html`）Bain Red 视觉系统落地 —— Hero 区整片铺红 → 白纸底卡 + 主红 eyebrow + 4px 主红规则线 + 浅红 `#fff0f0` 行动摘要卡 + 5px 主红左边框；同时将 `body` 上新增 `data-visual-mode="bain-red-action"` 与 canvas-data JSON 新增 `visual_mode` 字段，与方案 §6.2 / §14.4 表对齐。
+- **Pan-Mode Invariants 13 条不变量**：`skills/canvas-render/visual-patterns/README.md` 新增 §Pan-Mode Invariants 段，沉淀跨 10 视觉模式的 13 条通用规则（Hero 永远白纸底 / 主色仅作信号元素 / 行动摘要公式 / Section 标题公式 / 表格三段式 / 禁用渐变阴影 / 质量判定仅字重 + 下划线 + 灰度等），并明确 §10 默认模式为锚定基准、§03/04 Signal 与 §05 McKinsey / §09 Roland Berger 各自获批的例外清单。
+- **10 模式规格 §Hero 补 Pan-Mode Invariants**：`01-blue-professional-balanced.md` / `02-blue-professional-flow.md` / `03-signal-balanced.md` / `04-signal-flow.md` / `05-mckinsey-blue-conclusion.md` / `06-accenture-purple-institutional.md` / `07-bain-red-action.md` / `08-bcg-green-matrix.md` / `09-roland-berger-dark-blue-gray.md` / `10-black-gray-professional.md` 各在 §组件库 · Hero 段追加一行 `Pan-Mode Invariants (v2.3.5+)`，明确本模式对 §14.5 不变量的兑现方式与例外清单；§10 作为锚定基准自身标注"唯一已默认正确实现模式"。
+- **示例库元数据补全**：4 个一等公民示例（`goden-circle-canvas.html` / `hmw-canvas.html` / `user-persona-canvas.html` / `user-journey-canvas.html`）与 7 个 MVL 子画布（`mvl-canvas/maau-global-canvas.html` + `module-1~6-canvas.html`）全部在 `<body>` 声明 `data-visual-mode` 属性，并在 `<script id="canvas-data">` JSON 中追加 `visual_mode.{id, zh_name, visual_system}` 字段。本次范围**仅加 metadata 不重排 CSS**（Q-α "一画布一模式" 推迟到 v2.4.0 PATCH 升级版）。
+- **plugin.json 升 version**：2.3.4 → **2.3.5**（PATCH；v2.3.3 编号历史上被跳过，下一位 PATCH 用 2.3.5）。
+
+### 设计决策点落地
+
+- **Q-α（MVL 子画布一画布一模式映射）**：本次保守方案 —— 11 示例全部 `data-visual-mode="black-gray-professional"`（默认黑灰），按 §14.6 推荐 α "一画布一模式" 的多色映射推迟到 v2.4.0 MINOR。
+- **Q-β（一等公民默认视觉模式）**：默认黑灰方案 —— 仅 HMW demo 演示 Bain Red，其他一等公民示例保持黑灰。
+- **Q-γ（`data-visual-mode` 进 schema）**：HTML 属性权威 + canvas-data JSON `visual_mode` 字段可选（11 示例同步实施）。
+- **Q-δ（行动摘要是否 10 模式必备）**：仅在 Bain Red 行动型语义落地，其他 9 模式 §组件库 · 行动摘要 段保留模式专属描述；统一公式由 §14.5 Invariant #5/#6 约束。
+
+### 不变项
+
+- 全部 render-contract-*.md spec 文档与 schema 不动（视觉层变化不影响契约层）。
+- `scripts/audit_canvas_html.py` 与 `scripts/check_contract_consistency.py` 不动（视觉 token 不在审计范围）。
+- `examples/shared/canvas-theme.css` 不动（共享主题层维持默认黑灰基线）。
+- 6 个仓库根文档（README / DEVELOPMENT / DESIGN / docs/installation / docs/MVL-整体架构设计 / docs/user-guide）按 v2.3.4 同款原则不写 v2.3.5 字样；权威版本以 `plugin.json` `version` 字段为准。
+
+### 兼容性
+
+- v2.3.4 及更早产物的 `<body data-visual-mode>` 缺失不视为兼容性问题（属性为可选，canvas-data JSON `visual_mode` 字段亦可选）。
+- 视觉模式规格 §Hero 新增的"Pan-Mode Invariants"注释行**为规范层补强**，不影响运行时模板或 Gate 行为。
+- 下次升 PATCH 用 `2.3.6`，下次升 MINOR 从 `2.4.0` 起。
+
 ## [v2.3.4] - 2026-08-08
 
 ### 重构（PATCH）
