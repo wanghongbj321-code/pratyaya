@@ -22,26 +22,29 @@
 
 ### 3.1 Python 静态审计
 
-正式页面从专家包根目录运行（MVL 模块页示例）：
+正式页面从专家包根目录运行（`{project_slug}/{group_id}` 占位），显式传入当前 group 子目录下的 html/source/state（MVL 模块页示例）：
 
 ```bash
-python3 skills/canvas-render/scripts/audit_canvas_html.py <项目目录>/output/module-N-canvas.html \
-  --source <项目目录>/modules/Mx-v{N}.md \
-  --state <项目目录>/state.json
+python3 skills/canvas-render/scripts/audit_canvas_html.py \
+  workshop/{project_slug}/{group_id}/output/module-N-canvas.html \
+  --source workshop/{project_slug}/{group_id}/modules/Mx-v{N}.md \
+  --state workshop/{project_slug}/{group_id}/state.json
 ```
 
 黄金圈画布：`--type gc`；HMW、Persona 与 Journey 画布必须携带各自模板：
 
 ```bash
-python3 skills/canvas-render/scripts/audit_canvas_html.py <项目目录>/output/hmw-canvas.html \
-  --source <项目目录>/modules/HMW-v{N}.md \
-  --state <项目目录>/state.json \
+python3 skills/canvas-render/scripts/audit_canvas_html.py \
+  workshop/{project_slug}/{group_id}/output/hmw-canvas.html \
+  --source workshop/{project_slug}/{group_id}/modules/HMW-v{N}.md \
+  --state workshop/{project_slug}/{group_id}/state.json \
   --type hmw \
   --template skills/canvas-render/examples/hmw-canvas.html
 
-python3 skills/canvas-render/scripts/audit_canvas_html.py <项目目录>/output/persona-canvas.html \
-  --source <项目目录>/modules/PERSONA-v{N}.md \
-  --state <项目目录>/state.json \
+python3 skills/canvas-render/scripts/audit_canvas_html.py \
+  workshop/{project_slug}/{group_id}/output/persona-canvas.html \
+  --source workshop/{project_slug}/{group_id}/modules/PERSONA-v{N}.md \
+  --state workshop/{project_slug}/{group_id}/state.json \
   --type persona \
   --template skills/canvas-render/examples/user-persona-canvas.html
 ```
@@ -99,6 +102,8 @@ Key Points → 提炼（确认包 v{N}.md）→ Gate（判定报告）→ 渲染
 ```
 
 每个阶段的输入/输出/状态变化由对应 Skill 定义，详见 [skills/mvl-distill/SKILL.md](./skills/mvl-distill/SKILL.md) / [skills/gc-distill/SKILL.md](./skills/gc-distill/SKILL.md) / [skills/hmw-distill/SKILL.md](./skills/hmw-distill/SKILL.md) / [skills/persona-distill/SKILL.md](./skills/persona-distill/SKILL.md) / [skills/journey-distill/SKILL.md](./skills/journey-distill/SKILL.md) / [skills/module-conclusion-gate/SKILL.md](./skills/module-conclusion-gate/SKILL.md) / [skills/gc-gate/SKILL.md](./skills/gc-gate/SKILL.md) / [skills/hmw-gate/SKILL.md](./skills/hmw-gate/SKILL.md) / [skills/persona-gate/SKILL.md](./skills/persona-gate/SKILL.md) / [skills/journey-gate/SKILL.md](./skills/journey-gate/SKILL.md) / [skills/canvas-render/SKILL.md](./skills/canvas-render/SKILL.md)。
+
+以上文件路径均相对当前 group 工作目录 `workshop/{project_slug}/{group_id}/`；项目级 `manifest.json` 仅用于跨组汇总，可从各 group 的 `state.json` 重建。
 
 ## 6. 版本与发布
 
@@ -182,10 +187,11 @@ python skills/canvas-render/scripts/audit_canvas_html.py output/journey-canvas.h
 | `python3 scripts/register_expert.py <expert-dir> --session-id <sid>` | 在 WorkBuddy 工具目录注册或重新注册专家 |
 | `find skills/canvas-render/visual-patterns -maxdepth 1 -type f -name '[0-9][0-9]-*.md' \| sort` | 列出视觉模式候选 |
 | `rg -n '^id:|^visual_system:|^layout:|^formality:|^density:|^best_for:' skills/canvas-render/visual-patterns/*.md` | 复核选择元数据 |
-| `python3 skills/canvas-render/scripts/audit_canvas_html.py <html> --source <Mx-vN.md> --state <state.json>` | 审计正式模块 Canvas HTML |
-| `python3 skills/canvas-render/scripts/audit_canvas_html.py <html> --source <GC-vN.md> --state <state.json> --type gc` | 审计黄金圈 Canvas HTML |
-| `python3 skills/canvas-render/scripts/audit_canvas_html.py <html> --source <HMW-vN.md> --state <state.json> --type hmw --template skills/canvas-render/examples/hmw-canvas.html` | 审计 HMW Canvas HTML（双 Gate：内容/授权 + Template） |
-| `python3 skills/canvas-render/scripts/audit_canvas_html.py <html> --source <JOURNEY-vN.md> --state <state.json> --type journey --template skills/canvas-render/examples/user-journey-canvas.html` | 审计 Journey Canvas HTML（动态阶段 + 双 Gate） |
+| `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/output/module-N-canvas.html --source workshop/{project_slug}/{group_id}/modules/Mx-vN.md --state workshop/{project_slug}/{group_id}/state.json` | 审计正式模块 Canvas HTML |
+| `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/output/gc-canvas.html --source workshop/{project_slug}/{group_id}/modules/GC-vN.md --state workshop/{project_slug}/{group_id}/state.json --type gc` | 审计黄金圈 Canvas HTML |
+| `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/output/hmw-canvas.html --source workshop/{project_slug}/{group_id}/modules/HMW-vN.md --state workshop/{project_slug}/{group_id}/state.json --type hmw --template skills/canvas-render/examples/hmw-canvas.html` | 审计 HMW Canvas HTML（双 Gate：内容/授权 + Template） |
+| `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/output/persona-canvas.html --source workshop/{project_slug}/{group_id}/modules/PERSONA-vN.md --state workshop/{project_slug}/{group_id}/state.json --type persona --template skills/canvas-render/examples/user-persona-canvas.html` | 审计 Persona Canvas HTML（双 Gate：内容/授权 + Template） |
+| `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/output/journey-canvas.html --source workshop/{project_slug}/{group_id}/modules/JOURNEY-vN.md --state workshop/{project_slug}/{group_id}/state.json --type journey --template skills/canvas-render/examples/user-journey-canvas.html` | 审计 Journey Canvas HTML（动态阶段 + 双 Gate） |
 | `python3 -m pytest tests/ -q` | 跑全部单元测试（schema / 契约 / 双 Gate 审计） |
 | `python3 scripts/check_contract_consistency.py` | 跑契约一致性检查器（开发辅助，**非 CI 强制**），输出规则化问题清单 |
 | `python3 scripts/check_contract_consistency.py --rules MANIFEST_JSON,GATE_TABLE_PARSE` | 只跑指定规则（逗号分隔 code） |

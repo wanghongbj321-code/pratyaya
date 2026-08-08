@@ -7,6 +7,10 @@
 ### `state.schema.json`（v2.3）
 
 - **用途**：描述 `state.json` 的项目状态、模块版本、状态与审批结构，支持 MVL、黄金圈（Golden Circle）、HMW（How Might We）、Persona（用户画像）和 Journey（用户旅程）画布类型。
+- **v2.4 路径分层约束（schema_version 仍为 2.3）**：
+  - 新增顶层 `project_slug`，作为 `workshop/{project_slug}/{group_id}/` 的项目目录键；`project_name` 保留为人类显示名，可中文。
+  - `group_id` 从任意非空字符串收紧为 kebab-case ASCII 短名，必须与 group 目录名一致。
+  - 项目级 `manifest.json` 是可重建缓存，真相源仍为各 group 的 `state.json`。
 - **v2.3 变更**：
   - `schema_version` 从 `"2.1"` 升级到 `"2.3"`（MINOR：承接 v2.2 Persona 可选区块，并新增 **Journey 可选区块**）。
   - 新增顶层 `journey` 对象，字段结构与 `golden_circle` / `hmw` 同构（`status` / `version` / `gate_recommendation` / `render_authorized` / `confirmation_mode` / `override_audit`）。
@@ -20,7 +24,7 @@
 - **v2.0 变更（历史）**：
   - `current_module` 和 `modules` 从顶层 `required` 降为可选字段（仅 MVL 画布需要）。
   - 新增顶层 `golden_circle` 对象。
-- **向后兼容**：旧 MVL-only / GC-only / HMW / Persona state.json（无 `journey` 区块）仍可使用；`hmw` / `persona` / `journey` 均为可选区块，不强制存在。
+- **向后兼容**：旧 MVL-only / GC-only / HMW / Persona state.json（无 `journey` 区块）在目录迁移后仍可使用；迁移会补入 `project_slug` 并规范化 `group_id`。未迁移的 raw legacy state 可能无法直接通过 v2.4 路径分层后的 schema 校验。`hmw` / `persona` / `journey` 均为可选区块，不强制存在。
 - **当前状态**：保留作为**非强制参考**；LLM 不强制调用校验器。
 
 ### `module-record.schema.json`
@@ -28,11 +32,24 @@
 - **用途**：参考旧 `modules/module-N.json` 的模块字段结构（canvas_fields、conclusions、gaps、inferences、alignment、approval、gate）。
 - **当前状态**：保留作为**非强制参考**。`modules/Mx-v{N}.md`（确认包 Markdown）是当前唯一事实源。
 
+### `group_meta.schema.json`
+
+- **用途**：描述 `workshop/{project_slug}/{group_id}/group_meta.json` 的 group 显示元数据。
+- **字段边界**：`group_id` 必须为 kebab-case ASCII 并与目录名一致；`group_name` / `group_lead` / `contact` / `created_by` 为人类友好字段，可中文。
+- **当前状态**：非强制参考；主 Agent 在创建 group 或迁移旧项目时写入。
+
+### `project_manifest.schema.json`
+
+- **用途**：描述 `workshop/{project_slug}/manifest.json` 的项目级 group 汇总视图。
+- **字段边界**：`project_slug` 与项目目录名一致；`project_name` 是显示名；`groups[].state_path` 必须为 `{group_id}/state.json`，禁止 `../` 或跨 group 路径。`state_path` 与 `group_id` 的相等关系由主 Agent / 测试一致性校验负责，JSON Schema 只检查路径形状。
+- **当前状态**：派生 view / 缓存；缺失或陈旧时可从各 group 的 `state.json` 重建，不作为业务真相源。
+
 ## 当前实际数据源
 
 | 资产 | 当前实现 |
 |---|---|
-| 状态 | `state.json`（参考 state.schema.json v2.3，不强制校验；MVL 存 `modules`，GC 存 `golden_circle`，HMW 存 `hmw`，Persona 存 `persona`，Journey 存 `journey`） |
+| 状态 | `workshop/{project_slug}/{group_id}/state.json`（参考 state.schema.json v2.3，不强制校验；MVL 存 `modules`，GC 存 `golden_circle`，HMW 存 `hmw`，Persona 存 `persona`，Journey 存 `journey`） |
+| 项目级汇总 | `workshop/{project_slug}/manifest.json`（派生缓存，可重建） |
 | 模块中间产物 | `modules/Mx-keypoints.md` + `modules/Mx-v{N}.md`（MVL）/ `modules/GC-keypoints.md` + `modules/GC-v{N}.md`（黄金圈）/ `modules/HMW-keypoints.md` + `modules/HMW-v{N}.md`（HMW）/ `modules/PERSONA-v{N}.md`（Persona）/ `modules/JOURNEY-keypoints.md` + `modules/JOURNEY-v{N}.md`（Journey） |
 | 闸门判定 | LLM 阅读确认包 + 对应 Gate 策略文件（MVL: `Mx-gate.md` / GC: `GC-gate.md` / HMW: `HMW-gate.md` / Persona: `PERSONA-gate.md` / Journey: `JOURNEY-gate.md`），输出 Markdown 判定报告 |
 | 事实源 | `Mx-v{N}.md` / `GC-v{N}.md` / `HMW-v{N}.md` / `PERSONA-v{N}.md` / `JOURNEY-v{N}.md`（唯一事实源） |

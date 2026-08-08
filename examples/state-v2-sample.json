@@ -1,6 +1,6 @@
 {
   "schema_version": "2.3",
-  "group_id": "G1",
+  "group_id": "group-1",
   "project_name": "示例项目-MVL+GC+HMW+Persona+Journey",
   "current_module": "M1",
   "modules": {
@@ -75,5 +75,6 @@
     "render_authorized": false,
     "confirmation_mode": null
   },
-  "updated_at": "2026-08-07T10:00:00+08:00"
+  "updated_at": "2026-08-07T10:00:00+08:00",
+  "project_slug": "sample-project"
 }

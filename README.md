@@ -59,7 +59,7 @@ pratyaya/
 │   ├── journey-gate/    # 用户旅程门禁
 │   └── canvas-render/   # 统一渲染（画布类型感知）
 │       └── visual-patterns/ # 10 个视觉模式（所有画布复用）
-├── schemas/             # 非强制参考 Schema（v2.3 支持 MVL + GC + HMW + Persona + Journey）
+├── schemas/             # 非强制参考 Schema（v2.3 状态 + v2.4 project/group 路径分层）
 ├── examples/modules/    # Key Points / 确认包模板
 ├── scripts/             # Canvas HTML 确定性静态审计（支持 --type gc / hmw / persona / journey）
 ├── docs/                # 用户文档
@@ -67,6 +67,23 @@ pratyaya/
 ├── DEVELOPMENT.md       # 维护者文档
 └── DESIGN.md            # 设计文档
 ```
+
+## 工作坊产物目录
+
+用户工作坊产物按 project + group 双层隔离：
+
+```text
+workshop/{project_slug}/
+├── manifest.json                 # 项目级派生视图，可从各 group state.json 重建
+└── {group_id}/
+    ├── group_meta.json            # group 显示元数据
+    ├── state.json                 # 当前 group 状态；project_slug / group_id 与目录名一致
+    ├── transcripts/
+    ├── modules/
+    └── output/
+```
+
+`project_slug` / `group_id` 是目录键（kebab-case ASCII）；`project_name` / `group_name` 是显示名，可使用中文。同一项目下不同 group 的 state 与产物彼此隔离，只有项目级状态汇总读取 `manifest.json`。
 
 ## 文档导航
 

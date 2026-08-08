@@ -1,6 +1,6 @@
 {
   "schema_version": "2.3",
-  "group_id": "G1",
+  "group_id": "group-1",
   "project_name": "Journey 测试项目",
   "journey": {
     "version": 1,
@@ -27,5 +27,6 @@
       "confirmed_at": "2026-08-07T12:35:00+08:00"
     }
   },
-  "updated_at": "2026-08-07T12:35:00+08:00"
+  "updated_at": "2026-08-07T12:35:00+08:00",
+  "project_slug": "journey-test-project"
 }

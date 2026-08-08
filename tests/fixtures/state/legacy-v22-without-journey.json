@@ -1,6 +1,6 @@
 {
   "schema_version": "2.2",
-  "group_id": "G1",
+  "group_id": "group-1",
   "project_name": "旧版 Persona 项目（无 journey 区块）",
   "hmw": {
     "version": 0,
@@ -16,5 +16,6 @@
     "render_authorized": false,
     "confirmation_mode": null
   },
-  "updated_at": "2026-08-07T12:45:00+08:00"
+  "updated_at": "2026-08-07T12:45:00+08:00",
+  "project_slug": "persona-test-project"
 }

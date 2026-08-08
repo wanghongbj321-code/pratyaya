@@ -13,9 +13,20 @@
 4. 选择画布类型（MVL / 黄金圈 / HMW / 用户画像 / 用户旅程，见 §2）与模式（A / B / C）
 5. 按 §3 决策分支逐模块推进
 
+新工作坊会创建在 `workshop/{project_slug}/{group_id}/` 下。`project_slug` / `group_id` 是目录短名（kebab-case ASCII，如 `zhongruan-power`、`group-a`）；中文项目名和组名会作为 `project_name` / `group_name` 显示，不直接作为目录键。
+
 ## 2. 模式选择
 
 主 Agent 启动时会先确认**画布类型**，再问你"想用哪种模式"：
+
+启动时还会确认项目与组：
+
+| 信息 | 示例 | 用途 |
+|---|---|---|
+| 项目名称 `project_name` | 中软国际 Power 商机评估 | 人类显示名，可中文 |
+| 项目目录短名 `project_slug` | `zhongruan-power` | `workshop/{project_slug}/` 目录键 |
+| 组号短名 `group_id` | `group-a` / `team-3` | `workshop/{project_slug}/{group_id}/` 目录键 |
+| 组显示名 `group_name` | 战略组 | 写入 `group_meta.json` |
 
 **画布类型**（对应 `state.json` 五区块）：
 
@@ -119,8 +130,10 @@
 
 **启动阶段**：
 
-- "开始 A 引导模式" / "开始 B 转写模式"
+- "开始 A 引导模式，项目名中软国际 Power 商机评估，项目短名 zhongruan-power，组号 group-a"
+- "开始 B 转写模式"
 - "开始黄金圈画布" / "开始 HMW 画布" / "开始用户画像画布" / "开始用户旅程画布"
+- "检查所有组状态" / "跨组对比"（读取项目级 manifest，按 group 汇总）
 
 **模块阶段（MVL）**：
 

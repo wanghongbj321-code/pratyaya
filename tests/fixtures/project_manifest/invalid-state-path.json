@@ -1,0 +1,13 @@
+{
+  "schema_version": "2.4-project-manifest-1",
+  "project_slug": "sample-project",
+  "project_name": "示例项目",
+  "generated_at": "2026-08-08T18:35:00+08:00",
+  "groups": [
+    {
+      "group_id": "group-a",
+      "state_path": "../group-b/state.json",
+      "last_updated": "2026-08-08T18:30:00+08:00"
+    }
+  ]
+}

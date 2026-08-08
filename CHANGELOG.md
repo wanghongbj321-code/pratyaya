@@ -3,6 +3,23 @@
 > 本文件记录 Pratyaya 专家的正式版本变更。
 > 完整 SemVer 与架构说明见 [`README.md`](./README.md) / [`DESIGN.md`](./DESIGN.md) / [docs/MVL-整体架构设计.md](./docs/MVL-整体架构设计.md)。
 
+## [v2.4.0] - 2026-08-08
+
+### 新增功能（MINOR）
+
+- **project + group 双层目录隔离**：工作坊产物目录从项目平层升级为 `workshop/{project_slug}/{group_id}/`；`project_slug` / `group_id` 为 kebab-case ASCII 目录键，`project_name` / `group_name` 保留为人类显示名。
+- **项目级 manifest 派生视图**：新增 `workshop/{project_slug}/manifest.json` 作为可重建缓存，用于跨组状态汇总；业务真相仍为各 group 的 `state.json` 与确认包 Markdown。
+- **group_meta 元数据**：新增 `group_meta.json` 与 `schemas/group_meta.schema.json`，承载 `group_name / group_lead / contact / created_at / created_by` 等显示元数据。
+- **Schema 路径约束**：`state.schema.json` 新增必填 `project_slug`，并将 `group_id` 收紧为 kebab-case ASCII；新增 `project_manifest.schema.json`，限制 `groups[].state_path` 为 `{group_id}/state.json`，避免跨 group 路径。
+- **Agent 与文档路径同步**：`agents/pratyaya.md`、`README.md`、`DEVELOPMENT.md`、`DESIGN.md`、`docs/user-guide.md`、`docs/MVL-整体架构设计.md`、`docs/prompt-guide.html` 与 `skills/canvas-render/SKILL.md` 同步新路径；审计命令改为从专家包根显式传入 group 子目录路径。
+- **旧项目迁移策略**：旧 `workshop/{project_slug}/state.json`、`workshop/{project_name}/state.json`、`mvl-workshop/{project_slug}/state.json` 与 `mvl-workshop/{project_name}/state.json` 自动迁移到 `workshop/{project_slug}/default/`；迁移使用 `.migrating-*` 临时目录，校验后 rename，失败保留旧根不动。
+
+### 兼容性
+
+- `state.schema.json` 的 `schema_version` 仍保持 `"2.3"`；本次只收紧路径字段和目录约束。
+- 旧平层项目首次进入时迁移到 `default` group；迁移成功后旧根只保留 `.workshop-legacy-stamp`，不创建软链接。
+- 同项目不同 group 的 `state.json` 与产物禁止互相引用；只有项目级状态汇总可读取 manifest 或 enumerate 各 group state。
+
 ## [v2.3.5] - 2026-08-08
 
 ### 重构（PATCH）

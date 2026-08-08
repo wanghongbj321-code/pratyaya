@@ -144,17 +144,28 @@ draft → gaps_open ↔ review_ready → confirmed → rendered
 
 ## 每次对话开始
 
-1. 读取当前项目的 `state.json`。
-2. 明确当前项目、组号、模块、版本、状态、`gate_recommendation` 与 `confirmation_mode`。
-3. 只读取当前项目目录；不同项目之间禁止交叉读写。
-4. 说明本轮要完成的状态跃迁（例如"从 gaps_open 推进到 review_ready"或"已完成 Gate 评估，等待用户决策"），不要笼统说"生成成果"。
+1. 先定位当前 group 工作目录：`workshop/{project_slug}/{group_id}/`。`project_slug` / `group_id` 必须为 kebab-case ASCII 目录键；`project_name` / `group_name` 是显示名，可中文。
+2. 读取当前 group 的 `state.json`；校验 `state.project_slug == {project_slug}`、`state.group_id == {group_id}`，若存在 `group_meta.json` 则校验 `group_meta.group_id == {group_id}`。
+3. `workshop/{project_slug}/manifest.json` 是可重建缓存：缺失、陈旧或条目缺失时先 enumerate `workshop/{project_slug}/*/state.json` 自重建；重建失败或重建后仍不一致才阻断。
+4. 明确当前项目显示名、项目目录短名、组号、模块、版本、状态、`gate_recommendation` 与 `confirmation_mode`。
+5. 只读取当前 group 目录；不同项目之间禁止交叉读写，同项目不同 group 的 `state.json` 与产物也禁止互相引用。只有用户明确要求"检查所有组状态"时，才读取项目级 manifest / 各 group state 做汇总，不把其他 group 产物作为当前 group 输入。
+6. 说明本轮要完成的状态跃迁（例如"从 gaps_open 推进到 review_ready"或"已完成 Gate 评估，等待用户决策"），不要笼统说"生成成果"。
 
 ## Phase 0：初始化
 
-触发：用户开始新工作坊，且目标项目目录不存在。
+触发：用户开始新工作坊，且目标 group 目录不存在。
 
-1. 首先确认项目名称、组号和画布类型（MVL / 黄金圈 / HMW / 用户画像 / 用户旅程）。若用户未提供项目名称，追问：「在开始之前，请先告诉我项目名称、所属组号，以及需要的画布类型（MVL、黄金圈、HMW、用户画像或用户旅程）。」用项目名创建 `workshop/{项目名}/` 作为工作目录，组号写入 `state.json` 的 `group_id` 字段。兼容旧 `mvl-workshop/{项目名}/` 目录（自动识别）。
-1. 首先确认项目名称、组号和画布类型（MVL / 黄金圈 / HMW / 用户画像）。若用户未提供项目名称，追问：「在开始之前，请先告诉我项目名称、所属组号，以及需要的画布类型（MVL、黄金圈、HMW 或用户画像）。」用项目名创建 `workshop/{项目名}/` 作为工作目录，组号写入 `state.json` 的 `group_id` 字段。兼容旧 `mvl-workshop/{项目名}/` 目录（自动识别）。
+1. **旧项目检测 + 自动迁移**：
+   - 同时检查 slug 路径和旧显示名路径：`workshop/{project_slug}/state.json`、`workshop/{project_name}/state.json`、`mvl-workshop/{project_slug}/state.json`、`mvl-workshop/{project_name}/state.json`。旧版项目曾用中文项目名建目录，不能只查 slug。
+   - 若任一旧平层 `state.json` 存在，且目标 `workshop/{project_slug}/*/state.json` 不存在（无任何 group 子目录）→ 自动迁移到 `workshop/{project_slug}/default/`。迁移时先写入 `.migrating-default/` 临时目录，复制 `state.json`、`transcripts/`、`modules/`、`output/`，改写 `state.project_slug={project_slug}`、`state.project_name={project_name}`、`state.group_id=default`，生成 `group_meta.json`，校验通过后同 filesystem rename 为 `default/`；失败删除临时目录并保留旧根不动。
+   - 迁移成功后在旧根写 `.workshop-legacy-stamp`；旧根不再作为 Agent 入口读取。不创建软链接。
+   - 迁移失败（权限、文件被占用、校验不通过）阻断，提示用户手动处理。
+2. **新项目 + group 确认**：
+   - 若用户未提供必要信息，追问：「在开始之前，请告诉我项目名称、项目目录短名（kebab-case，如 `zhongruan-power`）、所属组号短名（如 `group-a`、`team-3`），以及需要的画布类型（MVL、黄金圈、HMW、用户画像或用户旅程）。」
+   - 若用户只给了中文项目名或人类友好组名，先推荐 `project_slug` / `group_id` 并等待用户确认；确认前不创建目录。
+   - 在 `workshop/{project_slug}/{group_id}/` 下创建 `group_meta.json`、`state.json`、`transcripts/`、`modules/`、`output/`，并补建 `modules/hmw/archive/`、`modules/journey/archive/`。
+   - `state.json` 顶层写入 `project_slug`、`project_name`、`group_id`、`updated_at`；`project_name` 保留用户显示名，`project_slug` / `group_id` 与目录名一致。
+   - 每次写 `state.json` 后增量 patch `workshop/{project_slug}/manifest.json`；manifest 写失败仅警告，下次启动自重建。
 2. 根据画布类型确认当前工作流：
    - MVL：确认当前模块（默认 M1）。
    - GC：直接进入黄金圈流程。
@@ -162,8 +173,6 @@ draft → gaps_open ↔ review_ready → confirmed → rendered
    - Journey：直接进入用户旅程流程。
    - Persona：若用户明确选择用户画像，初始化 `persona` 状态区块；完整 Persona 流程按后续独立设计执行，当前 Agent 不把 Persona 路由到 Journey。
 3. 建立 `state.json`，初始包含五个区块：
-   - Persona：直接进入 Persona 流程。
-3. 建立 `state.json`，初始包含四个区块：
    - MVL：M1-M6 初始 `version=0`、`status=draft`、`gate_recommendation=pending`、`render_authorized=false`、`confirmation_mode=null`。
    - GC：`golden_circle` 初始 `version=0`、`status=draft`、`gate_recommendation=pending`、`render_authorized=false`、`confirmation_mode=null`。
    - HMW：`hmw` 初始 `version=0`、`status=draft`、`gate_recommendation=pending`、`render_authorized=false`、`confirmation_mode=null`。
@@ -180,15 +189,15 @@ draft → gaps_open ↔ review_ready → confirmed → rendered
 
 ### Phase 0 补充：旧项目与重启定位（执行计划 §11.4 / §11.5）
 
-- **旧项目（v2.0 双画布，state 无 `hmw` 区块）**：不自动迁移；用户**首次进入 HMW 流程**时由 Agent 追加合法默认 `hmw` 区块（`version=0`、`status=draft`、`gate_recommendation=pending`、`render_authorized=false`、`confirmation_mode=null`），保持 MVL / GC 既有产物不动。无 `hmw` 的旧 state 不阻断 MVL / GC 流程。
+- **旧项目（v2.0 双画布，state 无 `hmw` 区块）**：目录层迁移后不自动补业务区块；用户**首次进入 HMW 流程**时由 Agent 追加合法默认 `hmw` 区块（`version=0`、`status=draft`、`gate_recommendation=pending`、`render_authorized=false`、`confirmation_mode=null`），保持 MVL / GC 既有产物不动。无 `hmw` 的旧 state 不阻断 MVL / GC 流程。
 - **HMW 重启定位**：会话重启时优先读取最新已确认 `modules/HMW-v{N}.md`；若无已确认版本，回退 `modules/HMW-keypoints.md` 并打草稿水印。仍不存在则视为首次进入 HMW 流程。
-- **HMW 版本管理**：`HMW-v{N+1}.md` 不覆盖 `HMW-v{N}.md`；旧版归档到 `workshop/{项目名}/hmw/archive/`。
-- **HMW 产物**：`state.hmw` 写 `version / status / gate_recommendation / confirmation_mode / render_authorized / source_file / canvas_html / last_updated`；`canvas-data.auth` 与 `state.hmw` 一致；渲染输出 `workshop/{项目名}/output/hmw-canvas.html`。
+- **HMW 版本管理**：`HMW-v{N+1}.md` 不覆盖 `HMW-v{N}.md`；旧版归档到 `workshop/{project_slug}/{group_id}/modules/hmw/archive/`。
+- **HMW 产物**：`state.hmw` 写 `version / status / gate_recommendation / confirmation_mode / render_authorized / source_file / canvas_html / last_updated`；`canvas-data.auth` 与 `state.hmw` 一致；渲染输出 `workshop/{project_slug}/{group_id}/output/hmw-canvas.html`。
 - **HMW 生命周期**：Key Points 仅作草稿源，不进入正式渲染；HMW 永不进入全局 Canvas（`maau-global-canvas.html`）。
-- **旧项目（v2.2 或更早，state 无 `journey` 区块）**：不自动迁移；用户**首次进入 Journey 流程**时由 Agent 追加合法默认 `journey` 区块（`version=0`、`status=draft`、`gate_recommendation=pending`、`render_authorized=false`、`confirmation_mode=null`），保持 MVL / GC / HMW / Persona 既有产物不动。无 `journey` 的旧 state 不阻断非 Journey 流程。
+- **旧项目（v2.2 或更早，state 无 `journey` 区块）**：目录层迁移后不自动补业务区块；用户**首次进入 Journey 流程**时由 Agent 追加合法默认 `journey` 区块（`version=0`、`status=draft`、`gate_recommendation=pending`、`render_authorized=false`、`confirmation_mode=null`），保持 MVL / GC / HMW / Persona 既有产物不动。无 `journey` 的旧 state 不阻断非 Journey 流程。
 - **Journey 重启定位**：会话重启时优先读取最新已确认 `modules/JOURNEY-v{N}.md`；若无已确认版本，回退 `modules/JOURNEY-keypoints.md` 并打草稿水印。仍不存在则视为首次进入 Journey 流程。
-- **Journey 版本管理**：`JOURNEY-v{N+1}.md` 不覆盖 `JOURNEY-v{N}.md`；旧版归档到 `workshop/{项目名}/journey/archive/`。
-- **Journey 产物**：`state.journey` 写 `version / status / gate_recommendation / confirmation_mode / render_authorized / source_file / canvas_html / last_updated`；`canvas-data.auth` 与 `state.journey` 一致；渲染输出 `workshop/{项目名}/output/journey-canvas.html`。
+- **Journey 版本管理**：`JOURNEY-v{N+1}.md` 不覆盖 `JOURNEY-v{N}.md`；旧版归档到 `workshop/{project_slug}/{group_id}/modules/journey/archive/`。
+- **Journey 产物**：`state.journey` 写 `version / status / gate_recommendation / confirmation_mode / render_authorized / source_file / canvas_html / last_updated`；`canvas-data.auth` 与 `state.journey` 一致；渲染输出 `workshop/{project_slug}/{group_id}/output/journey-canvas.html`。
 - **Journey 生命周期**：Key Points 仅作草稿源，不进入正式渲染；Journey 永不进入全局 Canvas（`maau-global-canvas.html`），不读取或写入 `state.modules.M2`。
 - **Persona 旧项目**：无 `persona` 的旧 state 不阻断 MVL / GC / HMW；只有用户首次进入 Persona 时，才追加合法默认 `persona` 区块。重启时优先读取最新 `modules/PERSONA-v{N}.md`，否则回退 `modules/PERSONA-keypoints.md` 并标草稿；补问清单固定为 `modules/PERSONA-gaps.md`。
 
@@ -639,7 +648,8 @@ Persona 输出 `persona-canvas.html` 即完成；不预告下一模块、不生�
 | "确认，生成画布" | 先澄清并核对版本；Gate 通过后扫描视觉模式、推荐 1–2 个候选，用户选定后生成正式 Canvas（步骤 7） |
 | "override" / "我接受这个风险" | 仅在 Gate 报告含 `business_risk` FAIL 时生效；要求用户填写：影响确认、override 理由、确认人、可选角色、确认时间；写入 `override_audit` 并将 `confirmation_mode=override`、`render_authorized=true`、状态 `confirmed`。`information_integrity` FAIL 不接受 override。 |
 | "换风格" / "换个模板" | 重新扫描视觉模式 frontmatter，校验后推荐 1–2 个候选并等待用户选择 |
-| "检查状态" / "进度" / "同步状态" | 报告 MVL 六模块 + GC + HMW + Persona + Journey 的版本、状态、`gate_recommendation`、`confirmation_mode`、关键缺口和待确认人；"同步状态"会重新读取 `state.json` 刷新 |
+| "检查状态" / "进度" / "同步状态" | 报告当前 group 的 MVL 六模块 + GC + HMW + Persona + Journey 版本、状态、`gate_recommendation`、`confirmation_mode`、关键缺口和待确认人；"同步状态"会重新读取当前 group 的 `state.json` 并 patch manifest |
+| "检查所有组状态" / "跨组对比" | 读取 `workshop/{project_slug}/manifest.json`；缺失或陈旧则从 `*/state.json` 重建，输出按 group 的状态汇总和 canvas_progress 横向对比，不读取其他 group 产物作为当前 group 输入 |
 | "查看 Mx 产物" / "查看所有产物" | 列出当前已确认模块的 Markdown 摘要 + 已生成的模块 Canvas HTML 链接；对 `override` 模块标注 caveat |
 | "生成 Mx 模块画布" | 确认该模块已 `render_authorized=true` 后，扫描并推荐视觉模式；把用户选定的完整路径传给 `canvas-render` 生成 `output/module-N-canvas.html` |
 | "全局汇总" | **仅 MVL**：校验六模块、跨模块一致性和 caveat 后，重新扫描并选择视觉模式，再生成全局 Canvas 和报告；管理层摘要必须分开呈现 `gate_pass` 和 `override` 结论 |
@@ -666,14 +676,14 @@ Persona 输出 `persona-canvas.html` 即完成；不预告下一模块、不生�
 | "用户旅程状态" / "Journey 进度" | 报告 Journey version / status / gate_recommendation / confirmation_mode / 关键缺口 |
 | **用户画像专用** | |
 | "用户画像" / "Persona" / "User Persona" / "画像画布" | 判定为 Persona 独立画布；若 Persona 流程尚未落地，停止并请用户确认 Persona 实施步骤，不转入 Journey |
-| "检查状态" / "进度" / "同步状态" | **全量**：报告 MVL M1-M6 + GC + HMW + Persona + Journey 的版本、状态、gate_recommendation、confirmation_mode 和关键缺口 |
+| "检查状态" / "进度" / "同步状态" | **当前 group 全量**：报告 MVL M1-M6 + GC + HMW + Persona + Journey 的版本、状态、gate_recommendation、confirmation_mode 和关键缺口 |
 | **Persona 专用** | |
 | "用户画像" / "Persona" / "画像" / "用户研究" | 判定为 Persona 画布类型，加载 `frameworks/persona-frame.md` 引导问题 |
 | "用户画像转写" / "这是用户画像的逐字稿" | 存档 `transcripts/persona-TXX-raw.md` → Persona Key Points 抽取 |
 | "用户画像门禁" / "用户画像质量检查" | 调用 `persona-gate`，评估 `PERSONA-v{N}.md` |
 | "生成用户画像画布" | 确认 `state.json.persona.render_authorized=true` 后渲染 `persona-canvas.html` |
 | "用户画像状态" / "用户画像进度" | 报告 Persona version / status / gate_recommendation / confirmation_mode / 关键缺口 |
-| "检查状态" / "进度" / "同步状态" | **全量**：报告 MVL M1-M6 + GC + HMW + Persona 的版本、状态、gate_recommendation、confirmation_mode 和关键缺口 |
+| "检查状态" / "进度" / "同步状态" | **当前 group 全量**：报告 MVL M1-M6 + GC + HMW + Persona + Journey 的版本、状态、gate_recommendation、confirmation_mode 和关键缺口 |
 
 ### HMW 强制执行指令（执行 HMW 流程时必须应用）
 
@@ -716,44 +726,55 @@ Persona 输出 `persona-canvas.html` 即完成；不预告下一模块、不生�
 ## 状态目录
 
 ```text
-workshop/{项目名}/
-├── state.json                      # 当前项目状态（mvl + golden_circle + hmw + persona + journey）
-├── state.json                      # 当前项目状态（mvl + golden_circle + hmw + persona 四区块）
-├── transcripts/
-│   ├── manifest.json
-│   ├── module-1-T01-raw.md
-│   ├── module-1-T02-raw.md
-│   ├── gc-T01-raw.md               # 黄金圈转写
-│   ├── gc-T02-raw.md
-│   ├── hmw-T01-raw.md              # HMW 转写
-│   └── journey-T01-raw.md          # Journey 转写
-├── modules/
-│   ├── M1-keypoints.md             # MVL 第 1 轮 Key Points
-│   ├── M1-v1.md                    # MVL 确认包 v1（含第 12 节治理元数据）
-│   ├── M1-v2.md                    # MVL 确认包 v2（升版后）
-│   ├── M1-gaps.md                  # MVL 补问清单
-│   ├── GC-keypoints.md             # GC 第 1 轮 Key Points
-│   ├── GC-v1.md                    # GC 确认包（含第 6a 节跨层一致性 + 第 12 节治理元数据）
-│   ├── GC-gaps.md                  # GC 补问清单
-│   ├── HMW-keypoints.md            # HMW 第 1 轮 Key Points
-│   ├── HMW-v1.md                   # HMW 确认包（含第 6a 节质量鉴别 + 第 12 节治理元数据）
-│   ├── HMW-gaps.md                 # HMW 补问清单
-│   ├── JOURNEY-keypoints.md        # Journey 第 1 轮 Key Points
-│   ├── JOURNEY-v1.md               # Journey 确认包（含第 6a 节质量鉴别 + 第 12 节治理元数据）
-│   ├── JOURNEY-gaps.md             # Journey 补问清单
-│   └── ...
-└── output/
-    ├── module-1-canvas.html
-    ├── maau-global-canvas.html
-    ├── mvl-final-report.html
-    ├── gc-canvas.html              # 黄金圈输出
-    ├── hmw-canvas.html             # HMW 输出
-    └── journey-canvas.html         # Journey 输出
+workshop/{project_slug}/
+├── manifest.json                   # 项目级派生视图（从各 group state.json 重建）
+└── {group_id}/                     # 当前 group 工作目录；kebab-case ASCII
+    ├── group_meta.json              # group 显示元数据（group_name / group_lead / contact / created_at / created_by）
+    ├── state.json                   # group 状态（project_slug / group_id 与目录名一致）
+    ├── transcripts/
+    │   ├── manifest.json
+    │   ├── module-1-T01-raw.md
+    │   ├── module-1-T02-raw.md
+    │   ├── gc-T01-raw.md            # 黄金圈转写
+    │   ├── gc-T02-raw.md
+    │   ├── hmw-T01-raw.md           # HMW 转写
+    │   ├── persona-T01-raw.md       # Persona 转写
+    │   └── journey-T01-raw.md       # Journey 转写
+    ├── modules/
+    │   ├── M1-keypoints.md          # MVL 第 1 轮 Key Points
+    │   ├── M1-v1.md                 # MVL 确认包 v1（含第 12 节治理元数据）
+    │   ├── M1-v2.md                 # MVL 确认包 v2（升版后）
+    │   ├── M1-gaps.md               # MVL 补问清单
+    │   ├── GC-keypoints.md          # GC 第 1 轮 Key Points
+    │   ├── GC-v1.md                 # GC 确认包
+    │   ├── GC-gaps.md               # GC 补问清单
+    │   ├── HMW-keypoints.md         # HMW Key Points
+    │   ├── HMW-v1.md                # HMW 确认包
+    │   ├── HMW-gaps.md              # HMW 补问清单
+    │   ├── PERSONA-keypoints.md     # Persona Key Points
+    │   ├── PERSONA-v1.md            # Persona 确认包
+    │   ├── PERSONA-gaps.md          # Persona 补问清单
+    │   ├── JOURNEY-keypoints.md     # Journey Key Points
+    │   ├── JOURNEY-v1.md            # Journey 确认包
+    │   ├── JOURNEY-gaps.md          # Journey 补问清单
+    │   ├── hmw/archive/
+    │   ├── journey/archive/
+    │   └── ...
+    └── output/
+        ├── module-1-canvas.html
+        ├── maau-global-canvas.html
+        ├── mvl-final-report.html
+        ├── gc-canvas.html           # 黄金圈输出
+        ├── hmw-canvas.html          # HMW 输出
+        ├── persona-canvas.html      # Persona 输出
+        └── journey-canvas.html      # Journey 输出
 ```
 
 **文件语义**：
 
-- `state.json`：项目元数据 + MVL 各模块 / GC / HMW / Persona / Journey 当前 `version` / `status` / `gate_recommendation` / `render_authorized` / `confirmation_mode` / `override_audit`。
+- `state.json`：当前 group 的项目元数据（`project_slug` / `project_name` / `group_id`）+ MVL 各模块 / GC / HMW / Persona / Journey 当前 `version` / `status` / `gate_recommendation` / `render_authorized` / `confirmation_mode` / `override_audit`。
+- `group_meta.json`：当前 group 的人类友好元数据；`group_id` 必须与目录名一致。
+- `manifest.json`：项目级派生视图，可从各 group 的 `state.json` 重建，不作为业务真相源。
 - `transcripts/*.md`：原始逐字稿存档（不可信数据，仅供回溯）。
 - `modules/Mx-keypoints.md`：MVL Key Points 概览（**非事实源**，是讨论地图）。
 - `modules/Mx-v{N}.md`：MVL 确认包（**唯一事实源**）。
@@ -761,16 +782,17 @@ workshop/{项目名}/
 - `modules/GC-v{N}.md`：GC 确认包（**唯一事实源**）。
 - `modules/HMW-keypoints.md`：HMW Key Points 概览。
 - `modules/HMW-v{N}.md`：HMW 确认包（**唯一事实源**）。
+- `modules/PERSONA-keypoints.md`：Persona Key Points 概览。
+- `modules/PERSONA-v{N}.md`：Persona 确认包（**唯一事实源**）。
 - `modules/JOURNEY-keypoints.md`：Journey Key Points 概览。
 - `modules/JOURNEY-v{N}.md`：Journey 确认包（**唯一事实源**）。
 - `output/module-N-canvas.html`：MVL 模块 Canvas。
 - `output/gc-canvas.html`：GC Canvas。
 - `output/hmw-canvas.html`：HMW Canvas。
+- `output/persona-canvas.html`：Persona Canvas。
 - `output/journey-canvas.html`：Journey Canvas。
 
-`state.json` 每次状态变化后立即写入。Markdown 确认包是业务事实源，HTML 是同版本展示物，两者不可互相代替。
-
-`state.json` 每次状态变化后立即写入。Markdown 确认包是业务事实源，HTML 是同版本展示物，两者不可互相代替。
+`state.json` 每次状态变化后立即写入，并同步 patch 项目级 `manifest.json`。Markdown 确认包是业务事实源，HTML 是同版本展示物，两者不可互相代替。
 
 ## 异常处理
 

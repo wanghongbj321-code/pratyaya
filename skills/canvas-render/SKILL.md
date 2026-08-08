@@ -240,52 +240,59 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 黄金圈:
 
 ## Python 静态审计
 
-HTML 写出后先运行静态审计。以下命令以专家包根目录为当前目录；若运行时位于工作坊项目目录，必须先解析专家包根目录并使用脚本的完整路径，不得调用项目目录中的同名文件。正式模块页使用：
+HTML 写出后先运行静态审计。以下命令以专家包根目录为当前目录，并显式传入当前 group 工作目录 `workshop/{project_slug}/{group_id}/` 下的 HTML / source / state；若运行时位于 group 目录，必须先解析专家包根目录并使用脚本的完整路径，不得调用项目目录中的同名文件。正式模块页使用：
 
 ```bash
-python3 skills/canvas-render/scripts/audit_canvas_html.py output/module-N-canvas.html \
-  --source modules/Mx-v{N}.md \
-  --state state.json
+python3 skills/canvas-render/scripts/audit_canvas_html.py \
+  workshop/{project_slug}/{group_id}/output/module-N-canvas.html \
+  --source workshop/{project_slug}/{group_id}/modules/Mx-v{N}.md \
+  --state workshop/{project_slug}/{group_id}/state.json
 ```
 
 GC 正式画布审计：
 
 ```bash
-python3 skills/canvas-render/scripts/audit_canvas_html.py output/gc-canvas.html \
-  --source modules/GC-v{N}.md \
-  --state state.json \
+python3 skills/canvas-render/scripts/audit_canvas_html.py \
+  workshop/{project_slug}/{group_id}/output/gc-canvas.html \
+  --source workshop/{project_slug}/{group_id}/modules/GC-v{N}.md \
+  --state workshop/{project_slug}/{group_id}/state.json \
   --type gc
 ```
 
 HMW 正式画布审计：
 
 ```bash
-python3 skills/canvas-render/scripts/audit_canvas_html.py output/hmw-canvas.html \
-  --source modules/HMW-v{N}.md \
-  --state state.json \
-  --type hmw
+python3 skills/canvas-render/scripts/audit_canvas_html.py \
+  workshop/{project_slug}/{group_id}/output/hmw-canvas.html \
+  --source workshop/{project_slug}/{group_id}/modules/HMW-v{N}.md \
+  --state workshop/{project_slug}/{group_id}/state.json \
+  --type hmw \
+  --template skills/canvas-render/examples/hmw-canvas.html
 ```
 
 Persona 正式画布审计：
 
 ```bash
-python3 skills/canvas-render/scripts/audit_canvas_html.py output/persona-canvas.html \
-  --source modules/PERSONA-v{N}.md \
-  --state state.json \
-  --type persona
+python3 skills/canvas-render/scripts/audit_canvas_html.py \
+  workshop/{project_slug}/{group_id}/output/persona-canvas.html \
+  --source workshop/{project_slug}/{group_id}/modules/PERSONA-v{N}.md \
+  --state workshop/{project_slug}/{group_id}/state.json \
+  --type persona \
+  --template skills/canvas-render/examples/user-persona-canvas.html
 ```
 
 Journey 正式画布审计：
 
 ```bash
-python3 skills/canvas-render/scripts/audit_canvas_html.py output/journey-canvas.html \
-  --source modules/JOURNEY-v{N}.md \
-  --state state.json \
+python3 skills/canvas-render/scripts/audit_canvas_html.py \
+  workshop/{project_slug}/{group_id}/output/journey-canvas.html \
+  --source workshop/{project_slug}/{group_id}/modules/JOURNEY-v{N}.md \
+  --state workshop/{project_slug}/{group_id}/state.json \
   --type journey \
   --template skills/canvas-render/examples/user-journey-canvas.html
 ```
 
-全局页不绑定单一确认包，运行 `python3 skills/canvas-render/scripts/audit_canvas_html.py output/maau-global-canvas.html`。草稿页没有正式授权元数据，只传 HTML；仍须满足适用的结构、离线和草稿标记检查。
+全局页不绑定单一确认包，运行 `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/output/maau-global-canvas.html`。草稿页没有正式授权元数据，只传 HTML；仍须满足适用的结构、离线和草稿标记检查。
 
 脚本负责检查：
 

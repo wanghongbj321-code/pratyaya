@@ -275,7 +275,10 @@ class TestJourneyRequiredAnchorsAndAuth:
     def test_missing_journey_state_fails_clearly(self, tmp_path: Path) -> None:
         out = formal_html(tmp_path)
         state = tmp_path / "state.json"
-        state.write_text('{"schema_version":"2.3","group_id":"G1","project_name":"x"}', encoding="utf-8")
+        state.write_text(
+            '{"schema_version":"2.3","group_id":"group-1","project_name":"x","project_slug":"x"}',
+            encoding="utf-8",
+        )
         result = run_audit(out, "--source", str(PACKAGE), "--state", str(state))
         assert result.returncode != 0
         assert "state.json has no journey record" in result.stdout

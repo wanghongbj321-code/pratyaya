@@ -1,0 +1,35 @@
+{
+  "schema_version": "2.4-project-manifest-1",
+  "project_slug": "sample-project",
+  "project_name": "示例项目",
+  "generated_at": "2026-08-08T18:35:00+08:00",
+  "groups": [
+    {
+      "group_id": "group-a",
+      "group_name": "战略组",
+      "state_path": "group-a/state.json",
+      "status_summary": {
+        "modules": {
+          "M1": "rendered",
+          "M2": "confirmed"
+        },
+        "golden_circle": "draft",
+        "hmw": "draft",
+        "persona": "draft",
+        "journey": "draft"
+      },
+      "last_updated": "2026-08-08T18:30:00+08:00"
+    },
+    {
+      "group_id": "group-b",
+      "group_name": "运营组",
+      "state_path": "group-b/state.json",
+      "status_summary": {
+        "modules": {
+          "M1": "draft"
+        }
+      },
+      "last_updated": "2026-08-08T18:31:00+08:00"
+    }
+  ]
+}

@@ -95,8 +95,9 @@ flowchart TB
         EX["examples/modules/<br/>Key Points / 确认包模板"]
     end
 
-    subgraph L5["L5 · 用户工作目录（按项目）"]
-        ST["mvl-workshop/项目名/<br/>state.json"]
+    subgraph L5["L5 · 用户工作目录（按 project + group）"]
+        PM["workshop/{project_slug}/<br/>manifest.json"]
+        ST["workshop/{project_slug}/{group_id}/<br/>state.json"]
         TR["transcripts/*.md"]
         MD["modules/<br/>Mx-keypoints.md<br/>Mx-vN.md<br/>Mx-gaps.md"]
         OUT["output/<br/>module-N-canvas.html<br/>maau-global-canvas.html<br/>mvl-final-report.html"]
@@ -426,7 +427,7 @@ stateDiagram-v2
 
 | 要点     | 说明                                                   |
 | -------- | ------------------------------------------------------ |
-| 存储位置 | `mvl-workshop/{项目名}/state.json`                   |
+| 存储位置 | `workshop/{project_slug}/{group_id}/state.json`；项目级 `workshop/{project_slug}/manifest.json` 是可重建缓存 |
 | 写入时机 | 每次状态变化后**立即写入**                       |
 | 数据源   | M1-M6 各模块的 `version` / `status` / `gate_recommendation` / `render_authorized` / `confirmation_mode`（`render_allowed` 字段已删除）|
 | Schema   | `schemas/state.schema.json`（非强制参考） |
@@ -494,8 +495,9 @@ stateDiagram-v2
 
 | 规则                | 含义                                            |
 | ------------------- | ----------------------------------------------- |
-| 单项目隔离          | 主 Agent 每次对话只读取当前项目目录             |
-| 跨项目禁读          | 不同`mvl-workshop/{项目名}/` 之间禁止交叉读写 |
+| 单 group 隔离       | 主 Agent 每次对话只读取当前 `workshop/{project_slug}/{group_id}/` 目录 |
+| 跨项目禁读          | 不同 `workshop/{project_slug}/` 之间禁止交叉读写 |
+| 跨组禁读            | 同项目不同 group 的 `state.json` 与产物禁止互相引用；只有项目级状态汇总可读取 manifest / 各 group state |
 | 单 Skill 禁调用同级 | Skill 之间不横向调用，全部经主 Agent 编排       |
 | 转写禁引用          | 转写仅存档，不作事实源，不被引用                |
 

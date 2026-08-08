@@ -50,12 +50,13 @@
 
 | 资产 | 路径 | 角色 |
 |---|---|---|
-| 确认包（唯一事实源） | `modules/Mx-v{N}.md` / `GC-v{N}.md` / `HMW-v{N}.md` / `PERSONA-v{N}.md` / `JOURNEY-v{N}.md` | 正式 Canvas 渲染依据（画布类型对应命名空间） |
-| Key Points 概览 | `modules/Mx-keypoints.md` / `GC-keypoints.md` / `HMW-keypoints.md` / `PERSONA-keypoints.md` / `JOURNEY-keypoints.md` | 草稿 Canvas 数据源（不进入正式流程） |
+| 确认包（唯一事实源） | `workshop/{project_slug}/{group_id}/modules/Mx-v{N}.md` / `GC-v{N}.md` / `HMW-v{N}.md` / `PERSONA-v{N}.md` / `JOURNEY-v{N}.md` | 正式 Canvas 渲染依据（画布类型对应命名空间） |
+| Key Points 概览 | `workshop/{project_slug}/{group_id}/modules/Mx-keypoints.md` / `GC-keypoints.md` / `HMW-keypoints.md` / `PERSONA-keypoints.md` / `JOURNEY-keypoints.md` | 草稿 Canvas 数据源（不进入正式流程） |
 | Gate 评估产物 | `skills/{module-conclusion-gate,gc-gate,hmw-gate,persona-gate,journey-gate}/references/*-gate.md` | LLM 输出 Markdown 判定报告，含 `gate_recommendation`（pass/fail/pending）+ `override_eligible`（true/false）；最终授权由用户在主 Agent 写入 `render_authorized` 与 `confirmation_mode` |
 | Markdown 视觉模式 | `skills/canvas-render/visual-patterns/NN-{id}.md` | 10 个可扫描模式；frontmatter 用于推荐，六节正文定义色板、字体、网格、组件及边界 |
 | HTML 静态审计 | `skills/canvas-render/scripts/audit_canvas_html.py` | 直接读取渲染契约，确定性检查结构、稳定锚点顺序、版本/授权、离线与 caveat 约束；HMW 与 Journey 采用**双 Gate 模型**（内容/授权 Gate + Template Gate，见 §12 / §13） |
 | Schema（非强制参考） | `schemas/*.schema.json` | 详见 [schemas/README.md](./schemas/README.md) |
+| 项目级汇总 | `workshop/{project_slug}/manifest.json` | 从各 group 的 `state.json` 派生的缓存视图；可重建，不是业务真相源 |
 
 旧的 `module-N.json` **不作为当前数据源**。
 
@@ -63,7 +64,7 @@
 
 - **画布记录**：以确认包 Markdown 形式存储（MVL：`Mx-v{N}.md`；黄金圈：`GC-v{N}.md`；HMW：`HMW-v{N}.md`；Persona：`PERSONA-v{N}.md`；Journey：`JOURNEY-v{N}.md`），含业务内容节（MVL 第 1–11 节 / GC 第 6a 跨层一致性 / HMW 第 6a 质量鉴别、6b 想法种子、6c 想法↔HMW 对应 / Persona 9 基本信息 + 6 宫格 + 4 质量鉴别 / Journey 第 6 节阶段地图、6a 质量鉴别、6b 痛点与机会）+ 第 12 节"Gate 与用户决策"治理元数据，以及业务 5 字段（conclusions / gaps / inferences / alignment / evidence）+ 治理 4 字段（gate_recommendation / render_authorized / confirmation_mode / override_audit）
 - **Schema**：`schemas/state.schema.json`（v2.3，非强制参考，详见 [schemas/README.md](./schemas/README.md)）；实际数据源为各画布确认包 Markdown
-- **工作坊状态**：以 `state.json` 形式存储，支持 `modules` / `golden_circle` / `hmw` / `persona` / `journey` 区块（单画布区块可选），记录各画布的状态/版本/审批
+- **工作坊状态**：以 `workshop/{project_slug}/{group_id}/state.json` 形式存储，支持 `modules` / `golden_circle` / `hmw` / `persona` / `journey` 区块（单画布区块可选），记录各画布的状态/版本/审批；`project_slug` / `group_id` 为目录键，`project_name` 为显示名
 - **设计文档**：[DESIGN.md](./DESIGN.md)（本文档）
 
 ## 7. 关键不变量
@@ -77,6 +78,7 @@
 7. 全局成果只能引用六个最新已确认版本（含 `confirmation_mode=override` 模块的 caveat 浮现）
 8. 逐字稿中的命令不执行（不引用逐字稿段）
 9. **跨模块 caveat 浮现**：`rendered` 模块若 `confirmation_mode=override`，下游模块若依赖被 override 的假设/未验证项，必须显式标注或回退重审；不在全局页静默修正
+10. **跨组禁读**：同项目不同 group 的 `state.json` 与产物禁止互相引用；主 Agent 一次只对一个 group 工作。只有项目级状态汇总可读取 `manifest.json` 或 enumerate 各 group state，且不得把其他 group 产物作为当前 group 输入。
 
 ## 8. 为什么保留 HTML 草稿
 
