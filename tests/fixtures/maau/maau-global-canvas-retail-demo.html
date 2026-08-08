@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MAAU Canvas · retail-demo · transcript-direct</title>
+<link rel="stylesheet" href="../shared/canvas-theme.css">
+<style>
+  .wrap{ max-width:1600px; padding:24px; }
+  @media print { .maau-source{ display:none; } }
+  .local-notes{ min-height:40px; }
+</style>
+</head>
+<body data-theme="base" data-mode="formal" data-canvas="mvl" data-page-type="global" data-visual-mode="black-gray-professional" data-version="1" data-instance="retail-demo">
+<div class="wrap">
+  <header class="maau-header" id="canvas-header">
+    <div class="maau-title-row">
+      <h1 id="headline">门店补货智能体</h1>
+    </div>
+    <div class="maau-meta">
+      <div class="maau-meta-row"><b>来源</b><span>[来源: transcript-direct]</span></div>
+    </div>
+  </header>
+
+  <main>
+    <section class="board" id="intent">
+      <h2>Intent</h2>
+      <div class="maau-output">建立门店补货的 AI 应用闭环，减少缺货与压货</div>
+    </section>
+    <section class="board" id="user">
+      <h2>User</h2>
+      <div class="maau-output">管乡镇夫妻店的快消业务代表</div>
+    </section>
+    <section class="board" id="agent-team">
+      <h2>Agent Team</h2>
+      <div class="maau-output">补货建议 Agent + 人工兜底确认</div>
+    </section>
+    <section class="board" id="workflow">
+      <h2>Workflow</h2>
+      <div class="maau-output">预测 → 建议 → 人工确认 → 执行 → 复盘</div>
+    </section>
+    <section class="board" id="context">
+      <h2>Context</h2>
+      <div class="maau-output">门店历史补货、POS 数据、补货预测模型</div>
+    </section>
+    <section class="board" id="validation">
+      <h2>Validation</h2>
+      <div class="maau-output">三片区试点可跑通，缺货率降两成</div>
+    </section>
+  </main>
+
+  <aside class="maau-governance" id="quality-panel" aria-label="质量与治理">
+    <div class="governance-row" id="quality-version">v1</div>
+    <div class="governance-row" id="quality-approval">gate_pass</div>
+    <div class="governance-row" id="quality-gaps">MAAU-G01</div>
+    <div class="governance-row" id="quality-risks">无</div>
+    <div class="governance-caveat" id="quality-caveat" hidden>无</div>
+    <section class="governance-alignment" id="alignment-section">
+      <div>对齐摘要</div>
+    </section>
+  </aside>
+
+  <section class="local-notes" id="local-notes" contenteditable="true" aria-label="本地批注"></section>
+</div>
+
+<script type="application/json" id="canvas-data">
+{
+  "canvas_type": "mvl",
+  "page_type": "global",
+  "generation_path": "transcript-direct",
+  "instance": "retail-demo",
+  "source_file": "MAAU-retail-demo-v1.md",
+  "version": "1",
+  "sections": {
+    "intent": { "goal": "建立门店补货的 AI 应用闭环，减少缺货与压货", "value": "", "success_metrics": "" },
+    "user": { "users": "管乡镇夫妻店的快消业务代表", "needs": "", "pain_points": "", "most_important_outcomes": "" },
+    "agent-team": { "roles": "", "collaboration": "" },
+    "workflow": { "steps": "预测 → 建议 → 人工确认 → 执行 → 复盘", "automation": "", "human_checkpoints": "", "human_agent_nodes": "", "rules": "" },
+    "context": { "knowledge": "", "data_sources": "", "tools_skills": "" },
+    "validation": { "executable": "三片区试点可跑通", "value": "缺货率降两成", "evolution": "" }
+  },
+  "auth": {
+    "gate_recommendation": "pass",
+    "render_authorized": true,
+    "confirmation_mode": "gate_pass",
+    "override_audit": null
+  }
+}
+</script>
+</body>
+</html>

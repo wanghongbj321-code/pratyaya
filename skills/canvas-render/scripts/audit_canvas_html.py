@@ -396,11 +396,6 @@ def source_identity(path: Path) -> tuple[str | None, str | None]:
     return (match.group(1), match.group(2)) if match else (None, None)
 
 
-def gc_source_identity(path: Path) -> tuple[str | None, str | None]:
-    """从 GC-vN 确认包首行标题中提取画布类型与版本号。"""
-    first_lines = "\n".join(path.read_text(encoding="utf-8").splitlines()[:12])
-
-
 def load_gc_anchor_orders(path: Path) -> list[str]:
     """从 render-contract-gc.md 解析 GC 稳定锚点列表。"""
     text = path.read_text(encoding="utf-8")
@@ -438,6 +433,140 @@ def persona_source_identity(path: Path) -> tuple[str | None, str | None]:
         re.MULTILINE,
     )
     return ("PERSONA", match.group(1)) if match else (None, None)
+
+
+def maau_source_identity(path: Path) -> tuple[str | None, str | None]:
+    """从 MAAU-{slug}-vN 源包头部提取 slug 与版本号。
+
+    返回 ``(slug, "vN")``；无法解析时返回 ``(None, None)``。
+    """
+    try:
+        head = "\n".join(path.read_text(encoding="utf-8").splitlines()[:20])
+    except OSError:
+        return (None, None)
+    version_match = re.search(r"^#\s+MAAU 六板块源包\s+(v\d+)\s*$", head, re.MULTILINE)
+    slug_match = re.search(r"^> slug：\s*([a-z0-9]+(-[a-z0-9]+)*)\s*$", head, re.MULTILINE)
+    version = version_match.group(1) if version_match else None
+    slug = slug_match.group(1) if slug_match else None
+    return (slug, version)
+
+
+def select_maau_instance_state(state: JsonDict, instance_slug: str | None) -> JsonDict | None:
+    """从 state.maau.{slug} 选择 MAAU transcript-direct 实例。"""
+    if instance_slug is None:
+        raise ValueError("--instance is required when auditing MAAU transcript-direct with --state")
+    instances = state.get("maau")
+    if not isinstance(instances, dict):
+        return None
+    instance = instances.get(instance_slug)
+    if not isinstance(instance, dict):
+        return None
+    if instance.get("slug") != instance_slug:
+        raise ValueError(f"state.maau.{instance_slug}.slug must match map key")
+    return cast(JsonDict, instance)
+
+
+def audit_maau_override(canvas_data: JsonDict) -> list[Finding]:
+    """校验 MAAU override 审计项：assessment_id 为 MAAU-GATE-* 且 category=business_risk。"""
+    findings: list[Finding] = []
+    auth = canvas_data.get("auth")
+    if not isinstance(auth, dict):
+        return findings
+    if auth.get("confirmation_mode") != "override":
+        return findings
+    override = auth.get("override_audit")
+    if not isinstance(override, dict):
+        findings.append(Finding("MAAU_OVERRIDE", "override_audit must be an object"))
+        return findings
+    items = override.get("items")
+    if not isinstance(items, list):
+        findings.append(Finding("MAAU_OVERRIDE", "override_audit.items must be an array"))
+        return findings
+    for item in items:
+        if not isinstance(item, dict):
+            findings.append(Finding("MAAU_OVERRIDE", "override_audit item must be an object"))
+            continue
+        assessment_id = str(item.get("assessment_id", ""))
+        if not re.fullmatch(r"MAAU-GATE-[0-9]+", assessment_id):
+            findings.append(
+                Finding(
+                    "MAAU_OVERRIDE",
+                    f"assessment_id={assessment_id!r} must match MAAU-GATE-[0-9]+",
+                )
+            )
+        if item.get("category") != "business_risk":
+            findings.append(
+                Finding(
+                    "MAAU_OVERRIDE",
+                    f"assessment_id={assessment_id!r} category must be business_risk, got {item.get('category')!r}",
+                )
+            )
+    return findings
+
+
+def audit_maau_transcript_direct(
+    source: str,
+    canvas_data: JsonDict,
+    body_instance: str | None,
+    source_path: Path | None,
+    instance_slug: str | None,
+) -> list[Finding]:
+    """校验 MAAU transcript-direct 实例页的专属契约。
+
+    - canvas-data.generation_path == transcript-direct
+    - HTML data-instance 与 canvas-data.instance == slug
+    - canvas-data.source_file 与 --source / state 一致
+    - [来源: transcript-direct] 标头
+    - override 时 override_audit.items[].assessment_id 为 MAAU-GATE-* 且 category=business_risk
+    """
+    findings: list[Finding] = []
+
+    generation_path = canvas_data.get("generation_path")
+    if generation_path != "transcript-direct":
+        findings.append(
+            Finding(
+                "MAAU_GENERATION",
+                f"canvas-data.generation_path must be 'transcript-direct', got {generation_path!r}",
+            )
+        )
+
+    if instance_slug is not None:
+        if body_instance != instance_slug:
+            findings.append(
+                Finding(
+                    "INSTANCE",
+                    f"body data-instance={body_instance!r} must match --instance {instance_slug!r}",
+                )
+            )
+        data_instance = canvas_data.get("instance")
+        if data_instance != instance_slug:
+            findings.append(
+                Finding(
+                    "INSTANCE",
+                    f"canvas-data.instance={data_instance!r} must match --instance {instance_slug!r}",
+                )
+            )
+
+    if "[来源: transcript-direct]" not in source:
+        findings.append(Finding("MAAU_HEADER", "missing '[来源: transcript-direct]' header"))
+
+    source_file = canvas_data.get("source_file")
+    if source_path is not None:
+        expected_source_file = source_path.name
+        if source_file != expected_source_file:
+            findings.append(
+                Finding(
+                    "MAAU_SOURCE_FILE",
+                    f"canvas-data.source_file={source_file!r} must match --source name {expected_source_file!r}",
+                )
+            )
+    else:
+        if not source_file:
+            findings.append(Finding("MAAU_SOURCE_FILE", "canvas-data.source_file is required"))
+
+    findings.extend(audit_maau_override(canvas_data))
+
+    return findings
 
 
 def load_persona_template_profile(contract_path: Path) -> dict[str, list[str]]:
@@ -1127,12 +1256,16 @@ def audit(
     canvas_type: str = "mvl",
     instance_slug: str | None = None,
     index: bool = False,
+    page_type_arg: str | None = None,
+    generation_path_arg: str | None = None,
 ) -> list[Finding]:
     """对照 render-contract / state.json / 确认包，审计单个 Canvas HTML 文件。"""
     is_gc = canvas_type == "gc"
     is_hmw = canvas_type == "hmw"
     is_journey = canvas_type == "journey"
     is_persona = canvas_type == "persona"
+    # MAAU transcript-direct：mvl + global + 显式 --instance 即判定为一次性综合实例页
+    is_maau = canvas_type == "mvl" and instance_slug is not None and not index
     findings: list[Finding] = []
     orders: dict[str, list[str]] = {}
     gc_anchors: list[str] = []
@@ -1190,6 +1323,17 @@ def audit(
         valid_types = {"module-detail", "global"}
     if page_type not in valid_types:
         findings.append(Finding("PAGE_TYPE", f"unsupported data-page-type: {page_type!r}"))
+    if page_type_arg is not None and page_type != page_type_arg:
+        findings.append(
+            Finding("PAGE_TYPE", f"--page-type {page_type_arg!r} does not match HTML data-page-type {page_type!r}")
+        )
+    if is_maau and generation_path_arg not in (None, "transcript-direct"):
+        findings.append(
+            Finding(
+                "MAAU_GENERATION",
+                f"--generation-path must be 'transcript-direct' for MAAU, got {generation_path_arg!r}",
+            )
+        )
     if not body_version:
         findings.append(Finding("VERSION", "body data-version must be an integer or vN"))
     if canvas_type in INSTANCE_STATE_KEYS and instance_slug is not None:
@@ -1322,6 +1466,20 @@ def audit(
             findings.append(Finding("SECTION_DATA", "canvas-data.sections must be an object"))
         if is_journey:
             findings.extend(audit_journey_dynamic_structure(html, canvas_data, source_path))
+        if is_maau:
+            if page_type != "global":
+                findings.append(
+                    Finding("PAGE_TYPE", f"MAAU transcript-direct requires data-page-type='global', got {page_type!r}")
+                )
+            if state_path is None:
+                findings.append(
+                    Finding("MAAU_STATE", "MAAU transcript-direct 正式验收必须传 --state 读取授权")
+                )
+            findings.extend(
+                audit_maau_transcript_direct(
+                    source, canvas_data, body_instance, source_path, instance_slug,
+                )
+            )
 
     lowered = source.lower()
     if "iframe" in html.tags:
@@ -1392,6 +1550,8 @@ def audit(
                 source_module, source_version = journey_source_identity(source_path)
             elif is_persona:
                 source_module, source_version = persona_source_identity(source_path)
+            elif is_maau:
+                source_module, source_version = maau_source_identity(source_path)
             else:
                 source_module, source_version = source_identity(source_path)
         except OSError as exc:
@@ -1400,9 +1560,23 @@ def audit(
             if source_module is None or source_version is None:
                 findings.append(Finding("SOURCE", "cannot read module/version from confirmation package"))
             else:
-                if not is_gc and not is_hmw and not is_journey and module and source_module != module:
+                if (
+                    not is_gc
+                    and not is_hmw
+                    and not is_journey
+                    and not is_maau
+                    and module
+                    and source_module != module
+                ):
                     findings.append(
                         Finding("SOURCE_MODULE", f"HTML={module!r}, source={source_module!r}")
+                    )
+                if is_maau and instance_slug is not None and source_module != instance_slug:
+                    findings.append(
+                        Finding(
+                            "MAAU_SOURCE_SLUG",
+                            f"source slug={source_module!r} must match --instance {instance_slug!r}",
+                        )
                     )
                 if body_version and source_version != body_version:
                     findings.append(
@@ -1428,6 +1602,10 @@ def audit(
                 state_module = select_instance_state(state, "persona", instance_slug)
                 if not isinstance(state_module, dict):
                     raise ValueError("state.json has no persona instance record")
+            elif is_maau:
+                state_module = select_maau_instance_state(state, instance_slug)
+                if not isinstance(state_module, dict):
+                    raise ValueError("state.json has no maau instance record")
             else:
                 modules = state.get("modules", {})
                 state_module = (
@@ -1443,6 +1621,23 @@ def audit(
                 findings.append(
                     Finding("STATE_VERSION", f"HTML={body_version!r}, state={state_version!r}")
                 )
+            if is_maau and canvas_data is not None:
+                state_generation = state_module.get("generation_path")
+                data_generation = canvas_data.get("generation_path")
+                if state_generation != "transcript-direct":
+                    findings.append(
+                        Finding(
+                            "MAAU_STATE_GENERATION",
+                            f"state.maau.{instance_slug}.generation_path must be 'transcript-direct', got {state_generation!r}",
+                        )
+                    )
+                if data_generation != state_generation:
+                    findings.append(
+                        Finding(
+                            "MAAU_GENERATION",
+                            f"canvas-data generation_path={data_generation!r} != state {state_generation!r}",
+                        )
+                    )
             auth = canvas_data.get("auth") if canvas_data else None
             if isinstance(auth, dict):
                 for field in AUTH_FIELDS:
@@ -1491,6 +1686,20 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         default="mvl",
         help="canvas type: mvl (default), gc (golden circle), hmw, persona or journey",
     )
+    _ = parser.add_argument(
+        "--page-type",
+        dest="page_type_arg",
+        choices=("global", "module-detail"),
+        default=None,
+        help="mvl page type hint (MAAU transcript-direct 实例页必须传 global)",
+    )
+    _ = parser.add_argument(
+        "--generation-path",
+        dest="generation_path_arg",
+        choices=("m1-m6", "transcript-direct"),
+        default=None,
+        help="MVL 全局页生成路径（MAAU 一次性综合须传 transcript-direct）",
+    )
     return parser.parse_args(argv)
 
 
@@ -1520,8 +1729,13 @@ def main(argv: list[str] | None = None) -> int:
     template_arg = cast("Path | None", args.template)
     instance_slug = cast("str | None", args.instance_slug)
     index = cast(bool, args.index)
+    page_type_arg = cast("str | None", args.page_type_arg)
+    generation_path_arg = cast("str | None", args.generation_path_arg)
 
-    findings = audit(html_arg, contract_arg, state_arg, source_arg, canvas_type, instance_slug, index)
+    findings = audit(
+        html_arg, contract_arg, state_arg, source_arg, canvas_type, instance_slug,
+        index, page_type_arg, generation_path_arg,
+    )
     template_findings: list[Finding] = []
 
     # Template Gate：HMW / Persona / Journey 正式交付（--template 传入）时运行

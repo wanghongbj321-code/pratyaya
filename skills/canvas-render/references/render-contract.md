@@ -5,6 +5,8 @@
 - **全局 Canvas 页面**：六板块汇总视图（`maau-global-canvas.html`）
 - **模块详情 Canvas 页面**：M1-M6 各自专属结构（`module-N-canvas.html`）
 
+**MAAU transcript-direct 分支**（`generation_path=transcript-direct`）：一次性六板块源包 `modules/MAAU-{slug}-v{N}.md` 渲染为 `output/maau-global-canvas-{slug}.html`。结构与全局 Canvas 页面一致（六大板块 + 共享头部/质量面板/批注/内嵌数据），但**不做 M1-M6 模块详情下钻**：transcript-direct 是单源一次性综合，无六模块详情页。与 Phase 2 全局页（`output/maau-global-canvas.html`）互斥。
+
 两者共享头部、质量面板、本地批注区和内嵌数据区。区别在于 `<main>` 内部结构：全局页面用固定的六大板块，模块详情页面用该模块的专属 section。
 
 数据源是 `modules/Mx-v{N}.md`（确认包，Markdown）；LLM 读取后按本章的 section 映射表，把内容映射到 HTML 锚点。映射的字段名沿用确认包 Markdown 的 section 标题（中文标题与 HTML 锚点 ID 之间的对应见下表）。
@@ -209,6 +211,9 @@
     "version": "v{N}",
     "module": "M{N}",
     "sections": { ...确认包 section 映射... },
+    "generation_path": "m1-m6 | transcript-direct",
+    "instance": "{slug}",   // 仅 instance 化输出（非 MVL / MAAU transcript-direct）
+    "source_file": "modules/Mx-v{N}.md | modules/MAAU-{slug}-v{N}.md",
     "auth": {
       "gate_recommendation": "pass | fail",
       "render_authorized": true,
@@ -218,6 +223,8 @@
   }
 </script>
 ```
+
+**MAAU transcript-direct 标头**：`generation_path=transcript-direct` 的实例页必须含 `[来源: transcript-direct]` 标头；`canvas-data.generation_path`、`instance`、`source_file`、`auth` 四项均须写全，`auth` 与 `state.maau.{slug}` 完全一致。
 
 ### Caveat 状态标识
 
@@ -263,6 +270,20 @@
 ```
 
 不要使用 iframe。这样既避免 `file:` 唯一安全源问题，也允许用户本地双击打开。
+
+### 无模块详情时的链接 / 说明规则
+
+MAAU transcript-direct 实例页是**单源一次性综合**，没有 M1-M6 模块详情页：
+
+- 不得生成指向 `module-{1-6}-canvas.html` 的下钻链接（这些文件在 transcript-direct 下不存在）。
+- 六板块内容直接展示在实例页内；如需补充依据，用普通相对链接指向源包 `modules/MAAU-{slug}-v{N}.md` 或直接展示在对应板块，不伪造模块详情页。
+- 全局下钻章节仅适用于 Phase 2（M1-M6）全局汇总；transcript-direct 实例页不适用。
+
+### 可选索引页与 Phase 2 全局页冲突规则
+
+- transcript-direct 下可生成可选索引页 `output/maau-global-canvas.html`（聚合全部 `maau.{slug}` 实例的链接列表），此时它**不是** M1-M6 Phase 2 全局页。
+- **冲突规则**：同一 group 的 MAAU 输出只能二选一——transcript-direct 实例页（可配可选索引）或 M1-M6 Phase 2 全局页。不得把两者同时作为正式输出，也不得把 transcript-direct 实例混入 M1-M6 Phase 2 全局页的六模块下钻。
+- 索引页为派生视图，不写任一 instance 的 `output_file`；生成后运行对应 audit 的 `--index` 检查。
 
 ## 打印与管理层阅读
 

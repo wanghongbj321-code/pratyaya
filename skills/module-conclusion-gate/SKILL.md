@@ -21,6 +21,13 @@ description: 对 MVL 工作坊单模块的确认包（Mx-v{N}.md）做质量建�
 - `references/Mx-gate.md`（本模块的放行条件与稳定 ID，位于本 Skill 的 `references/` 子目录）
 - 当前状态（来自主 agent 维护的 `state.json`）
 
+**MAAU 一次性综合路径（`generation_path=transcript-direct`）输入**：
+
+- `modules/MAAU-{slug}-v{N}.md`（MAAU 六板块源包，Markdown 格式，唯一事实源）
+- `references/MAAU-gate.md`（MAAU 放行条件与稳定 ID，位于本 Skill 的 `references/` 子目录）
+- 状态指针：`state.maau.{slug}`
+- 不改动 M1-M6 的 Gate 条件与稳定 ID；MAAU 走独立 `MAAU-GATE-*` ID 空间。
+
 **输出**：
 
 - Gate 建议报告（Markdown 文本），结构见下文"Gate 评估流程"
@@ -81,6 +88,8 @@ M6-GATE-07
 ```
 
 评估报告必须为每条放行条件输出：稳定 ID、PASS/FAIL、分类、风险等级、来源 ID、影响和建议。
+
+**MAAU 一次性综合路径**使用 `MAAU-GATE-01` 起始的独立 ID 空间（见 `references/MAAU-gate.md`），评估报告标题示例为 `MAAU {slug} v{N}`，状态指针为 `state.maau.{slug}`。不得把 MAAU 检查项写成 `M1-GATE-*` 到 `M6-GATE-*`，也不得改动既有 M1-M6 的 Gate 条件与稳定 ID。
 
 ## 分类与可 override 关系
 
@@ -202,6 +211,7 @@ M6-GATE-07
 | M4 | `references/M4-gate.md` | 同上 |
 | M5 | `references/M5-gate.md` | 同上 |
 | M6 | `references/M6-gate.md` | 同上 |
+| MAAU | `references/MAAU-gate.md` | `../../maau-synthesize/references/maau-synth-spec.md` |
 
 ## 质量红线
 
