@@ -1512,8 +1512,6 @@ def check_journey_render_contract_sync(ctx: CheckContext) -> list[Finding]:
 
     required_anchors = (
         "journey-map",
-        "journey-pain-opportunities",
-        "journey-pain-opportunity-summary",
         "journey-quality",
         *JOURNEY_QUALITY_ANCHORS,
         "quality-panel",

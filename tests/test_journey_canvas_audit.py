@@ -239,15 +239,15 @@ class TestJourneyRequiredAnchorsAndAuth:
             'id="journey-quality-business-outcome"',
             'id="journey-quality-pain-opportunity-visible"',
             'id="journey-quality-no-solution-bias"',
-            'id="journey-pain-opportunity-summary"',
         ],
     )
-    def test_missing_quality_or_pain_opportunity_anchor_fails(self, tmp_path: Path, target: str) -> None:
-        """v2.3.2 步骤 1：6a 四锚点 + 6b 摘要锚点任一缺失必须 FAIL。
+    def test_missing_quality_anchor_fails(self, tmp_path: Path, target: str) -> None:
+        """v2.3.2 步骤 1：6a 四锚点任一缺失必须 FAIL。
 
-        注：原 v2.3.1 的 `journey-quality-friction-visible` 与 `journey-friction-summary`
-        在新契约中已被 `journey-quality-pain-opportunity-visible` 与
-        `journey-pain-opportunity-summary` 取代。"""
+        v2.3.4 PATCH 起：6b 独立 section 已删除，故 `journey-pain-opportunity-summary`
+        不再属于模板必检；本测试改为仅覆盖 6a 四锚点。
+        注：原 v2.3.1 的 `journey-quality-friction-visible` 在新契约中已被
+        `journey-quality-pain-opportunity-visible` 取代。"""
         out = copy_template(tmp_path)
         text = out.read_text(encoding="utf-8").replace(target, target.replace('"', '-x"', 1))
         out.write_text(text, encoding="utf-8")
@@ -305,7 +305,8 @@ class TestJourneyLegacyReject:
             'id="journey-stage-2-opportunity"': 'id="journey-stage-2-risk"',
             'id="journey-stage-3-opportunity"': 'id="journey-stage-3-risk"',
             'id="journey-quality-pain-opportunity-visible"': 'id="journey-quality-friction-visible"',
-            'id="journey-pain-opportunity-summary"': 'id="journey-friction-summary"',
+            # v2.3.4 PATCH：journey-pain-opportunity-summary 一等模块锚点不再属于必检集合；
+            # legacy-only 模板（v2.3.1 以前）原本就不含此锚点，无需替换。
         }
         for old, new in legacy_map.items():
             text = text.replace(old, new)
@@ -369,8 +370,8 @@ class TestJourneyTemplateGate:
         out = copy_template(tmp_path)
         text = out.read_text(encoding="utf-8")
         text = text.replace('id="journey-map"', 'id="journey-map-x"', 1)
-        text = text.replace('id="journey-pain-opportunities"', 'id="journey-map"', 1)
-        text = text.replace('id="journey-map-x"', 'id="journey-pain-opportunities"', 1)
+        text = text.replace('id="journey-quality"', 'id="journey-map"', 1)
+        text = text.replace('id="journey-map-x"', 'id="journey-quality"', 1)
         out.write_text(text, encoding="utf-8")
         result = run_audit(out)
         assert result.returncode != 0

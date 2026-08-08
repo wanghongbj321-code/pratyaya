@@ -27,14 +27,11 @@
   .stage-cell{ background:var(--paper); color:var(--ink); }
   .stage-cell[data-state="placeholder"]{ color:var(--hint-color); }
 
-  .pain-opportunities,.journey-quality,.govern{
+  .journey-map,.journey-quality,.govern{
     border:var(--border-w) solid var(--line); border-radius:var(--radius);
     background:var(--paper); box-shadow:var(--shadow); padding:16px 18px 18px;
     margin-bottom:16px;
   }
-  .pain-opportunity-list{ display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:10px; }
-  .pain-opportunity-item{ border:1px solid var(--line); border-radius:var(--radius); padding:10px 12px; min-height:92px; }
-  .pain-opportunity-item b{ display:block; color:var(--title-color); margin-bottom:6px; }
   .quality-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:10px; }
   .q-item{ border:1px solid var(--line); border-radius:var(--radius); padding:10px 12px; }
   .q-name{ font-size:13px; font-weight:700; color:var(--ink); }
@@ -51,7 +48,6 @@
   .local-notes:empty::before{ content:"本地备注（浏览器内可编辑，刷新即清空）…"; color:var(--hint-color); }
 
   @media(max-width:1000px){
-    .pain-opportunity-list{ grid-template-columns:1fr; }
     .quality-grid{ grid-template-columns:repeat(2,1fr); }
   }
   @media(max-width:720px){
@@ -121,15 +117,6 @@
     </div>
   </section>
 
-  <section class="pain-opportunities" id="journey-pain-opportunities" aria-label="痛点与机会">
-    <h2 class="cell-title">痛点与机会 <span class="en">Pain &amp; Opportunity Summary</span></h2>
-    <div class="pain-opportunity-list" id="journey-pain-opportunity-summary">
-      <div class="pain-opportunity-item"><b>痛点</b>待填写…</div>
-      <div class="pain-opportunity-item"><b>机会</b>待填写…</div>
-      <div class="pain-opportunity-item"><b>来源</b>待填写…</div>
-    </div>
-  </section>
-
   <section class="journey-quality" id="journey-quality" aria-label="质量鉴别">
     <h2 class="cell-title">质量鉴别 <span class="en">Canvas-visible Quality Check</span></h2>
     <p class="cell-hint">质量鉴别是正式画布外显能力，不进入主表成为第 6 行。</p>
@@ -191,7 +178,6 @@
   "sections": {
     "canvas-headline": "一句话结论",
     "journey-map": "6：阶段地图",
-    "journey-pain-opportunity-summary": "6b：痛点与机会",
     "journey-quality-user-perspective": "6a：user_perspective",
     "journey-quality-business-outcome": "6a：business_outcome",
     "journey-quality-pain-opportunity-visible": "6a：pain_opportunity_visible",

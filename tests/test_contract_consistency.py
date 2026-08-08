@@ -106,10 +106,7 @@ JOURNEY_QUALITY_ANCHORS_V232 = (
     "journey-quality-pain-opportunity-visible",
     "journey-quality-no-solution-bias",
 )
-JOURNEY_PAIN_OPPORTUNITY_ANCHORS_V232 = (
-    "journey-pain-opportunity-summary",
-    *JOURNEY_QUALITY_ANCHORS_V232,
-)
+JOURNEY_PAIN_OPPORTUNITY_ANCHORS_V232 = JOURNEY_QUALITY_ANCHORS_V232
 
 # v2.3.2 已废弃的旧锚点（必须不再出现）
 JOURNEY_LEGACY_FORBIDDEN_ANCHORS = (
@@ -142,7 +139,7 @@ class TestSkillRegistration:
             assert skill in plugin["skills"], f"plugin.json missing Journey skill {skill}"
         for skill in EXPECTED_PERSONA_SKILLS:
             assert skill in plugin["skills"], f"plugin.json missing Persona skill {skill}"
-        assert plugin["version"] == "2.3.2"
+        assert plugin["version"] == "2.3.4"
 
     def test_plugin_registers_persona_skills(self) -> None:
         plugin = json.loads(read(REPO_ROOT / ".codebuddy-plugin" / "plugin.json"))
@@ -346,7 +343,6 @@ class TestJourneyRenderContract:
         for anchor in (
             'id="canvas-header"',
             'id="journey-map"',
-            'id="journey-pain-opportunities"',
             'id="journey-quality"',
             'id="quality-panel"',
             'id="local-notes"',

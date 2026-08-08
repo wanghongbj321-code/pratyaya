@@ -56,7 +56,8 @@ Journey 确认包到 `render-contract-journey.md` 的 HTML 锚点映射：
 | 6a：business_outcome | `journey-quality-business-outcome` |
 | 6a：pain_opportunity_visible | `journey-quality-pain-opportunity-visible` |
 | 6a：no_solution_bias | `journey-quality-no-solution-bias` |
-| 6b：痛点与机会 | `journey-pain-opportunity-summary` |
+
+> **v2.3.4 PATCH 起**：6b 节内容已并入 5 行主表的第 4 / 5 行（`pain-point` / `opportunity`），不再以独立 DOM 锚点承载；`JOURNEY-Fxx` 条目仍存在于 6b 确认包 Markdown 内，但运行时模板不再渲染独立 section。
 
 ## 动态阶段字段要求
 
