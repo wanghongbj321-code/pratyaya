@@ -59,6 +59,7 @@ best_for: 机构审阅、正式机构风格、紫色品牌识别
 ## 组件库
 
 - **Brand bar / Hero**：6px 主紫顶条；Hero 使用黑灰标题、紫色 eyebrow 和右对齐元信息，形成机构公文感。
+  - **Pan-Mode Invariants（v2.3.5+）**：Brand bar 是机构公文视觉标识，不属"主色整片涂底"；Hero 卡片白底，主紫 `#a100ff` 仅作 eyebrow / 标题色（如适用）/ 行动摘要 5px 左线 / pale 卡背景；禁止将主紫作为大面积 hero 背景填充。
 - **Executive summary**：浅紫背景、5px 主紫左边框；左右可分为固定标签列与结论正文。
 - **Canvas**：白底、1px 灰边框、无圆角、无卡片间隙。
 - **Section**：相邻区块共享边框；标题为主紫实底白字；编号使用白色方形线框，不用圆点。

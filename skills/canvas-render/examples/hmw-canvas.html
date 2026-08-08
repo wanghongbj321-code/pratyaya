@@ -6,7 +6,71 @@
 <title>HMW 问题重构画布 How Might We Canvas（一等公民 · 示例）</title>
 <link rel="stylesheet" href="shared/canvas-theme.css">
 <style>
+  /* ============================================================
+     HMW 一等公民画布示例 · Bain Red · 行动洞察 视觉系统 override
+     (v2.3.5 落地，见 internal/pratyaya-internal/docs/debugs/HMW画布贝恩红模式Hero配色修复方案-2026-0808.md §6.2)
+     ============================================================
+     设计原则（Pan-Mode Invariants v2.3.5 §14.5）：
+     1. Hero 永远白纸底（本文件 inline override 后生效）
+     2. 主色 #cc0000 仅作 eyebrow / 标题色 / 4px 底线 / 行动摘要 5px 左线 / pale 卡背景
+     3. 禁止 hero 整片铺红（违反 07-bain-red-action.md §反例 第 1 条）
+     4. CSS 变量 shim：覆盖 shared/canvas-theme.css 的 --brand-pale / --title-color / --accent 等
+     ============================================================ */
+  [data-theme="base"] {
+    --brand: #cc0000;          /* Pan-Mode Invariant #2: 主色 = 本模式主色 token */
+    --brand-dark: #8a0000;
+    --brand-soft: #ffffff;
+    --brand-pale: #fff0f0;     /* 浅红卡背景（行动摘要 / 质量判定卡） */
+    --accent: #cc0000;
+    --ink: #111111;
+    --muted: #6a6a6a;
+    --line: #e5e5e5;
+    --paper: #ffffff;
+    --title-color: #cc0000;    /* h1 / headline 标题色 = 主色 */
+    --hint-color: #8a8a8a;
+  }
+
   /* HMW 签名布局：顶部 4 字段陈述通栏 + 底部 2×4 想法格 */
+
+  /* Hero override：白纸底 + 卡片化（Bain Red 修正） */
+  .canvas-head {
+    border: var(--border-w) solid var(--line);
+    border-radius: var(--radius);
+    background: var(--paper);
+    padding: 26px 28px 20px;
+    margin-bottom: 18px;
+    align-items: flex-start;
+  }
+  /* 4px 主色规则线（Pan-Mode Invariant #4） */
+  .canvas-head::after {
+    content: "";
+    display: block;
+    height: 4px;
+    background: var(--brand);
+    border-radius: 2px;
+    margin-top: 18px;
+  }
+  /* eyebrow 改为主红色（Pan-Mode Invariant #3） */
+  .canvas-head .eyebrow {
+    color: var(--brand);
+  }
+  /* h1 标题色=主色（Pan-Mode Invariant #2） */
+  .canvas-head h1 {
+    color: var(--title-color);
+  }
+
+  /* 行动摘要 override：pale 卡 + 5px 主红左边框（Pan-Mode Invariant #5/#6） */
+  #canvas-headline {
+    background: var(--brand-pale);
+    border-left: 5px solid var(--brand);
+    padding: 10px 14px;
+    border-radius: 6px;
+    color: var(--ink) !important;
+    font-size: 13px !important;
+    font-weight: 700;
+    margin: 14px 0 4px !important;
+    line-height: 1.55;
+  }
 
   /* 陈述通栏 */
   .hmw-statement{
@@ -49,9 +113,9 @@
     padding:10px 12px; display:flex; flex-direction:column;
   }
   .idea .idea-no{
-    width:20px; height:20px; border:1.5px solid var(--title-color); border-radius:50%;
+    width:20px; height:20px; border:1.5px solid var(--brand); border-radius:50%;
     display:inline-grid; place-items:center; font-size:10px; font-weight:700;
-    color:var(--title-color); margin-bottom:6px; flex:0 0 auto;
+    color:var(--brand); margin-bottom:6px; flex:0 0 auto;
   }
   .idea .idea-fill{ flex:1; font-size:12.5px; line-height:1.5; }
   .idea .idea-meta{ margin-top:6px; font-size:10px; color:var(--hint-color); }
@@ -65,7 +129,7 @@
   }
   .coherence table{ width:100%; border-collapse:collapse; font-size:12.5px; margin-top:10px; }
   .coherence th,.coherence td{ border:1px solid var(--line); padding:8px 10px; text-align:left; vertical-align:top; }
-  .coherence th{ background:var(--brand-pale); font-weight:700; color:var(--title-color); }
+  .coherence th{ background:var(--brand-pale); font-weight:700; color:var(--title-color); border-bottom:2px solid var(--brand); }
   .coherence td:first-child{ font-weight:700; white-space:nowrap; }
 
   /* 质量与治理面板（与 persona 同款） */
@@ -90,7 +154,7 @@
   @media print{ .idea-grid{ gap:8px; } .idea{ min-height:86px; } .q-grid{ gap:8px; } }
 </style>
 </head>
-<body data-theme="base" data-canvas="hmw" data-page-type="hmw" data-version="1">
+<body data-theme="base" data-canvas="hmw" data-page-type="hmw" data-visual-mode="bain-red-action" data-version="1">
 <div class="wrap">
   <header class="canvas-head" id="canvas-header">
     <div>
@@ -211,6 +275,12 @@
   "canvas_type": "hmw",
   "page_type": "hmw",
   "version": "1",
+  "visual_mode": {
+    "id": "bain-red-action",
+    "zh_name": "贝恩红·行动",
+    "visual_system": "Bain Red",
+    "pan_mode_invariants_version": "v2.3.5"
+  },
   "schema_version_target": "2.1",
   "sections": {
     "canvas-headline": "一句话结论",

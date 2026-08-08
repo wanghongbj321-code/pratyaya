@@ -58,6 +58,7 @@ best_for: 欧洲机构风格、深蓝灰品牌识别、简洁商务汇报
 ## 组件库
 
 - **Hero**：Dark Blue 大标题、同色 eyebrow 和 4px 规则线，保持简洁商务语气。
+  - **Pan-Mode Invariants（v2.3.5+）**：Hero 白纸底全画布极度克制（本模式视觉哲学即克制），主色 `#1d3a5f` 仅作 eyebrow / 标题色 / **1px** 主色底线（克制度比默认 4px 更低）/ 行动摘要 5px 左线 / pale 卡背景；禁止主色整片涂底，禁止 4px 以上粗底线。
 - **Executive summary**：浅蓝灰背景、5px Dark Blue 左边框；标签使用 Dark Blue。
 - **Canvas**：白纸、1px 蓝灰边框、宽松留白。
 - **Section**：白底、蓝灰细边框；标题为 Dark Blue 实底白字；编号为白底 Dark Blue 圆点。

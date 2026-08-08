@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0",
-  "group_id": "G1",
+  "group_id": "group-1",
   "project_name": "旧版 MVL+GC 项目（无 hmw 区块）",
   "modules": {
     "M1": {
@@ -53,5 +53,6 @@
     "render_authorized": false,
     "confirmation_mode": null
   },
-  "updated_at": "2026-08-06T15:00:00+08:00"
+  "updated_at": "2026-08-06T15:00:00+08:00",
+  "project_slug": "legacy-project"
 }

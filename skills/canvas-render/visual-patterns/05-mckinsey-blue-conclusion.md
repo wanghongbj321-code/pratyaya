@@ -58,6 +58,7 @@ best_for: 高管汇报、结论先行、数据驱动的 Storyline
 ## 组件库
 
 - **Hero**：无大面积色块；标题直接使用主蓝，底部用 4px 主蓝规则线建立 Storyline 起点。
+  - **Pan-Mode Invariants（v2.3.5+）**：Hero 永远白纸底（无任何例外），主蓝 `#051c2c` 仅作 eyebrow / 标题色 / 6px 主蓝规则线 / 行动摘要 5px 左线 / pale 卡背景；禁止主色整片涂底。本模式 §Hero 已严格兑现 pan-mode Invariant #1，无需调整 Hero 实现。
 - **Executive summary**：极浅蓝背景、5px 主蓝左边框；必须先给结论，再由 Canvas 展开依据。
 - **Canvas**：白色纸张、1px 蓝灰边框、宽松 28–32px 内边距。
 - **Section**：1px 蓝灰边框；标题为主蓝实底白字；编号为白底主蓝圆点。

@@ -139,7 +139,7 @@ class TestSkillRegistration:
             assert skill in plugin["skills"], f"plugin.json missing Journey skill {skill}"
         for skill in EXPECTED_PERSONA_SKILLS:
             assert skill in plugin["skills"], f"plugin.json missing Persona skill {skill}"
-        assert plugin["version"] == "2.3.4"
+        assert plugin["version"] == "2.4.0"
 
     def test_plugin_registers_persona_skills(self) -> None:
         plugin = json.loads(read(REPO_ROOT / ".codebuddy-plugin" / "plugin.json"))

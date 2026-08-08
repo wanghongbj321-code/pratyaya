@@ -60,6 +60,7 @@ best_for: 领导审阅、正式机构型总览
 ## 组件库
 
 - **页面 Hero**：灰棕底上的正式说明区，状态胶囊保持克制，不使用大面积亮色。
+  - **Pan-Mode Invariants（v2.3.5+）**：Hero 卡片沿用灰棕主题纸张 `#d9d6cf`（Signal 系统视觉标识），但**禁止将主海军蓝 `#334261` 整片涂在 hero 底色**——主色仅作 eyebrow / 标题色 / 4px 主色底线 / 行动摘要 5px 左线 / pale 卡背景。这是 §14.5 Invariant #1 "Hero 永远白底 / 主题纸张底" 的 Signal 例外。
 - **Canvas**：纸张色背景、`#b8b1a4` 边框、轻阴影，形成正式机构档案感。
 - **标题带**：`linear-gradient(110deg, #1c2644, #2a3658)`，白字、7px 圆角；暖金不得作为大面积标题底色。
 - **摘要**：`--accent-soft` 背景，4px `--signal-gold` 左边框。

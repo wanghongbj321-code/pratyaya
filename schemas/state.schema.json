@@ -7,6 +7,7 @@
     "schema_version",
     "group_id",
     "project_name",
+    "project_slug",
     "updated_at"
   ],
   "properties": {
@@ -15,11 +16,19 @@
     },
     "group_id": {
       "type": "string",
-      "minLength": 1
+      "maxLength": 64,
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "description": "group_id must be kebab-case ASCII (max 64 chars), matching the {group_id} directory name"
     },
     "project_name": {
       "type": "string",
       "minLength": 1
+    },
+    "project_slug": {
+      "type": "string",
+      "maxLength": 64,
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "description": "project_slug must be kebab-case ASCII (max 64 chars), matching workshop/{project_slug}"
     },
     "current_module": {
       "enum": ["M1", "M2", "M3", "M4", "M5", "M6"]
