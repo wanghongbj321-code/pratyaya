@@ -179,6 +179,12 @@ body {
   /* Workflow 5 个字段 5 列横排；Context 3 个字段 3 列横排 */
   #workflow .maau-fields{ grid-template-columns:repeat(5,minmax(0,1fr)); }
   #context .maau-fields{ grid-template-columns:repeat(3,minmax(0,1fr)); }
+  /* Workflow / Context 字段改为独立带边框盒子（对齐 Validation 的 .validation-box 视觉） */
+  #workflow .maau-field,
+  #context .maau-field{
+    border:1px solid var(--line); border-radius:6px; padding:9px 10px;
+    background:var(--paper);
+  }
   .maau-card,
   .maau-validation,
   .maau-governance,
