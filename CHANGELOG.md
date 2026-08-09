@@ -15,6 +15,14 @@
 - **旧 project+group 自动迁移**：旧 `workshop/{project_slug}/{group_id}/state.json`（无 topic 子目录）自动迁移到 `workshop/{project_slug}/{group_id}/default/`；`default` 仅作为 legacy topic 占位，新建 topic 禁止使用。
 - **Agent / Skill / 文档同步**：`agents/pratyaya.md`（每次对话开始、Phase 0、状态目录、状态查询、切换/新建 topic、legacy 迁移规则）、`skills/faq-answer`、`skills/canvas-render`、`README.md`、`DESIGN.md`、`DEVELOPMENT.md`、`docs/user-guide.md`、`docs/MVL-整体架构设计.md`、`docs/prompt-guide.html` 统一为 `workshop/{project_slug}/{group_id}/{topic_slug}/` 路径，并增加跨 topic 禁读规则。
 
+### 变更（Canvas 单文件自包含 · 方案 A）
+
+- **画布主题内联，禁止本地相对路径外链 CSS**：`canvas-render` 示例模板（HMW / GC / Persona / Journey / MVL 六模块 + MAAU 全局）与 `tests/fixtures/maau/maau-global-canvas-retail-demo.html` 由 `<link rel="stylesheet" href="shared/canvas-theme.css">` 外链改为**内联 `<style>`**（内容取自 `canvas-theme.css`，保留为单一事实源），成品 HTML 单文件自包含、可独立传播。
+- **审计脚本收口**：`audit_canvas_html.py` 的 `TPL-GATE-06`（HMW/PERSONA `audit_template_gate` + JOURNEY `audit_journey_template_gate`）从「必须 `<link>` 外链」改为接受「内联 `<style>` 或本地外链」，且**正式产物禁止本地相对路径外链 CSS（应内联）**；通用 `OFFLINE` 检查同步拦截相对外链 CSS（覆盖 MVL/GC）。
+- **测试同步**：`test_audit_canvas_html.py` / `test_journey_canvas_audit.py` / `test_audit_maau.py` 相应更新（`copy_template` 去 shared 复制、缺内联主题 token FAIL、外部 URL 注入测试、`add_instance_attr` 行首 `<body>` 匹配）；`canvas-theme.css` 注释改用 `body[data-theme="base"]` 写法避免干扰 `<body>` 匹配。
+- **契约文档同步**：`render-contract.md` / `render-contract-hmw.md` / `render-contract-gc.md` / `render-contract-journey.md` / `render-contract-persona.md` / `SKILL.md` / `examples/README.md` 的离线约束升级为「必须内联、正式产物禁止相对外链 CSS、单文件自包含」。
+- **内部参考模板单配色化**：`internal/pratyaya-internal/docs/refs/canvas-templates/` 下 6 个参考模板（01-05 + index）由多皮肤（base/mckinsey/accenture + theme-switch）改为**标准黑灰单配色**，内联主题、移除 theme-switch/`brand-bar`/mckinsey 与 accenture 覆盖规则及切换 JS（journey 保留情绪选择 JS）。
+
 ### 兼容性
 
 - `state.schema.json` 顶层 `schema_version` 保持 `"2.3"`；新增 `topic_slug` / `topic_name` 为必填，旧 state 需在迁移时补齐。

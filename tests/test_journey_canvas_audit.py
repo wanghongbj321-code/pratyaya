@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import json
 import re
-import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -59,9 +58,7 @@ def run_audit(html: Path, *extra: str) -> subprocess.CompletedProcess:
 
 
 def copy_template(tmp_path: Path, name: str = "journey.html") -> Path:
-    shared_dir = tmp_path / "shared"
-    shared_dir.mkdir(exist_ok=True)
-    shutil.copy2(TEMPLATE.parent / "shared" / "canvas-theme.css", shared_dir / "canvas-theme.css")
+    # 方案 A（2026-08-09）：模板已内联共享主题，单文件自包含，不再随附 shared/ 目录
     out = tmp_path / name
     out.write_text(TEMPLATE.read_text(encoding="utf-8"), encoding="utf-8")
     return out
@@ -81,8 +78,9 @@ def replace_canvas_data(html: Path, data: dict) -> None:
 
 def add_instance_attr(html: Path, slug: str = "default") -> None:
     text = html.read_text(encoding="utf-8")
+    # 仅替换真实的 <body> 标签（行首），避免命中内联 CSS 注释里的 `<body data-theme="base">` 字样
     if "data-instance=" not in text:
-        text = text.replace("<body ", f'<body data-instance="{slug}" ', 1)
+        text = re.sub(r"^<body\b", f'<body data-instance="{slug}"', text, count=1, flags=re.MULTILINE)
     html.write_text(text, encoding="utf-8")
 
 
@@ -423,10 +421,12 @@ class TestJourneyTemplateGate:
         assert "JOURNEY-TPL-GATE-06" in result.stdout or "HIDDEN_SECTION" in result.stdout
 
     def test_template_self_audit_fails_on_external_dependency(self, tmp_path: Path) -> None:
+        """模板含外部网络依赖（外部 URL href）时，模板自审计 FAIL（方案 A）。"""
         broken = tmp_path / "broken-template.html"
         text = TEMPLATE.read_text(encoding="utf-8").replace(
-            '<link rel="stylesheet" href="shared/canvas-theme.css">',
-            '<link rel="stylesheet" href="https://example.com/canvas-theme.css">',
+            "</head>",
+            '<link rel="stylesheet" href="https://example.com/canvas-theme.css"></head>',
+            1,
         )
         broken.write_text(text, encoding="utf-8")
         result = subprocess.run(

@@ -15,7 +15,7 @@
 4. idea 1–8 为占位（data-state="placeholder"）时 PASS；锚点直接缺失时 FAIL。
 5. 质量/对齐/治理模块以任一隐藏方式藏起来时 FAIL。
 6. 删除质量模块 / 交换一级顺序时 FAIL。
-7. 模板副本缺共享主题资源时 FAIL。
+7. 模板副本缺失内联主题 token 时 FAIL（方案 A：主题已内联，不再依赖外链 shared/）。
 8. 修改业务文案/版本值不造成 Template Gate 误报。
 9. 模板自身缺锚点或含外部依赖时，模板自审计 FAIL。
 10. HMW 正式交付缺 --template 时 FAIL（HMW-TPL-GATE-00）。
@@ -25,7 +25,6 @@
 from __future__ import annotations
 
 import re
-import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -52,14 +51,11 @@ def run_audit(html: Path, *extra: str) -> subprocess.CompletedProcess:
 
 
 def copy_template(tmp_path: Path, name: str = "canvas.html") -> Path:
-    """复制模板及其共享主题到 tmp_path，返回复制后的 HTML 路径。
+    """复制模板到 tmp_path，返回复制后的 HTML 路径。
 
-    共享主题随附复制，使 Template Gate 能解析 `shared/canvas-theme.css`，
-    从而对"结构变更"做精确断言，而不是被主题缺失误伤。
+    方案 A（2026-08-09）：模板已内联共享主题，单文件自包含，不再随附 shared/ 目录；
+    Template Gate 对"结构变更"做精确断言，不被主题缺失误伤。
     """
-    shared_dir = tmp_path / "shared"
-    shared_dir.mkdir(exist_ok=True)
-    shutil.copy2(TEMPLATE.parent / "shared" / "canvas-theme.css", shared_dir / "canvas-theme.css")
     out = tmp_path / name
     out.write_text(TEMPLATE.read_text(encoding="utf-8"), encoding="utf-8")
     return out
@@ -180,11 +176,20 @@ class TestHiddenModules:
         assert result.returncode != 0
         assert "HMW-TPL-GATE-06" in result.stdout
 
-    def test_13c_missing_shared_theme_fails_template_gate(self, tmp_path: Path) -> None:
-        """模板副本缺共享主题资源时必须拒绝交付。"""
-        out = tmp_path / "no-shared.html"
-        out.write_text(TEMPLATE.read_text(encoding="utf-8"), encoding="utf-8")
-        # 不复制 shared/，让 `shared/canvas-theme.css` 无法解析
+    def test_13c_missing_inline_theme_fails_template_gate(self, tmp_path: Path) -> None:
+        """模板缺失内联主题（既无 <link> 外链也无内联主题 token）时必须拒绝交付。
+
+        方案 A（2026-08-09）：示例模板已从 `<link rel="stylesheet" href="shared/canvas-theme.css">`
+        外链改为内联 `<style>`，单文件自包含。因此共享主题检查改为验证"内联主题 token"：
+        移除 `--brand` token 后 `theme_inlined` 判定为 False，应触发 TPL-GATE-06。
+        """
+        out = copy_template(tmp_path, "no-inline-theme.html")
+        text = out.read_text(encoding="utf-8")
+        # 移除全部主色 token（模板内共享主题与 override 各有一个 --brand:），
+        # 使内联主题判定失效（无 --brand:）
+        assert "--brand:" in text
+        text = text.replace("--brand:", "--brandX:")
+        out.write_text(text, encoding="utf-8")
         result = run_audit(out)
         assert result.returncode != 0
         assert "HMW-TPL-GATE-06" in result.stdout

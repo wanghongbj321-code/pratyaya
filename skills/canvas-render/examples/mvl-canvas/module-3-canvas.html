@@ -4,7 +4,142 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>M3 Canvas · 闭环蓝图（一等公民 · 示例）</title>
-<link rel="stylesheet" href="../shared/canvas-theme.css">
+<style>
+/* ============================================================
+   Pratyaya 工作坊画布 · 共享主题层
+   标准 pratyaya 黑灰配色（black-gray-professional，单色方案）
+   通过 body[data-theme="base"] 选择器声明；不提供配色切换（CSS 已内联进各画布 HTML，单文件自包含）
+   ============================================================ */
+
+/* ---------- 标准黑灰主题（1:1 还原 pratyaya 黑灰母版） ---------- */
+:root,
+[data-theme="base"] {
+  --brand: #000000;
+  --brand-dark: #000000;
+  --brand-soft: #FFFFFF;
+  --brand-pale: #F2F2F2;
+  --accent: #000000;
+  --ink: #000000;
+  --muted: #8A8A8A;
+  --line: #000000;
+  --paper: #FFFFFF;
+  --page-bg: #FFFFFF;
+  --stripe: #F2F2F2;
+  --title-color: #000000;
+  --hint-color: #A5A5A5;
+  --head-bg: transparent;
+  --head-fg: #000000;
+  --radius: 10px;
+  --border-w: 1.6px;
+  --font: "Helvetica Neue", Arial, "Microsoft YaHei", "PingFang SC", sans-serif;
+  --shadow: none;
+  --fill-line: #E3E3E3;
+}
+
+/* ---------- 基础版式 ---------- */
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--page-bg);
+  color: var(--ink);
+  font-family: var(--font);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wwrap, .wrap { max-width: 1400px; margin: 0 auto; padding: 26px 24px 44px; }
+
+/* 页头 */
+.canvas-head {
+  display: flex; justify-content: space-between; align-items: flex-end;
+  gap: 24px; margin-bottom: 18px; padding-bottom: 14px;
+  border-bottom: 2px solid var(--brand);
+}
+.canvas-head .eyebrow {
+  font-size: 10px; font-weight: 700; letter-spacing: .2em;
+  color: var(--muted); text-transform: uppercase; margin-bottom: 6px;
+}
+.canvas-head h1 {
+  margin: 0; font-size: clamp(22px, 2.6vw, 34px); font-weight: 700;
+  color: var(--title-color); line-height: 1.2; letter-spacing: -.01em;
+}
+.canvas-head .sub { margin: 6px 0 0; font-size: 13px; color: var(--muted); max-width: 760px; }
+.canvas-head .meta { text-align: right; font-size: 11px; color: var(--muted); line-height: 1.7; white-space: nowrap; }
+.canvas-head .meta strong { display: block; font-size: 12px; color: var(--title-color); }
+
+/* 画布外框 */
+.canvas {
+  background: var(--paper);
+  border: var(--border-w) solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+/* 区块通用 */
+.cell-title {
+  display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
+  margin: 0 0 4px; font-size: 15px; font-weight: 700; color: var(--ink);
+}
+.cell-title .en { font-size: 14px; font-weight: 700; color: var(--ink); }
+.cell-hint { margin: 0 0 10px; font-size: 10.5px; color: var(--hint-color); line-height: 1.5; }
+
+/* 可填写区：横线纸效果 */
+.fill {
+  min-height: 120px; padding: 2px 0; outline: none; font-size: 13px;
+  line-height: 26px;
+  background-image: repeating-linear-gradient(
+    to bottom, transparent 0, transparent 25px, var(--fill-line) 25px, var(--fill-line) 26px);
+}
+.fill:focus { background-color: var(--brand-pale); }
+.fill:empty::before { content: attr(data-ph); color: var(--hint-color); font-size: 12px; }
+
+/* 下划线填空 */
+.blank {
+  display: inline-block; min-width: 90px; border-bottom: 1px solid var(--ink);
+  outline: none; padding: 0 4px; font-size: 13px; line-height: 1.7;
+}
+.blank:focus { background: var(--brand-pale); }
+.blank:empty::before { content: "\00a0"; }
+
+/* 质量鉴别结论色（黑灰体系内区分，不引入彩色） */
+.verdict-pass { color: #000; font-weight: 700; }
+.verdict-fail { color: #000; font-weight: 700; text-decoration: underline; }
+.verdict-pending { color: var(--muted); font-weight: 700; }
+
+/* 治理面板 override 警示（黑灰体系：虚线 + 灰底，不引入红） */
+.govern .caveat {
+  margin-top: 12px; padding: 10px 12px; border: 1.5px dashed #000; border-radius: var(--radius);
+  font-size: 12px; color: #000; background: var(--brand-pale);
+}
+
+/* 脚注 */
+.footnote {
+  margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line);
+  font-size: 10px; color: var(--muted); line-height: 1.7;
+}
+.footnote b { color: var(--title-color); }
+
+/* 响应式 */
+@media (max-width: 980px) {
+  .canvas-head { flex-direction: column; align-items: flex-start; }
+  .canvas-head .meta { text-align: left; }
+}
+@media (max-width: 720px) {
+  .wrap { padding: 16px 12px 32px; }
+}
+
+/* 打印：A4 横版 */
+@page { size: A4 landscape; margin: 8mm; }
+@media print {
+  body { background: #fff; }
+  .wrap { padding: 0; max-width: none; }
+  .canvas { box-shadow: none; break-inside: avoid; }
+  .fill { min-height: 90px; }
+}
+
+</style>
 <style>
   .wrap{ max-width:1600px; padding:24px; }
 

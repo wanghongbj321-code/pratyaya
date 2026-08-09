@@ -206,7 +206,7 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 非 MVL: {
 本 Skill 不选择模式，只实现主 Agent 传入的已选路径。
 
 1. 读取模式 frontmatter 和六节正文。
-2. 按"色板 token / 字体 / 网格 / 组件库"实现内联 CSS 与组件。
+2. 按"色板 token / 字体 / 网格 / 组件库"实现内联 CSS 与组件。**主题 CSS 必须内联进成品 HTML，禁止依赖本地相对路径外链 CSS（如 `<link rel="stylesheet" href="shared/canvas-theme.css">`），确保单文件自包含、可独立传播（方案 A，2026-08-09）。**
 3. 用"适用场景"校准信息层级，用"反例"检查禁用混搭和错误实现。
 4. 按 `render-contract.md` 把确认包 section 映射到稳定 HTML 锚点。
 5. 模式未单独描述的业务 section 仍必须补齐，但只复用同一模式的 token 和组件语法。

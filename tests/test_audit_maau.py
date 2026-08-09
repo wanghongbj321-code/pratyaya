@@ -48,7 +48,7 @@ def run_audit(html: Path, *extra: str) -> subprocess.CompletedProcess:
 
 
 def copy_html(tmp_path: Path, name: str = "canvas.html") -> Path:
-    """复制 MAAU HTML fixture 到 tmp_path（不含共享主题，离线检查会随缺共享报但内容审计仍走）。"""
+    """复制 MAAU HTML fixture 到 tmp_path（方案 A：fixture 已内联共享主题，单文件自包含）。"""
     out = tmp_path / name
     out.write_text(MAAU_HTML.read_text(encoding="utf-8"), encoding="utf-8")
     return out
