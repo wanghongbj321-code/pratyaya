@@ -130,15 +130,6 @@ body {
   .wrap { padding: 16px 12px 32px; }
 }
 
-/* 打印：A4 横版 */
-@page { size: A4 landscape; margin: 8mm; }
-@media print {
-  body { background: #fff; }
-  .wrap { padding: 0; max-width: none; }
-  .canvas { box-shadow: none; break-inside: avoid; }
-  .fill { min-height: 90px; }
-}
-
 </style>
 <style>
   /* 黄金圈 3 圈 hero 图示 */
@@ -219,7 +210,6 @@ body {
   .local-notes:empty::before{ content:"本地备注（浏览器内可编辑，刷新即清空）…"; color:var(--hint-color); }
 
   @media(max-width:1100px){ .gc-layers{ grid-template-columns:1fr; } .lower{ grid-template-columns:1fr; } .align-2{ grid-template-columns:1fr; } }
-  @media print{ .gc-layers{ gap:8px; } .layer{ min-height:auto; } .align-2{ gap:8px; } .lower{ gap:8px; } }
 </style>
 </head>
 <body data-theme="base" data-mode="formal" data-canvas="golden-circle" data-page-type="golden-circle" data-visual-mode="black-gray-professional" data-version="1">
@@ -406,7 +396,7 @@ body {
   "page_type": "golden-circle",
   "visual_mode": {
     "id": "black-gray-professional",
-    "zh_name": "黑灰专业·打印版",
+    "zh_name": "黑灰专业",
     "visual_system": "Black Gray Professional"
   },
   "version": "1",

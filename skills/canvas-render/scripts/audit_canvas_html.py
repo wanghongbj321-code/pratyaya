@@ -756,12 +756,10 @@ def audit_template_gate(
             Finding(f"{gate_prefix}-TPL-GATE-05", f"quality-panel 缺插槽: {', '.join(govern_missing)}")
         )
 
-    # {gate_prefix}-TPL-GATE-06: 共享主题/窄屏/@media print 钩子 + 无外部依赖
+    # {gate_prefix}-TPL-GATE-06: 共享主题/窄屏 + 无外部依赖
     # 方案 A（2026-08-09）：主题必须自包含——内联 <style>（含 [data-theme] 与主色 token）或
     # 指向本地已存在文件的 <link> 均视为合法；但**正式产物禁止依赖本地相对路径外链 CSS**，
     # 否则单独传播 HTML 时样式丢失。外部网络依赖恒为 FAIL。
-    if "@media print" not in source.lower():
-        findings.append(Finding(f"{gate_prefix}-TPL-GATE-06", "缺少 @media print 钩子"))
     if html.external_urls:
         findings.append(
             Finding(f"{gate_prefix}-TPL-GATE-06", f"存在外部网络依赖: {', '.join(html.external_urls)}")
@@ -983,8 +981,6 @@ def audit_journey_template_gate(
             Finding("JOURNEY-TPL-GATE-05", f"quality-panel 缺插槽: {', '.join(govern_missing)}")
         )
 
-    if "@media print" not in source.lower():
-        findings.append(Finding("JOURNEY-TPL-GATE-06", "缺少 @media print 钩子"))
     if html.external_urls:
         findings.append(
             Finding("JOURNEY-TPL-GATE-06", f"存在外部网络依赖: {', '.join(html.external_urls)}")
@@ -1504,7 +1500,6 @@ def audit(
                 )
             )
 
-    lowered = source.lower()
     if "iframe" in html.tags:
         findings.append(Finding("OFFLINE", "iframe is forbidden"))
     if re.search(r"\bfetch\s*\(", source, re.IGNORECASE):
@@ -1524,8 +1519,6 @@ def audit(
     for href in local_css_hrefs:
         if not href.startswith(("http://", "https://", "//")):
             findings.append(Finding("OFFLINE", f"本地相对路径外链 CSS 禁止: {href}（应内联）"))
-    if "@media print" not in lowered:
-        findings.append(Finding("PRINT", "missing @media print rule"))
 
     # Caveat checks (for MVL module-detail / GC / HMW single-canvas pages)
     if is_gc:

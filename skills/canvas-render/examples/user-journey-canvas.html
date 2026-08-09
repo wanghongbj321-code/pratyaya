@@ -130,15 +130,6 @@ body {
   .wrap { padding: 16px 12px 32px; }
 }
 
-/* 打印：A4 横版 */
-@page { size: A4 landscape; margin: 8mm; }
-@media print {
-  body { background: #fff; }
-  .wrap { padding: 0; max-width: none; }
-  .canvas { box-shadow: none; break-inside: avoid; }
-  .fill { min-height: 90px; }
-}
-
 </style>
 <style>
   .journey-map{
@@ -188,12 +179,6 @@ body {
   @media(max-width:720px){
     .quality-grid{ grid-template-columns:1fr; }
     .stage-grid{ min-width:760px; grid-template-columns:130px repeat(3,minmax(210px,1fr)); }
-  }
-  @media print{
-    @page{ size:landscape; margin:12mm; }
-    .stage-scroll{ overflow:visible; }
-    .stage-grid{ min-width:0; }
-    .local-notes{ border-style:solid; }
   }
 </style>
 </head>
@@ -310,7 +295,7 @@ body {
   "page_type": "journey",
   "visual_mode": {
     "id": "black-gray-professional",
-    "zh_name": "黑灰专业·打印版",
+    "zh_name": "黑灰专业",
     "visual_system": "Black Gray Professional"
   },
   "version": "1",

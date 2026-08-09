@@ -176,7 +176,7 @@
 - 模块详情页面**没有空白板块**。只显示该模块专属的 section。
 - 每个 section 的 ID 以模块前缀开头（`m1-`、`m2-`…`m6-`），避免与全局页面的 ID 冲突。
 - `#module-outputs` 内各模块专属稳定锚点的 DOM 相对顺序，必须与本节对应模块映射表的行顺序一致。
-- 桌面、窄屏和打印版的视觉阅读顺序必须与该 DOM 顺序一致；不得通过 CSS `order`、与 DOM 冲突的显式网格定位或 JavaScript 排序将两者解耦。
+- 桌面和窄屏版的视觉阅读顺序必须与该 DOM 顺序一致；不得通过 CSS `order`、与 DOM 冲突的显式网格定位或 JavaScript 排序将两者解耦。
 - 顺序约束只依赖 `#module-outputs` 与稳定锚点；不要求固定 HTML 标签、编号 class、连续兄弟节点或一致卡片宽度。
 - 已讨论的字段正常展示内容；未讨论的字段显示"未讨论"并标为缺口。
 - 质量面板（quality-panel）的锚点 ID 统一使用 `quality-*` 前缀，两种页面共享。
@@ -242,7 +242,7 @@
 - override 理由、确认人、确认时间、补救措施
 - 每项的 Gate 项 ID、来源 ID、影响、风险等级
 
-打印版必须保留以上 caveat 内容；不得因 `@media print` 隐藏。
+caveat 内容在任何视图下都必须保留，不得隐藏。
 
 ## 本地离线约束
 
@@ -285,10 +285,8 @@ MAAU transcript-direct 实例页是**单源一次性综合**，没有 M1-M6 模�
 - **冲突规则**：同一 group 的 MAAU 输出只能二选一——transcript-direct 实例页（可配可选索引）或 M1-M6 Phase 2 全局页。不得把两者同时作为正式输出，也不得把 transcript-direct 实例混入 M1-M6 Phase 2 全局页的六模块下钻。
 - 索引页为派生视图，不写任一 instance 的 `output_file`；生成后运行对应 audit 的 `--index` 检查。
 
-## 打印与管理层阅读
+## 管理层阅读
 
-- `@media print` 隐藏编辑控件，保留版本、确认、风险状态、结论和 override caveat。
-- 结论与关键指标优先，证据细节折叠但可打印附录。
 - 正常确认的模块（`confirmation_mode=gate_pass`）不显示 caveat 标识。
 - override 模块（`confirmation_mode=override`）必须保留 caveat 标识与风险详情。
 - 全局 Canvas 管理层摘要分开呈现：无保留确认结论 / 带保留意见的结论 / 未验证假设 / 关键风险 / 补救动作（Owner + 日期）。
@@ -297,7 +295,7 @@ MAAU transcript-direct 实例页是**单源一次性综合**，没有 M1-M6 模�
 
 交付采用两阶段校验：
 
-1. **Python 静态审计**：运行 `skills/canvas-render/scripts/audit_canvas_html.py`，检查页面/版本元数据、契约结构、稳定锚点存在性与顺序、`canvas-data`、授权一致性、离线安全、打印规则及 caveat 必需结构。模块锚点顺序由脚本直接读取本契约的 M1–M6 映射表，不维护第二份清单。
-2. **精简浏览器视觉验收**：只检查 Python 无法可靠判断的桌面、窄屏和打印实际布局，包括阅读顺序、溢出、遮挡、堆叠、分页、caveat 可见性与选定视觉模式的呈现结果。
+1. **Python 静态审计**：运行 `skills/canvas-render/scripts/audit_canvas_html.py`，检查页面/版本元数据、契约结构、稳定锚点存在性与顺序、`canvas-data`、授权一致性、离线安全及 caveat 必需结构。模块锚点顺序由脚本直接读取本契约的 M1–M6 映射表，不维护第二份清单。
+2. **精简浏览器视觉验收**：只检查 Python 无法可靠判断的桌面、窄屏实际布局，包括阅读顺序、溢出、遮挡、堆叠、caveat 可见性与选定视觉模式的呈现结果。
 
 Python 审计或浏览器视觉验收任一失败均阻断交付；二者全部通过后才可把模块标记为 `rendered`。浏览器验收不重复检查锚点、JSON、授权字段或离线字符串。

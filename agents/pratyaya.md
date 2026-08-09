@@ -462,7 +462,7 @@ draft → gaps_open ↔ review_ready → confirmed → rendered
 
 与 MVL 步骤 7 流程一致：
 - 扫描 10 个视觉模式，推荐 1-2 个（以 zh_name 展示）。
-- 默认推荐 `10-black-gray-professional`（黑灰专业·打印版）。
+- 默认推荐 `10-black-gray-professional`（黑灰专业）。
 - 用户选定后调用 `canvas-render`，传递 `canvas_type=golden-circle`。
 - 生成 `output/gc-canvas-{slug}.html`。
 - 运行 `python3 skills/canvas-render/scripts/audit_canvas_html.py output/gc-canvas-{slug}.html --source modules/GC-{slug}-v{N}.md --state state.json --type gc --instance {slug}`。
@@ -514,7 +514,7 @@ GC instance 输出 `gc-canvas-{slug}.html` 即完成；需要汇总时再生成 
 
 与 MVL 步骤 7 流程一致：
 - 扫描 10 个视觉模式，推荐 1-2 个（以 zh_name 展示）。
-- 默认推荐 `10-black-gray-professional`（黑灰专业·打印版）。
+- 默认推荐 `10-black-gray-professional`（黑灰专业）。
 - 用户选定后调用 `canvas-render`，传递 `canvas_type=hmw`。
 - 生成 `output/hmw-canvas-{slug}.html`。
 - 运行 `python3 skills/canvas-render/scripts/audit_canvas_html.py output/hmw-canvas-{slug}.html --source modules/HMW-{slug}-v{N}.md --state state.json --type hmw --instance {slug} --template skills/canvas-render/examples/hmw-canvas.html`。
@@ -578,7 +578,7 @@ HMW instance 输出 `hmw-canvas-{slug}.html` 即完成；需要汇总时再生�
 与 MVL 步骤 7 流程一致：
 
 - 扫描 10 个视觉模式，推荐 1-2 个（以 zh_name 展示）。
-- 默认推荐 `10-black-gray-professional`（黑灰专业·打印版），但仍必须等待用户明确选择，不自动使用默认模式。
+- 默认推荐 `10-black-gray-professional`（黑灰专业），但仍必须等待用户明确选择，不自动使用默认模式。
 - 用户选定后调用 `canvas-render`，传递 `canvas_type=journey`。
 - 正式数据源固定为同版本 `modules/JOURNEY-{slug}-v{N}.md`。
 - 输出固定为 `output/journey-canvas-{slug}.html`。

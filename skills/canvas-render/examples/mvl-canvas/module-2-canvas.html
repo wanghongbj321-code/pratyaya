@@ -130,15 +130,6 @@ body {
   .wrap { padding: 16px 12px 32px; }
 }
 
-/* 打印：A4 横版 */
-@page { size: A4 landscape; margin: 8mm; }
-@media print {
-  body { background: #fff; }
-  .wrap { padding: 0; max-width: none; }
-  .canvas { box-shadow: none; break-inside: avoid; }
-  .fill { min-height: 90px; }
-}
-
 </style>
 <style>
   .wrap{ max-width:1600px; padding:24px; }
@@ -328,18 +319,6 @@ body {
     .m2-footer{ align-items:flex-start; flex-direction:column; }
     .m2-footer-note{ text-align:left; white-space:normal; }
   }
-  @media print{
-    .wrap{ padding:0; max-width:none; }
-    .m2-sheet{ break-inside:avoid; padding:8px; }
-    .m2-hero{ gap:14px; padding-bottom:8px; }
-    .m2-hero h1{ font-size:34px; }
-    .m2-card{ min-height:150px; padding:8px; }
-    .m2-card-title{ font-size:13px; }
-    .m2-index{ width:20px; height:20px; border-radius:5px; }
-    .m2-workflow-band, .m2-requirements-band{ min-height:130px; }
-    .m2-governance, .m2-footer, .m2-card-hint, .section-desc, .m2-band-hint{ font-size:9px; }
-    .local-notes{ display:none; }
-  }
 </style>
 </head>
 <body data-theme="base" data-mode="formal" data-canvas="mvl" data-page-type="module-detail" data-module="M2" data-visual-mode="black-gray-professional" data-version="1">
@@ -521,7 +500,7 @@ body {
   "module": "M2",
   "visual_mode": {
     "id": "black-gray-professional",
-    "zh_name": "黑灰专业·打印版",
+    "zh_name": "黑灰专业",
     "visual_system": "Black Gray Professional"
   },
   "version": "1",
