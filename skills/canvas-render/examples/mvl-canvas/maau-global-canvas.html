@@ -130,15 +130,6 @@ body {
   .wrap { padding: 16px 12px 32px; }
 }
 
-/* 打印：A4 横版 */
-@page { size: A4 landscape; margin: 8mm; }
-@media print {
-  body { background: #fff; }
-  .wrap { padding: 0; max-width: none; }
-  .canvas { box-shadow: none; break-inside: avoid; }
-  .fill { min-height: 90px; }
-}
-
 </style>
 <style>
   .wrap{ max-width:1600px; padding:24px; }
@@ -295,26 +286,6 @@ body {
     #context .maau-fields{ grid-template-columns:1fr; }
     .maau-footer{ align-items:flex-start; flex-direction:column; }
     .maau-footer-note{ text-align:left; white-space:normal; }
-  }
-  @media print{
-    .wrap{ padding:0; max-width:none; }
-    .maau-sheet{ break-inside:avoid; padding:8px; }
-    .maau-header{ gap:14px; padding-bottom:8px; }
-    .maau-title-row h1{ font-size:38px; }
-    .maau-subtitle strong{ font-size:17px; }
-    .maau-subtitle span{ font-size:15px; }
-    .maau-desc{ font-size:11px; margin-top:7px; }
-    .maau-card{ min-height:320px; padding:7px; }
-    .maau-prompt{ min-height:72px; padding:7px; font-size:9.5px; }
-    .maau-card-title{ font-size:13px; }
-    .maau-index{ width:21px; height:21px; border-radius:6px; }
-    .maau-field .field-label,
-    .maau-output,
-    .maau-source,
-    .maau-governance,
-    .maau-footer{ font-size:9px; }
-    .validation-box{ min-height:150px; padding:7px; }
-    .local-notes{ display:none; }
   }
 </style>
 </head>
@@ -530,7 +501,7 @@ body {
   "page_type": "global",
   "visual_mode": {
     "id": "black-gray-professional",
-    "zh_name": "黑灰专业·打印版",
+    "zh_name": "黑灰专业",
     "visual_system": "Black Gray Professional"
   },
   "version": "1",

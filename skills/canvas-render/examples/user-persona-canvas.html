@@ -130,15 +130,6 @@ body {
   .wrap { padding: 16px 12px 32px; }
 }
 
-/* 打印：A4 横版 */
-@page { size: A4 landscape; margin: 8mm; }
-@media print {
-  body { background: #fff; }
-  .wrap { padding: 0; max-width: none; }
-  .canvas { box-shadow: none; break-inside: avoid; }
-  .fill { min-height: 90px; }
-}
-
 </style>
 <style>
   /* 顶部基本信息条 */
@@ -203,7 +194,6 @@ body {
 
   @media(max-width:1100px){ .grid6{ grid-template-columns:repeat(2,1fr); } .lower{ grid-template-columns:1fr; } }
   @media(max-width:720px){ .grid6{ grid-template-columns:1fr; } .basic-bar{ flex-direction:column; align-items:flex-start; } }
-  @media print{ .grid6{ gap:8px; } .cell{ min-height:150px; } .lower{ gap:8px; } }
 </style>
 </head>
 <body data-theme="base" data-canvas="persona" data-page-type="persona" data-visual-mode="black-gray-professional" data-version="1">
@@ -346,7 +336,7 @@ body {
   "page_type": "persona",
   "visual_mode": {
     "id": "black-gray-professional",
-    "zh_name": "黑灰专业·打印版",
+    "zh_name": "黑灰专业",
     "visual_system": "Black Gray Professional"
   },
   "version": "1",

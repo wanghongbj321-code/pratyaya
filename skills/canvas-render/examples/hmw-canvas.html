@@ -130,15 +130,6 @@ body {
   .wrap { padding: 16px 12px 32px; }
 }
 
-/* 打印：A4 横版 */
-@page { size: A4 landscape; margin: 8mm; }
-@media print {
-  body { background: #fff; }
-  .wrap { padding: 0; max-width: none; }
-  .canvas { box-shadow: none; break-inside: avoid; }
-  .fill { min-height: 90px; }
-}
-
 </style>
 <style>
   /* ============================================================
@@ -286,7 +277,6 @@ body {
 
   @media(max-width:1100px){ .q-grid{ grid-template-columns:repeat(2,1fr); } .idea-grid{ grid-template-columns:repeat(2,1fr); } }
   @media(max-width:720px){ .q-grid{ grid-template-columns:1fr; } .idea-grid{ grid-template-columns:1fr; } }
-  @media print{ .idea-grid{ gap:8px; } .idea{ min-height:86px; } .q-grid{ gap:8px; } }
 </style>
 </head>
 <body data-theme="base" data-canvas="hmw" data-page-type="hmw" data-visual-mode="bain-red-action" data-version="1">

@@ -1,6 +1,6 @@
 ---
 id: black-gray-professional
-zh_name: 黑灰专业·打印版
+zh_name: 黑灰专业
 visual_system: Black Gray Professional
 layout: balanced
 formality: high

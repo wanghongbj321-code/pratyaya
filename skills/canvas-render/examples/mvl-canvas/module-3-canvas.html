@@ -130,15 +130,6 @@ body {
   .wrap { padding: 16px 12px 32px; }
 }
 
-/* 打印：A4 横版 */
-@page { size: A4 landscape; margin: 8mm; }
-@media print {
-  body { background: #fff; }
-  .wrap { padding: 0; max-width: none; }
-  .canvas { box-shadow: none; break-inside: avoid; }
-  .fill { min-height: 90px; }
-}
-
 </style>
 <style>
   .wrap{ max-width:1600px; padding:24px; }
@@ -323,19 +314,6 @@ body {
     .governance-row, .governance-alignment{ grid-template-columns:1fr; }
     .m3-footer{ align-items:flex-start; flex-direction:column; }
     .m3-footer-note{ text-align:left; white-space:normal; }
-  }
-  @media print{
-    .wrap{ padding:0; max-width:none; }
-    .m3-sheet{ break-inside:avoid; padding:8px; }
-    .m3-hero{ gap:14px; padding-bottom:8px; }
-    .m3-hero h1{ font-size:34px; }
-    .m3-definition{ min-height:150px; padding:8px; }
-    .m3-card-title{ font-size:13px; }
-    .m3-index{ width:20px; height:20px; border-radius:5px; }
-    .m3-workflow-draft{ min-height:180px; }
-    .m3-resolution{ min-height:130px; }
-    .m3-governance, .m3-footer, .m3-card-hint, .section-desc, .m3-band-hint{ font-size:9px; }
-    .local-notes{ display:none; }
   }
 </style>
 </head>
@@ -533,7 +511,7 @@ body {
   "module": "M3",
   "visual_mode": {
     "id": "black-gray-professional",
-    "zh_name": "黑灰专业·打印版",
+    "zh_name": "黑灰专业",
     "visual_system": "Black Gray Professional"
   },
   "version": "1",

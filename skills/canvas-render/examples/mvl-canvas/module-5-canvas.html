@@ -130,15 +130,6 @@ body {
   .wrap { padding: 16px 12px 32px; }
 }
 
-/* 打印：A4 横版 */
-@page { size: A4 landscape; margin: 8mm; }
-@media print {
-  body { background: #fff; }
-  .wrap { padding: 0; max-width: none; }
-  .canvas { box-shadow: none; break-inside: avoid; }
-  .fill { min-height: 90px; }
-}
-
 </style>
 <style>
   .wrap{ max-width:1600px; padding:24px; }
@@ -338,18 +329,6 @@ body {
     .governance-row, .governance-alignment{ grid-template-columns:1fr; }
     .m5-footer{ align-items:flex-start; flex-direction:column; }
     .m5-footer-note{ text-align:left; white-space:normal; }
-  }
-  @media print{
-    .wrap{ padding:0; max-width:none; }
-    .m5-sheet{ break-inside:avoid; padding:8px; }
-    .m5-hero{ gap:14px; padding-bottom:8px; }
-    .m5-hero h1{ font-size:34px; }
-    .m5-verdict{ min-height:150px; padding:8px; }
-    .m5-card-title{ font-size:13px; }
-    .m5-index{ width:20px; height:20px; border-radius:5px; }
-    .m5-validation-timeline{ min-height:180px; }
-    .m5-governance, .m5-footer, .m5-card-hint, .section-desc, .m5-band-hint{ font-size:9px; }
-    .local-notes{ display:none; }
   }
 </style>
 </head>
@@ -557,7 +536,7 @@ body {
   "module": "M5",
   "visual_mode": {
     "id": "black-gray-professional",
-    "zh_name": "黑灰专业·打印版",
+    "zh_name": "黑灰专业",
     "visual_system": "Black Gray Professional"
   },
   "version": "1",

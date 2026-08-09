@@ -171,7 +171,7 @@ canvas-header
 | `PERSONA-TPL-GATE-03` | 一级模块顺序符合本契约 §4 |
 | `PERSONA-TPL-GATE-04` | 9 基本信息、6 宫格、4 质量锚点完整 |
 | `PERSONA-TPL-GATE-05` | `quality-panel` 治理插槽完整 |
-| `PERSONA-TPL-GATE-06` | 离线共享主题（正式产物须内联，禁止依赖本地相对路径外链 CSS）、窄屏、打印与关键模块可见 |
+| `PERSONA-TPL-GATE-06` | 离线共享主题（正式产物须内联，禁止依赖本地相对路径外链 CSS）、窄屏与关键模块可见 |
 
 以上规则不可 override。
 
@@ -202,11 +202,7 @@ canvas-header
 
 ---
 
-## 10. 打印与管理层阅读
 
-- `@media print` 隐藏编辑控件
-- 保留版本、确认、风险状态、结论与 override caveat
-- override 画布必须保留 caveat 标识
 
 ---
 

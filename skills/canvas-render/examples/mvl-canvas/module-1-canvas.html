@@ -130,15 +130,6 @@ body {
   .wrap { padding: 16px 12px 32px; }
 }
 
-/* 打印：A4 横版 */
-@page { size: A4 landscape; margin: 8mm; }
-@media print {
-  body { background: #fff; }
-  .wrap { padding: 0; max-width: none; }
-  .canvas { box-shadow: none; break-inside: avoid; }
-  .fill { min-height: 90px; }
-}
-
 </style>
 <style>
   .wrap{ max-width:1600px; padding:24px; }
@@ -312,18 +303,6 @@ body {
     .m1-footer{ align-items:flex-start; flex-direction:column; }
     .m1-footer-note{ text-align:left; white-space:normal; }
   }
-  @media print{
-    .wrap{ padding:0; max-width:none; }
-    .m1-sheet{ break-inside:avoid; padding:8px; }
-    .m1-hero{ gap:14px; padding-bottom:8px; }
-    .m1-hero h1{ font-size:34px; }
-    .m1-card{ min-height:150px; padding:8px; }
-    .m1-card-title{ font-size:13px; }
-    .m1-index{ width:20px; height:20px; border-radius:5px; }
-    .m1-governance, .m1-footer, .m1-card-hint, .section-desc{ font-size:9px; }
-    .gaps-pair .fill{ min-height:20px; }
-    .local-notes{ display:none; }
-  }
 </style>
 </head>
 <body data-theme="base" data-mode="formal" data-canvas="mvl" data-page-type="module-detail" data-module="M1" data-visual-mode="black-gray-professional" data-version="1">
@@ -496,7 +475,7 @@ body {
   "module": "M1",
   "visual_mode": {
     "id": "black-gray-professional",
-    "zh_name": "黑灰专业·打印版",
+    "zh_name": "黑灰专业",
     "visual_system": "Black Gray Professional"
   },
   "version": "1",

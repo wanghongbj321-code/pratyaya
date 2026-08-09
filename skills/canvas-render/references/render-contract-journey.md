@@ -156,12 +156,6 @@ action → touchpoint-system → emotion → pain-point → opportunity
 - `body[data-instance]`、`canvas-data.instance`、确认包文件名 `{slug}` 与 `state.json.journey.{slug}.slug` 必须一致。
 - `canvas-data.quality` 必须包含 4 个质量维度：`user_perspective` / `business_outcome` / `pain_opportunity_visible` / `no_solution_bias`。
 
-## 打印与管理层阅读
-
-- `@media print` 隐藏编辑控件，保留版本、确认、风险状态、阶段地图、质量鉴别、痛点与机会摘要和 override caveat。
-- 阶段地图在打印版保留 5 行结构，不得改写为七要素列表。
-- override 画布必须保留 caveat 标识与风险详情。
-
 ## 模板结构 Profile（Template Gate 判定依据）
 
 Template Gate（`audit_canvas_html.py --template skills/canvas-render/examples/user-journey-canvas.html --type journey --instance {slug}`）以本 profile 为判定依据，比较成品与模板的一级模块、稳定锚点、动态阶段锚点规则与相对 DOM 顺序。**不比较**占位文本、业务文案、动态版本值或 CSS 逐字符内容。
@@ -186,7 +180,7 @@ canvas-header
 - 质量 4 维度：`journey-quality-user-perspective` / `journey-quality-business-outcome` / `journey-quality-pain-opportunity-visible` / `journey-quality-no-solution-bias`（`JOURNEY-TPL-GATE-04`）
 - 治理面板：`quality-panel` 含 `quality-version` / `quality-approval` / `quality-gaps` / `quality-risks` / `quality-caveat` 插槽（`JOURNEY-TPL-GATE-05`）
 - 批注与数据：`local-notes`、`canvas-data`（`JOURNEY-TPL-GATE-02`）
-- 共享主题（**内联 `<style>` 或本地 `<link>` 均可，正式产物须内联、禁止依赖本地相对路径外链 CSS**）/ 横向滚动 / 窄屏布局 / `@media print` 钩子存在，无外部网络依赖（`JOURNEY-TPL-GATE-06`）
+- 共享主题（**内联 `<style>` 或本地 `<link>` 均可，正式产物须内联、禁止依赖本地相对路径外链 CSS**）/ 横向滚动 / 窄屏布局，无外部网络依赖（`JOURNEY-TPL-GATE-06`）
 
 ### 隐藏检测（Template Gate 与内容/授权 Gate 共用）
 

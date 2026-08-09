@@ -210,7 +210,7 @@ visual-patterns/blue-professional-balanced.md
 
 ## 默认模式
 
-`10-black-gray-professional`（zh_name: 黑灰专业·打印版）是 pratyaya 的**默认配色方案**。在模式选择阶段，若无明确的画布类型或内容特征指向其他模式，Agent 应优先推荐此模式。使用场景包括：
+`10-black-gray-professional`（zh_name: 黑灰专业）是 pratyaya 的**默认配色方案**。在模式选择阶段，若无明确的画布类型或内容特征指向其他模式，Agent 应优先推荐此模式。使用场景包括：
 
 - 需正式打印的管理层报告
 - 学术场景输出

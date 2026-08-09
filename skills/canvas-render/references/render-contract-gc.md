@@ -137,12 +137,6 @@
 - `canvas-data` 的 `auth` 字段必须与 `state.json.golden_circle.{slug}` 完全一致。
 - `body[data-instance]`、`canvas-data.instance`、确认包文件名 `{slug}` 与 `state.json.golden_circle.{slug}.slug` 必须一致。
 
-## 打印与管理层阅读
-
-- `@media print` 隐藏编辑控件，保留版本、确认、风险状态、结论和 override caveat。
-- 结论与关键指标优先，证据细节折叠但可打印附录。
-- override 模块必须保留 caveat 标识与风险详情。
-
 ## 交付前自检
 
 同 MVL：Python 静态审计（`audit_canvas_html.py --type gc --instance {slug}`）+ 浏览器视觉验收。两阶段都通过后才把当前 instance 状态改为 `rendered`。

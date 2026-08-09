@@ -25,7 +25,7 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 非 MVL: {
 - `../gc-distill/references/gc-spec.md`：黄金圈 section 规范与锚点映射。
 - `../hmw-distill/references/hmw-spec.md`：HMW section 规范与锚点映射。
 - `../journey-distill/references/journey-spec.md`：Journey section 规范、动态阶段与锚点映射。
-- `references/render-contract.md`：MVL DOM、共享结构、离线、数据完整性、打印和 caveat 契约。
+- `references/render-contract.md`：MVL DOM、共享结构、离线、数据完整性和 caveat 契约。
 - `references/render-contract-gc.md`：黄金圈 DOM、锚点映射、共享结构契约。
 - `references/render-contract-hmw.md`：HMW DOM、锚点映射、共享结构契约。
 - `references/render-contract-persona.md`：Persona DOM、锚点映射、共享结构契约。
@@ -343,7 +343,7 @@ python3 skills/canvas-render/scripts/audit_canvas_html.py \
 2. 契约规定的大模块、共享结构和稳定锚点存在且唯一。
 3. 模块锚点在 `#module-outputs` 内的相对顺序与 `render-contract.md` 对应映射表行顺序一致。
 4. `canvas-data` 为合法 JSON；传入确认包和 `state.json` 时，版本、模块及授权元数据一致。
-5. 离线安全、必要打印规则、草稿标记及 override caveat 必需结构符合契约。
+5. 离线安全、草稿标记及 override caveat 必需结构符合契约。
 
 脚本返回非零状态时必须阻断，按输出的失败项修订同一版本 HTML 后重跑。不得绕过、删除失败锚点或手工改写审计结果。
 
@@ -353,10 +353,9 @@ python3 skills/canvas-render/scripts/audit_canvas_html.py \
 
 1. 桌面 `1440 × 900`：视觉阅读顺序与 DOM 一致，无溢出、遮挡、重叠、断链或异常空白。
 2. 窄屏 `390 × 844`：卡片合理堆叠，表格和高密度 flow 在自身容器滚动，文字不裁切。
-3. 打印：分页不改变 section 顺序；保留结论、版本、确认、风险、质量状态和 override caveat，隐藏编辑提示与操作控件。
-4. 模式视觉：实际色板、字体、网格、组件及专属组件符合用户选定模式，没有明显混搭或偏离。
-5. **示例比对**（该 `canvas_type` 在 `examples/` 有示例时）：整体版面与签名视觉须与示例一致；无示例时按 render-contract 自检并在交付说明标注。
-6. **Caveat 视觉**（仅 override 模块）：caveat 标识与风险详情在桌面、窄屏、打印下均可见。
+3. 模式视觉：实际色板、字体、网格、组件及专属组件符合用户选定模式，没有明显混搭或偏离。
+4. **示例比对**（该 `canvas_type` 在 `examples/` 有示例时）：整体版面与签名视觉须与示例一致；无示例时按 render-contract 自检并在交付说明标注。
+5. **Caveat 视觉**（仅 override 模块）：caveat 标识与风险详情在桌面、窄屏下均可见。
 
 浏览器验收不重复检查锚点、JSON、授权字段和离线字符串；这些由 Python 审计负责。Python 审计不能替代真实布局检查，两阶段都通过后才能交付正式 HTML。
 
@@ -364,12 +363,11 @@ python3 skills/canvas-render/scripts/audit_canvas_html.py \
 
 正式交付前确认两阶段结果：
 
-1. **Python PASS**：保存命令及 PASS 输出；脚本覆盖数据源/版本、授权、DOM/锚点顺序、共享结构、离线安全、打印规则、草稿标记与 caveat 结构。
+1. **Python PASS**：保存命令及 PASS 输出；脚本覆盖数据源/版本、授权、DOM/锚点顺序、共享结构、离线安全、草稿标记与 caveat 结构。
 2. **桌面 PASS**：阅读顺序、布局和模式视觉正确。
 3. **窄屏 PASS**：堆叠、文字和高密度内容正确。
-4. **打印 PASS**：分页、保留内容和隐藏控件正确。
-5. **示例比对 PASS**（有示例时）：整体版面与签名视觉与 `examples/` 对应示例一致；无示例时已在交付说明标注。
-6. **Caveat 视觉 PASS**（仅 override）：桌面、窄屏和打印均明确显示保留意见与风险详情。
+4. **示例比对 PASS**（有示例时）：整体版面与签名视觉与 `examples/` 对应示例一致；无示例时已在交付说明标注。
+5. **Caveat 视觉 PASS**（仅 override）：桌面、窄屏均明确显示保留意见与风险详情。
 
 任一阶段失败时阻断交付，列出失败项、证据和修订建议。模块状态保持 `confirmed`；不得提前标记为 `rendered`。
 
