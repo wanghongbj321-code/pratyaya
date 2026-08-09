@@ -13,7 +13,7 @@
 4. 选择画布类型（MAAU 综合 / MVL / 黄金圈 / HMW / 用户画像 / 用户旅程，见 §2）与模式（A / B / C）
 5. 按 §3 决策分支逐模块推进
 
-新工作坊会创建在 `workshop/{project_slug}/{group_id}/` 下。`project_slug` / `group_id` 是目录短名（kebab-case ASCII，如 `zhongruan-power`、`group-a`）；中文项目名和组名会作为 `project_name` / `group_name` 显示，不直接作为目录键。
+新工作坊会创建在 `workshop/{project_slug}/{group_id}/{topic_slug}/` 下。`project_slug` / `group_id` / `topic_slug` 是目录短名（kebab-case ASCII，如 `zhongruan-power`、`group-a`、`opportunity-evaluation`）；中文项目名、组名和议题名会作为 `project_name` / `group_name` / `topic_name` 显示，不直接作为目录键。同一组可围绕多个议题（topic）并行推进，`topic_slug` 是议题边界，不替代画布实例 `instance_slug`。
 
 如果遇到使用、状态或异常问题，可以直接问 FAQ，例如"为什么当前画布不能正式渲染？"、"请解释 Gate fail 后我有哪些选择"或"我遇到使用问题了，请根据当前项目状态帮我解释原因并建议下一步"。FAQ 只解释依据和下一步，不会替你确认、override 或渲染。
 
@@ -29,6 +29,8 @@
 | 项目目录短名 `project_slug` | `zhongruan-power` | `workshop/{project_slug}/` 目录键 |
 | 组号短名 `group_id` | `group-a` / `team-3` | `workshop/{project_slug}/{group_id}/` 目录键 |
 | 组显示名 `group_name` | 战略组 | 写入 `group_meta.json` |
+| 议题短名 `topic_slug` | `opportunity-evaluation` | `workshop/{project_slug}/{group_id}/{topic_slug}/` 目录键 |
+| 议题显示名 `topic_name` | 商机评估 | 写入 `topic_meta.json` |
 
 **画布类型**（对应 `state.json` 五区块）：
 
@@ -151,10 +153,13 @@
 
 **启动阶段**：
 
-- "开始 A 引导模式，项目名中软国际 Power 商机评估，项目短名 zhongruan-power，组号 group-a"
+- "开始 A 引导模式，项目名中软国际 Power 商机评估，项目短名 zhongruan-power，组号 group-a，议题短名 opportunity-evaluation，议题显示名商机评估"
 - "开始 B 转写模式"
 - "开始黄金圈画布" / "开始 HMW 画布" / "开始用户画像画布" / "开始用户旅程画布"
-- "检查所有组状态" / "跨组对比"（读取项目级 manifest，按 group 汇总）
+- "检查本组所有 topic" / "本组议题进度"（读取 group 级 manifest，按 topic 汇总）
+- "检查所有组状态" / "跨组对比"（读取项目级 manifest，按 group × topic 汇总）
+- "切换 topic"（切换到当前组下另一个议题，不复制状态；目标不存在时进入初始化）
+- "新建 topic"（在当前 project + group 下创建新议题目录）
 - "我遇到使用问题了，请根据当前项目状态帮我解释原因并建议下一步"
 - "为什么当前画布不能正式渲染？"
 - "请解释 Gate fail 后我有哪些选择"

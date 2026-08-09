@@ -1,13 +1,23 @@
 {
-  "schema_version": "2.4-project-manifest-1",
-  "project_slug": "sample-project",
-  "project_name": "示例项目",
-  "generated_at": "2026-08-08T18:35:00+08:00",
+  "schema_version": "2.7-project-manifest-1",
+  "project_slug": "zhongruan-power",
+  "project_name": "中软国际 Power 项目",
+  "generated_at": "2026-08-09T10:10:00+08:00",
   "groups": [
     {
       "group_id": "group-a",
-      "state_path": "../group-b/state.json",
-      "last_updated": "2026-08-08T18:30:00+08:00"
+      "group_name": "A 组",
+      "group_meta_path": "group-a/group_meta.json",
+      "topics": [
+        {
+          "topic_slug": "opportunity-evaluation",
+          "topic_name": "商机评估",
+          "topic_meta_path": "group-a/opportunity-evaluation/topic_meta.json",
+          "state_path": "/abs/path/state.json",
+          "last_updated": "2026-08-09T10:00:00+08:00"
+        }
+      ],
+      "last_updated": "2026-08-09T10:00:00+08:00"
     }
   ]
 }

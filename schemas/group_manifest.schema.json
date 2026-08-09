@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "group_manifest.schema.json",
+  "title": "Pratyaya Workshop Group Manifest",
+  "type": "object",
+  "required": ["schema_version", "project_slug", "project_name", "group_id", "group_name", "topics"],
+  "properties": {
+    "schema_version": {
+      "const": "2.7-group-manifest-1"
+    },
+    "project_slug": {
+      "type": "string",
+      "maxLength": 64,
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    },
+    "project_name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "group_id": {
+      "type": "string",
+      "maxLength": 64,
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    },
+    "group_name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "generated_at": {
+      "type": "string"
+    },
+    "topics": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["topic_slug", "state_path", "last_updated"],
+        "properties": {
+          "topic_slug": {
+            "type": "string",
+            "maxLength": 64,
+            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+          },
+          "topic_name": {
+            "type": "string"
+          },
+          "topic_meta_path": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*/topic_meta\\.json$"
+          },
+          "state_path": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*/state\\.json$"
+          },
+          "status_summary": {
+            "type": "object"
+          },
+          "last_updated": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

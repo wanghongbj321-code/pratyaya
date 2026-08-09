@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "topic_meta.schema.json",
+  "title": "Pratyaya Workshop Topic Meta",
+  "type": "object",
+  "required": ["schema_version", "topic_slug", "topic_name", "created_at"],
+  "properties": {
+    "schema_version": {
+      "const": "2.7-topic-meta-1"
+    },
+    "topic_slug": {
+      "type": "string",
+      "maxLength": 64,
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "description": "topic_slug must be kebab-case ASCII (max 64 chars), matching workshop/{project_slug}/{group_id}/{topic_slug}"
+    },
+    "topic_name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "topic_owner": {
+      "type": "string",
+      "minLength": 1
+    },
+    "contact": {
+      "type": "string",
+      "minLength": 1
+    },
+    "created_at": {
+      "type": "string",
+      "minLength": 1
+    },
+    "created_by": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "additionalProperties": true
+}

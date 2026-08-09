@@ -28,5 +28,7 @@
     }
   },
   "updated_at": "2026-08-07T12:35:00+08:00",
-  "project_slug": "journey-test-project"
+  "project_slug": "journey-test-project",
+  "topic_slug": "default",
+  "topic_name": "default"
 }

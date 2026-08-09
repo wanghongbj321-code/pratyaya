@@ -27,5 +27,7 @@
     }
   },
   "updated_at": "2026-08-07T11:00:00+08:00",
-  "project_slug": "hmw-test-project"
+  "project_slug": "hmw-test-project",
+  "topic_slug": "default",
+  "topic_name": "default"
 }

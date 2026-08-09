@@ -17,20 +17,20 @@
 | 字段 | 内容 |
 |---|---|
 | 问题 | 如何开始新工作坊？ |
-| 短答 | 先告诉 pratyaya 项目显示名、项目短名、组号短名和画布类型。项目短名和组号短名用于目录，必须是 kebab-case ASCII。 |
+| 短答 | 先告诉 pratyaya 项目显示名、项目短名、组号短名、议题短名、议题显示名和画布类型。项目短名、组号短名和议题短名用于目录，必须是 kebab-case ASCII。 |
 | 依据 | `README.md`、`docs/user-guide.md` |
-| 下一步 | 可以说：`开始 A 引导模式，项目名中软国际 Power 商机评估，项目短名 zhongruan-power，组号 group-a，开始 MVL M1。` |
-| 边界 | 只给中文项目名时，主 Agent 应先建议 `project_slug` / `group_id` 并等待确认后再创建目录。 |
+| 下一步 | 可以说：`开始 A 引导模式，项目名中软国际 Power 商机评估，项目短名 zhongruan-power，组号 group-a，议题短名 opportunity-evaluation，议题显示名商机评估，开始 MVL M1。` |
+| 边界 | 只给中文项目名、组名或议题名时，主 Agent 应先建议 `project_slug` / `group_id` / `topic_slug` 并等待确认后再创建目录。 |
 
-### project_slug 和 group_id 是什么？
+### project_slug、group_id 和 topic_slug 是什么？
 
 | 字段 | 内容 |
 |---|---|
-| 问题 | `project_slug` 和 `group_id` 怎么填？ |
-| 短答 | 它们是目录键，不是展示名。`project_slug` 表示项目目录短名，`group_id` 表示组号短名，都应使用 kebab-case ASCII，例如 `zhongruan-power`、`group-a`。 |
+| 问题 | `project_slug`、`group_id` 和 `topic_slug` 怎么填？ |
+| 短答 | 它们是目录键，不是展示名。`project_slug` 表示项目目录短名，`group_id` 表示组号短名，`topic_slug` 表示议题短名，都应使用 kebab-case ASCII，例如 `zhongruan-power`、`group-a`、`opportunity-evaluation`。 |
 | 依据 | `README.md`、`docs/user-guide.md`、`DESIGN.md` |
-| 下一步 | 如果只有中文名，可以请 pratyaya 推荐短名：`项目名是中软国际 Power 商机评估，请推荐 project_slug 和 group_id。` |
-| 边界 | 中文项目名和中文组名只作为 `project_name` / `group_name` 显示，不直接作为目录键。 |
+| 下一步 | 如果只有中文名，可以请 pratyaya 推荐短名：`项目名是中软国际 Power 商机评估，请推荐 project_slug、group_id 和 topic_slug。` |
+| 边界 | 中文项目名、中文组名和中文议题名只作为 `project_name` / `group_name` / `topic_name` 显示，不直接作为目录键。 |
 
 ## 画布选择
 
@@ -179,9 +179,9 @@
 | 字段 | 内容 |
 |---|---|
 | 问题 | HTML 产物在哪里？ |
-| 短答 | 工作坊产物位于 `workshop/{project_slug}/{group_id}/output/`。MVL 模块页通常是 `module-N-canvas.html`，全局页是 `maau-global-canvas.html`；非 MVL 一等公民 instance 页是 `gc-canvas-{slug}.html`、`hmw-canvas-{slug}.html`、`persona-canvas-{slug}.html`、`journey-canvas-{slug}.html`，不带 slug 的 `*-canvas.html` 是同类画布索引页。 |
+| 短答 | 工作坊产物位于 `workshop/{project_slug}/{group_id}/{topic_slug}/output/`。MVL 模块页通常是 `module-N-canvas.html`，全局页是 `maau-global-canvas.html`；非 MVL 一等公民 instance 页是 `gc-canvas-{slug}.html`、`hmw-canvas-{slug}.html`、`persona-canvas-{slug}.html`、`journey-canvas-{slug}.html`，不带 slug 的 `*-canvas.html` 是同类画布索引页。 |
 | 依据 | `README.md`、`docs/user-guide.md`、`DEVELOPMENT.md` |
-| 下一步 | 可以问：`项目 xxx，组 yyy，当前画布 HTML 在哪里？` |
+| 下一步 | 可以问：`项目 xxx，组 yyy，议题 zzz，当前画布 HTML 在哪里？` |
 | 边界 | 只有通过授权和审计的正式 HTML 才应作为交付物使用。 |
 
 ### 为什么不能正式渲染？
@@ -196,15 +196,15 @@
 
 ## 状态与下一步
 
-### 当前 group 到哪一步怎么看？
+### 当前 topic 到哪一步怎么看？
 
 | 字段 | 内容 |
 |---|---|
-| 问题 | 当前 group 到哪一步怎么看？ |
-| 短答 | 查看当前 group 的 `state.json`。MVL 看 `modules.Mx`；非 MVL 一等公民画布看 `golden_circle.{slug}` / `hmw.{slug}` / `persona.{slug}` / `journey.{slug}`，重点检查 `status`、`version`、`gate_recommendation`、`render_authorized`、`confirmation_mode` 与 `slug` 是否匹配。 |
+| 问题 | 当前 topic 到哪一步怎么看？ |
+| 短答 | 查看当前 topic 的 `state.json`。MVL 看 `modules.Mx`；非 MVL 一等公民画布看 `golden_circle.{slug}` / `hmw.{slug}` / `persona.{slug}` / `journey.{slug}`，重点检查 `status`、`version`、`gate_recommendation`、`render_authorized`、`confirmation_mode` 与 `slug` 是否匹配。 |
 | 依据 | `README.md`、`DESIGN.md`、`agents/pratyaya.md` |
-| 下一步 | 可以说：`项目 zhongruan-power，组 group-a，请解释当前状态和下一步。` |
-| 边界 | 默认只读当前 group；跨组汇总必须由用户明确要求。 |
+| 下一步 | 可以说：`项目 zhongruan-power，组 group-a，议题 opportunity-evaluation，请解释当前状态和下一步。` |
+| 边界 | 默认只读当前 topic；查看本组所有 topic 或跨组 / 跨 topic 汇总必须由用户明确要求。 |
 
 ## 异常处理
 

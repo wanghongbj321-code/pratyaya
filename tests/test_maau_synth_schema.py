@@ -27,6 +27,8 @@ def base_state() -> dict:
         "project_slug": "demo-project",
         "project_name": "Demo 项目",
         "group_id": "group-a",
+        "topic_slug": "maau-test",
+        "topic_name": "MAAU Test",
         "maau": {
             "retail-demo": {
                 "slug": "retail-demo",

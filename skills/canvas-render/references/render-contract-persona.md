@@ -171,7 +171,7 @@ canvas-header
 | `PERSONA-TPL-GATE-03` | 一级模块顺序符合本契约 §4 |
 | `PERSONA-TPL-GATE-04` | 9 基本信息、6 宫格、4 质量锚点完整 |
 | `PERSONA-TPL-GATE-05` | `quality-panel` 治理插槽完整 |
-| `PERSONA-TPL-GATE-06` | 离线共享主题、窄屏、打印与关键模块可见 |
+| `PERSONA-TPL-GATE-06` | 离线共享主题（正式产物须内联，禁止依赖本地相对路径外链 CSS）、窄屏、打印与关键模块可见 |
 
 以上规则不可 override。
 
@@ -186,10 +186,10 @@ canvas-header
 
 ## 8. 本地离线约束
 
-- CSS / JavaScript / 字体优先内联或使用系统字体
+- **CSS / JavaScript / 字体必须内联或使用系统字体；正式产物禁止依赖本地相对路径外链 CSS**（如 `<link rel="stylesheet" href="shared/canvas-theme.css">`）。方案 A（2026-08-09）已把示例模板主题内联，成品须与其一致
 - 禁止通过 `fetch("file.json")` 加载本地数据
 - 禁止用 iframe 打开兄弟 HTML
-- 所有交互在单文件内工作
+- **成品 HTML 必须单文件自包含（CSS 内联），独立传播时无需任何伴随文件**；无网络时仍可展开、筛选、打印和编辑
 
 ---
 

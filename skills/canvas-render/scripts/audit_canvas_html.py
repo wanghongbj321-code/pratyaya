@@ -757,6 +757,9 @@ def audit_template_gate(
         )
 
     # {gate_prefix}-TPL-GATE-06: 共享主题/窄屏/@media print 钩子 + 无外部依赖
+    # 方案 A（2026-08-09）：主题必须自包含——内联 <style>（含 [data-theme] 与主色 token）或
+    # 指向本地已存在文件的 <link> 均视为合法；但**正式产物禁止依赖本地相对路径外链 CSS**，
+    # 否则单独传播 HTML 时样式丢失。外部网络依赖恒为 FAIL。
     if "@media print" not in source.lower():
         findings.append(Finding(f"{gate_prefix}-TPL-GATE-06", "缺少 @media print 钩子"))
     if html.external_urls:
@@ -768,14 +771,24 @@ def audit_template_gate(
         source,
         re.IGNORECASE,
     )
-    if not stylesheet_hrefs:
-        findings.append(Finding(f"{gate_prefix}-TPL-GATE-06", "缺少共享主题 stylesheet 链接"))
+    theme_inlined = bool(
+        re.search(r"\[data-theme[^]]*\]", source)
+        and re.search(r"--brand\s*:", source)
+        and re.search(r"<style", source, re.IGNORECASE)
+    )
+    if not stylesheet_hrefs and not theme_inlined:
+        findings.append(Finding(f"{gate_prefix}-TPL-GATE-06", "缺少共享主题（既无 <link> 外链也无内联 <style> 主题）"))
     for href in stylesheet_hrefs:
         if href.startswith(("http://", "https://", "//")):
             continue
         stylesheet_path = (html_path.parent / href).resolve()
         if not stylesheet_path.is_file():
             findings.append(Finding(f"{gate_prefix}-TPL-GATE-06", f"本地主题资源不存在: {href}"))
+            continue
+        # 正式产物禁止依赖本地相对路径外链 CSS（方案 A 收口）
+        findings.append(
+            Finding(f"{gate_prefix}-TPL-GATE-06", f"正式产物依赖本地相对路径外链 CSS: {href}（应内联）")
+        )
 
     # 附加：质量鉴别 / 想法对应 / 治理面板不得隐藏（四态 hidden 检测）
     for section_id in hidden_section_ids:
@@ -981,14 +994,24 @@ def audit_journey_template_gate(
         source,
         re.IGNORECASE,
     )
-    if not stylesheet_hrefs:
-        findings.append(Finding("JOURNEY-TPL-GATE-06", "缺少共享主题 stylesheet 链接"))
+    theme_inlined = bool(
+        re.search(r"\[data-theme[^]]*\]", source)
+        and re.search(r"--brand\s*:", source)
+        and re.search(r"<style", source, re.IGNORECASE)
+    )
+    if not stylesheet_hrefs and not theme_inlined:
+        findings.append(Finding("JOURNEY-TPL-GATE-06", "缺少共享主题（既无 <link> 外链也无内联 <style> 主题）"))
     for href in stylesheet_hrefs:
         if href.startswith(("http://", "https://", "//")):
             continue
         stylesheet_path = (html_path.parent / href).resolve()
         if not stylesheet_path.is_file():
             findings.append(Finding("JOURNEY-TPL-GATE-06", f"本地主题资源不存在: {href}"))
+            continue
+        # 正式产物禁止依赖本地相对路径外链 CSS（方案 A 收口）
+        findings.append(
+            Finding("JOURNEY-TPL-GATE-06", f"正式产物依赖本地相对路径外链 CSS: {href}（应内联）")
+        )
 
     if "overflow-x:auto" not in source.replace(" ", ""):
         findings.append(Finding("JOURNEY-TPL-GATE-06", "缺少横向滚动钩子 overflow-x:auto"))
@@ -1492,6 +1515,15 @@ def audit(
         findings.append(Finding("OFFLINE", "external CSS URL is forbidden"))
     if html.external_urls:
         findings.append(Finding("OFFLINE", f"external URLs: {', '.join(html.external_urls)}"))
+    # 方案 A（2026-08-09）：正式产物禁止依赖本地相对路径外链 CSS（单文件自包含、可独立传播）
+    local_css_hrefs = re.findall(
+        r'<link\b[^>]*\brel=["\']stylesheet["\'][^>]*\bhref=["\']([^"\']+)["\']',
+        source,
+        re.IGNORECASE,
+    )
+    for href in local_css_hrefs:
+        if not href.startswith(("http://", "https://", "//")):
+            findings.append(Finding("OFFLINE", f"本地相对路径外链 CSS 禁止: {href}（应内联）"))
     if "@media print" not in lowered:
         findings.append(Finding("PRINT", "missing @media print rule"))
 

@@ -142,10 +142,10 @@ action → touchpoint-system → emotion → pain-point → opportunity
 
 ## 本地离线约束
 
-- CSS、JavaScript、图标和字体优先内联或使用系统字体。
+- **CSS、JavaScript、图标和字体必须内联或使用系统字体；正式产物禁止依赖本地相对路径外链 CSS**（如 `<link rel="stylesheet" href="shared/canvas-theme.css">`）。方案 A（2026-08-09）已把示例模板主题内联，成品须与其一致。
 - 禁止通过 `fetch("file.json")` 加载本地数据。
 - 禁止用 iframe 打开兄弟 HTML；使用普通相对链接。
-- 所有交互在单文件内工作，无网络时仍可展开、筛选、打印和编辑。
+- **成品 HTML 必须单文件自包含（CSS 内联），独立传播时无需任何伴随文件**；无网络时仍可展开、筛选、打印和编辑。
 
 ## 数据完整性
 
@@ -186,7 +186,7 @@ canvas-header
 - 质量 4 维度：`journey-quality-user-perspective` / `journey-quality-business-outcome` / `journey-quality-pain-opportunity-visible` / `journey-quality-no-solution-bias`（`JOURNEY-TPL-GATE-04`）
 - 治理面板：`quality-panel` 含 `quality-version` / `quality-approval` / `quality-gaps` / `quality-risks` / `quality-caveat` 插槽（`JOURNEY-TPL-GATE-05`）
 - 批注与数据：`local-notes`、`canvas-data`（`JOURNEY-TPL-GATE-02`）
-- 共享主题 / 横向滚动 / 窄屏布局 / `@media print` 钩子存在，无外部网络依赖（`JOURNEY-TPL-GATE-06`）
+- 共享主题（**内联 `<style>` 或本地 `<link>` 均可，正式产物须内联、禁止依赖本地相对路径外链 CSS**）/ 横向滚动 / 窄屏布局 / `@media print` 钩子存在，无外部网络依赖（`JOURNEY-TPL-GATE-06`）
 
 ### 隐藏检测（Template Gate 与内容/授权 Gate 共用）
 

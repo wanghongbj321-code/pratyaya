@@ -155,7 +155,7 @@ class TestSkillRegistration:
             assert skill in plugin["skills"], f"plugin.json missing FAQ skill {skill}"
         for skill in EXPECTED_MAAU_SKILLS:
             assert skill in plugin["skills"], f"plugin.json missing MAAU skill {skill}"
-        assert plugin["version"] == "2.8.0"
+        assert plugin["version"] == "2.9.0"
 
     def test_plugin_registers_persona_skills(self) -> None:
         plugin = json.loads(read(REPO_ROOT / ".codebuddy-plugin" / "plugin.json"))
@@ -607,7 +607,7 @@ class TestMaaDefaultPathContract:
 
     def test_plugin_json_version_and_entry_context(self) -> None:
         plugin = json.loads(read(REPO_ROOT / ".codebuddy-plugin" / "plugin.json"))
-        assert plugin["version"] == "2.8.0"
+        assert plugin["version"] == "2.9.0"
         # 默认入口语境：displayDescription 与 quickPrompts 已包含 MAAU 默认入口
         assert "MAAU" in plugin["displayDescription"]["zh"]
         assert "MAAU" in plugin["displayDescription"]["en"]

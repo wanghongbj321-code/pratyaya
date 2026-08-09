@@ -21,7 +21,7 @@
 
 ## 共享主题
 
-- [`shared/canvas-theme.css`](./shared/canvas-theme.css)：标准 pratyaya 黑灰单色主题（`data-theme="base"`，无配色切换）。所有示例通过 `<link rel="stylesheet" href=".../shared/canvas-theme.css">` 引用；`mvl-canvas/` 子目录内示例使用 `../shared/canvas-theme.css`。
+- [`shared/canvas-theme.css`](./shared/canvas-theme.css)：标准 pratyaya 黑灰单色主题（`data-theme="base"`，无配色切换），是主题的**单一事实源**。方案 A（2026-08-09）起，所有示例把该主题 **内联**进各自 HTML 的 `<style>`（单文件自包含、可独立传播），不再通过 `<link rel="stylesheet" href=".../shared/canvas-theme.css">` 外链。修改主题时须同步更新本文件与各示例的内联副本（或用一致性检查防漂移）。
 
 ## 职责划分
 

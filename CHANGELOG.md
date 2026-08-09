@@ -3,6 +3,33 @@
 > 本文件记录 Pratyaya 专家的正式版本变更。
 > 完整 SemVer 与架构说明见 [`README.md`](./README.md) / [`DESIGN.md`](./DESIGN.md) / [docs/MVL-整体架构设计.md](./docs/MVL-整体架构设计.md)。
 
+## [v2.9.0] - 2026-08-09
+
+### 新增功能（MINOR）
+
+- **project + group + topic 三层目录**：工作坊产物目录从 `project + group` 双层升级为 `workshop/{project_slug}/{group_id}/{topic_slug}/` 三层。`topic_slug`（kebab-case ASCII）是工作坊议题边界，不替代画布 `instance_slug`（同一 topic 下可有多个 GC/HMW/Persona/Journey/MAAU 画布实例）。
+- **topic_meta 元数据**：新增 `topic_meta.json`（`schemas/topic_meta.schema.json`，schema_version=2.7-topic-meta-1），承载 `topic_name` / `topic_owner` / `contact` / `created_at` / `created_by`。
+- **group manifest 派生视图**：新增 `workshop/{project_slug}/{group_id}/manifest.json`（`schemas/group_manifest.schema.json`，schema_version=2.7-group-manifest-1），汇总当前 group 的 topics；缺失或陈旧时可重建，不是业务真相源。
+- **project manifest 升级**：`workshop/{project_slug}/manifest.json` 从 groups 列表升级为 groups + topics 嵌套视图（`schemas/project_manifest.schema.json` schema_version=2.7-project-manifest-1），`groups[].topics[].state_path` 必须为 `{group_id}/{topic_slug}/state.json`，禁止 `../` / 绝对路径 / 跨组跨 topic 路径。
+- **state 下沉为 topic 级**：`state.schema.json` required 增加 `topic_slug` / `topic_name`（schema_version 仍 2.3）；`state.json` 从 group 级下沉为 topic 级状态真相源。
+- **旧 project+group 自动迁移**：旧 `workshop/{project_slug}/{group_id}/state.json`（无 topic 子目录）自动迁移到 `workshop/{project_slug}/{group_id}/default/`；`default` 仅作为 legacy topic 占位，新建 topic 禁止使用。
+- **Agent / Skill / 文档同步**：`agents/pratyaya.md`（每次对话开始、Phase 0、状态目录、状态查询、切换/新建 topic、legacy 迁移规则）、`skills/faq-answer`、`skills/canvas-render`、`README.md`、`DESIGN.md`、`DEVELOPMENT.md`、`docs/user-guide.md`、`docs/MVL-整体架构设计.md`、`docs/prompt-guide.html` 统一为 `workshop/{project_slug}/{group_id}/{topic_slug}/` 路径，并增加跨 topic 禁读规则。
+
+### 变更（Canvas 单文件自包含 · 方案 A）
+
+- **画布主题内联，禁止本地相对路径外链 CSS**：`canvas-render` 示例模板（HMW / GC / Persona / Journey / MVL 六模块 + MAAU 全局）与 `tests/fixtures/maau/maau-global-canvas-retail-demo.html` 由 `<link rel="stylesheet" href="shared/canvas-theme.css">` 外链改为**内联 `<style>`**（内容取自 `canvas-theme.css`，保留为单一事实源），成品 HTML 单文件自包含、可独立传播。
+- **审计脚本收口**：`audit_canvas_html.py` 的 `TPL-GATE-06`（HMW/PERSONA `audit_template_gate` + JOURNEY `audit_journey_template_gate`）从「必须 `<link>` 外链」改为接受「内联 `<style>` 或本地外链」，且**正式产物禁止本地相对路径外链 CSS（应内联）**；通用 `OFFLINE` 检查同步拦截相对外链 CSS（覆盖 MVL/GC）。
+- **测试同步**：`test_audit_canvas_html.py` / `test_journey_canvas_audit.py` / `test_audit_maau.py` 相应更新（`copy_template` 去 shared 复制、缺内联主题 token FAIL、外部 URL 注入测试、`add_instance_attr` 行首 `<body>` 匹配）；`canvas-theme.css` 注释改用 `body[data-theme="base"]` 写法避免干扰 `<body>` 匹配。
+- **契约文档同步**：`render-contract.md` / `render-contract-hmw.md` / `render-contract-gc.md` / `render-contract-journey.md` / `render-contract-persona.md` / `SKILL.md` / `examples/README.md` 的离线约束升级为「必须内联、正式产物禁止相对外链 CSS、单文件自包含」。
+- **内部参考模板单配色化**：`internal/pratyaya-internal/docs/refs/canvas-templates/` 下 6 个参考模板（01-05 + index）由多皮肤（base/mckinsey/accenture + theme-switch）改为**标准黑灰单配色**，内联主题、移除 theme-switch/`brand-bar`/mckinsey 与 accenture 覆盖规则及切换 JS（journey 保留情绪选择 JS）。
+
+### 兼容性
+
+- `state.schema.json` 顶层 `schema_version` 保持 `"2.3"`；新增 `topic_slug` / `topic_name` 为必填，旧 state 需在迁移时补齐。
+- 旧 `project + group` 结构自动迁移到 `default` topic，迁移使用 `.migrating-default/` staging，校验后 rename；失败保留旧结构不动并阻断。
+- 新建 topic 禁止使用 `default`；topic 重命名不原地改名，按"新建 topic + 迁移产物"处理。
+- 全量 `tests/` = 238 passed；契约一致性 error=0, warning=6（GATE_TABLE_WIDTH 既有）。
+
 ## [v2.8.0] - 2026-08-08
 
 ### 变更（MINOR）

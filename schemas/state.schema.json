@@ -8,6 +8,8 @@
     "group_id",
     "project_name",
     "project_slug",
+    "topic_name",
+    "topic_slug",
     "updated_at"
   ],
   "properties": {
@@ -18,7 +20,7 @@
       "type": "string",
       "maxLength": 64,
       "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
-      "description": "group_id must be kebab-case ASCII (max 64 chars), matching the {group_id} directory name"
+      "description": "group_id must be kebab-case ASCII (max 64 chars), matching workshop/{project_slug}/{group_id}"
     },
     "project_name": {
       "type": "string",
@@ -29,6 +31,16 @@
       "maxLength": 64,
       "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
       "description": "project_slug must be kebab-case ASCII (max 64 chars), matching workshop/{project_slug}"
+    },
+    "topic_name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "topic_slug": {
+      "type": "string",
+      "maxLength": 64,
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "description": "topic_slug must be kebab-case ASCII (max 64 chars), matching workshop/{project_slug}/{group_id}/{topic_slug}"
     },
     "current_module": {
       "enum": ["M1", "M2", "M3", "M4", "M5", "M6"]

@@ -1,0 +1,9 @@
+{
+  "schema_version": "2.7-topic-meta-1",
+  "topic_slug": "opportunity-evaluation",
+  "topic_name": "商机评估",
+  "topic_owner": "张三",
+  "contact": "zhangsan@example.com",
+  "created_at": "2026-08-09T10:00:00+08:00",
+  "created_by": "李四"
+}
