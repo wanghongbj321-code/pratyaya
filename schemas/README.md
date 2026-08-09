@@ -11,6 +11,10 @@
   - 新增顶层 `project_slug`，作为 `workshop/{project_slug}/{group_id}/` 的项目目录键；`project_name` 保留为人类显示名，可中文。
   - `group_id` 从任意非空字符串收紧为 kebab-case ASCII 短名，必须与 group 目录名一致。
   - 项目级 `manifest.json` 是可重建缓存，真相源仍为各 group 的 `state.json`。
+- **v2.7 topic 层约束（schema_version 仍为 2.3）**：
+  - 新增顶层 `topic_slug`（kebab-case ASCII，maxLength 64）与 `topic_name`（string，minLength 1）为 `required`。
+  - `state.json` 下沉为 topic 级状态，目录为 `workshop/{project_slug}/{group_id}/{topic_slug}/`；`topic_slug` 必须与 topic 目录名一致。
+  - `topic_slug` 不替代画布 `instance_slug`：topic 是工作坊议题边界，instance 是同一 topic 内的 GC/HMW/Persona/Journey/MAAU 画布实例边界，二者不得混用。
 - **v2.6 instance map 约束（schema_version 仍为 2.3）**：
   - `golden_circle` / `hmw` / `persona` / `journey` 由单对象升级为 `map: slug → instance_state`，路径为 `state.{state_key}.{slug}`。
   - 每个 instance 必须包含 `slug`，且运行时校验 `instance.slug == map key`；JSON Schema 负责 slug 格式，动态键一致性由迁移脚本 / audit / 测试补充校验。
@@ -52,16 +56,33 @@
 
 ### `project_manifest.schema.json`
 
-- **用途**：描述 `workshop/{project_slug}/manifest.json` 的项目级 group 汇总视图。
-- **字段边界**：`project_slug` 与项目目录名一致；`project_name` 是显示名；`groups[].state_path` 必须为 `{group_id}/state.json`，禁止 `../` 或跨 group 路径。`state_path` 与 `group_id` 的相等关系由主 Agent / 测试一致性校验负责，JSON Schema 只检查路径形状。
-- **当前状态**：派生 view / 缓存；缺失或陈旧时可从各 group 的 `state.json` 重建，不作为业务真相源。
+- **用途**：描述 `workshop/{project_slug}/manifest.json` 的项目级 group + topic 嵌套汇总视图。
+- **v2.7 变更（schema_version = 2.7-project-manifest-1）**：
+  - topic 作为 group 下的目录层，`groups[].state_path` 升级为 `groups[].topics[].state_path`。
+  - `groups[].topics[].state_path` 必须为 `{group_id}/{topic_slug}/state.json`；`groups[].topics[].topic_meta_path` 必须为 `{group_id}/{topic_slug}/topic_meta.json`。
+  - 增加 `groups[].group_meta_path`（`{group_id}/group_meta.json`）。
+  - 路径 pattern 禁止 `../`、绝对路径和跨 group / 跨 topic 路径；`state_path` 与 `group_id` / `topic_slug` 的相等关系由主 Agent / 测试一致性校验负责，JSON Schema 只检查路径形状。
+- **当前状态**：派生 view / 缓存；缺失或陈旧时可从 `{group_id}/{topic_slug}/state.json` 重建，不作为业务真相源。
+
+### `group_manifest.schema.json`
+
+- **用途**：描述 `workshop/{project_slug}/{group_id}/manifest.json` 的 group 级 topic 汇总视图。
+- **字段边界**：`group_id` 与 group 目录名一致；`topics[].state_path` 必须为 `{topic_slug}/state.json`；`topics[].topic_meta_path` 必须为 `{topic_slug}/topic_meta.json`；禁止 `../` 或跨 group / 跨 topic 路径。
+- **当前状态**：派生 view / 缓存；缺失或陈旧时可从 `workshop/{project_slug}/{group_id}/*/state.json` 重建，不作为业务真相源。写失败不阻断当前 topic 的 state 写入。
+
+### `topic_meta.schema.json`
+
+- **用途**：描述 `workshop/{project_slug}/{group_id}/{topic_slug}/topic_meta.json` 的 topic 显示元数据。
+- **字段边界**：`topic_slug` 必须为 kebab-case ASCII 并与 topic 目录名一致；`topic_name` / `topic_owner` / `contact` / `created_by` 为人类友好字段，可中文。
+- **当前状态**：非强制参考；主 Agent 在创建 topic 或迁移旧 group 时写入。`default` 仅作为 legacy 迁移占位，新建 topic 禁止使用。
 
 ## 当前实际数据源
 
 | 资产 | 当前实现 |
 |---|---|
-| 状态 | `workshop/{project_slug}/{group_id}/state.json`（参考 state.schema.json v2.3，不强制校验；MVL 存 `modules.M1`-`M6`，非 MVL 存 `golden_circle.{slug}` / `hmw.{slug}` / `persona.{slug}` / `journey.{slug}` / `maau.{slug}`） |
-| 项目级汇总 | `workshop/{project_slug}/manifest.json`（派生缓存，可重建） |
+| 状态 | `workshop/{project_slug}/{group_id}/{topic_slug}/state.json`（参考 state.schema.json v2.3，不强制校验；MVL 存 `modules.M1`-`M6`，非 MVL 存 `golden_circle.{slug}` / `hmw.{slug}` / `persona.{slug}` / `journey.{slug}` / `maau.{slug}`） |
+| group 级汇总 | `workshop/{project_slug}/{group_id}/manifest.json`（派生缓存，topic 列表；可重建） |
+| 项目级汇总 | `workshop/{project_slug}/manifest.json`（派生缓存，groups + topics 嵌套；可重建） |
 | 模块中间产物 | `modules/Mx-keypoints.md` + `modules/Mx-v{N}.md`（MVL）/ `modules/GC-{slug}-keypoints.md` + `modules/GC-{slug}-v{N}.md`（黄金圈）/ `modules/HMW-{slug}-keypoints.md` + `modules/HMW-{slug}-v{N}.md`（HMW）/ `modules/PERSONA-{slug}-keypoints.md` + `modules/PERSONA-{slug}-v{N}.md`（Persona）/ `modules/JOURNEY-{slug}-keypoints.md` + `modules/JOURNEY-{slug}-v{N}.md`（Journey）/ `modules/MAAU-{slug}-v{N}.md`（MAAU 一次性综合源包） |
 | 闸门判定 | LLM 阅读确认包 + 对应 Gate 策略文件（MVL: `Mx-gate.md` / GC: `GC-gate.md` / HMW: `HMW-gate.md` / Persona: `PERSONA-gate.md` / Journey: `JOURNEY-gate.md` / MAAU: `MAAU-gate.md`），输出 Markdown 判定报告 |
 | 事实源 | `Mx-v{N}.md` / `GC-{slug}-v{N}.md` / `HMW-{slug}-v{N}.md` / `PERSONA-{slug}-v{N}.md` / `JOURNEY-{slug}-v{N}.md` / `MAAU-{slug}-v{N}.md`（唯一事实源） |

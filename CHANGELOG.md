@@ -3,6 +3,25 @@
 > 本文件记录 Pratyaya 专家的正式版本变更。
 > 完整 SemVer 与架构说明见 [`README.md`](./README.md) / [`DESIGN.md`](./DESIGN.md) / [docs/MVL-整体架构设计.md](./docs/MVL-整体架构设计.md)。
 
+## [v2.9.0] - 2026-08-09
+
+### 新增功能（MINOR）
+
+- **project + group + topic 三层目录**：工作坊产物目录从 `project + group` 双层升级为 `workshop/{project_slug}/{group_id}/{topic_slug}/` 三层。`topic_slug`（kebab-case ASCII）是工作坊议题边界，不替代画布 `instance_slug`（同一 topic 下可有多个 GC/HMW/Persona/Journey/MAAU 画布实例）。
+- **topic_meta 元数据**：新增 `topic_meta.json`（`schemas/topic_meta.schema.json`，schema_version=2.7-topic-meta-1），承载 `topic_name` / `topic_owner` / `contact` / `created_at` / `created_by`。
+- **group manifest 派生视图**：新增 `workshop/{project_slug}/{group_id}/manifest.json`（`schemas/group_manifest.schema.json`，schema_version=2.7-group-manifest-1），汇总当前 group 的 topics；缺失或陈旧时可重建，不是业务真相源。
+- **project manifest 升级**：`workshop/{project_slug}/manifest.json` 从 groups 列表升级为 groups + topics 嵌套视图（`schemas/project_manifest.schema.json` schema_version=2.7-project-manifest-1），`groups[].topics[].state_path` 必须为 `{group_id}/{topic_slug}/state.json`，禁止 `../` / 绝对路径 / 跨组跨 topic 路径。
+- **state 下沉为 topic 级**：`state.schema.json` required 增加 `topic_slug` / `topic_name`（schema_version 仍 2.3）；`state.json` 从 group 级下沉为 topic 级状态真相源。
+- **旧 project+group 自动迁移**：旧 `workshop/{project_slug}/{group_id}/state.json`（无 topic 子目录）自动迁移到 `workshop/{project_slug}/{group_id}/default/`；`default` 仅作为 legacy topic 占位，新建 topic 禁止使用。
+- **Agent / Skill / 文档同步**：`agents/pratyaya.md`（每次对话开始、Phase 0、状态目录、状态查询、切换/新建 topic、legacy 迁移规则）、`skills/faq-answer`、`skills/canvas-render`、`README.md`、`DESIGN.md`、`DEVELOPMENT.md`、`docs/user-guide.md`、`docs/MVL-整体架构设计.md`、`docs/prompt-guide.html` 统一为 `workshop/{project_slug}/{group_id}/{topic_slug}/` 路径，并增加跨 topic 禁读规则。
+
+### 兼容性
+
+- `state.schema.json` 顶层 `schema_version` 保持 `"2.3"`；新增 `topic_slug` / `topic_name` 为必填，旧 state 需在迁移时补齐。
+- 旧 `project + group` 结构自动迁移到 `default` topic，迁移使用 `.migrating-default/` staging，校验后 rename；失败保留旧结构不动并阻断。
+- 新建 topic 禁止使用 `default`；topic 重命名不原地改名，按"新建 topic + 迁移产物"处理。
+- 全量 `tests/` = 238 passed；契约一致性 error=0, warning=6（GATE_TABLE_WIDTH 既有）。
+
 ## [v2.8.0] - 2026-08-08
 
 ### 变更（MINOR）

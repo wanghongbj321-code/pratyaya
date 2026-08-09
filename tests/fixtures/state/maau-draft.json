@@ -14,5 +14,7 @@
       "confirmation_mode": null
     }
   },
-  "updated_at": "2026-08-08T18:00:00+08:00"
+  "updated_at": "2026-08-08T18:00:00+08:00",
+  "topic_slug": "default",
+  "topic_name": "default"
 }

@@ -30,5 +30,7 @@
       }
     }
   },
-  "updated_at": "2026-08-08T18:10:00+08:00"
+  "updated_at": "2026-08-08T18:10:00+08:00",
+  "topic_slug": "default",
+  "topic_name": "default"
 }

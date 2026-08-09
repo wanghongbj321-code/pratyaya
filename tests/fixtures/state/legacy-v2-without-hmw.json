@@ -54,5 +54,7 @@
     "confirmation_mode": null
   },
   "updated_at": "2026-08-06T15:00:00+08:00",
-  "project_slug": "legacy-project"
+  "project_slug": "legacy-project",
+  "topic_slug": "default",
+  "topic_name": "default"
 }

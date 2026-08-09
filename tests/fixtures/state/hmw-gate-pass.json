@@ -61,5 +61,7 @@
     "confirmation_mode": "gate_pass"
   },
   "updated_at": "2026-08-07T10:00:00+08:00",
-  "project_slug": "hmw-test-project"
+  "project_slug": "hmw-test-project",
+  "topic_slug": "default",
+  "topic_name": "default"
 }

@@ -6,7 +6,7 @@
   "required": ["schema_version", "project_slug", "project_name", "groups"],
   "properties": {
     "schema_version": {
-      "const": "2.4-project-manifest-1"
+      "const": "2.7-project-manifest-1"
     },
     "project_slug": {
       "type": "string",
@@ -25,7 +25,7 @@
       "minItems": 1,
       "items": {
         "type": "object",
-        "required": ["group_id", "state_path", "last_updated"],
+        "required": ["group_id", "group_name", "group_meta_path", "topics", "last_updated"],
         "properties": {
           "group_id": {
             "type": "string",
@@ -35,9 +35,42 @@
           "group_name": {
             "type": "string"
           },
-          "state_path": {
+          "group_meta_path": {
             "type": "string",
-            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*/state\\.json$"
+            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*/group_meta\\.json$"
+          },
+          "topics": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["topic_slug", "topic_name", "topic_meta_path", "state_path", "last_updated"],
+              "properties": {
+                "topic_slug": {
+                  "type": "string",
+                  "maxLength": 64,
+                  "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+                },
+                "topic_name": {
+                  "type": "string"
+                },
+                "topic_meta_path": {
+                  "type": "string",
+                  "pattern": "^[a-z0-9]+(-[a-z0-9]+)*/[a-z0-9]+(-[a-z0-9]+)*/topic_meta\\.json$"
+                },
+                "state_path": {
+                  "type": "string",
+                  "pattern": "^[a-z0-9]+(-[a-z0-9]+)*/[a-z0-9]+(-[a-z0-9]+)*/state\\.json$"
+                },
+                "status_summary": {
+                  "type": "object"
+                },
+                "last_updated": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": true
+            }
           },
           "status_summary": {
             "type": "object"

@@ -22,30 +22,30 @@
 
 ### 3.1 Python 静态审计
 
-正式页面从专家包根目录运行（`{project_slug}/{group_id}` 占位），显式传入当前 group 子目录下的 html/source/state（MVL 模块页示例）：
+正式页面从专家包根目录运行（`{project_slug}/{group_id}/{topic_slug}` 占位），显式传入当前 topic 子目录下的 html/source/state（MVL 模块页示例）：
 
 ```bash
 python3 skills/canvas-render/scripts/audit_canvas_html.py \
-  workshop/{project_slug}/{group_id}/output/module-N-canvas.html \
-  --source workshop/{project_slug}/{group_id}/modules/Mx-v{N}.md \
-  --state workshop/{project_slug}/{group_id}/state.json
+  workshop/{project_slug}/{group_id}/{topic_slug}/output/module-N-canvas.html \
+  --source workshop/{project_slug}/{group_id}/{topic_slug}/modules/Mx-v{N}.md \
+  --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json
 ```
 
 黄金圈画布：`--type gc`；HMW、Persona 与 Journey 画布必须携带各自模板：
 
 ```bash
 python3 skills/canvas-render/scripts/audit_canvas_html.py \
-  workshop/{project_slug}/{group_id}/output/hmw-canvas-{slug}.html \
-  --source workshop/{project_slug}/{group_id}/modules/HMW-{slug}-v{N}.md \
-  --state workshop/{project_slug}/{group_id}/state.json \
+  workshop/{project_slug}/{group_id}/{topic_slug}/output/hmw-canvas-{slug}.html \
+  --source workshop/{project_slug}/{group_id}/{topic_slug}/modules/HMW-{slug}-v{N}.md \
+  --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json \
   --type hmw \
   --instance {slug} \
   --template skills/canvas-render/examples/hmw-canvas.html
 
 python3 skills/canvas-render/scripts/audit_canvas_html.py \
-  workshop/{project_slug}/{group_id}/output/persona-canvas-{slug}.html \
-  --source workshop/{project_slug}/{group_id}/modules/PERSONA-{slug}-v{N}.md \
-  --state workshop/{project_slug}/{group_id}/state.json \
+  workshop/{project_slug}/{group_id}/{topic_slug}/output/persona-canvas-{slug}.html \
+  --source workshop/{project_slug}/{group_id}/{topic_slug}/modules/PERSONA-{slug}-v{N}.md \
+  --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json \
   --type persona \
   --instance {slug} \
   --template skills/canvas-render/examples/user-persona-canvas.html
@@ -55,9 +55,9 @@ python3 skills/canvas-render/scripts/audit_canvas_html.py \
 
 ```bash
 python3 skills/canvas-render/scripts/audit_canvas_html.py \
-  workshop/{project_slug}/{group_id}/output/maau-global-canvas-{slug}.html \
-  --source workshop/{project_slug}/{group_id}/modules/MAAU-{slug}-v{N}.md \
-  --state workshop/{project_slug}/{group_id}/state.json \
+  workshop/{project_slug}/{group_id}/{topic_slug}/output/maau-global-canvas-{slug}.html \
+  --source workshop/{project_slug}/{group_id}/{topic_slug}/modules/MAAU-{slug}-v{N}.md \
+  --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json \
   --type mvl \
   --page-type global \
   --instance {slug} \
@@ -138,7 +138,7 @@ Key Points → 提炼（确认包 v{N}.md）→ Gate（判定报告）→ 渲染
 
 `faq-answer` 是支持型 Skill，负责使用、状态和异常解释，不进入 `Key Points → 提炼 → Gate → 渲染` 四阶段管线，不写 `state.json`、确认包或 HTML。维护入口见 [skills/faq-answer/SKILL.md](./skills/faq-answer/SKILL.md)。
 
-以上文件路径均相对当前 group 工作目录 `workshop/{project_slug}/{group_id}/`；项目级 `manifest.json` 仅用于跨组汇总，可从各 group 的 `state.json` 重建。
+以上文件路径均相对当前 topic 工作目录 `workshop/{project_slug}/{group_id}/{topic_slug}/`；group 级 `manifest.json` 仅用于本组 topic 汇总，可从当前 group 各 topic 的 `state.json` 重建；project 级 `manifest.json` 仅用于跨组 / 跨 topic 汇总，可从各 `{group_id}/{topic_slug}/state.json` 重建。两者均为派生缓存，不作为业务真相源。
 
 ## 6. 版本与发布
 
@@ -196,9 +196,10 @@ python scripts/check_contract_consistency.py
 # 在 agent 中按 skills/journey-gate/SKILL.md 流程执行
 
 # 3. 渲染前 audit 必填检查
-python skills/canvas-render/scripts/audit_canvas_html.py output/journey-canvas-{slug}.html \
-  --source modules/JOURNEY-{slug}-v{N}.md \
-  --state tests/fixtures/state/journey-gate-pass.json \
+python skills/canvas-render/scripts/audit_canvas_html.py \
+  workshop/{project_slug}/{group_id}/{topic_slug}/output/journey-canvas-{slug}.html \
+  --source workshop/{project_slug}/{group_id}/{topic_slug}/modules/JOURNEY-{slug}-v{N}.md \
+  --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json \
   --type journey \
   --instance {slug} \
   --template skills/canvas-render/examples/user-journey-canvas.html
@@ -223,13 +224,13 @@ python skills/canvas-render/scripts/audit_canvas_html.py output/journey-canvas-{
 | `python3 scripts/register_expert.py <expert-dir> --session-id <sid>` | 在 WorkBuddy 工具目录注册或重新注册专家 |
 | `find skills/canvas-render/visual-patterns -maxdepth 1 -type f -name '[0-9][0-9]-*.md' \| sort` | 列出视觉模式候选 |
 | `rg -n '^id:|^visual_system:|^layout:|^formality:|^density:|^best_for:' skills/canvas-render/visual-patterns/*.md` | 复核选择元数据 |
-| `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/output/module-N-canvas.html --source workshop/{project_slug}/{group_id}/modules/Mx-vN.md --state workshop/{project_slug}/{group_id}/state.json` | 审计正式模块 Canvas HTML |
-| `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/output/gc-canvas-{slug}.html --source workshop/{project_slug}/{group_id}/modules/GC-{slug}-vN.md --state workshop/{project_slug}/{group_id}/state.json --type gc --instance {slug}` | 审计黄金圈 Canvas HTML |
-| `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/output/hmw-canvas-{slug}.html --source workshop/{project_slug}/{group_id}/modules/HMW-{slug}-vN.md --state workshop/{project_slug}/{group_id}/state.json --type hmw --instance {slug} --template skills/canvas-render/examples/hmw-canvas.html` | 审计 HMW Canvas HTML（双 Gate：内容/授权 + Template） |
-| `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/output/persona-canvas-{slug}.html --source workshop/{project_slug}/{group_id}/modules/PERSONA-{slug}-vN.md --state workshop/{project_slug}/{group_id}/state.json --type persona --instance {slug} --template skills/canvas-render/examples/user-persona-canvas.html` | 审计 Persona Canvas HTML（双 Gate：内容/授权 + Template） |
-| `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/output/journey-canvas-{slug}.html --source workshop/{project_slug}/{group_id}/modules/JOURNEY-{slug}-vN.md --state workshop/{project_slug}/{group_id}/state.json --type journey --instance {slug} --template skills/canvas-render/examples/user-journey-canvas.html` | 审计 Journey Canvas HTML（动态阶段 + 双 Gate） |
-| `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/output/maau-global-canvas-{slug}.html --source workshop/{project_slug}/{group_id}/modules/MAAU-{slug}-vN.md --state workshop/{project_slug}/{group_id}/state.json --type mvl --page-type global --instance {slug} --generation-path transcript-direct` | 审计 MAAU transcript-direct 实例页 HTML（`MAAU_GENERATION` / `[来源: transcript-direct]` / `MAAU-GATE-*` override） |
-| `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/output/persona-canvas.html --state workshop/{project_slug}/{group_id}/state.json --type persona --index` | 审计 Persona instance 索引页 |
+| `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/{topic_slug}/output/module-N-canvas.html --source workshop/{project_slug}/{group_id}/{topic_slug}/modules/Mx-vN.md --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json` | 审计正式模块 Canvas HTML |
+| `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/{topic_slug}/output/gc-canvas-{slug}.html --source workshop/{project_slug}/{group_id}/{topic_slug}/modules/GC-{slug}-vN.md --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json --type gc --instance {slug}` | 审计黄金圈 Canvas HTML |
+| `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/{topic_slug}/output/hmw-canvas-{slug}.html --source workshop/{project_slug}/{group_id}/{topic_slug}/modules/HMW-{slug}-vN.md --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json --type hmw --instance {slug} --template skills/canvas-render/examples/hmw-canvas.html` | 审计 HMW Canvas HTML（双 Gate：内容/授权 + Template） |
+| `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/{topic_slug}/output/persona-canvas-{slug}.html --source workshop/{project_slug}/{group_id}/{topic_slug}/modules/PERSONA-{slug}-vN.md --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json --type persona --instance {slug} --template skills/canvas-render/examples/user-persona-canvas.html` | 审计 Persona Canvas HTML（双 Gate：内容/授权 + Template） |
+| `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/{topic_slug}/output/journey-canvas-{slug}.html --source workshop/{project_slug}/{group_id}/{topic_slug}/modules/JOURNEY-{slug}-vN.md --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json --type journey --instance {slug} --template skills/canvas-render/examples/user-journey-canvas.html` | 审计 Journey Canvas HTML（动态阶段 + 双 Gate） |
+| `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/{topic_slug}/output/maau-global-canvas-{slug}.html --source workshop/{project_slug}/{group_id}/{topic_slug}/modules/MAAU-{slug}-vN.md --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json --type mvl --page-type global --instance {slug} --generation-path transcript-direct` | 审计 MAAU transcript-direct 实例页 HTML（`MAAU_GENERATION` / `[来源: transcript-direct]` / `MAAU-GATE-*` override） |
+| `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/{topic_slug}/output/persona-canvas.html --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json --type persona --index` | 审计 Persona instance 索引页 |
 | `python3 -m pytest tests/ -q` | 跑全部单元测试（schema / 契约 / 双 Gate 审计） |
 | `python3 scripts/check_contract_consistency.py` | 跑契约一致性检查器（开发辅助，**非 CI 强制**），输出规则化问题清单 |
 | `python3 scripts/check_contract_consistency.py --rules MANIFEST_JSON,GATE_TABLE_PARSE` | 只跑指定规则（逗号分隔 code） |

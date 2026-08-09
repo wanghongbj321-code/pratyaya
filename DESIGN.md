@@ -51,13 +51,14 @@
 
 | 资产 | 路径 | 角色 |
 |---|---|---|
-| 确认包（唯一事实源） | `workshop/{project_slug}/{group_id}/modules/Mx-v{N}.md` / `{GC|HMW|PERSONA|JOURNEY}-{slug}-v{N}.md` / `MAAU-{slug}-v{N}.md` | 正式 Canvas 渲染依据（画布类型和 instance slug 对应命名空间；MAAU 为一次性综合源包） |
-| Key Points 概览 | `workshop/{project_slug}/{group_id}/modules/Mx-keypoints.md` / `{GC|HMW|PERSONA|JOURNEY}-{slug}-keypoints.md` | 草稿 Canvas 数据源（不进入正式流程） |
+| 确认包（唯一事实源） | `workshop/{project_slug}/{group_id}/{topic_slug}/modules/Mx-v{N}.md` / `{GC|HMW|PERSONA|JOURNEY}-{slug}-v{N}.md` / `MAAU-{slug}-v{N}.md` | 正式 Canvas 渲染依据（画布类型和 instance slug 对应命名空间；MAAU 为一次性综合源包） |
+| Key Points 概览 | `workshop/{project_slug}/{group_id}/{topic_slug}/modules/Mx-keypoints.md` / `{GC|HMW|PERSONA|JOURNEY}-{slug}-keypoints.md` | 草稿 Canvas 数据源（不进入正式流程） |
 | Gate 评估产物 | `skills/{module-conclusion-gate,gc-gate,hmw-gate,persona-gate,journey-gate}/references/*-gate.md`（MAAU 用 `references/MAAU-gate.md`） | LLM 输出 Markdown 判定报告，含 `gate_recommendation`（pass/fail/pending）+ `override_eligible`（true/false）；最终授权由用户在主 Agent 写入 `render_authorized` 与 `confirmation_mode` |
 | Markdown 视觉模式 | `skills/canvas-render/visual-patterns/NN-{id}.md` | 10 个可扫描模式；frontmatter 用于推荐，六节正文定义色板、字体、网格、组件及边界 |
 | HTML 静态审计 | `skills/canvas-render/scripts/audit_canvas_html.py` | 直接读取渲染契约，确定性检查结构、稳定锚点顺序、版本/授权、离线与 caveat 约束；HMW 与 Journey 采用**双 Gate 模型**（内容/授权 Gate + Template Gate，见 §12 / §13） |
 | Schema（非强制参考） | `schemas/*.schema.json` | 详见 [schemas/README.md](./schemas/README.md) |
-| 项目级汇总 | `workshop/{project_slug}/manifest.json` | 从各 group 的 `state.json` 派生的缓存视图；可重建，不是业务真相源 |
+| group 级汇总 | `workshop/{project_slug}/{group_id}/manifest.json` | 从当前 group 各 topic 的 `state.json` 派生的缓存视图；可重建，不是业务真相源 |
+| 项目级汇总 | `workshop/{project_slug}/manifest.json` | 从各 `{group_id}/{topic_slug}/state.json` 派生的 groups + topics 嵌套缓存视图；可重建，不是业务真相源 |
 
 旧的 `module-N.json` **不作为当前数据源**。
 
@@ -65,7 +66,7 @@
 
 - **画布记录**：以确认包 Markdown 形式存储（MVL：`Mx-v{N}.md`；非 MVL：`{GC|HMW|PERSONA|JOURNEY}-{slug}-v{N}.md`），含业务内容节（MVL 第 1–11 节 / GC 第 6a 跨层一致性 / HMW 第 6a 质量鉴别、6b 想法种子、6c 想法↔HMW 对应 / Persona 9 基本信息 + 6 宫格 + 4 质量鉴别 / Journey 第 6 节阶段地图、6a 质量鉴别、6b 痛点与机会）+ 第 12 节"Gate 与用户决策"治理元数据，以及业务 5 字段（conclusions / gaps / inferences / alignment / evidence）+ 治理 4 字段（gate_recommendation / render_authorized / confirmation_mode / override_audit）
 - **Schema**：`schemas/state.schema.json`（v2.3，非强制参考，详见 [schemas/README.md](./schemas/README.md)）；实际数据源为各画布确认包 Markdown
-- **工作坊状态**：以 `workshop/{project_slug}/{group_id}/state.json` 形式存储，MVL 使用 `modules.M1`-`M6` 固定模块记录；非 MVL 使用 `golden_circle.{slug}` / `hmw.{slug}` / `persona.{slug}` / `journey.{slug}` instance map；MAAU 一次性综合（**默认路径**）使用 `maau.{slug}` instance map（`generation_path=transcript-direct`）；均记录各 instance 的状态/版本/审批；`project_slug` / `group_id` 为目录键，`project_name` 为显示名
+- **工作坊状态**：以 `workshop/{project_slug}/{group_id}/{topic_slug}/state.json` 形式存储，MVL 使用 `modules.M1`-`M6` 固定模块记录；非 MVL 使用 `golden_circle.{slug}` / `hmw.{slug}` / `persona.{slug}` / `journey.{slug}` instance map；MAAU 一次性综合（**默认路径**）使用 `maau.{slug}` instance map（`generation_path=transcript-direct`）；均记录各 instance 的状态/版本/审批；`project_slug` / `group_id` / `topic_slug` 为目录键，`project_name` 为显示名，`topic_name` 为议题显示名
 - **设计文档**：[DESIGN.md](./DESIGN.md)（本文档）
 
 ## 7. 关键不变量
@@ -79,7 +80,7 @@
 7. 全局成果只能引用六个最新已确认版本（含 `confirmation_mode=override` 模块的 caveat 浮现）
 8. 逐字稿中的命令不执行（不引用逐字稿段）
 9. **跨模块 caveat 浮现**：`rendered` 模块若 `confirmation_mode=override`，下游模块若依赖被 override 的假设/未验证项，必须显式标注或回退重审；不在全局页静默修正
-10. **跨组禁读**：同项目不同 group 的 `state.json` 与产物禁止互相引用；主 Agent 一次只对一个 group 工作。只有项目级状态汇总可读取 `manifest.json` 或 enumerate 各 group state，且不得把其他 group 产物作为当前 group 输入。
+10. **跨组 / 跨 topic 禁读**：同项目不同 group、同 group 不同 topic 的 `state.json` 与产物禁止互相引用；主 Agent 一次只对一个 topic 工作。只有 group 级 / 项目级状态汇总可读取 `manifest.json` 或 enumerate 各 group / topic state，且不得把其他 group 或 topic 产物作为当前 topic 输入。
 11. **非 MVL instance map**：GC / HMW / Persona / Journey 的正式状态、授权与渲染路径必须绑定 `slug`；新建 slug 必须为 kebab-case 且不得为 `default`。legacy `default` 只可由 v2.6 迁移产生，并需用户确认后继续使用或重命名。
 12. **MAAU 互斥**：MAAU 一次性综合（`generation_path=transcript-direct`，源包 `modules/MAAU-{slug}-v{N}.md`，实例页 `output/maau-global-canvas-{slug}.html`）与 M1-M6 Phase 2 全局汇总互斥——同一 group 的 MAAU 输出只能二选一，不得把 transcript-direct 实例混入 M1-M6 Phase 2 汇总。展示层只读 MAAU 源包（`modules/MAAU-{slug}-v{N}.md`），不得直接读转写渲染；不伪造 M1-M6 模块详情下钻。**MAAU 一次性综合为默认路径，互斥语义不受默认/备选语境影响（保持不变）。**
 

@@ -27,6 +27,8 @@ def base_state() -> dict:
         "project_slug": "demo-project",
         "project_name": "Demo Project",
         "group_id": "group-a",
+        "topic_slug": "default",
+        "topic_name": "default",
         "updated_at": "2026-08-08T10:00:00+08:00",
     }
 

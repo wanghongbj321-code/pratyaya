@@ -77,20 +77,23 @@ pratyaya/
 
 ## 工作坊产物目录
 
-用户工作坊产物按 project + group 双层隔离：
+用户工作坊产物按 project + group + topic 三层隔离：
 
 ```text
 workshop/{project_slug}/
-├── manifest.json                 # 项目级派生视图，可从各 group state.json 重建
+├── manifest.json                 # project 级派生视图：groups + topics 嵌套（可从各 topic state.json 重建）
 └── {group_id}/
     ├── group_meta.json            # group 显示元数据
-    ├── state.json                 # 当前 group 状态；project_slug / group_id 与目录名一致
-    ├── transcripts/
-    ├── modules/
-    └── output/
+    ├── manifest.json              # group 级派生视图：本组 topics 汇总（可从 */state.json 重建）
+    └── {topic_slug}/
+        ├── topic_meta.json        # topic 显示元数据
+        ├── state.json             # 当前 topic 状态；project_slug / group_id / topic_slug 与目录名一致
+        ├── transcripts/
+        ├── modules/
+        └── output/
 ```
 
-`project_slug` / `group_id` 是目录键（kebab-case ASCII）；`project_name` / `group_name` 是显示名，可使用中文。同一项目下不同 group 的 state 与产物彼此隔离，只有项目级状态汇总读取 `manifest.json`。
+`project_slug` / `group_id` / `topic_slug` 是目录键（kebab-case ASCII）；`project_name` / `group_name` / `topic_name` 是显示名，可使用中文。同一项目下不同 group、同一 group 下不同 topic 的 state 与产物彼此隔离，只有 group 级 / 项目级状态汇总读取 `manifest.json`。`topic_slug` 表示工作坊议题边界，不替代画布 `instance_slug`（同一 topic 下可有多个 GC/HMW/Persona/Journey/MAAU 画布实例）。
 
 ## 文档导航
 
