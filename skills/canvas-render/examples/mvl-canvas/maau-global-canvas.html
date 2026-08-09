@@ -170,9 +170,15 @@ body {
   .maau-meta-line{ display:block; min-height:18px; border-bottom:1px solid var(--muted); color:var(--ink); }
 
   .maau-top-grid{
-    display:grid; grid-template-columns:repeat(5,minmax(0,1fr));
+    display:grid; grid-template-columns:repeat(3,minmax(0,1fr));
     gap:8px; margin-top:8px;
   }
+  /* 布局：Row1(1/2/3) → Row2(Workflow 全宽) → Row3(Context 全宽) */
+  .maau-card#workflow,
+  .maau-card#context{ grid-column:1 / -1; }
+  /* Workflow 5 个字段 5 列横排；Context 3 个字段 3 列横排 */
+  #workflow .maau-fields{ grid-template-columns:repeat(5,minmax(0,1fr)); }
+  #context .maau-fields{ grid-template-columns:repeat(3,minmax(0,1fr)); }
   .maau-card,
   .maau-validation,
   .maau-governance,
@@ -279,6 +285,8 @@ body {
     .maau-validation-grid,
     .governance-row,
     .governance-alignment{ grid-template-columns:1fr; }
+    #workflow .maau-fields,
+    #context .maau-fields{ grid-template-columns:1fr; }
     .maau-footer{ align-items:flex-start; flex-direction:column; }
     .maau-footer-note{ text-align:left; white-space:normal; }
   }

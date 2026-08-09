@@ -3,6 +3,19 @@
 > 本文件记录 Pratyaya 专家的正式版本变更。
 > 完整 SemVer 与架构说明见 [`README.md`](./README.md) / [`DESIGN.md`](./DESIGN.md) / [docs/MVL-整体架构设计.md](./docs/MVL-整体架构设计.md)。
 
+## [v2.9.1] - 2026-08-09
+
+### 变更（PATCH）
+
+- **MAAU 全局画布母版五要素 3 行错落布局**：`skills/canvas-render/examples/mvl-canvas/maau-global-canvas.html` 的 `.maau-top-grid` 由 5 列并排改为 3 行错落排——Row1 = Intent / User / Agent Team（3 列）；Row2 = Workflow 全宽横贯、内部 5 个字段改 5 列横排；Row3 = Context 全宽横贯、内部 3 个字段改 3 列横排；`<1100px` 窄屏断点内 Workflow / Context 内部字段列同步回退单列，避免挤压。
+- 该母版是 MVL 全局画布的"版面与签名视觉唯一事实源"（canvas-render「示例参照」），渲染时 Agent 参照它生成成品，故仅改母版即可让后续渲染套用新布局。
+- `audit_canvas_html.py` / `render-contract*.md` / `visual-patterns/` 均不校验五要素网格列数（只校验 id 齐全），无需同步改文档；审计确认 `PASS`。
+
+### 兼容性
+
+- 无 schema 变更；`state.schema.json` `schema_version` 仍 `"2.3"`。
+- 布局改动仅影响 MAAU 全局画布母版；已渲染旧产物需按流程重新渲染才套用新布局。
+
 ## [v2.9.0] - 2026-08-09
 
 ### 新增功能（MINOR）
