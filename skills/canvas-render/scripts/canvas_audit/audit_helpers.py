@@ -124,6 +124,19 @@ def v2c_vac_source_identity(path: Path) -> tuple[str | None, str | None]:
     version = version_match.group(1) if version_match else filename_version
     return (slug, version)
 
+def v2c_vac_source_generation_path(path: Path) -> str | None:
+    """从 V2C VAC 确认包头部提取生成路径。"""
+    try:
+        head = "\n".join(path.read_text(encoding="utf-8").splitlines()[:30])
+    except OSError:
+        return None
+    match = re.search(
+        r"^>\s*生成路径：\s*(pipeline|transcript-direct)\s*$",
+        head,
+        re.MULTILINE,
+    )
+    return match.group(1) if match else None
+
 def maau_source_identity(path: Path) -> tuple[str | None, str | None]:
     """从 MAAU-{slug}-vN 源包头部提取 slug 与版本号。
 
@@ -225,6 +238,45 @@ def audit_v2c_vac_override(canvas_data: JsonDict) -> list[Finding]:
                     f"assessment_id={assessment_id!r} category must be business_risk, got {item.get('category')!r}",
                 )
             )
+    return findings
+
+def audit_v2c_vac_identity(
+    canvas_data: JsonDict,
+    source_path: Path | None,
+) -> list[Finding]:
+    """校验 V2C VAC canvas-data 的生成路径与源包文件身份。"""
+    findings: list[Finding] = []
+    generation_path = canvas_data.get("generation_path")
+    if generation_path not in ("pipeline", "transcript-direct"):
+        findings.append(
+            Finding(
+                "V2C_GENERATION",
+                f"canvas-data.generation_path must be 'pipeline' or 'transcript-direct', got {generation_path!r}",
+            )
+        )
+
+    source_file = canvas_data.get("source_file")
+    if source_path is not None:
+        expected_source_file = source_path.name
+        source_file_name = Path(str(source_file)).name if source_file else None
+        if source_file_name != expected_source_file:
+            findings.append(
+                Finding(
+                    "V2C_SOURCE_FILE",
+                    f"canvas-data.source_file={source_file!r} must match --source name {expected_source_file!r}",
+                )
+            )
+        source_generation = v2c_vac_source_generation_path(source_path)
+        if source_generation is not None and generation_path != source_generation:
+            findings.append(
+                Finding(
+                    "V2C_GENERATION",
+                    f"canvas-data.generation_path={generation_path!r} != source {source_generation!r}",
+                )
+            )
+    elif not source_file:
+        findings.append(Finding("V2C_SOURCE_FILE", "canvas-data.source_file is required"))
+
     return findings
 
 def audit_maau_transcript_direct(

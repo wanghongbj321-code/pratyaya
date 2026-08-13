@@ -108,6 +108,60 @@ def test_v2c_vac_wrong_canvas_type_fails(tmp_path: Path) -> None:
     assert "CANVAS_TYPE" in result.stdout
 
 
+def test_v2c_vac_wrong_generation_path_fails(tmp_path: Path) -> None:
+    html = copy_template(tmp_path, "wrong-generation.html")
+    source, state = write_source_and_state(tmp_path)
+    html.write_text(
+        html.read_text(encoding="utf-8").replace(
+            '"generation_path":"transcript-direct"',
+            '"generation_path":"not-a-path"',
+        ),
+        encoding="utf-8",
+    )
+
+    result = run_v2c_audit(
+        html,
+        "--source",
+        str(source),
+        "--state",
+        str(state),
+        "--instance",
+        "sample-vac",
+        "--template",
+        str(TEMPLATE),
+    )
+
+    assert result.returncode != 0
+    assert "V2C_GENERATION" in result.stdout
+
+
+def test_v2c_vac_wrong_source_file_fails(tmp_path: Path) -> None:
+    html = copy_template(tmp_path, "wrong-source-file.html")
+    source, state = write_source_and_state(tmp_path)
+    html.write_text(
+        html.read_text(encoding="utf-8").replace(
+            '"source_file":"modules/V2C-VAC-sample-vac-v1.md"',
+            '"source_file":"modules/WRONG-v1.md"',
+        ),
+        encoding="utf-8",
+    )
+
+    result = run_v2c_audit(
+        html,
+        "--source",
+        str(source),
+        "--state",
+        str(state),
+        "--instance",
+        "sample-vac",
+        "--template",
+        str(TEMPLATE),
+    )
+
+    assert result.returncode != 0
+    assert "V2C_SOURCE_FILE" in result.stdout
+
+
 def test_v2c_vac_override_assessment_id_must_use_gate_id(tmp_path: Path) -> None:
     html = copy_template(tmp_path, "bad-override.html")
     text = html.read_text(encoding="utf-8")

@@ -19,7 +19,8 @@ from .audit_helpers import (
     audit_hmw_content_mapping, audit_index_page, audit_maau_transcript_direct, audit_persona_content_mapping,
     audit_v2c_vac_override, expected_in_order, gc_source_identity, hmw_source_identity, journey_source_identity,
     load_contract_anchor_orders, load_gc_anchor_orders, load_json, maau_source_identity, normalize_version, parse_html,
-    persona_source_identity, select_instance_state, select_maau_instance_state, source_identity, v2c_vac_source_identity,
+    persona_source_identity, select_instance_state, select_maau_instance_state, source_identity, audit_v2c_vac_identity,
+    v2c_vac_source_identity,
 )
 from .audit_template_gates import (
     audit_journey_dynamic_structure, audit_journey_template_gate, audit_template_gate, element_is_hidden,
@@ -280,6 +281,7 @@ def audit(
                 )
             )
         if is_v2c_vac:
+            findings.extend(audit_v2c_vac_identity(canvas_data, source_path))
             findings.extend(audit_v2c_vac_override(canvas_data))
 
     if "iframe" in html.tags:
@@ -459,6 +461,32 @@ def audit(
                         Finding(
                             "MAAU_GENERATION",
                             f"canvas-data generation_path={data_generation!r} != state {state_generation!r}",
+                        )
+                    )
+            if is_v2c_vac and canvas_data is not None:
+                state_generation = state_module.get("generation_path")
+                data_generation = canvas_data.get("generation_path")
+                if state_generation not in ("pipeline", "transcript-direct"):
+                    findings.append(
+                        Finding(
+                            "V2C_STATE_GENERATION",
+                            f"state.v2c_vac.{instance_slug}.generation_path must be 'pipeline' or 'transcript-direct', got {state_generation!r}",
+                        )
+                    )
+                if data_generation != state_generation:
+                    findings.append(
+                        Finding(
+                            "V2C_GENERATION",
+                            f"canvas-data generation_path={data_generation!r} != state {state_generation!r}",
+                        )
+                    )
+                data_source_file = canvas_data.get("source_file")
+                state_source_file = state_module.get("source_file")
+                if data_source_file != state_source_file:
+                    findings.append(
+                        Finding(
+                            "V2C_SOURCE_FILE",
+                            f"canvas-data source_file={data_source_file!r} != state {state_source_file!r}",
                         )
                     )
             auth = canvas_data.get("auth") if canvas_data else None
