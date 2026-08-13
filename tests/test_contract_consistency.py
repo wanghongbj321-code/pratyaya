@@ -200,6 +200,8 @@ class TestSkillRegistration:
             "hmw-gate": 1,
             "persona-gate": 1,
             "journey-gate": 1,
+            "v2c-vac-distill": 0,
+            "v2c-vac-gate": 1,
             "faq-answer": 2,
             "maau-synthesize": 2,
             "canvas-render": 3,
@@ -562,20 +564,15 @@ class TestJourneyAgentContract:
             assert phrase in agent
 
 
-class TestMaaDefaultPathContract:
-    """v2.8.0 MINOR：锁定主 Agent 步骤 -1 路由默认翻转文本契约。
+class TestExplicitCanvasRoutingContract:
+    """v3.0.0：主 Agent 必须显式判定画布类型，不再把未指定逐字稿默认送入 MAAU。"""
 
-    MAAU 一次性综合为默认路径；M1-M6 六模块为显式备选；收到逐字稿且未声明画布类型
-    时默认进入 MAAU；缺 project_slug / group_id / instance_slug 时先收集元数据且不写 state。
-    同时断言旧冲突文案（重复 Persona 路由 / 多个"不明确"追问 / 旧默认兜底）已删除。
-    """
-
-    def test_agent_routes_untyped_transcript_to_maau_default(self) -> None:
+    def test_agent_asks_canvas_type_for_untyped_transcript(self) -> None:
         agent = read(REPO_ROOT / "agents" / "pratyaya.md")
-        # 默认分支：提供逐字稿/材料且未声明画布类型 → 默认 MAAU
-        assert "**默认分支**" in agent
-        assert "默认进入 MAAU 一次性综合路径（Phase 3）" in agent
-        assert "**默认首选 MAAU 一次性综合；M1-M6 为显式备选**" in agent
+        assert "**未指定画布分支**" in agent
+        assert "追问画布类型，不进入 MAAU、V2C VAC 或任何其他画布" in agent
+        assert "只给逐字稿 / 会议材料时不进入任何默认画布" in agent
+        assert "不推荐默认画布" in agent
 
     def test_agent_requires_explicit_m1_m6_selection(self) -> None:
         agent = read(REPO_ROOT / "agents" / "pratyaya.md")

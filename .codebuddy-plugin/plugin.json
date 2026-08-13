@@ -11,11 +11,13 @@
     "./skills/hmw-distill",
     "./skills/persona-distill",
     "./skills/journey-distill",
+    "./skills/v2c-vac-distill",
     "./skills/module-conclusion-gate",
     "./skills/gc-gate",
     "./skills/hmw-gate",
     "./skills/persona-gate",
     "./skills/journey-gate",
+    "./skills/v2c-vac-gate",
     "./skills/faq-answer",
     "./skills/maau-synthesize",
     "./skills/canvas-render"
