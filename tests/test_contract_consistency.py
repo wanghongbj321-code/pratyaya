@@ -169,7 +169,7 @@ class TestSkillRegistration:
             assert skill in plugin["skills"], f"plugin.json missing MAAU skill {skill}"
         for skill in EXPECTED_V2C_VAC_SKILLS:
             assert skill in plugin["skills"], f"plugin.json missing V2C VAC skill {skill}"
-        assert plugin["version"] == "2.9.1"
+        assert plugin["version"] == "3.0.0"
 
     def test_plugin_registers_persona_skills(self) -> None:
         plugin = json.loads(read(REPO_ROOT / ".codebuddy-plugin" / "plugin.json"))
@@ -233,8 +233,10 @@ class TestPluginMetadata:
 
         assert len(quick_prompts) == 3
         assert quick_prompts[0] == plugin["defaultInitPrompt"]
-        assert "MAAU" in quick_prompts[1]["en"]
-        assert "MAAU" in quick_prompts[1]["zh"]
+        assert "V2C" in quick_prompts[1]["en"]
+        assert "V2C" in quick_prompts[1]["zh"]
+        assert "transcript-direct" in quick_prompts[1]["en"]
+        assert "transcript-direct" in quick_prompts[1]["zh"]
         assert "使用问题" in quick_prompts[2]["zh"]
         assert "usage issue" in quick_prompts[2]["en"]
 
@@ -620,12 +622,16 @@ class TestExplicitCanvasRoutingContract:
 
     def test_plugin_json_version_and_entry_context(self) -> None:
         plugin = json.loads(read(REPO_ROOT / ".codebuddy-plugin" / "plugin.json"))
-        assert plugin["version"] == "2.9.1"
-        # 默认入口语境：displayDescription 与 quickPrompts 已包含 MAAU 默认入口
+        assert plugin["version"] == "3.0.0"
+        # v3.0 入口语境：displayDescription 与 quickPrompts 已显式包含 V2C VAC，且不再宣称 MAAU 默认
+        assert "V2C VAC" in plugin["displayDescription"]["zh"]
+        assert "V2C" in plugin["displayDescription"]["en"]
+        assert "V2C" in plugin["quickPrompts"][1]["zh"]
+        assert "V2C" in plugin["quickPrompts"][1]["en"]
+        assert "default" not in plugin["description"].lower()
+        assert "默认" not in plugin["displayDescription"]["zh"]
         assert "MAAU" in plugin["displayDescription"]["zh"]
         assert "MAAU" in plugin["displayDescription"]["en"]
-        assert "MAAU" in plugin["quickPrompts"][1]["zh"]
-        assert "MAAU" in plugin["quickPrompts"][1]["en"]
 
 
 class TestV2CVacContract:

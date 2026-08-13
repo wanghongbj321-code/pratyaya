@@ -3,6 +3,30 @@
 > 本文件记录 Pratyaya 专家的正式版本变更。
 > 完整 SemVer 与架构说明见 [`README.md`](./README.md) / [`DESIGN.md`](./DESIGN.md) / [docs/MVL-整体架构设计.md](./docs/MVL-整体架构设计.md)。
 
+## [v3.0.0] - 2026-08-13
+
+### 新增功能（MAJOR）
+
+- **V2C Value Attribution Canvas（V2C VAC）一等公民画布**：新增 V2C 系列的 Value Attribution Canvas，来源于王鸿的 Value-to-Capability FDE 工作方法论，支持 `pipeline` 多阶段管道与 `transcript-direct` 一次性综合两种路径，确认包命名为 `V2C-VAC-{slug}-v{N}.md`。
+- **V2C VAC 分析与治理 Skill**：新增 `v2c-vac-distill` 与 `v2c-vac-gate`；前者负责 Key Points、阶段提炼、一次性综合、补问清单与确认包，后者负责 `V2C-GATE-01~12`、信息完整性 / 业务风险分类，以及 `V2C-AGxx` 归因断点与 Gate ID 的边界。
+- **V2C VAC 状态 schema**：新增 `state.v2c_vac.{slug}` instance map，记录 `generation_path`、`pipeline_stage`、`source_package_path`、`gate_report_path`、override、授权与渲染产物路径；`pipeline` 与 `transcript-direct` 在同一实例内保持互斥。
+- **V2C VAC 渲染契约与审计**：新增 `render-contract-v2c-vac.md`、`v2c-value-attribution-canvas.html` 示例模板、`audit_canvas_html.py --type v2c-vac`、`--page-type v2c-vac-index` 与 `V2C-VAC-TPL-GATE-01..08` Template Gate。
+- **V2C VAC fixtures 与契约一致性检查**：新增 V2C VAC 正常 / 异常 fixtures 和专项一致性规则，覆盖 Skill 路径、Gate 表、渲染契约、state schema、审计类型与 README / CHANGELOG 版本语义。
+- **plugin metadata 升级**：`.codebuddy-plugin/plugin.json` 版本升至 `3.0.0`，description / displayDescription / quickPrompts 纳入 V2C VAC，并移除 MAAU 默认入口表述。
+
+### 变更
+
+- **显式画布路由**：只提供逐字稿或会议材料时不再默认进入任何画布；主 Agent 必须先追问画布类型。MAAU、V2C VAC、MVL M1-M6 与其他画布都必须显式选择。
+- **M1-M6 Gate 表格式决策**：正式接受 5 列精简版（`ID / 条件 / 分类 / 风险等级 / 来源`），契约一致性检查器仍兼容历史 8 列详版。
+
+### 兼容性与迁移边界
+
+- `state.schema.json` 顶层 `schema_version` 仍保持 `"2.3"`；V2C VAC 通过 `_meta.v2c_vac_schema_version = "3.0-v2c-vac-1"` 标记派生子版本。
+- 旧项目的 `state.json` 即使没有 `v2c_vac` 区块，也可以继续使用既有 MVL、MAAU、黄金圈、HMW、Persona、Journey 等流程；只有首次创建 V2C VAC 实例时才需要写入 `state.v2c_vac.{slug}`。
+- 旧 quick prompt 或旧文档中“逐字稿默认进入 MAAU”的理解不再适用；v3.0.0 起逐字稿入口必须显式指定画布和生成路径。
+- `v2c` 是 V2C 系列名；Value Attribution Canvas 的机器标识必须使用 `canvas_type=v2c-vac` 与 state key `v2c_vac`。
+- 正式 V2C VAC 渲染只能基于已通过 Gate 并获得授权的 `V2C-VAC-{slug}-v{N}.md`；不得直接从逐字稿或未授权草稿渲染。
+
 ## [v2.9.1] - 2026-08-09
 
 ### 变更（PATCH）

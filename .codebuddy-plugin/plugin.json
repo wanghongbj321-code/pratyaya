@@ -1,7 +1,7 @@
 {
   "name": "pratyaya",
-  "version": "2.9.1",
-  "description": "pratyaya: AI-native multi-canvas workshop platform — MAAU one-shot synthesis (default path, transcript-direct) plus MVL M1-M6 step-by-step pipeline (explicit fallback), Golden Circle, HMW (How Might We), User Persona and User Journey canvases. Distills traceable conclusions; blocks incomplete modules; obtains versioned human confirmation; renders Canvas HTML.",
+  "version": "3.0.0",
+  "description": "pratyaya: AI-native multi-canvas workshop platform — explicit canvas routing for MAAU one-shot synthesis, MVL M1-M6 pipeline, Golden Circle, HMW (How Might We), User Persona, User Journey and V2C Value Attribution Canvas. Distills traceable conclusions; blocks incomplete modules; obtains versioned human confirmation; renders Canvas HTML.",
   "agents": [
     "./agents/pratyaya.md"
   ],
@@ -33,8 +33,8 @@
     "zh": "Pratyaya Canvas Expert"
   },
   "displayDescription": {
-    "en": "AI-native multi-canvas workshop platform: MAAU one-shot synthesis (default) + MVL M1-M6 (explicit fallback) + Golden Circle + HMW (How Might We) + User Persona + User Journey canvases.",
-    "zh": "AI 原生多画布平台：MAAU 综合（默认）为主，MVL 六模块为显式备选，支持五类画布"
+    "en": "AI-native multi-canvas workshop platform: explicit routing for MVL, MAAU, V2C VAC, Golden Circle, HMW, User Persona and User Journey canvases.",
+    "zh": "AI 原生多画布平台：显式选择 MVL、MAAU、V2C VAC、黄金圈、HMW、画像、旅程"
   },
   "avatar": "avatars/expert.png",
   "categoryId": "12-IndustryConsultant",
@@ -63,8 +63,8 @@
       "zh": "请介绍一下你能做什么，引导我开始"
     },
     {
-      "en": "Here is a one-shot transcript / meeting material. Synthesize the MAAU global canvas source package (default path).",
-      "zh": "这是一次性逐字稿/会议材料，请综合生成 MAAU 全局画布源包（默认路径）"
+      "en": "Generate a V2C Value Attribution Canvas from this transcript, using transcript-direct.",
+      "zh": "根据这份逐字稿生成 V2C VAC 价值归因画布，路径 transcript-direct"
     },
     {
       "en": "I ran into a usage issue. Please explain it from the current project state and suggest the next step.",
