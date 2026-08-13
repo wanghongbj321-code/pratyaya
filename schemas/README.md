@@ -1,12 +1,12 @@
 # Pratyaya Schemas（非强制参考）
 
-本目录下的 JSON Schema 仅作为非强制参考。**模块产物的唯一中间格式是 Markdown**（MVL 为 `modules/Mx-keypoints.md`、`modules/Mx-v{N}.md`；非 MVL 一等公民画布为 `modules/{GC|HMW|PERSONA|JOURNEY}-{slug}-keypoints.md`、`modules/{GC|HMW|PERSONA|JOURNEY}-{slug}-v{N}.md`），运行时不强制执行 JSON Schema 校验。
+本目录下的 JSON Schema 仅作为非强制参考。**模块产物的唯一中间格式是 Markdown**（MVL 为 `modules/Mx-keypoints.md`、`modules/Mx-v{N}.md`；非 MVL 一等公民画布为 `modules/{GC|HMW|PERSONA|JOURNEY}-{slug}-keypoints.md`、`modules/{GC|HMW|PERSONA|JOURNEY}-{slug}-v{N}.md`；V2C VAC 为 `modules/V2C-VAC-{slug}-keypoints.md`、阶段草稿与 `modules/V2C-VAC-{slug}-v{N}.md`），运行时不强制执行 JSON Schema 校验。
 
 ## 文件说明
 
 ### `state.schema.json`（v2.3）
 
-- **用途**：描述 `state.json` 的项目状态、模块版本、状态与审批结构，支持 MVL、黄金圈（Golden Circle）、HMW（How Might We）、Persona（用户画像）和 Journey（用户旅程）画布类型。
+- **用途**：描述 `state.json` 的项目状态、模块版本、状态与审批结构，支持 MVL、黄金圈（Golden Circle）、HMW（How Might We）、Persona（用户画像）、Journey（用户旅程）、MAAU 综合路径和 V2C VAC（Value Attribution Canvas）画布类型。
 - **v2.4 路径分层约束（schema_version 仍为 2.3）**：
   - 新增顶层 `project_slug`，作为 `workshop/{project_slug}/{group_id}/` 的项目目录键；`project_name` 保留为人类显示名，可中文。
   - `group_id` 从任意非空字符串收紧为 kebab-case ASCII 短名，必须与 group 目录名一致。
@@ -27,6 +27,14 @@
   - 继承 `single_canvas_state_base` 5 态字段（version / status / gate_recommendation / render_authorized / confirmation_mode）+ 可选 `override_audit`。
   - override 审计项 `assessment_id` 限定为 `^MAAU-GATE-[0-9]+$`，`category` 仅允许 `business_risk`。
   - 与 M1-M6 Phase 2 全局汇总互斥隔离：同一 group 的 MAAU 输出只能二选一（transcript-direct 或 M1-M6 Phase 2），`maau` 区块为可选，无 `maau` 的旧 state 不阻断其他流程（懒加载）。
+- **v3.0 V2C VAC 约束（schema_version 仍为 2.3）**：
+  - 新增顶层 `v2c_vac` 区块：`map: slug → v2c_vac_instance_state`，路径为 `state.v2c_vac.{slug}`，表示 V2C Value Attribution Canvas 价值归因画布实例。
+  - `v2c_vac_instance_map.propertyNames` 用 kebab-case ASCII + `not: { const: "default" }` 显式禁词（V2C VAC 不走 legacy default，新建 slug 必须语义化命名）。
+  - 每个 instance 必须包含 `slug`、`generation_path` 与 `pipeline_stage`；`generation_path` 允许 `pipeline` / `transcript-direct`。
+  - `pipeline_stage` 允许 `scenario` / `capability` / `change` / `impact` / `value` / `attribution_review` / `null`；`generation_path=transcript-direct` 时必须为 `null`；`generation_path=pipeline` 且 `status ∈ {draft,gaps_open,review_ready}` 时必须为非空阶段，`confirmed/rendered` 后可置为 `null`。
+  - 继承 `single_canvas_state_base` 5 态字段（version / status / gate_recommendation / render_authorized / confirmation_mode）+ 可选 `override_audit`。
+  - override 审计项 `assessment_id` 限定为 `^V2C-GATE-[0-9]+$`，`category` 仅允许 `business_risk`；不得把 `V2C-AGxx` 归因断点 ID 当作 Gate ID。
+  - 派生子版本写入 `_meta.v2c_vac_schema_version = "3.0-v2c-vac-1"`，可与 `_meta.instance_map_schema_version = "2.6-instance-map-1"` 并存；`v2c_vac` 区块为可选，无该区块的旧 state 不阻断其他流程。
 - **v2.3 变更**：
   - `schema_version` 从 `"2.1"` 升级到 `"2.3"`（MINOR：承接 v2.2 Persona 可选区块，并新增 **Journey 可选区块**）。
   - 新增顶层 `journey` 对象，字段结构与 `golden_circle` / `hmw` 同构（`status` / `version` / `gate_recommendation` / `render_authorized` / `confirmation_mode` / `override_audit`）。
@@ -40,7 +48,7 @@
 - **v2.0 变更（历史）**：
   - `current_module` 和 `modules` 从顶层 `required` 降为可选字段（仅 MVL 画布需要）。
   - 新增顶层 `golden_circle` 对象。
-- **向后兼容**：旧 MVL-only / GC-only / HMW / Persona state.json（无 `journey` 区块）在目录迁移后仍可使用；迁移会补入 `project_slug` 并规范化 `group_id`。未迁移的 raw legacy state 可能无法直接通过 v2.4 路径分层后的 schema 校验。`hmw` / `persona` / `journey` 均为可选区块，不强制存在。
+- **向后兼容**：旧 MVL-only / GC-only / HMW / Persona state.json（无 `journey` / `maau` / `v2c_vac` 区块）在目录迁移后仍可使用；迁移会补入 `project_slug` 并规范化 `group_id`。未迁移的 raw legacy state 可能无法直接通过 v2.4 路径分层后的 schema 校验。`hmw` / `persona` / `journey` / `maau` / `v2c_vac` 均为可选区块，不强制存在。
 - **当前状态**：保留作为**非强制参考**；LLM 不强制调用校验器。
 
 ### `module-record.schema.json`
@@ -80,12 +88,12 @@
 
 | 资产 | 当前实现 |
 |---|---|
-| 状态 | `workshop/{project_slug}/{group_id}/{topic_slug}/state.json`（参考 state.schema.json v2.3，不强制校验；MVL 存 `modules.M1`-`M6`，非 MVL 存 `golden_circle.{slug}` / `hmw.{slug}` / `persona.{slug}` / `journey.{slug}` / `maau.{slug}`） |
+| 状态 | `workshop/{project_slug}/{group_id}/{topic_slug}/state.json`（参考 state.schema.json v2.3，不强制校验；MVL 存 `modules.M1`-`M6`，非 MVL 存 `golden_circle.{slug}` / `hmw.{slug}` / `persona.{slug}` / `journey.{slug}` / `maau.{slug}` / `v2c_vac.{slug}`） |
 | group 级汇总 | `workshop/{project_slug}/{group_id}/manifest.json`（派生缓存，topic 列表；可重建） |
 | 项目级汇总 | `workshop/{project_slug}/manifest.json`（派生缓存，groups + topics 嵌套；可重建） |
-| 模块中间产物 | `modules/Mx-keypoints.md` + `modules/Mx-v{N}.md`（MVL）/ `modules/GC-{slug}-keypoints.md` + `modules/GC-{slug}-v{N}.md`（黄金圈）/ `modules/HMW-{slug}-keypoints.md` + `modules/HMW-{slug}-v{N}.md`（HMW）/ `modules/PERSONA-{slug}-keypoints.md` + `modules/PERSONA-{slug}-v{N}.md`（Persona）/ `modules/JOURNEY-{slug}-keypoints.md` + `modules/JOURNEY-{slug}-v{N}.md`（Journey）/ `modules/MAAU-{slug}-v{N}.md`（MAAU 一次性综合源包） |
-| 闸门判定 | LLM 阅读确认包 + 对应 Gate 策略文件（MVL: `Mx-gate.md` / GC: `GC-gate.md` / HMW: `HMW-gate.md` / Persona: `PERSONA-gate.md` / Journey: `JOURNEY-gate.md` / MAAU: `MAAU-gate.md`），输出 Markdown 判定报告 |
-| 事实源 | `Mx-v{N}.md` / `GC-{slug}-v{N}.md` / `HMW-{slug}-v{N}.md` / `PERSONA-{slug}-v{N}.md` / `JOURNEY-{slug}-v{N}.md` / `MAAU-{slug}-v{N}.md`（唯一事实源） |
+| 模块中间产物 | `modules/Mx-keypoints.md` + `modules/Mx-v{N}.md`（MVL）/ `modules/GC-{slug}-keypoints.md` + `modules/GC-{slug}-v{N}.md`（黄金圈）/ `modules/HMW-{slug}-keypoints.md` + `modules/HMW-{slug}-v{N}.md`（HMW）/ `modules/PERSONA-{slug}-keypoints.md` + `modules/PERSONA-{slug}-v{N}.md`（Persona）/ `modules/JOURNEY-{slug}-keypoints.md` + `modules/JOURNEY-{slug}-v{N}.md`（Journey）/ `modules/MAAU-{slug}-v{N}.md`（MAAU 一次性综合源包）/ `modules/V2C-VAC-{slug}-keypoints.md` + `modules/V2C-VAC-{slug}-v{N}.md`（V2C VAC） |
+| 闸门判定 | LLM 阅读确认包 + 对应 Gate 策略文件（MVL: `Mx-gate.md` / GC: `GC-gate.md` / HMW: `HMW-gate.md` / Persona: `PERSONA-gate.md` / Journey: `JOURNEY-gate.md` / MAAU: `MAAU-gate.md` / V2C VAC: `V2C-gate.md`），输出 Markdown 判定报告 |
+| 事实源 | `Mx-v{N}.md` / `GC-{slug}-v{N}.md` / `HMW-{slug}-v{N}.md` / `PERSONA-{slug}-v{N}.md` / `JOURNEY-{slug}-v{N}.md` / `MAAU-{slug}-v{N}.md` / `V2C-VAC-{slug}-v{N}.md`（唯一事实源） |
 
 ## 后续评估
 

@@ -1,24 +1,27 @@
 # Pratyaya Canvas Expert
 
 > 品牌：pratyaya
-> 版本：2.3.0
+> 版本：以 `.codebuddy-plugin/plugin.json` `version` 字段为权威
 
-多画布工作坊平台——以 **MAAU 一次性综合路径**（把一次性逐字稿直接综合为 MVL 全局画布的六板块源包）为**默认方式**，并提供 **MVL M1-M6 六模块管线**（分步备选路径，须显式声明启用）以及 **黄金圈**（Golden Circle）、**HMW**（How Might We，问题重构）、**用户画像**（User Persona）与 **用户旅程**（User Journey）画布。对话式引导 + 转写提炼 + 质量门禁 + 模块化智能体画布（Canvas）生成，并提供 FAQ Q/A 支持使用、状态和异常解释。非 MVL 四类一等公民画布支持同一 project/group 下的多 instance 并存。
+多画布工作坊平台，支持 **MAAU 一次性综合路径**（把一次性逐字稿直接综合为 MVL 全局画布的六板块源包）、**MVL M1-M6 六模块管线**、**黄金圈**（Golden Circle）、**HMW**（How Might We，问题重构）、**用户画像**（User Persona）、**用户旅程**（User Journey）与 **V2C Value Attribution Canvas**（价值归因画布，简称 V2C VAC）。对话式引导 + 转写提炼 + 质量门禁 + 模块化智能体画布（Canvas）生成，并提供 FAQ Q/A 支持使用、状态和异常解释。逐字稿必须显式指定目标画布，不默认进入 MAAU 或任何其他画布。
 
 详细专家定位、标签、快速指令以 `.codebuddy-plugin/plugin.json` 为权威来源。
+
+V2C 系列画布的思路来源于**王鸿**的 **Value-to-Capability FDE 工作方法论**。其中 V2C VAC 聚焦在具体业务观察场景中，审查 AI-enabled Capability 可能如何贡献于 Observable Change、Business Impact 与 Value。
 
 ## 支持的画布类型
 
 | 画布 | 结构 | 流程 |
 |---|---|---|
-| MAAU 综合（transcript-direct，**默认方式**） | MVL 全局画布六板块（Intent/User/Agent Team/Workflow/Context/Validation） | 逐字稿 → 一次性综合 → `MAAU-{slug}-v{N}.md` 源包 → Gate → 渲染 `maau-global-canvas-{slug}.html`；`maau.{slug}` instance map |
-| MVL（M1-M6，**备选**，显式声明启用） | M1-M6 六模块 | 转写 → Key Points → 确认包 → Gate → 渲染 |
+| MAAU 综合（transcript-direct） | MVL 全局画布六板块（Intent/User/Agent Team/Workflow/Context/Validation） | 显式选择 MAAU → 逐字稿 → 一次性综合 → `MAAU-{slug}-v{N}.md` 源包 → Gate → 渲染 `maau-global-canvas-{slug}.html`；`maau.{slug}` instance map |
+| MVL（M1-M6） | M1-M6 六模块 | 显式选择 MVL 六模块管线 → 转写 → Key Points → 确认包 → Gate → 渲染 |
 | 黄金圈 | WHY/HOW/WHAT 三层 | 同上四阶段管线；`golden_circle.{slug}` instance map |
 | HMW | 陈述四字段 + 质量鉴别 + 想法种子 | 同上四阶段管线；`hmw.{slug}` instance map |
 | 用户画像 | 9 基本信息 + 6 宫格 + 4 质量鉴别 | 同上四阶段管线；`persona.{slug}` instance map |
 | 用户旅程 | 动态阶段 × 5 行合并结构 + 断点摘要 + 质量鉴别 | 同上四阶段管线；`journey.{slug}` instance map |
+| V2C VAC | Scenario → Capability → Change → Business Impact → Value 归因链 + 断点 + 质量鉴别 | 支持 `pipeline` 多阶段管道与 `transcript-direct` 一次性综合；`v2c_vac.{slug}` instance map |
 
-> MAAU 综合路径**不是新增画布类型**，而是 MVL 全局画布的**默认生成路径**：把用户直接提供的一次性逐字稿综合提炼为六板块源包（`generation_path=transcript-direct`），与 M1-M6 Phase 2 全局汇总互斥（同一 group 的 MAAU 输出只能二选一）。M1-M6 六模块管线为**分步备选路径**，须用户显式声明启用。
+> MAAU 综合路径**不是新增画布类型**，而是 MVL 全局画布的一种生成路径：把用户显式指定给 MAAU 的一次性逐字稿综合提炼为六板块源包（`generation_path=transcript-direct`），与 M1-M6 Phase 2 全局汇总互斥（同一 group 的 MAAU 输出只能二选一）。未指定画布类型的逐字稿会先追问画布类型，不自动进入 MAAU、V2C VAC 或其他画布。
 
 ## 核心架构
 
@@ -41,9 +44,9 @@ flowchart LR
 draft → gaps_open ↔ review_ready → confirmed → rendered
 ```
 
-5 态转换（MVL 模块级 / GC / HMW / Persona / Journey 画布级）：草稿在 `gaps_open` 与 `review_ready` 之间反复直到全部缺口解决，用户决策（`gate_pass` / `override`）后升至 `confirmed`，最后渲染为 `rendered`。`confirmation_mode` 是属性（`gate_pass` / `override` / `null`），不是状态；`rendered` 模块若 `confirmation_mode=override` 仍参与跨模块 caveat 检查（仅 MVL）。
+5 态转换（MVL 模块级 / GC / HMW / Persona / Journey / V2C VAC 画布级）：草稿在 `gaps_open` 与 `review_ready` 之间反复直到全部缺口解决，用户决策（`gate_pass` / `override`）后升至 `confirmed`，最后渲染为 `rendered`。`confirmation_mode` 是属性（`gate_pass` / `override` / `null`），不是状态；`rendered` 模块若 `confirmation_mode=override` 仍参与跨模块 caveat 检查（仅 MVL）。
 
-非 MVL 状态路径为 `state.{state_key}.{slug}`：GC 使用 `golden_circle.{slug}`，HMW 使用 `hmw.{slug}`，Persona 使用 `persona.{slug}`，Journey 使用 `journey.{slug}`。slug 必须为 kebab-case；`default` 仅作为 legacy 迁移逃生口，不用于新建 instance。
+非 MVL 状态路径为 `state.{state_key}.{slug}`：GC 使用 `golden_circle.{slug}`，HMW 使用 `hmw.{slug}`，Persona 使用 `persona.{slug}`，Journey 使用 `journey.{slug}`，V2C VAC 使用 `v2c_vac.{slug}`。slug 必须为 kebab-case；`default` 仅作为 legacy 迁移逃生口，不用于新建 instance。
 
 ## 项目结构
 
@@ -51,18 +54,20 @@ draft → gaps_open ↔ review_ready → confirmed → rendered
 pratyaya/
 ├── .codebuddy-plugin/   # 专家包元数据
 ├── agents/              # 主 Agent（pratyaya.md）
-├── skills/              # 十三个 Skill
+├── skills/              # 多画布 Skill
 │   ├── mvl-distill/     # MVL 提炼
 │   ├── gc-distill/      # 黄金圈提炼
 │   ├── hmw-distill/     # HMW 提炼
 │   ├── persona-distill/ # 用户画像提炼
 │   ├── journey-distill/ # 用户旅程提炼
+│   ├── v2c-vac-distill/ # V2C VAC 价值归因提炼
 │   ├── maau-synthesize/ # 逐字稿 → MAAU 六板块源包（一次性综合）
 │   ├── module-conclusion-gate/  # MVL 门禁
 │   ├── gc-gate/         # 黄金圈门禁
 │   ├── hmw-gate/        # HMW 门禁
 │   ├── persona-gate/    # 用户画像门禁
 │   ├── journey-gate/    # 用户旅程门禁
+│   ├── v2c-vac-gate/    # V2C VAC 门禁
 │   ├── faq-answer/      # FAQ Q/A（使用、状态、异常解释；不进入画布状态机）
 │   └── canvas-render/   # 统一渲染（画布类型感知）
 │       └── visual-patterns/ # 10 个视觉模式（所有画布复用）
@@ -93,12 +98,12 @@ workshop/{project_slug}/
         └── output/
 ```
 
-`project_slug` / `group_id` / `topic_slug` 是目录键（kebab-case ASCII）；`project_name` / `group_name` / `topic_name` 是显示名，可使用中文。同一项目下不同 group、同一 group 下不同 topic 的 state 与产物彼此隔离，只有 group 级 / 项目级状态汇总读取 `manifest.json`。`topic_slug` 表示工作坊议题边界，不替代画布 `instance_slug`（同一 topic 下可有多个 GC/HMW/Persona/Journey/MAAU 画布实例）。
+`project_slug` / `group_id` / `topic_slug` 是目录键（kebab-case ASCII）；`project_name` / `group_name` / `topic_name` 是显示名，可使用中文。同一项目下不同 group、同一 group 下不同 topic 的 state 与产物彼此隔离，只有 group 级 / 项目级状态汇总读取 `manifest.json`。`topic_slug` 表示工作坊议题边界，不替代画布 `instance_slug`（同一 topic 下可有多个 GC/HMW/Persona/Journey/MAAU/V2C VAC 画布实例）。
 
 ## 文档导航
 
 - [docs/installation.md](./docs/installation.md) — 部署到 WorkBuddy 的完整步骤
-- [docs/user-guide.md](./docs/user-guide.md) — 工作坊使用流程（MVL + 黄金圈 + HMW + Persona + 用户旅程）+ 指令速查
+- [docs/user-guide.md](./docs/user-guide.md) — 工作坊使用流程（MVL + MAAU + 黄金圈 + HMW + Persona + 用户旅程 + V2C VAC）+ 指令速查
 - [DEVELOPMENT.md](./DEVELOPMENT.md) — 维护者与 AI 助教命令清单
 - [DESIGN.md](./DESIGN.md) — 设计文档（架构、不变量、状态机、画布类型）
 

@@ -50,6 +50,9 @@
       "properties": {
         "instance_map_schema_version": {
           "const": "2.6-instance-map-1"
+        },
+        "v2c_vac_schema_version": {
+          "const": "3.0-v2c-vac-1"
         }
       },
       "additionalProperties": true
@@ -245,6 +248,10 @@
       "$ref": "#/$defs/maau_instance_map",
       "description": "MAAU 全局画布一次性综合提炼源包实例 map（generation_path=transcript-direct）。每个 slug 一个源包实例，与 M1-M6 Phase 2 全局汇总互斥隔离；不使用 legacy `default` slug。"
     },
+    "v2c_vac": {
+      "$ref": "#/$defs/v2c_vac_instance_map",
+      "description": "V2C Value Attribution Canvas 实例 map。每个 slug 一个 V2C VAC 价值归因画布实例，支持 generation_path=pipeline 或 transcript-direct；不使用 legacy `default` slug。"
+    },
     "updated_at": {
       "type": "string",
       "minLength": 1
@@ -257,7 +264,8 @@
     { "required": ["hmw"] },
     { "required": ["persona"] },
     { "required": ["journey"] },
-    { "required": ["maau"] }
+    { "required": ["maau"] },
+    { "required": ["v2c_vac"] }
   ],
   "$defs": {
     "single_canvas_state_base": {
@@ -570,6 +578,101 @@
               }
             }
           }
+        }
+      ]
+    },
+    "v2c_vac_instance_map": {
+      "type": "object",
+      "propertyNames": {
+        "maxLength": 64,
+        "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+        "not": { "const": "default" }
+      },
+      "patternProperties": {
+        "^[a-z0-9]+(-[a-z0-9]+)*$": {
+          "$ref": "#/$defs/v2c_vac_instance_state"
+        }
+      },
+      "additionalProperties": false,
+      "description": "V2C VAC 实例 map。map key 必须为 kebab-case ASCII，且不得为 `default`（V2C VAC 没有 legacy default，新建 slug 必须语义化命名）。"
+    },
+    "v2c_vac_instance_state": {
+      "allOf": [
+        { "$ref": "#/$defs/single_canvas_state_base" },
+        {
+          "required": ["slug", "generation_path", "pipeline_stage"],
+          "properties": {
+            "generation_path": {
+              "enum": ["pipeline", "transcript-direct"],
+              "description": "V2C VAC 生成路径：pipeline 为多阶段管道；transcript-direct 为逐字稿 / 会议材料一次性综合。"
+            },
+            "pipeline_stage": {
+              "type": ["string", "null"],
+              "enum": [
+                "scenario",
+                "capability",
+                "change",
+                "impact",
+                "value",
+                "attribution_review",
+                null
+              ],
+              "description": "仅 pipeline 模式用于标记当前阶段；transcript-direct 必须为 null。"
+            },
+            "override_audit": {
+              "properties": {
+                "items": {
+                  "items": {
+                    "properties": {
+                      "assessment_id": {
+                        "pattern": "^V2C-GATE-[0-9]+$"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "generation_path": { "const": "transcript-direct" }
+                },
+                "required": ["generation_path"]
+              },
+              "then": {
+                "properties": {
+                  "pipeline_stage": { "const": null }
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "generation_path": { "const": "pipeline" },
+                  "status": {
+                    "enum": ["draft", "gaps_open", "review_ready"]
+                  }
+                },
+                "required": ["generation_path", "status"]
+              },
+              "then": {
+                "properties": {
+                  "pipeline_stage": {
+                    "enum": [
+                      "scenario",
+                      "capability",
+                      "change",
+                      "impact",
+                      "value",
+                      "attribution_review"
+                    ]
+                  }
+                }
+              }
+            }
+          ]
         }
       ]
     },

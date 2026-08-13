@@ -10,7 +10,7 @@
 1. 确认专家已安装并验证（详见 [安装指南 §5](./installation.md#5-如何找到并验证专家)）
 2. 在"我的专家"中找到 “Pratyaya Canvas Expert”
 3. 点击进入主 Agent 对话
-4. 选择画布类型（MAAU 综合 / MVL / 黄金圈 / HMW / 用户画像 / 用户旅程，见 §2）与模式（A / B / C）
+4. 选择画布类型（MAAU 综合 / MVL / 黄金圈 / HMW / 用户画像 / 用户旅程 / V2C VAC，见 §2）与模式（A / B / C）
 5. 按 §3 决策分支逐模块推进
 
 新工作坊会创建在 `workshop/{project_slug}/{group_id}/{topic_slug}/` 下。`project_slug` / `group_id` / `topic_slug` 是目录短名（kebab-case ASCII，如 `zhongruan-power`、`group-a`、`opportunity-evaluation`）；中文项目名、组名和议题名会作为 `project_name` / `group_name` / `topic_name` 显示，不直接作为目录键。同一组可围绕多个议题（topic）并行推进，`topic_slug` 是议题边界，不替代画布实例 `instance_slug`。
@@ -19,7 +19,7 @@
 
 ## 2. 模式选择
 
-主 Agent 启动时会先确认**画布类型**，再问你"想用哪种模式"：
+主 Agent 启动时会先确认**画布类型**，再问你"想用哪种模式"。只给逐字稿或会议材料时也必须先指定画布类型；系统不会默认进入 MAAU、V2C VAC 或任何其他画布。
 
 启动时还会确认项目与组：
 
@@ -32,16 +32,19 @@
 | 议题短名 `topic_slug` | `opportunity-evaluation` | `workshop/{project_slug}/{group_id}/{topic_slug}/` 目录键 |
 | 议题显示名 `topic_name` | 商机评估 | 写入 `topic_meta.json` |
 
-**画布类型**（对应 `state.json` 五区块）：
+**画布类型**（对应 `state.json` 多个区块）：
 
 | 画布 | 说 | 工作流 |
 |---|---|---|
-| **MAAU 综合**（**默认方式**） | 提供一份逐字稿即可，如"用这份逐字稿生成 MAAU" / "直接生成 maau" | 一次性逐字稿 → MVL 全局画布六板块源包，单实例（见 §4.6） |
-| **MVL**（**备选**，显式声明启用） | "M1 战略对齐" / "MVL 六模块管线" | 六模块（M1-M6），见 §4.1 |
+| **MAAU 综合** | "用这份逐字稿生成 MAAU" / "直接生成 maau" | 一次性逐字稿 → MVL 全局画布六板块源包，单实例（见 §4.6） |
+| **MVL** | "M1 战略对齐" / "MVL 六模块管线" | 六模块（M1-M6），见 §4.1 |
 | **黄金圈** | "开始黄金圈画布" / "Golden Circle" | WHY/HOW/WHAT 三层，单画布 |
 | **HMW** | "开始 HMW 画布" / "How Might We" | 问题陈述四字段 + 想法种子，单画布 |
 | **用户画像** | "开始用户画像画布" / "Persona" | 9 基本信息 + 6 宫格 + 4 质量鉴别，单画布 |
 | **用户旅程** | "开始用户旅程画布" / "Journey" | 动态阶段 × 5 行合并结构，单画布 |
+| **V2C VAC** | "开始 V2C VAC" / "价值归因画布" / "Value Attribution Canvas" | Scenario → Capability → Change → Business Impact → Value 归因链，支持多阶段管道和一次性综合 |
+
+> V2C 系列画布的思路来源于王鸿的 Value-to-Capability FDE 工作方法论。V2C VAC 用来观察和审查价值归因假设，不把尚未验证的业务收益包装成确定结论。
 
 **模式**（各画布共用；具体字段由对应 Skill 定义）：
 
@@ -131,9 +134,9 @@
 
 > 独立 Journey Canvas 不修改 MVL M2 的 `09-user-journey.md`，不写 `state.modules.M2`；如需把 Journey 结论带入 MVL，只能由用户人工引用。
 
-### 4.6 MAAU 一次性综合（transcript-direct，默认方式）
+### 4.6 MAAU 一次性综合（transcript-direct）
 
-**MAAU 一次性综合是默认方式**：只要有**一次性逐字稿**（会议录音转写、规划材料等），主 Agent 就会综合生成 MVL 全局画布的六板块源包，无需显式声明画布类型；M1-M6 六模块管线是分步备选，须显式声明启用。
+MAAU 一次性综合适合把**明确指定给 MAAU 的一次性逐字稿**（会议录音转写、规划材料等）综合生成 MVL 全局画布六板块源包。只给逐字稿但不说画布类型时，主 Agent 会先追问，不会默认进入 MAAU。
 
 1. 提供逐字稿（文本或文件路径），并指定 `project_slug` / `group_id` 与一个 instance `slug`（kebab-case，如 `retail-demo` / `power-market`）。
 2. 主 Agent 调用 `maau-synthesize` 综合为六板块源包：**Intent** / **User** / **Agent Team** / **Workflow** / **Context** / **Validation**，产出 `modules/MAAU-{slug}-v{N}.md`。
@@ -147,6 +150,30 @@
 - **多实例输出**：每个 slug 生成一个实例页 `maau-global-canvas-{slug}.html`；可选生成索引页 `maau-global-canvas.html` 汇总全部实例。
 - **互斥**：MAAU 一次性综合与 M1-M6 Phase 2 全局汇总互斥——同一 group 的 MAAU 输出只能二选一，不把逐字稿综合实例混入六模块汇总。
 
+### 4.7 V2C VAC 价值归因画布（多 instance 画布）
+
+V2C VAC 用于审查一个具体业务场景中，AI-enabled Capability 是否可能贡献于可观察变化，并进一步影响 Business Impact 与 Value。它不是价值证明页，而是观察类画布：未知、假设、断点和验证计划必须外显。
+
+你可以选择两种生成路径：
+
+| 路径 | 适用场景 | 产物 |
+|---|---|---|
+| `pipeline` 多阶段管道 | 需要逐步澄清 Scenario / Capability / Change / Impact / Value | `V2C-VAC-{slug}-stage-{stage}.md` 阶段草稿 + 最终 `V2C-VAC-{slug}-v{N}.md` |
+| `transcript-direct` 一次性综合 | 已有完整逐字稿，希望一次性形成归因画布源包 | `V2C-VAC-{slug}-keypoints.md` + `V2C-VAC-{slug}-v{N}.md` |
+
+主链按 `Scenario → Capability → Change → Business Impact → Value` 展示。每张 VAC 只允许一个 Primary Change 进入一条 Business Impact Chain；其他可观察变化可以记录，但默认不连入主链。
+
+证据状态固定为 `F / H / ? / E`：
+
+| 状态 | 含义 | 使用边界 |
+|---|---|---|
+| `F` | Fact | 有当前项目材料、访谈、业务记录或明确来源线索 |
+| `H` | Hypothesis | 可保留为假设，但必须有验证计划或风险说明 |
+| `?` | Question / Gap | 必须登记为 `V2C-AGxx` 或推断，不能静默放行 |
+| `E` | Evidence-supported | 必须有 Pilot、业务数据、现场观察或对照验证支持 |
+
+V2C VAC Gate 使用 `V2C-GATE-01..12`。只有 `business_risk` 类 Gate FAIL 可由用户显式 override；`information_integrity` FAIL 必须补问或修订。override 审计项的 `assessment_id` 必须使用 `V2C-GATE-*`，不能使用 `V2C-AGxx`。
+
 ## 5. 常用指令速查
 
 按使用阶段组织。完整指令集见 `agents/pratyaya.md` 的指令卡章节。
@@ -155,7 +182,7 @@
 
 - "开始 A 引导模式，项目名中软国际 Power 商机评估，项目短名 zhongruan-power，组号 group-a，议题短名 opportunity-evaluation，议题显示名商机评估"
 - "开始 B 转写模式"
-- "开始黄金圈画布" / "开始 HMW 画布" / "开始用户画像画布" / "开始用户旅程画布"
+- "开始黄金圈画布" / "开始 HMW 画布" / "开始用户画像画布" / "开始用户旅程画布" / "开始 V2C VAC"
 - "检查本组所有 topic" / "本组议题进度"（读取 group 级 manifest，按 topic 汇总）
 - "检查所有组状态" / "跨组对比"（读取项目级 manifest，按 group × topic 汇总）
 - "切换 topic"（切换到当前组下另一个议题，不复制状态；目标不存在时进入初始化）
@@ -189,6 +216,13 @@
 - "用这份逐字稿生成 MAAU" / "直接生成 maau"（提供逐字稿 + slug，如 `retail-demo`）
 - "MAAU 确认 v1" / "MAAU override（已阅读影响）"
 - "MAAU 状态" / "列出 MAAU 实例" / "生成 MAAU 索引页"
+
+**V2C VAC 阶段**：
+
+- "根据这份逐字稿生成 V2C VAC，路径 transcript-direct，instance store-replenishment"
+- "开始 V2C VAC pipeline，先做 scenario 阶段"
+- "V2C VAC 提炼" / "V2C VAC 补问" / "V2C VAC 先看个样子" / "V2C VAC 确认 v1"
+- "V2C VAC override（已阅读 V2C-GATE-09 的影响）" / "生成 V2C VAC 画布" / "V2C VAC 状态"
 
 ### Journey 画布迁移边界（v2.3.2 PATCH 起）
 
@@ -267,8 +301,8 @@
 
 | 特征 | 草稿 Canvas | 正式 Canvas |
 |---|---|---|
-| 顶部字样 | 草稿 / 未确认 / 禁止用于管理层决策 | 画布名 + 版本号（MVL Canvas / Golden Circle / HMW Canvas / Persona Canvas / Journey Canvas） |
-| 数据源 | 对应 Key Points（非确认包） | 对应确认包（`Mx-v{N}.md` / `GC-{slug}-v{N}.md` / `HMW-{slug}-v{N}.md` / `PERSONA-{slug}-v{N}.md` / `JOURNEY-{slug}-v{N}.md` / `MAAU-{slug}-v{N}.md`） |
+| 顶部字样 | 草稿 / 未确认 / 禁止用于管理层决策 | 画布名 + 版本号（MVL Canvas / Golden Circle / HMW Canvas / Persona Canvas / Journey Canvas / V2C Value Attribution Canvas） |
+| 数据源 | 对应 Key Points 或阶段草稿（非确认包） | 对应确认包（`Mx-v{N}.md` / `GC-{slug}-v{N}.md` / `HMW-{slug}-v{N}.md` / `PERSONA-{slug}-v{N}.md` / `JOURNEY-{slug}-v{N}.md` / `MAAU-{slug}-v{N}.md` / `V2C-VAC-{slug}-v{N}.md`） |
 | 视觉来源 | 用户选定的 `visual-patterns/NN-{id}.md` | 用户选定的 `visual-patterns/NN-{id}.md` |
 | 视觉系统 | 用户选定 | 用户选定 |
 | 状态变化 | 不改变画布状态 | 画布状态改为 `rendered` |
