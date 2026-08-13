@@ -8,6 +8,7 @@ from .phase_a import _ensure_plugin
 from .canvas_checks import *  # noqa: F403
 from .patterns import *  # noqa: F403
 from .sync_checks import *  # noqa: F403
+from .v2c_vac_checks import *  # noqa: F403
 
 
 @dataclass(frozen=True)
@@ -30,7 +31,7 @@ RULES: tuple[Rule, ...] = (
     Rule("GATE_FILE_SET", "A", "M1-M6 闸门策略文件齐全", check_gate_file_set),
     Rule("MAAU_GATE_TABLE", "A", "MAAU-gate.md 表格可解析且 ID/分类/风险/来源合法", check_maau_gate_table),
     Rule("GATE_TABLE_PARSE", "A", "Mx-gate.md 表格可解析", check_gate_table_parse),
-    Rule("GATE_TABLE_WIDTH", "A", "Mx-gate.md 表格列数（设计 8 列）", check_gate_table_width),
+    Rule("GATE_TABLE_WIDTH", "A", "Mx-gate.md 表格列数（正式 5 列，兼容 8 列）", check_gate_table_width),
     Rule("GATE_ID_FORMAT", "A", "GATE ID 格式 M{N}-GATE-{NN}", check_gate_id_format),
     Rule("GATE_ID_MODULE", "A", "GATE ID 模块号与文件名一致", check_gate_id_module),
     Rule("GATE_ID_UNIQUE", "A", "GATE ID 全 M1-M6 唯一", check_gate_id_unique),
@@ -67,6 +68,10 @@ RULES: tuple[Rule, ...] = (
     Rule("JOURNEY_EXAMPLE_MISSING", "A", "Journey 示例模块 Key Points / 确认包 / gaps 齐全", check_journey_examples),
     Rule("JOURNEY_SEVEN_ELEMENTS", "B", "Journey 主表不得定义为七要素", check_journey_no_seven_elements),
     Rule("PERSONA_SKILL_PATH", "A", "Persona Skill、Gate、模板与渲染契约保持一致", check_persona_skill_paths),
+    Rule("V2C_VAC_SKILL_PATH", "A", "V2C VAC Skill、spec、Gate、模板与渲染契约文件齐全", check_v2c_vac_skill_paths),
+    Rule("V2C_VAC_GATE_FILE", "A", "V2C VAC Gate 表格 ID/分类/风险/来源合法", check_v2c_vac_gate_table),
+    Rule("V2C_VAC_RENDER_CONTRACT", "B", "V2C VAC render contract / canvas-render Skill / 示例模板同步", check_v2c_vac_render_contract_sync),
+    Rule("V2C_VAC_STATE_SCHEMA", "B", "V2C VAC state schema、主 Agent 路由与 plugin 注册同步", check_v2c_vac_state_schema_and_routing),
 )
 
 

@@ -264,8 +264,8 @@ def _parse_gate_file(path: Path, id_re: "re.Pattern[str]" = GATE_ID_RE) -> list[
     """解析 Mx-gate.md 中的 GATE 表格，输出每行字典。
 
     支持两种列格式（按表头识别）：
-    * 设计 8 列：| ID | 检查项 | 结果 | 分类 | 风险等级 | 来源 ID | 影响 | 建议 |
-    * 实际 5 列：| ID | 条件 | 分类 | 风险等级 | 来源 |
+    * 正式 5 列精简版：| ID | 条件 | 分类 | 风险等级 | 来源 |
+    * 历史 8 列详版：| ID | 检查项 | 结果 | 分类 | 风险等级 | 来源 ID | 影响 | 建议 |
     """
     text = read_text(path)
     rows: list[dict[str, str]] = []
@@ -380,7 +380,7 @@ def check_gate_table_parse(ctx: CheckContext) -> list[Finding]:
 
 
 def check_gate_table_width(ctx: CheckContext) -> list[Finding]:
-    """设计要求 GATE 表格 8 列；当前实现多为 5 列，告警而非阻塞。"""
+    """MVL Gate 正式接受 5 列精简版，并兼容历史 8 列详版。"""
     findings: list[Finding] = []
     base = ctx.root / GATE_REFERENCES_DIR
     if not base.is_dir():
@@ -402,14 +402,17 @@ def check_gate_table_width(ctx: CheckContext) -> list[Finding]:
             if not GATE_ID_RE.match(cells[0].strip().strip("`")):
                 continue
             col_count = len(cells)
-            if col_count != 8:
+            if col_count not in EXPECTED_MVL_GATE_TABLE_WIDTHS:
                 findings.append(
                     Finding(
                         code="GATE_TABLE_WIDTH",
-                        level="warning",
+                        level="error",
                         where=str(path.relative_to(ctx.root)),
-                        message=f"GATE 表行 {col_count} 列（设计 8 列：ID/检查项/结果/分类/风险等级/来源 ID/影响/建议）",
-                        hint="补全 结果/影响/建议 三列以对齐设计；或更新设计文档接受 5 列精简版",
+                        message=(
+                            f"GATE 表行 {col_count} 列（正式支持 5 列精简版："
+                            "ID/条件/分类/风险等级/来源；兼容 8 列详版）"
+                        ),
+                        hint="请使用 5 列精简版，或历史兼容的 8 列详版；其他列数无法稳定解析",
                     )
                 )
             break
@@ -757,5 +760,3 @@ def check_gc_gate_table(ctx: CheckContext) -> list[Finding]:
 
 
 # ---- HMW -------------------------------------------------------------------
-
-

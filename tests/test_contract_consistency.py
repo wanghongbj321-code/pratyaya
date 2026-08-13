@@ -15,6 +15,8 @@ from __future__ import annotations
 
 import json
 import re
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -32,8 +34,14 @@ CONTRACT = SKILLS / "canvas-render" / "references" / "render-contract-hmw.md"
 JOURNEY_CONTRACT = SKILLS / "canvas-render" / "references" / "render-contract-journey.md"
 PERSONA_CONTRACT = SKILLS / "canvas-render" / "references" / "render-contract-persona.md"
 AUDIT = SKILLS / "canvas-render" / "scripts" / "audit_canvas_html.py"
+CONTRACT_CHECKER = REPO_ROOT / "scripts" / "check_contract_consistency.py"
 EXAMPLES = REPO_ROOT / "examples" / "modules"
 CANVAS_EXAMPLES = REPO_ROOT / "skills" / "canvas-render" / "examples"
+V2C_VAC_DISTILL = SKILLS / "v2c-vac-distill"
+V2C_VAC_GATE = SKILLS / "v2c-vac-gate"
+V2C_VAC_CONTRACT = SKILLS / "canvas-render" / "references" / "render-contract-v2c-vac.md"
+V2C_VAC_TEMPLATE = CANVAS_EXAMPLES / "v2c-value-attribution-canvas.html"
+V2C_VAC_FIXTURES = REPO_ROOT / "tests" / "fixtures" / "v2c-vac"
 
 EXPECTED_HMW_SKILLS = (
     "./skills/hmw-distill",
@@ -52,6 +60,10 @@ EXPECTED_FAQ_SKILLS = (
 )
 EXPECTED_MAAU_SKILLS = (
     "./skills/maau-synthesize",
+)
+EXPECTED_V2C_VAC_SKILLS = (
+    "./skills/v2c-vac-distill",
+    "./skills/v2c-vac-gate",
 )
 EXPECTED_MAAU_FILES = (
     "SKILL.md",
@@ -155,6 +167,8 @@ class TestSkillRegistration:
             assert skill in plugin["skills"], f"plugin.json missing FAQ skill {skill}"
         for skill in EXPECTED_MAAU_SKILLS:
             assert skill in plugin["skills"], f"plugin.json missing MAAU skill {skill}"
+        for skill in EXPECTED_V2C_VAC_SKILLS:
+            assert skill in plugin["skills"], f"plugin.json missing V2C VAC skill {skill}"
         assert plugin["version"] == "2.9.1"
 
     def test_plugin_registers_persona_skills(self) -> None:
@@ -174,6 +188,8 @@ class TestSkillRegistration:
         assert "journey-distill" in skills
         assert "journey-gate" in skills
         assert "maau-synthesize" in skills
+        assert "v2c-vac-distill" in skills
+        assert "v2c-vac-gate" in skills
 
     def test_agent_and_plugin_skills_have_identical_order(self) -> None:
         plugin = json.loads(read(REPO_ROOT / ".codebuddy-plugin" / "plugin.json"))
@@ -610,6 +626,108 @@ class TestExplicitCanvasRoutingContract:
         assert "MAAU" in plugin["displayDescription"]["en"]
         assert "MAAU" in plugin["quickPrompts"][1]["zh"]
         assert "MAAU" in plugin["quickPrompts"][1]["en"]
+
+
+class TestV2CVacContract:
+    def test_v2c_vac_skill_files_and_frontmatter_exist(self) -> None:
+        for path, expected_name in (
+            (V2C_VAC_DISTILL / "SKILL.md", "v2c-vac-distill"),
+            (V2C_VAC_GATE / "SKILL.md", "v2c-vac-gate"),
+        ):
+            text = read(path)
+            assert re.search(rf"^name:\s*{expected_name}\s*$", text, re.MULTILINE)
+        assert (V2C_VAC_DISTILL / "references" / "v2c-vac-spec.md").is_file()
+        assert (V2C_VAC_DISTILL / "frameworks" / "v2c-vac-value-attribution.md").is_file()
+        assert (V2C_VAC_GATE / "references" / "V2C-gate.md").is_file()
+
+    def test_v2c_vac_gate_has_twelve_stable_ids_and_default_gaps(self) -> None:
+        gate = read(V2C_VAC_GATE / "references" / "V2C-gate.md")
+        ids = sorted(set(re.findall(r"V2C-GATE-\d{2}", gate)))
+        assert ids == [f"V2C-GATE-{n:02d}" for n in range(1, 13)]
+        assert gate.count("information_integrity") >= 7
+        assert gate.count("business_risk") >= 5
+        for gap_id in (f"V2C-AG{n:02d}" for n in range(1, 7)):
+            assert gap_id in gate
+
+    def test_v2c_vac_render_contract_and_template_share_canvas_type_and_anchors(self) -> None:
+        contract = read(V2C_VAC_CONTRACT)
+        template = read(V2C_VAC_TEMPLATE)
+        for text in (contract, template):
+            assert "v2c-vac" in text
+            assert "canvas_type=v2c" not in text
+            assert '"canvas_type":"v2c"' not in text
+            assert '"canvas_type": "v2c"' not in text
+        assert 'data-page-type="v2c-vac"' in template
+        for anchor in (
+            "v2c-vac-headline",
+            "v2c-vac-attribution-chain",
+            "v2c-vac-primary-capability",
+            "v2c-vac-primary-change",
+            "v2c-vac-impact-chain",
+            "v2c-vac-value-anchor",
+            "v2c-vac-quality-check",
+            "quality-panel",
+            "canvas-data",
+        ):
+            assert f"`{anchor}`" in contract, f"contract 缺 {anchor}"
+            assert f'id="{anchor}"' in template, f"template 缺 {anchor}"
+        for gate_id in (f"V2C-VAC-TPL-GATE-{n:02d}" for n in range(1, 9)):
+            assert gate_id in contract
+
+    def test_v2c_vac_fixtures_exist_for_audit_regression(self) -> None:
+        for name in (
+            "V2C-VAC-sample-vac-v1.md",
+            "state-gate-pass.json",
+            "state-override-business-risk.json",
+            "state-index.json",
+            "v2c-vac-canvas-sample-vac.html",
+            "v2c-vac-canvas-index.html",
+        ):
+            assert (V2C_VAC_FIXTURES / name).is_file(), f"missing V2C VAC fixture {name}"
+
+    def test_contract_consistency_lists_and_runs_v2c_vac_rules(self) -> None:
+        listed = subprocess.run(
+            [sys.executable, str(CONTRACT_CHECKER), "--list"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        for rule in (
+            "V2C_VAC_SKILL_PATH",
+            "V2C_VAC_GATE_FILE",
+            "V2C_VAC_RENDER_CONTRACT",
+            "V2C_VAC_STATE_SCHEMA",
+        ):
+            assert rule in listed.stdout
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(CONTRACT_CHECKER),
+                "--rules",
+                "V2C_VAC_SKILL_PATH,V2C_VAC_GATE_FILE,V2C_VAC_RENDER_CONTRACT,V2C_VAC_STATE_SCHEMA",
+            ],
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode == 0, result.stdout + result.stderr
+
+
+class TestMvlGateTableWidthContract:
+    def test_mvl_gate_five_column_format_is_formally_accepted(self) -> None:
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(CONTRACT_CHECKER),
+                "--rules",
+                "GATE_TABLE_WIDTH",
+                "--json",
+            ],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        payload = json.loads(result.stdout)
+        assert payload["count"] == 0
 
 
 class TestConfirmationPackageSections:

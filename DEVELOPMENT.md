@@ -10,11 +10,11 @@
 
 画布结论闸门（Gate）由 LLM 评估；旧 Python 脚本 `check_gate.py` 已删除。执行流程（按画布类型对应 Skill）：
 
-1. LLM 读取确认包 Markdown（MVL：`Mx-v{N}.md` / 黄金圈：`GC-{slug}-v{N}.md` / HMW：`HMW-{slug}-v{N}.md` / Persona：`PERSONA-{slug}-v{N}.md` / Journey：`JOURNEY-{slug}-v{N}.md` / MAAU：`MAAU-{slug}-v{N}.md`）
-2. 对照对应 Gate Skill 的判定规则（MVL 34 条放行条件；黄金圈 / HMW / Persona / Journey 各 6 条稳定放行条件 + 稳定 ID + 分类与风险等级；MAAU 用 `MAAU-GATE-01~09` 独立 ID 空间，见 `references/MAAU-gate.md`）
-3. 输出 Markdown 判定报告（`references/Mx-gate.md` / `GC-gate.md` / `HMW-gate.md` / `PERSONA-gate.md` / `JOURNEY-gate.md` / `MAAU-{slug}-gate-report-v{N}.md`），含 `gate_recommendation: pass/fail/pending` + `override_eligible: true/false`；**不**写最终授权
+1. LLM 读取确认包 Markdown（MVL：`Mx-v{N}.md` / 黄金圈：`GC-{slug}-v{N}.md` / HMW：`HMW-{slug}-v{N}.md` / Persona：`PERSONA-{slug}-v{N}.md` / Journey：`JOURNEY-{slug}-v{N}.md` / MAAU：`MAAU-{slug}-v{N}.md` / V2C VAC：`V2C-VAC-{slug}-v{N}.md`）
+2. 对照对应 Gate Skill 的判定规则（MVL 34 条放行条件；黄金圈 / HMW / Persona / Journey 各 6 条稳定放行条件 + 稳定 ID + 分类与风险等级；MAAU 用 `MAAU-GATE-01~09` 独立 ID 空间；V2C VAC 用 `V2C-GATE-01~12` 独立 ID 空间）
+3. 输出 Markdown 判定报告（`references/Mx-gate.md` / `GC-gate.md` / `HMW-gate.md` / `PERSONA-gate.md` / `JOURNEY-gate.md` / `MAAU-{slug}-gate-report-v{N}.md` / `V2C-VAC-{slug}-gate-report-v{N}.md`），含 `gate_recommendation: pass/fail/pending` + `override_eligible: true/false`；**不**写最终授权
 
-详细规则、缺口等级、推断术语、版本绑定的完整定义见 [skills/module-conclusion-gate/SKILL.md](./skills/module-conclusion-gate/SKILL.md)（MVL）、[skills/gc-gate/SKILL.md](./skills/gc-gate/SKILL.md)（黄金圈）、[skills/hmw-gate/SKILL.md](./skills/hmw-gate/SKILL.md)（HMW）、[skills/persona-gate/SKILL.md](./skills/persona-gate/SKILL.md)（Persona）、[skills/journey-gate/SKILL.md](./skills/journey-gate/SKILL.md)（Journey）。
+详细规则、缺口等级、推断术语、版本绑定的完整定义见 [skills/module-conclusion-gate/SKILL.md](./skills/module-conclusion-gate/SKILL.md)（MVL）、[skills/gc-gate/SKILL.md](./skills/gc-gate/SKILL.md)（黄金圈）、[skills/hmw-gate/SKILL.md](./skills/hmw-gate/SKILL.md)（HMW）、[skills/persona-gate/SKILL.md](./skills/persona-gate/SKILL.md)（Persona）、[skills/journey-gate/SKILL.md](./skills/journey-gate/SKILL.md)（Journey）、[skills/v2c-vac-gate/SKILL.md](./skills/v2c-vac-gate/SKILL.md)（V2C VAC）。
 
 ## 3. HTML 渲染（Python 静态审计 + 浏览器视觉验收）
 
@@ -31,7 +31,7 @@ python3 skills/canvas-render/scripts/audit_canvas_html.py \
   --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json
 ```
 
-黄金圈画布：`--type gc`；HMW、Persona 与 Journey 画布必须携带各自模板：
+黄金圈画布：`--type gc`；HMW、Persona、Journey 与 V2C VAC 画布必须携带各自模板：
 
 ```bash
 python3 skills/canvas-render/scripts/audit_canvas_html.py \
@@ -49,6 +49,14 @@ python3 skills/canvas-render/scripts/audit_canvas_html.py \
   --type persona \
   --instance {slug} \
   --template skills/canvas-render/examples/user-persona-canvas.html
+
+python3 skills/canvas-render/scripts/audit_canvas_html.py \
+  workshop/{project_slug}/{group_id}/{topic_slug}/output/v2c-vac-canvas-{slug}.html \
+  --source workshop/{project_slug}/{group_id}/{topic_slug}/modules/V2C-VAC-{slug}-v{N}.md \
+  --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json \
+  --type v2c-vac \
+  --instance {slug} \
+  --template skills/canvas-render/examples/v2c-value-attribution-canvas.html
 ```
 
 **MAAU transcript-direct 实例页**（`--type mvl --page-type global --instance {slug} --generation-path transcript-direct`）：
@@ -66,7 +74,7 @@ python3 skills/canvas-render/scripts/audit_canvas_html.py \
 
 MAAU 实例页 audit 校验：`generation_path=transcript-direct`、`data-instance`/`canvas-data.instance` 与 slug 一致、`canvas-data.source_file` 与源包一致、`[来源: transcript-direct]` 标头必填、override 时 `override_audit.items[].assessment_id` 为 `MAAU-GATE-*` 且 `category=business_risk`；缺 `--state` 时**不作为正式验收**（`MAAU_STATE` FAIL）。
 
-脚本使用 Python 标准库，负责（MVL / GC / HMW / Persona / Journey / MAAU 通用）：
+脚本使用 Python 标准库，负责（MVL / GC / HMW / Persona / Journey / MAAU / V2C VAC 通用）：
 
 1. 页面类型、画布和版本元数据；
 2. 契约大模块、共享结构、稳定锚点存在且唯一；
@@ -74,7 +82,7 @@ MAAU 实例页 audit 校验：`generation_path=transcript-direct`、`data-instan
 4. `canvas-data` JSON、确认包版本和 `state.json` 授权元数据一致；
 5. 离线安全、必要打印规则、草稿标记和 override caveat 必需结构。
 
-**HMW / Persona / Journey 双 Gate 模型**：`--type hmw`、`--type persona` 或 `--type journey` 时输出分为两个检查面——`[CONTENT/AUTH GATE]`（业务一致性：版本 / 事实源 / 授权 / 锚点 / canvas-data，语义与 MVL 一致）与 `[TEMPLATE GATE]`（结构完整性：`HMW-TPL-GATE-01~06` / `PERSONA-TPL-GATE-01~06` / `JOURNEY-TPL-GATE-01~06`，**不可 override**，见 [DESIGN.md](./DESIGN.md) §12.2 / §13.4）。`--template` 缺失时正式交付 FAIL（`HMW-TPL-GATE-00` / `PERSONA-TPL-GATE-00` / `JOURNEY-TPL-GATE-00`）；模板自身先通过结构自审计才放行成品。
+**HMW / Persona / Journey / V2C VAC 双 Gate 模型**：`--type hmw`、`--type persona`、`--type journey` 或 `--type v2c-vac` 时输出分为两个检查面——`[CONTENT/AUTH GATE]`（业务一致性：版本 / 事实源 / 授权 / 锚点 / canvas-data，语义与 MVL 一致）与 `[TEMPLATE GATE]`（结构完整性：`HMW-TPL-GATE-01~06` / `PERSONA-TPL-GATE-01~06` / `JOURNEY-TPL-GATE-01~06` / `V2C-VAC-TPL-GATE-01~08`，**不可 override**，见 [DESIGN.md](./DESIGN.md) §12.2 / §13.4 及 [skills/canvas-render/references/render-contract-v2c-vac.md](./skills/canvas-render/references/render-contract-v2c-vac.md)）。`--template` 缺失时正式交付 FAIL（`HMW-TPL-GATE-00` / `PERSONA-TPL-GATE-00` / `JOURNEY-TPL-GATE-00` / `V2C-VAC-TPL-GATE-00`）；模板自身先通过结构自审计才放行成品。
 
 锚点顺序直接解析自对应 `render-contract-*.md`，不得在脚本中维护第二份清单。脚本 PASS 返回 0；FAIL 返回非零状态并列出失败项、期望值和实际值。
 
@@ -104,6 +112,19 @@ MAAU 一次性综合（`generation_path=transcript-direct`）从逐字稿直接�
 | `data-instance` 与 source slug 不一致 | `INSTANCE` / `MAAU_SOURCE_SLUG` | HTML `data-instance` 与 `canvas-data.instance`、源包 slug、`--instance` 四者一致 |
 | 误把 transcript-direct 混入 M1-M6 Phase 2 全局页 | — | 同一 group 的 MAAU 输出只能二选一；实例页不伪造 `module-{1-6}-canvas.html` 下钻 |
 
+### 3.4 V2C VAC 调试（常见阻断场景）
+
+V2C VAC 使用 `canvas_type=v2c-vac`、状态路径 `state.v2c_vac.{slug}`，支持 `generation_path=pipeline` 与 `generation_path=transcript-direct`。常见阻断与处置：
+
+| 场景 | 现象 | 处置 |
+|---|---|---|
+| 误用 `canvas_type=v2c` | `CANVAS_TYPE` / 契约一致性 `V2C_VAC_CANVAS_TYPE` FAIL | `v2c` 是系列名，Value Attribution Canvas 的机器标识必须是 `v2c-vac` |
+| 缺 `--template` | `V2C-VAC-TPL-GATE-00` FAIL | 正式交付必须传 `--template skills/canvas-render/examples/v2c-value-attribution-canvas.html` |
+| 缺归因链锚点 | `MISSING_ANCHOR` / `V2C-VAC-TPL-GATE-*` FAIL | 保留 `v2c-vac-attribution-chain`、五层主链、六类 `V2C-AGxx`、质量面板与 `canvas-data` |
+| override 项 ID 错 | `V2C_OVERRIDE` FAIL | `override_audit.items[].assessment_id` 必须为 `V2C-GATE-*`，`V2C-AGxx` 只能作来源或断点 |
+| `generation_path` 与状态不一致 | `AUTH_MISMATCH` 或 schema 测试失败 | `pipeline` / `transcript-direct` 必须在 HTML `canvas-data` 与 `state.v2c_vac.{slug}` 中一致 |
+| 无 Baseline 却声称量化收益 | `V2C-GATE-09` 业务风险 | 不得输出量化收益承诺；补 Baseline 或由用户显式接受业务风险 |
+
 ## 4. Canvas 视觉模式维护
 
 Canvas 视觉系统由 `skills/canvas-render/visual-patterns/` 下的 Markdown 规格定义，不使用预制 HTML 外壳或集中登记册。
@@ -119,7 +140,7 @@ Canvas 视觉系统由 `skills/canvas-render/visual-patterns/` 下的 Markdown �
 
 ## 5. 模块工作流
 
-四阶段管线（数据源与闸门），五类画布共用，差异在命名空间：
+四阶段管线（数据源与闸门），多类画布共用，差异在命名空间：
 
 | 画布 | 路径 | Key Points | 提炼 | Gate | 渲染 |
 |---|---|---|---|---|---|
@@ -129,12 +150,13 @@ Canvas 视觉系统由 `skills/canvas-render/visual-patterns/` 下的 Markdown �
 | HMW | — | `HMW-{slug}-keypoints.md` | `HMW-{slug}-v{N}.md` | `HMW-{slug}-gate-report-v{N}.md` | `hmw-canvas-{slug}.html` / `hmw-canvas.html` 索引 |
 | Persona | — | `PERSONA-{slug}-keypoints.md` | `PERSONA-{slug}-v{N}.md` | `PERSONA-{slug}-gate-report-v{N}.md` | `persona-canvas-{slug}.html` / `persona-canvas.html` 索引 |
 | Journey | — | `JOURNEY-{slug}-keypoints.md` | `JOURNEY-{slug}-v{N}.md` | `JOURNEY-{slug}-gate-report-v{N}.md` | `journey-canvas-{slug}.html` / `journey-canvas.html` 索引 |
+| V2C VAC | `pipeline` / `transcript-direct` | `V2C-VAC-{slug}-keypoints.md` + 可选 `V2C-VAC-{slug}-stage-{stage}.md` | `V2C-VAC-{slug}-v{N}.md` | `V2C-VAC-{slug}-gate-report-v{N}.md` | `v2c-vac-canvas-{slug}.html` / `v2c-vac-canvas.html` 索引 |
 
 ```text
 Key Points → 提炼（确认包 v{N}.md）→ Gate（判定报告）→ 渲染（HTML）
 ```
 
-每个阶段的输入/输出/状态变化由对应 Skill 定义，详见 [skills/mvl-distill/SKILL.md](./skills/mvl-distill/SKILL.md) / [skills/gc-distill/SKILL.md](./skills/gc-distill/SKILL.md) / [skills/hmw-distill/SKILL.md](./skills/hmw-distill/SKILL.md) / [skills/persona-distill/SKILL.md](./skills/persona-distill/SKILL.md) / [skills/journey-distill/SKILL.md](./skills/journey-distill/SKILL.md) / [skills/module-conclusion-gate/SKILL.md](./skills/module-conclusion-gate/SKILL.md) / [skills/gc-gate/SKILL.md](./skills/gc-gate/SKILL.md) / [skills/hmw-gate/SKILL.md](./skills/hmw-gate/SKILL.md) / [skills/persona-gate/SKILL.md](./skills/persona-gate/SKILL.md) / [skills/journey-gate/SKILL.md](./skills/journey-gate/SKILL.md) / [skills/canvas-render/SKILL.md](./skills/canvas-render/SKILL.md)。
+每个阶段的输入/输出/状态变化由对应 Skill 定义，详见 [skills/mvl-distill/SKILL.md](./skills/mvl-distill/SKILL.md) / [skills/gc-distill/SKILL.md](./skills/gc-distill/SKILL.md) / [skills/hmw-distill/SKILL.md](./skills/hmw-distill/SKILL.md) / [skills/persona-distill/SKILL.md](./skills/persona-distill/SKILL.md) / [skills/journey-distill/SKILL.md](./skills/journey-distill/SKILL.md) / [skills/v2c-vac-distill/SKILL.md](./skills/v2c-vac-distill/SKILL.md) / [skills/module-conclusion-gate/SKILL.md](./skills/module-conclusion-gate/SKILL.md) / [skills/gc-gate/SKILL.md](./skills/gc-gate/SKILL.md) / [skills/hmw-gate/SKILL.md](./skills/hmw-gate/SKILL.md) / [skills/persona-gate/SKILL.md](./skills/persona-gate/SKILL.md) / [skills/journey-gate/SKILL.md](./skills/journey-gate/SKILL.md) / [skills/v2c-vac-gate/SKILL.md](./skills/v2c-vac-gate/SKILL.md) / [skills/canvas-render/SKILL.md](./skills/canvas-render/SKILL.md)。
 
 `faq-answer` 是支持型 Skill，负责使用、状态和异常解释，不进入 `Key Points → 提炼 → Gate → 渲染` 四阶段管线，不写 `state.json`、确认包或 HTML。维护入口见 [skills/faq-answer/SKILL.md](./skills/faq-answer/SKILL.md)。
 
@@ -229,10 +251,13 @@ python skills/canvas-render/scripts/audit_canvas_html.py \
 | `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/{topic_slug}/output/hmw-canvas-{slug}.html --source workshop/{project_slug}/{group_id}/{topic_slug}/modules/HMW-{slug}-vN.md --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json --type hmw --instance {slug} --template skills/canvas-render/examples/hmw-canvas.html` | 审计 HMW Canvas HTML（双 Gate：内容/授权 + Template） |
 | `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/{topic_slug}/output/persona-canvas-{slug}.html --source workshop/{project_slug}/{group_id}/{topic_slug}/modules/PERSONA-{slug}-vN.md --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json --type persona --instance {slug} --template skills/canvas-render/examples/user-persona-canvas.html` | 审计 Persona Canvas HTML（双 Gate：内容/授权 + Template） |
 | `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/{topic_slug}/output/journey-canvas-{slug}.html --source workshop/{project_slug}/{group_id}/{topic_slug}/modules/JOURNEY-{slug}-vN.md --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json --type journey --instance {slug} --template skills/canvas-render/examples/user-journey-canvas.html` | 审计 Journey Canvas HTML（动态阶段 + 双 Gate） |
+| `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/{topic_slug}/output/v2c-vac-canvas-{slug}.html --source workshop/{project_slug}/{group_id}/{topic_slug}/modules/V2C-VAC-{slug}-vN.md --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json --type v2c-vac --instance {slug} --template skills/canvas-render/examples/v2c-value-attribution-canvas.html` | 审计 V2C VAC HTML（归因链 + V2C-VAC Template Gate） |
 | `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/{topic_slug}/output/maau-global-canvas-{slug}.html --source workshop/{project_slug}/{group_id}/{topic_slug}/modules/MAAU-{slug}-vN.md --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json --type mvl --page-type global --instance {slug} --generation-path transcript-direct` | 审计 MAAU transcript-direct 实例页 HTML（`MAAU_GENERATION` / `[来源: transcript-direct]` / `MAAU-GATE-*` override） |
 | `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/{topic_slug}/output/persona-canvas.html --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json --type persona --index` | 审计 Persona instance 索引页 |
+| `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/{topic_slug}/output/v2c-vac-canvas.html --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json --type v2c-vac --index --page-type v2c-vac-index` | 审计 V2C VAC instance 索引页 |
 | `python3 -m pytest tests/ -q` | 跑全部单元测试（schema / 契约 / 双 Gate 审计） |
 | `python3 scripts/check_contract_consistency.py` | 跑契约一致性检查器（开发辅助，**非 CI 强制**），输出规则化问题清单 |
+| `python3 scripts/check_contract_consistency.py --rules V2C_VAC_SKILL_PATH,V2C_VAC_GATE_FILE,V2C_VAC_RENDER_CONTRACT,V2C_VAC_STATE_SCHEMA` | 只跑 V2C VAC 契约一致性检查 |
 | `python3 scripts/check_contract_consistency.py --rules MANIFEST_JSON,GATE_TABLE_PARSE` | 只跑指定规则（逗号分隔 code） |
 | `python3 scripts/check_contract_consistency.py --list` | 列出所有规则 code / category / description |
 | `python3 -m pytest tests/test_contract_consistency.py` | 跑契约一致性检查器的单元测试 |
@@ -248,25 +273,28 @@ python skills/canvas-render/scripts/audit_canvas_html.py \
 
 > **定位**：开发辅助工具，用于变更前后对比 / 改写前的差异分析 / 一次性 drift 排查。
 > **不是** CI 门禁——本仓库没有 `.github/workflows/`，单人维护 + 未发布阶段的工具复杂度应
-> 远低于被它保护的资产。当前 22 error 中有 5 个是 `v1.0.0` 改造进行中的中间状态（schema 4
-> 字段、路径漂移、DEPRECATED），过早接入会卡死正在做的 PR。
+> 远低于被它保护的资产。当前基线为 error=0, warning=0。M1-M6 Gate 表已正式接受
+> 5 列精简版（`ID / 条件 / 分类 / 风险等级 / 来源`），检查器仍兼容历史 8 列详版。
 
 ### 8.1 当前覆盖的规则族
 
 | 阶段 | 类别 | code |
 |---|---|---|
 | A 最小强门禁 | manifest / 入口 / 版本 | `MANIFEST_JSON` `IDENTITY_MATCH` `ENTRY_EXISTS` `AGENT_ENTRY` `SKILL_ENTRY` `VERSION_FORMAT` `CHANGELOG_VERSION` |
-| A 最小强门禁 | GATE 文件（MVL） | `GATE_FILE_SET` `GATE_TABLE_PARSE` `GATE_TABLE_WIDTH` `GATE_ID_FORMAT` `GATE_ID_MODULE` `GATE_ID_UNIQUE` `GATE_CATEGORY` `GATE_RISK` `GATE_SOURCE` |
+| A 最小强门禁 | GATE 文件（MVL） | `GATE_FILE_SET` `GATE_TABLE_PARSE` `GATE_TABLE_WIDTH`（5 列精简版 / 8 列详版） `GATE_ID_FORMAT` `GATE_ID_MODULE` `GATE_ID_UNIQUE` `GATE_CATEGORY` `GATE_RISK` `GATE_SOURCE` |
 | A 最小强门禁 | GATE 文件（黄金圈） | `GC_GATE_FILE_SET` `GC_GATE_TABLE` |
 | A 最小强门禁 | GATE 文件（HMW） | `HMW_GATE_FILE_SET` |
 | A 最小强门禁 | GATE 文件（Journey） | `JOURNEY_GATE_FILE_SET` |
+| A 最小强门禁 | GATE 文件（V2C VAC） | `V2C_VAC_GATE_FILE` |
 | A 最小强门禁 | 视觉模式 | `PATTERN_COUNT` `PATTERN_FILENAME` `PATTERN_SEQUENCE` `PATTERN_ID` `PATTERN_METADATA` `PATTERN_ENUM` |
 | A 最小强门禁 | HMW 结构 | `HMW_SKILL_PATH` `HMW_TEMPLATE_MISSING` `HMW_INF_ID` |
 | A 最小强门禁 | Journey 结构 | `JOURNEY_SKILL_PATH` `JOURNEY_EXAMPLE_MISSING` |
+| A 最小强门禁 | V2C VAC 结构 | `V2C_VAC_SKILL_PATH` |
 | A 最小强门禁 | 文档/链接 | `LOCAL_LINK` `DEPRECATED_TERM` |
 | B 跨契约结构 | section / schema / 状态机 | `GATE_SECTION_SYNC` `RENDER_SECTION_SYNC` `SKILL_TEMPLATE_SYNC` `STATE_ENUM_SYNC` `AUTH_FIELDS` `OVERRIDE_CATEGORY` |
 | B 跨契约结构 | HMW Template Gate | `HMW_TPL_GATE_UNIQUE` |
 | B 跨契约结构 | Journey Template Gate / 动态阶段 | `JOURNEY_ANCHOR_SYNC` `JOURNEY_SEVEN_ELEMENTS` |
+| B 跨契约结构 | V2C VAC contract / schema / route | `V2C_VAC_RENDER_CONTRACT` `V2C_VAC_STATE_SCHEMA` |
 
 每条规则有唯一的 `<CATEGORY>-<NAME>` 标识。`--list` 查看完整列表；输出含 `code / level / where / message / hint` 五字段。
 
@@ -290,9 +318,9 @@ python skills/canvas-render/scripts/audit_canvas_html.py \
 
 **当前不接**。CI 强制化必须满足以下所有条件，缺一不可：
 
-1. **专家包 v2.0+ 正式发布**——v1.0 改造还在进行中（22 error 含 5 个"设计进行中"中间状态）
+1. **专家包 v3.0+ 正式发布**——V2C VAC 与显式画布路由完成发布后再评估
 2. **多人协作有真实 PR 流程**——当前单人维护，没有 PR 边界
-3. **当前 error 清单已清零**（或被白名单显式接受）——22 个 error 中至少 `LOCAL_LINK` / `AUTH_FIELDS` / `OVERRIDE_CATEGORY` / `DEPRECATED_TERM` 这 4 类需修复
+3. **当前 warning 清单已处理或被白名单显式接受**——当前基线应保持 warning=0
 
 任一条件不满足时，本检查器应保持在"开发辅助"形态，作为改写前/后的差异分析工具使用，而非拦截 PR。
 

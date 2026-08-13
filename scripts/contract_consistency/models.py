@@ -89,9 +89,11 @@ PATTERN_FORMALITY_ENUM = {"medium-high", "high"}
 PATTERN_DENSITY_ENUM = {"medium", "medium-high", "high"}
 ALLOWED_GATE_CATEGORIES = {"information_integrity", "business_risk"}
 ALLOWED_GATE_RISK_LEVELS = {"low", "medium", "high"}
-# 设计：8 列 | ID | 检查项 | 结果 | 分类 | 风险等级 | 来源 ID | 影响 | 建议 |
-# 实际：5 列 | ID | 条件 | 分类 | 风险等级 | 来源 |
-# 解析器按表头行决定列映射，兼容两种格式
+# MVL Gate 正式采用 5 列精简版：| ID | 条件 | 分类 | 风险等级 | 来源 |
+# 历史 8 列详版仍由解析器兼容：| ID | 检查项 | 结果 | 分类 | 风险等级 | 来源 ID | 影响 | 建议 |
+# 解析器按表头行决定列映射，兼容两种格式。
+EXPECTED_MVL_GATE_TABLE_WIDTHS = {5, 8}
+PREFERRED_MVL_GATE_TABLE_WIDTH = 5
 GATE_ID_RE = re.compile(r"^M(\d)-GATE-(\d{2})$")
 MAAU_GATE_ID_RE = re.compile(r"^MAAU-GATE-(\d+)$")
 MAAU_GATE_FILE = "skills/module-conclusion-gate/references/MAAU-gate.md"

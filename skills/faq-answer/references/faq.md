@@ -7,7 +7,7 @@
 | 字段 | 内容 |
 |---|---|
 | 问题 | pratyaya 能做什么？ |
-| 短答 | pratyaya 是多画布工作坊专家，支持 MVL、黄金圈、HMW、用户画像和用户旅程五类画布，并提供转写提炼、Gate 建议、用户确认和 Canvas 生成流程。FAQ 能力只负责解释使用、状态和异常，不生成新画布类型。 |
+| 短答 | pratyaya 是多画布工作坊专家，支持 MVL、MAAU 一次性综合、黄金圈、HMW、用户画像、用户旅程和 V2C VAC，并提供转写提炼、Gate 建议、用户确认和 Canvas 生成流程。FAQ 能力只负责解释使用、状态和异常，不生成新画布类型。 |
 | 依据 | `README.md`、`DESIGN.md`、`.codebuddy-plugin/plugin.json` |
 | 下一步 | 可以说：`请介绍一下你能做什么，引导我开始`，或直接说要开始的画布类型。 |
 | 边界 | FAQ 不会代替画布流程写确认包、跑 Gate 或渲染 HTML。 |
@@ -34,15 +34,25 @@
 
 ## 画布选择
 
-### 五类画布分别适合什么？
+### 各类画布分别适合什么？
 
 | 字段 | 内容 |
 |---|---|
-| 问题 | MVL、黄金圈、HMW、用户画像、用户旅程分别适合什么？ |
-| 短答 | MVL 适合形成最小可验证自治闭环；黄金圈适合梳理 WHY/HOW/WHAT；HMW 适合问题重构；用户画像适合刻画具体目标用户；用户旅程适合梳理当前流程中的行动、触点、情绪、痛点和机会。 |
+| 问题 | MVL、MAAU、黄金圈、HMW、用户画像、用户旅程、V2C VAC 分别适合什么？ |
+| 短答 | MVL 适合形成最小可验证自治闭环；MAAU 适合把显式指定的逐字稿一次性综合为 MVL 全局六板块源包；黄金圈适合梳理 WHY/HOW/WHAT；HMW 适合问题重构；用户画像适合刻画具体目标用户；用户旅程适合梳理当前流程中的行动、触点、情绪、痛点和机会；V2C VAC 适合审查 AI-enabled Capability 到 Change、Business Impact 与 Value 的价值归因假设。 |
 | 依据 | `README.md`、`docs/user-guide.md`、`DESIGN.md` |
 | 下一步 | 说出目标即可，例如：`我想重构问题，开始 HMW 画布。` |
-| 边界 | FAQ 不会把这些画布合并为一个新流程；每类画布仍按自己的命名空间和 Gate 运行。 |
+| 边界 | FAQ 不会把这些画布合并为一个新流程；每类画布仍按自己的命名空间和 Gate 运行。只给逐字稿但未指定画布类型时，主 Agent 应先追问画布类型，不默认进入 MAAU 或 V2C VAC。 |
+
+### V2C VAC 是什么？
+
+| 字段 | 内容 |
+|---|---|
+| 问题 | V2C VAC 是什么？ |
+| 短答 | V2C VAC 是 Value Attribution Canvas（价值归因画布），思路来源于王鸿的 Value-to-Capability FDE 工作方法论。它把 Scenario、Capability、Change、Business Impact 和 Value 放在一条归因链上，外显证据状态、归因断点和下一步验证计划。 |
+| 依据 | `README.md`、`docs/user-guide.md`、`skills/v2c-vac-distill/references/v2c-vac-spec.md` |
+| 下一步 | 可以说：`开始 V2C VAC pipeline，instance store-replenishment`，或`根据这份逐字稿生成 V2C VAC，路径 transcript-direct`。 |
+| 边界 | V2C VAC 是观察类画布，不证明价值已经发生；`canvas_type` 必须是 `v2c-vac`，不能简写成 `v2c`。 |
 
 ## MVL M1–M6 流程
 

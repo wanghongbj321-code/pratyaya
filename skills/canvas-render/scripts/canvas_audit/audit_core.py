@@ -511,9 +511,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     _ = parser.add_argument(
         "--page-type",
         dest="page_type_arg",
-        choices=("global", "module-detail"),
+        choices=("global", "module-detail", "golden-circle-index", "hmw-index", "persona-index", "journey-index", "v2c-vac-index"),
         default=None,
-        help="mvl page type hint (MAAU transcript-direct 实例页必须传 global)",
+        help="page type hint (MAAU transcript-direct 实例页必须传 global；非 MVL 索引页可传 {canvas_type}-index)",
     )
     _ = parser.add_argument(
         "--generation-path",

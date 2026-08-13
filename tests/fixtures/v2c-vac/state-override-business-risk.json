@@ -1,0 +1,28 @@
+{
+  "v2c_vac": {
+    "sample-vac": {
+      "slug": "sample-vac",
+      "version": "v1",
+      "generation_path": "transcript-direct",
+      "status": "confirmed",
+      "source_file": "modules/V2C-VAC-sample-vac-v1.md",
+      "gate_recommendation": "fail",
+      "render_authorized": true,
+      "confirmation_mode": "override",
+      "override_audit": {
+        "items": [
+          {
+            "assessment_id": "V2C-GATE-09",
+            "source_id": "V2C-AG06",
+            "category": "business_risk",
+            "risk_level": "high",
+            "reason": "示例：Baseline 尚未冻结，但用户接受先交付观察画布并在下一轮验证。",
+            "accepted_by": "sample-owner",
+            "accepted_at": "2026-08-13T10:53:00+08:00",
+            "mitigation": "下一轮补齐 Baseline 与对照窗口。"
+          }
+        ]
+      }
+    }
+  }
+}

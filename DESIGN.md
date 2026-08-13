@@ -10,6 +10,8 @@
 
 **画布类型路由**：主 Agent 在步骤 -1 判定画布类型（MVL / 黄金圈 / HMW / Persona / Journey / MAAU 一次性综合），加载对应框架与确认包命名空间，各画布互不串扰（详见 [agents/pratyaya.md](./agents/pratyaya.md)）。
 
+**MVL Gate 表格格式**：M1-M6 Gate 策略文件正式采用 5 列精简版（`ID / 条件 / 分类 / 风险等级 / 来源`）。8 列详版（`ID / 检查项 / 结果 / 分类 / 风险等级 / 来源 ID / 影响 / 建议`）仅作为历史兼容格式；新增或维护 M1-M6 Gate 时优先使用 5 列精简版。
+
 ## 2. 北极星目标
 
 - 一份能被生产团队复用的结论资产：MVL 覆盖目标、用户、Agent Team、Workflow、Context、Validation 六角度；黄金圈覆盖 WHY/HOW/WHAT 三层；HMW 覆盖问题陈述四字段与想法种子；Journey 覆盖动态阶段、痛点与机会和质量鉴别
