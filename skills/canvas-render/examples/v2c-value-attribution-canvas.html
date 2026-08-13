@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>V2C Value Attribution Canvas · Template v1.2</title>
+<style>
+:root,[data-theme="base"]{
+  --ink:#000; --muted:#777; --line:#000; --paper:#fff; --page-bg:#e9e9e9;
+  --pale:#f2f2f2; --soft:#fafafa; --hint:#9a9a9a;
+  --radius:9px; --border-w:1.5px;
+  --font:"Helvetica Neue",Arial,"Microsoft YaHei","PingFang SC",sans-serif;
+  --a3-w:420mm; --a3-h:297mm; --page-pad:8mm; --content-w:404mm;
+}
+*{box-sizing:border-box}
+html{background:var(--page-bg)}
+body{
+  margin:0; min-width:var(--a3-w); background:var(--page-bg); color:var(--ink);
+  font-family:var(--font); font-size:12px; line-height:1.5;
+  -webkit-font-smoothing:antialiased; print-color-adjust:exact; -webkit-print-color-adjust:exact;
+}
+.wrap{
+  width:var(--a3-w); margin:12px auto 28px; padding:var(--page-pad);
+  background:#fff; box-shadow:0 2px 14px rgba(0,0,0,.08);
+}
+.sheet{width:var(--content-w); margin:0; background:var(--paper)}
+
+/* ---------- Header ---------- */
+.header{
+  display:grid; grid-template-columns:minmax(0,1fr) 108mm; gap:7mm;
+  align-items:stretch; padding:2mm 2.5mm 3mm; border:var(--border-w) solid var(--line);
+  border-radius:var(--radius); background:#fff;
+}
+.title-row h1{margin:0;font-size:32px;line-height:1.05;font-weight:800;letter-spacing:-.01em}
+.subtitle{margin-top:5px;line-height:1.18}
+.subtitle strong{display:block;font-size:19px;font-weight:800}
+.subtitle span{display:block;margin-top:1px;font-size:16px;font-weight:700}
+.desc{margin:8px 0 0;color:var(--muted);font-size:11.5px;line-height:1.58;font-weight:650;max-width:100%}
+.tag{display:inline-block;margin-left:6px;padding:1px 7px;border:1px solid var(--line);border-radius:16px;font-size:9px;font-weight:800;background:var(--pale)}
+.meta{font-size:9.5px;display:grid;gap:3px;padding-top:.5mm;align-self:end}
+.meta-row{display:grid;grid-template-columns:auto 1fr;align-items:end;gap:6px}
+.meta-row b{white-space:nowrap;font-weight:800}
+.meta-line{display:block;min-height:13px;border-bottom:1px solid var(--muted);outline:none}
+.meta-line:focus{background:var(--pale)}
+.meta-line:empty::before{content:attr(data-ph);color:var(--hint);font-weight:600}
+
+/* ---------- Sections ---------- */
+.panel{margin-top:3mm;border:var(--border-w) solid var(--line);border-radius:6px;padding:3mm;background:#fff}
+.panel-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:2.5mm}
+.panel-head h2{margin:0;font-size:15px;line-height:1.3}
+.panel-head>span{color:var(--muted);font-size:9.5px;font-weight:700;line-height:1.4;text-align:right}
+.section-index{display:inline-grid;place-items:center;width:22px;height:22px;margin-right:6px;border-radius:5px;background:#000;color:#fff;font-size:10px;font-weight:800;vertical-align:middle}
+
+/* ---------- Attribution SVG ---------- */
+.chain-frame{width:100%;overflow:visible}
+.chainviz{display:block;width:100%;height:auto;border:1px solid var(--line);border-radius:5px;background:#fff}
+.chainviz text{font-family:var(--font)}
+.chainviz .lane{fill:#fafafa;stroke:#000;stroke-width:1.6}
+.chainviz .lane-head{fill:#000}
+.chainviz .node{fill:#fff;stroke:#000;stroke-width:1.6}
+.chainviz .node-primary{fill:#fff;stroke:#000;stroke-width:2.4}
+.chainviz .node-question{fill:#f7f7f7;stroke:#000;stroke-width:1.4;stroke-dasharray:6 4}
+.chainviz .context-link{fill:none;stroke:#8a8a8a;stroke-width:1.3;stroke-dasharray:4 5}
+.chainviz .primary-hypothesis{fill:none;stroke:#000;stroke-width:2.5;stroke-dasharray:10 6}
+.chainviz .secondary{fill:none;stroke:#8a8a8a;stroke-width:1.1;stroke-dasharray:4 6}
+.chainviz .measure-link{fill:none;stroke:#8a8a8a;stroke-width:1.1}
+.chainviz .measure-box{fill:#fff;stroke:#8a8a8a;stroke-width:1}
+.chainviz .status-f{fill:#000}.chainviz .status-h{fill:#fff;stroke:#000;stroke-width:1.2}
+.chainviz .status-q{fill:#f2f2f2;stroke:#000;stroke-width:1.2;stroke-dasharray:4 3}.chainviz .status-e{fill:#000}
+.chainviz .small{font-size:9.5px}.chainviz .muted{fill:#7f7f7f}.chainviz .strong{font-weight:800}
+
+.legend{display:flex;gap:9px 13px;flex-wrap:wrap;margin-top:2mm;padding:2mm 2.5mm;border:1px dashed #000;border-radius:5px;background:#f6f6f6;font-size:9.3px;line-height:1.38;font-weight:700}
+.legend span{display:inline-flex;align-items:center;gap:4px}
+.chip{display:inline-grid;place-items:center;min-width:18px;height:16px;padding:0 4px;border-radius:4px;border:1px solid #000;font-size:7.5px;font-weight:800;background:#fff;font-style:normal}
+.chip.f,.chip.e{background:#000;color:#fff}.chip.q{background:#f2f2f2;border-style:dashed}
+
+.method-rules{display:grid;grid-template-columns:1fr 1fr 1fr;gap:2mm;margin-top:2mm}
+.method-rule{border:1px dashed #000;border-radius:5px;background:var(--pale);padding:2.2mm 2.5mm;font-size:9.4px;line-height:1.45}
+.method-rule b{display:block;margin-bottom:2px;font-size:9.8px}
+
+/* ---------- Gaps / Quality ---------- */
+.gap-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2mm}
+.gap-box{border:1px solid var(--line);border-radius:5px;padding:2.5mm;min-height:31mm;background:#fff}
+.gap-box h3{margin:0;display:flex;align-items:center;gap:5px;font-size:10.7px;line-height:1.35}
+.gap-box p{margin:4px 0 0;font-size:9.4px;line-height:1.48}
+.gap-box .why{color:var(--muted)}
+.gap-box .next{margin-top:5px;padding-top:5px;border-top:1px dashed #aaa;font-weight:700}
+.editable{outline:none;border-bottom:1px dotted #aaa;min-height:16px;padding:1px 0}
+.editable:focus{background:var(--pale)}
+.editable:empty::before{content:attr(data-ph);color:var(--hint);font-weight:600}
+
+.quality-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2mm}
+.quality-box{border:1px solid var(--line);border-radius:5px;padding:2.5mm;min-height:29mm}
+.quality-box h3{margin:0;font-size:10.7px}
+.quality-box p{margin:4px 0 6px;color:var(--muted);font-size:9.2px;line-height:1.42}
+.quality-result{font-size:9.5px;line-height:1.48;font-weight:700}
+
+/* ---------- Footer ---------- */
+.footer{margin-top:3mm;border:var(--border-w) solid var(--line);border-radius:5px;padding:2.2mm 2.8mm;display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:9px;line-height:1.4;font-weight:700}
+.footer-flow{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.footer-note{color:var(--muted);text-align:right;white-space:nowrap}
+
+/* ---------- Print ---------- */
+@page{size:A3 landscape;margin:0}
+@media print{
+  html,body{background:#fff!important}
+  body{min-width:0!important}
+  .wrap{width:var(--a3-w)!important;margin:0!important;padding:var(--page-pad)!important;box-shadow:none!important}
+  .sheet{width:var(--content-w)!important}
+  .header,.panel,.footer{break-inside:avoid}
+  #attribution-gaps{break-before:page}
+}
+</style>
+</head>
+<body data-mode="formal" data-canvas="v2c-vac" data-page-type="v2c-vac" data-theme="base" data-version="v1" data-instance="sample-vac">
+<div class="wrap">
+<main class="sheet">
+
+<header class="header" id="canvas-header">
+  <div>
+    <div class="title-row">
+      <h1>V2C Value Attribution Canvas</h1>
+      <div class="subtitle">
+        <strong>价值归因画布</strong>
+        <span>一等公民示例 · 基于 Template v1.2</span>
+      </div>
+    </div>
+    <p class="desc" id="v2c-vac-headline">
+      用于 FDE 在具体业务场景中持续观察、建立并审查 AI 价值归因假设：识别一个 Primary AI-enabled Capability 及必要的 Secondary Capabilities，判断这些能力如何共同支撑一个 Primary Change；同时允许记录多个其他可观察 Change，但一张 VAC 只围绕 Primary Change 聚焦一条 Business Impact Chain，并最终谨慎判断其可能贡献的经营价值。VAC 是观察类画布（Observational Canvas），不是一次性结论页；应随现场观察、业务数据和 Pilot 证据进行多轮评估与修正。核心规则是“多能力汇聚，多变化观察，单影响链归因”：对证据不足的关系显式保留 H 或 ?，不为了“完整”而补齐因果链。<span class="tag">FDE 模板</span>
+      <span id="v2c-vac-summary">主链摘要：Scenario → Capability → Change → Business Impact → Value。</span>
+      <span id="v2c-vac-key-gaps">关键断点：V2C-AG01 / V2C-AG02 / V2C-AG06。</span>
+      <span id="v2c-vac-next-step">下一步建议：Explore / Validate。</span>
+    </p>
+  </div>
+  <div class="meta">
+    <div class="meta-row"><b>项目 / 小组:</b><span class="meta-line" contenteditable="true" data-ph="Project / Group"></span></div>
+    <div class="meta-row"><b>主题 / 场景:</b><span class="meta-line" contenteditable="true" data-ph="Topic / Scenario"></span></div>
+    <div class="meta-row"><b>Owner / Date:</b><span class="meta-line" contenteditable="true" data-ph="业务 Owner / YYYY-MM-DD"></span></div>
+    <div class="meta-row"><b>Instance / Version:</b><span class="meta-line">sample-vac · v1</span></div>
+    <div class="meta-row"><b>Source:</b><span class="meta-line">V2C-VAC-sample-vac-v1.md</span></div>
+    <div class="meta-row"><b>Type / Format:</b><span class="meta-line">v2c-vac · Observational Canvas · A3 Landscape</span></div>
+  </div>
+</header>
+
+<section class="panel" id="v2c-vac-canvas">
+  <div class="panel-head">
+    <h2><span class="section-index">1</span>Attribution Chain · 价值归因链</h2>
+    <span>默认表达 Attribution Hypothesis；只有在证据充分时，相关关系才升级为 Evidence-supported</span>
+  </div>
+
+  <div class="chain-frame" id="v2c-vac-attribution-chain" aria-label="价值归因链 A3 固定画幅区">
+    <svg class="chainviz" role="img" viewBox="0 0 1850 900" aria-label="V2C Value Attribution Canvas Template">
+      <defs>
+        <marker id="arrow" markerheight="7" markerwidth="7" orient="auto" refx="9" refy="5" viewBox="0 0 10 10"><path d="M0,0 L10,5 L0,10 z" fill="#000"/></marker>
+        <marker id="arrowGrey" markerheight="7" markerwidth="7" orient="auto" refx="9" refy="5" viewBox="0 0 10 10"><path d="M0,0 L10,5 L0,10 z" fill="#8a8a8a"/></marker>
+      </defs>
+
+      <!-- 5 semantic lanes -->
+      <rect class="lane" id="v2c-vac-scenario" x="20" y="20" width="340" height="860"/>
+      <rect class="lane" id="v2c-vac-capability" x="380" y="20" width="340" height="860"/>
+      <rect class="lane" id="v2c-vac-change" x="740" y="20" width="340" height="860"/>
+      <rect class="lane" id="v2c-vac-business-impact" x="1100" y="20" width="340" height="860"/>
+      <rect class="lane" id="v2c-vac-value" x="1460" y="20" width="340" height="860"/>
+      <rect class="lane-head" x="20" y="20" width="340" height="44"/>
+      <rect class="lane-head" x="380" y="20" width="340" height="44"/>
+      <rect class="lane-head" x="740" y="20" width="340" height="44"/>
+      <rect class="lane-head" x="1100" y="20" width="340" height="44"/>
+      <rect class="lane-head" x="1460" y="20" width="340" height="44"/>
+
+      <text fill="#fff" font-size="13" font-weight="800" x="38" y="47">SCENARIO</text><text fill="#ccc" font-size="10.5" x="135" y="47">业务场景</text>
+      <text fill="#fff" font-size="13" font-weight="800" x="398" y="47">CAPABILITY</text><text fill="#ccc" font-size="10.5" x="505" y="47">AI 赋能能力</text>
+      <text fill="#fff" font-size="13" font-weight="800" x="758" y="47">CHANGE</text><text fill="#ccc" font-size="10.5" x="850" y="47">工作 / 行为 / 决策变化</text>
+      <text fill="#fff" font-size="13" font-weight="800" x="1118" y="47">BUSINESS IMPACT</text><text fill="#ccc" font-size="10.5" x="1265" y="47">业务影响</text>
+      <text fill="#fff" font-size="13" font-weight="800" x="1478" y="47">VALUE</text><text fill="#ccc" font-size="10.5" x="1552" y="47">经营价值</text>
+
+      <text fill="#7f7f7f" font-size="10" text-anchor="middle" x="190" y="86">定义作用情境，不是因果原因</text>
+      <text fill="#7f7f7f" font-size="10" text-anchor="middle" x="550" y="86">企业因此获得什么新的业务能力？</text>
+      <text fill="#7f7f7f" font-size="10" text-anchor="middle" x="910" y="86">实际工作是否发生可观察变化？</text>
+      <text fill="#7f7f7f" font-size="10" text-anchor="middle" x="1270" y="86">哪些业务状态 / Value Driver 可能改变？</text>
+      <text fill="#7f7f7f" font-size="10" text-anchor="middle" x="1630" y="86">最终可能贡献于什么经营价值？</text>
+
+      <!-- Scenario -->
+      <rect class="node-primary" x="50" y="155" width="280" height="205" rx="8"/>
+      <rect class="status-f" x="62" y="169" width="28" height="20" rx="5"/><text fill="#fff" font-size="9" font-weight="800" text-anchor="middle" x="76" y="183">F</text>
+      <text font-size="11.5" font-weight="800" x="100" y="184">业务场景名称 / Business Scenario</text>
+      <line stroke="#000" x1="62" x2="318" y1="198" y2="198"/>
+      <text font-size="10" x="62" y="221">• 谁：关键用户 / 角色是谁？</text>
+      <text font-size="10" x="62" y="242">• 情境：何时、何地、完成什么工作？</text>
+      <text font-size="10" x="62" y="263">• 事实：当前工作方式 / 痛点 / 限制是什么？</text>
+      <text font-size="10" x="62" y="284">• 范围：本画布分析什么，不分析什么？</text>
+      <text fill="#7f7f7f" font-size="9" x="62" y="316">优先使用事实 [F]；未确认内容使用 ?，不要用产品功能名代替场景。</text>
+      <text fill="#7f7f7f" font-size="9" x="62" y="338">示例格式：角色 + 关键业务活动 / 决策情境。</text>
+
+      <!-- Context link -->
+      <path class="context-link" d="M330,255 L406,255" marker-end="url(#arrowGrey)"/>
+      <text fill="#7f7f7f" font-size="8.5" text-anchor="middle" x="368" y="241">作用边界</text>
+
+      <!-- Primary Capability -->
+      <rect class="node-primary" id="v2c-vac-primary-capability" x="410" y="145" width="280" height="220" rx="8"/>
+      <rect class="status-h" x="422" y="159" width="28" height="20" rx="5"/><text font-size="9" font-weight="800" text-anchor="middle" x="436" y="173">H</text>
+      <text fill="#7f7f7f" font-size="10" font-weight="800" x="460" y="174">PRIMARY AI-ENABLED CAPABILITY</text>
+      <text font-size="11.5" font-weight="800" x="422" y="204">填写：AI 让企业获得什么新的业务能力？</text>
+      <line stroke="#000" x1="422" x2="678" y1="218" y2="218"/>
+      <text font-size="10" x="422" y="242">• 描述业务能力，不写模型 / RAG / Agent Framework。</text>
+      <text font-size="10" x="422" y="263">• 说明能力作用于什么判断、决策或执行。</text>
+      <text font-size="10" x="422" y="284">• 不把预期价值结果写进 Capability 定义。</text>
+      <text font-size="10" x="422" y="305">• 初期通常是目标能力 / 假设，需 Build / Eval 验证。</text>
+      <text fill="#7f7f7f" font-size="9" x="422" y="336">推荐句式：“形成 / 支持 ________ 的能力”。</text>
+
+      <!-- Primary Capability -> Primary Change -->
+      <path class="primary-hypothesis" d="M690,255 L766,255" marker-end="url(#arrow)"/>
+      <text font-size="8.5" font-weight="800" text-anchor="middle" x="728" y="240">PRIMARY CHANGE</text>
+
+      <!-- Primary Change -->
+      <rect class="node-primary" id="v2c-vac-primary-change" x="770" y="132" width="280" height="218" rx="8"/>
+      <rect class="status-h" x="782" y="146" width="28" height="20" rx="5"/><text font-size="9" font-weight="800" text-anchor="middle" x="796" y="160">H</text>
+      <text fill="#7f7f7f" font-size="10" font-weight="800" x="820" y="161">PRIMARY CHANGE</text>
+      <text font-size="11.5" font-weight="800" x="782" y="191">填写：本轮最关键、最值得验证的变化</text>
+      <line stroke="#000" x1="782" x2="1038" y1="205" y2="205"/>
+      <text font-size="10" x="782" y="229">• 从多个可观察 Change 中选择一个进入主归因链。</text>
+      <text font-size="10" x="782" y="250">• 用 Before → After 描述真实工作 / 行为 / 决策变化。</text>
+      <text font-size="10" x="782" y="271">• 区分 Usage / Adoption 与真实 Behavior Change。</text>
+      <text font-size="10" x="782" y="292">• 必须可观察、可验证；证据不足保持 [H] 或 ?。</text>
+      <text fill="#7f7f7f" font-size="9" x="782" y="325">只有 Primary Change 进入 Business Impact 主链；多个 Capability 可在有明确作用假设时汇聚到它。</text>
+
+      <!-- Change Measure -->
+      <path class="measure-link" d="M910,350 L910,374"/>
+      <rect class="measure-box" id="v2c-vac-change-measure" x="780" y="378" width="260" height="104" rx="7"/>
+      <text fill="#7f7f7f" font-size="9" font-weight="800" x="792" y="398">MEASURE / EVIDENCE（不构成因果节点）</text>
+      <text font-size="10" x="792" y="421">• 行为 / 决策日志：________________</text>
+      <text font-size="10" x="792" y="441">• Adoption / Override：_____________</text>
+      <text font-size="10" x="792" y="461">• 访谈 / 观察证据：________________</text>
+      <text fill="#7f7f7f" font-size="9" x="792" y="477">KPI 用来证明变化发生，不是导致下一节点的原因。</text>
+
+      <!-- Other Observed Changes: intentionally unconnected -->
+      <rect class="node" id="v2c-vac-other-changes" x="780" y="515" width="260" height="104" rx="8"/>
+      <text fill="#7f7f7f" font-size="10" font-weight="800" x="792" y="539">OBSERVED CHANGE 2 · OPTIONAL</text>
+      <text font-size="11" font-weight="800" x="792" y="566">填写：____________________________</text>
+      <text font-size="9.6" x="792" y="589">记录其他真实可观察变化；默认不连线、不声明归因。</text>
+      <text fill="#7f7f7f" font-size="9" x="792" y="607">若后续证据更强，可在下一轮评估中升级为 Primary Change。</text>
+
+      <rect class="node" x="780" y="650" width="260" height="104" rx="8"/>
+      <text fill="#7f7f7f" font-size="10" font-weight="800" x="792" y="674">OBSERVED CHANGE 3 · OPTIONAL</text>
+      <text font-size="11" font-weight="800" x="792" y="701">填写：____________________________</text>
+      <text font-size="9.6" x="792" y="724">仅记录独立、可观察的变化；不要为了填满模板而增加。</text>
+      <text fill="#7f7f7f" font-size="9" x="792" y="742">若形成另一条独立价值逻辑，建议另建一张 VAC。</text>
+
+      <text fill="#7f7f7f" font-size="9.5" font-weight="800" text-anchor="middle" x="910" y="800">MULTIPLE CHANGES MAY BE OBSERVED · ONLY ONE PRIMARY CHANGE ENTERS THE MAIN ATTRIBUTION CHAIN</text>
+
+      <!-- Primary Change -> ONE Business Impact Chain -->
+      <path class="primary-hypothesis" d="M1050,255 L1126,255" marker-end="url(#arrow)"/>
+      <text font-size="8.5" font-weight="800" text-anchor="middle" x="1088" y="240">HYPOTHESIS</text>
+
+      <!-- Impact / Gap 1 -->
+      <rect class="node-question" id="v2c-vac-impact-chain" x="1130" y="125" width="280" height="125" rx="8"/>
+      <rect class="status-q" x="1142" y="139" width="28" height="20" rx="5"/><text font-size="9" font-weight="800" text-anchor="middle" x="1156" y="153">?</text>
+      <text fill="#7f7f7f" font-size="10" font-weight="800" x="1180" y="154">IMPACT / ATTRIBUTION GAP 1</text>
+      <text font-size="11" font-weight="800" x="1142" y="181">近端业务影响是否发生？</text>
+      <line stroke="#000" stroke-dasharray="4 3" x1="1142" x2="1398" y1="193" y2="193"/>
+      <text font-size="9.8" x="1142" y="216">填写：Primary Change 之后，首先应该发生什么业务动作、</text>
+      <text font-size="9.8" x="1142" y="233">状态或结果？当前是否有证据支持？</text>
+
+      <path class="primary-hypothesis" d="M1270,250 L1270,283" marker-end="url(#arrow)"/>
+
+      <!-- Impact / Gap 2 -->
+      <rect class="node-question" x="1130" y="286" width="280" height="125" rx="8"/>
+      <rect class="status-q" x="1142" y="300" width="28" height="20" rx="5"/><text font-size="9" font-weight="800" text-anchor="middle" x="1156" y="314">?</text>
+      <text fill="#7f7f7f" font-size="10" font-weight="800" x="1180" y="315">IMPACT / ATTRIBUTION GAP 2</text>
+      <text font-size="11" font-weight="800" x="1142" y="342">关键业务状态是否改变？</text>
+      <line stroke="#000" stroke-dasharray="4 3" x1="1142" x2="1398" y1="354" y2="354"/>
+      <text font-size="9.8" x="1142" y="377">填写：执行变化是否真正改变业务流程、客户、</text>
+      <text font-size="9.8" x="1142" y="394">运营状态或关键 Value Driver？</text>
+
+      <path class="primary-hypothesis" d="M1270,411 L1270,444" marker-end="url(#arrow)"/>
+
+      <!-- Impact / Gap 3 -->
+      <rect class="node-question" x="1130" y="447" width="280" height="138" rx="8"/>
+      <rect class="status-q" x="1142" y="461" width="28" height="20" rx="5"/><text font-size="9" font-weight="800" text-anchor="middle" x="1156" y="475">?</text>
+      <text fill="#7f7f7f" font-size="10" font-weight="800" x="1180" y="476">IMPACT / ATTRIBUTION GAP 3</text>
+      <text font-size="11" font-weight="800" x="1142" y="503">价值驱动因素是否改善？</text>
+      <line stroke="#000" stroke-dasharray="4 3" x1="1142" x2="1398" y1="515" y2="515"/>
+      <text font-size="9.8" x="1142" y="538">填写：最接近最终经营价值的业务影响 / Value Driver</text>
+      <text font-size="9.8" x="1142" y="555">是什么？指标定义与因果机制是否已确认？</text>
+      <text fill="#7f7f7f" font-size="9" x="1142" y="574">一张 VAC 聚焦一条业务影响链；节点数量按实际情况增删。</text>
+
+      <!-- Impact Measure -->
+      <path class="measure-link" d="M1270,585 L1270,618"/>
+      <rect class="measure-box" id="v2c-vac-impact-measure" x="1122" y="622" width="296" height="134" rx="7"/>
+      <text fill="#7f7f7f" font-size="9" font-weight="800" x="1134" y="642">MEASURE / EVIDENCE（候选，待业务口径确认）</text>
+      <text font-size="10" x="1134" y="665">• 指标 / KPI：_______________________________</text>
+      <text font-size="10" x="1134" y="685">• Baseline：定义 / 范围 / 窗口 / 数据源待冻结</text>
+      <text font-size="10" x="1134" y="705">• Actual / Observation：______________________</text>
+      <text font-size="10" x="1134" y="725">• 对照 / Before-After / Pilot-Control：________</text>
+      <text fill="#7f7f7f" font-size="9" x="1134" y="745">无 Baseline 时不得给出量化改善幅度或收益承诺。</text>
+
+      <!-- Impact -> Value -->
+      <path class="primary-hypothesis" d="M1410,515 C1445,515 1450,385 1486,385" marker-end="url(#arrow)"/>
+      <text font-size="8.5" font-weight="800" text-anchor="middle" x="1450" y="443">CONTRIBUTES TO ?</text>
+
+      <!-- Value -->
+      <rect class="node-primary" id="v2c-vac-value-anchor" x="1490" y="300" width="280" height="225" rx="8"/>
+      <rect class="status-h" x="1502" y="314" width="28" height="20" rx="5"/><text font-size="9" font-weight="800" text-anchor="middle" x="1516" y="328">H</text>
+      <text fill="#7f7f7f" font-size="10" font-weight="800" x="1540" y="329">VALUE DIRECTION TO VALIDATE</text>
+      <text font-size="16" font-weight="800" x="1502" y="367">贡献于：________________</text>
+      <line stroke="#000" x1="1502" x2="1758" y1="382" y2="382"/>
+      <text font-size="10" x="1502" y="407">• 选择一个 Primary Value Anchor。</text>
+      <text font-size="10" x="1502" y="427">• 应来自企业既有经营价值 / KPI 体系。</text>
+      <text font-size="10" x="1502" y="447">• 不把 Capability、Change、Driver 当成最终 Value。</text>
+      <text font-size="10" x="1502" y="467">• 早期使用“贡献于”，不要轻率使用“导致”。</text>
+      <text fill="#7f7f7f" font-size="9" x="1502" y="497">最终 Value Anchor 与归因强度由业务 Owner + 证据确认。</text>
+
+      <!-- Value Measure -->
+      <path class="measure-link" d="M1630,525 L1630,552"/>
+      <rect class="measure-box" id="v2c-vac-measurement" x="1500" y="556" width="260" height="126" rx="7"/>
+      <text fill="#7f7f7f" font-size="9" font-weight="800" x="1512" y="576">MEASURE / EVIDENCE</text>
+      <text font-size="10" x="1512" y="598">• Value Outcome Metric：_______________</text>
+      <text font-size="10" x="1512" y="618">• Baseline：必须先建立并冻结口径</text>
+      <text font-size="10" x="1512" y="638">• Actual / Improvement：_______________</text>
+      <text font-size="10" x="1512" y="658">• Confounders / Attribution：___________</text>
+      <text fill="#7f7f7f" font-size="9" x="1512" y="676">量化比较必须建立在可比较 Baseline 之上。</text>
+
+      <!-- Optional secondary capabilities: may converge on Primary Change when supported -->
+      <rect class="node" id="v2c-vac-secondary-capabilities" x="410" y="480" width="280" height="100" rx="8"/>
+      <text fill="#7f7f7f" font-size="10" font-weight="800" x="422" y="504">OPTIONAL SECONDARY CAPABILITY A</text>
+      <text font-size="11" font-weight="800" x="422" y="530">填写：____________________________</text>
+      <text font-size="9.6" x="422" y="553">若有明确作用假设，可汇聚到 Primary Change；否则删除连线。</text>
+
+      <rect class="node" x="410" y="620" width="280" height="100" rx="8"/>
+      <text fill="#7f7f7f" font-size="10" font-weight="800" x="422" y="644">OPTIONAL SECONDARY CAPABILITY B</text>
+      <text font-size="11" font-weight="800" x="422" y="670">填写：____________________________</text>
+      <text font-size="9.6" x="422" y="693">只可支撑 Primary Change；若形成独立价值路径，建议另建 VAC。</text>
+
+      <!-- Secondary Capability -> Primary Change: optional attribution hypotheses -->
+      <path class="secondary" d="M690,530 C728,530 730,340 766,320" marker-end="url(#arrowGrey)"/>
+      <path class="secondary" d="M690,670 C728,670 730,352 766,337" marker-end="url(#arrowGrey)"/>
+      <text fill="#7f7f7f" font-size="8.2" font-weight="800" text-anchor="middle" x="730" y="470">IF SUPPORTED</text>
+    </svg>
+  </div>
+
+  <div class="legend" aria-label="证据状态图例">
+    <span><i class="chip f">F</i> Fact：已有可靠事实支持</span>
+    <span><i class="chip">H</i> Hypothesis：合理但待验证</span>
+    <span><i class="chip q">?</i> Question / Gap：未知或归因断点</span>
+    <span><i class="chip e">E</i> Evidence：验证后获得的支持证据</span>
+    <span>粗虚线：Primary Attribution Hypothesis</span>
+    <span>多个 Capability 可汇聚到 Primary Change；其他 Change 可观察但不进入主链</span>
+  </div>
+
+  <div class="method-rules" aria-label="VAC 方法规则">
+    <div class="method-rule"><b>多能力汇聚，多变化观察，单影响链归因</b>Primary Capability 与有明确作用假设的 Secondary Capabilities 可共同汇聚到一个 Primary Change；Change 区可记录多个其他真实可观察变化，但只有 Primary Change 进入一条 Business Impact Chain。Secondary Capability 不连接其他 Observed Change。</div>
+    <div class="method-rule"><b>Baseline 规则</b>量化“提升 / 下降 / 改善”前，必须冻结指标定义、业务范围、时间窗口、数据来源和排除规则，并建立可比较 Baseline。</div>
+    <div class="method-rule"><b>正式交付与观察规则</b>不把讨论中的数字、期望或管理目标转写为价值结论；证据不足保持 H 或 ?。VAC 随现场观察、业务数据和验证证据多轮复评并版本留痕。</div>
+  </div>
+</section>
+
+<section class="panel" id="v2c-vac-attribution-gaps">
+  <div class="panel-head">
+    <h2><span class="section-index">2</span>Attribution Assumptions &amp; Gaps · 归因假设与断点</h2>
+    <span>把最重要的未知显式写出来；这些断点决定下一步 Redesign / Validation 的重点</span>
+  </div>
+  <div class="gap-grid">
+    <article class="gap-box" id="v2c-vac-gap-V2C-AG01">
+      <h3><span class="chip">H</span> G1 · Capability 组合是否达到业务可用水平？</h3>
+      <p class="why">Primary / Secondary Capability 的定义及组合关系不代表已证明其可以稳定、及时、可解释地共同支撑真实业务变化。</p>
+      <p class="next">验证计划：<span class="editable" contenteditable="true" data-ph="填写各 Capability 的可用标准、组合依赖与 Build / Evaluation 证据"></span></p>
+    </article>
+    <article class="gap-box" id="v2c-vac-gap-V2C-AG02">
+      <h3><span class="chip">H</span> G2 · Primary Change 是否真实发生？</h3>
+      <p class="why">多个 Change 可以被观察，但只有 Primary Change 进入 Business Impact 主链；即使多个 Capability 已可用，“上线 / 使用”也不等于该关键工作、行为或决策变化已经真实发生。</p>
+      <p class="next">验证计划：<span class="editable" contenteditable="true" data-ph="填写行为日志、访谈、观察等验证方式"></span></p>
+    </article>
+    <article class="gap-box" id="v2c-vac-gap-V2C-AG03">
+      <h3><span class="chip q">?</span> G3 · Primary Change 如何转化为实际业务执行？</h3>
+      <p class="why">这是常见归因断点：建议、判断或决策可能没有真正进入后续执行。</p>
+      <p class="next">验证计划：<span class="editable" contenteditable="true" data-ph="填写执行闭环与证据"></span></p>
+    </article>
+    <article class="gap-box" id="v2c-vac-gap-V2C-AG04">
+      <h3><span class="chip q">?</span> G4 · 执行变化是否改善 Business Impact？</h3>
+      <p class="why">业务状态通常受多因素影响，不允许从 Adoption 或 Process KPI 直接推导经营改善。</p>
+      <p class="next">验证计划：<span class="editable" contenteditable="true" data-ph="填写指标口径、Baseline 与对照设计"></span></p>
+    </article>
+    <article class="gap-box" id="v2c-vac-gap-V2C-AG05">
+      <h3><span class="chip q">?</span> G5 · Business Impact 如何贡献最终 Value？</h3>
+      <p class="why">需要明确价值驱动机制，并识别价格、季节、促销、竞争、渠道等混杂因素。</p>
+      <p class="next">验证计划：<span class="editable" contenteditable="true" data-ph="填写价值逻辑与归因方法"></span></p>
+    </article>
+    <article class="gap-box" id="v2c-vac-gap-V2C-AG06">
+      <h3><span class="chip q">?</span> G6 · 是否已经建立可比较 Baseline？</h3>
+      <p class="why">没有一致的定义、范围、时间窗口和数据源，后续“改善”比较没有解释力。</p>
+      <p class="next">Baseline 计划：<span class="editable" contenteditable="true" data-ph="填写指标、范围、窗口、数据源、排除规则"></span></p>
+    </article>
+  </div>
+</section>
+
+<section class="panel" id="v2c-vac-quality-check">
+  <div class="panel-head">
+    <h2><span class="section-index">3</span>Attribution Quality Check · 归因质量检查</h2>
+    <span>VAC Gate：判断是否值得进入 Redesign / Validate；不等同于 Pilot Readiness</span>
+  </div>
+  <div class="quality-grid">
+    <div class="quality-box" id="v2c-vac-quality-semantics">
+      <h3>1. 语义是否正确？</h3>
+      <p>Scenario、Capability、Change、Business Impact、Value 是否严格分层？是否允许多个 Capability 在有依据时汇聚到一个 Primary Change，并允许多个 Change 被观察但只有 Primary Change 进入业务影响主链？KPI 是否只承担测量作用？</p>
+      <div class="quality-result editable" contenteditable="true" data-ph="填写结论 / 需要修正的语义混层"></div>
+    </div>
+    <div class="quality-box" id="v2c-vac-quality-honesty">
+      <h3>2. 链条是否诚实？</h3>
+      <p>是否明确展示未知关系？有没有为了形成完整故事而补齐未经证据支持的因果箭头？</p>
+      <div class="quality-result editable" contenteditable="true" data-ph="填写结论 / 关键 Attribution Gap"></div>
+    </div>
+    <div class="quality-box" id="v2c-vac-quality-verifiability">
+      <h3>3. 是否可验证？</h3>
+      <p>关键假设是否有可获得证据？指标口径、Baseline、观察周期与对照方法是否可建立？</p>
+      <div class="quality-result editable" contenteditable="true" data-ph="填写验证条件 / 数据缺口"></div>
+    </div>
+    <div class="quality-box" id="v2c-vac-quality-next-step">
+      <h3>4. 下一步是否值得投入？</h3>
+      <p>即使存在断点，潜在业务价值是否足以支持继续 Redesign / Validate？</p>
+      <div class="quality-result editable" contenteditable="true" data-ph="Proceed / Explore / Defer / Stop + 理由"></div>
+    </div>
+  </div>
+</section>
+
+<section class="panel" id="v2c-vac-inferences">
+  <div class="panel-head">
+    <h2><span class="section-index">4</span>Inferences &amp; Governance · 推断与治理</h2>
+    <span>推断不得伪装成事实；Gate 与授权只作为治理元数据呈现</span>
+  </div>
+  <div class="quality-grid">
+    <div class="quality-box">
+      <h3>推断登记</h3>
+      <p>V2C-Inf01：示例推断占位。来源线索、影响和状态必须来自确认包第 12 节。</p>
+      <div class="quality-result editable" contenteditable="true" data-ph="填写推断 ID / 来源线索 / 接受或拒绝状态"></div>
+    </div>
+    <div class="quality-box" id="quality-panel">
+      <h3>质量与授权</h3>
+      <p id="quality-version">版本：v1</p>
+      <p id="quality-approval">gate_recommendation=pass；render_authorized=true；confirmation_mode=gate_pass。</p>
+      <p id="quality-gaps">缺口摘要：V2C-AG01 / V2C-AG02 / V2C-AG06。</p>
+      <p id="quality-risks">风险摘要：示例业务风险说明。</p>
+      <p id="quality-caveat" hidden>Override caveat placeholder. Only visible when confirmation_mode=override.</p>
+    </div>
+    <div class="quality-box" id="local-notes" contenteditable="true">
+      <h3>本地批注</h3>
+      <p>仅写入浏览器本地，不覆盖确认包、稳定锚点或 canvas-data。</p>
+    </div>
+    <div class="quality-box">
+      <h3>Template Gate 提示</h3>
+      <p>正式产物必须单文件自包含；不得依赖外部 CSS / JS / 字体 / fetch / iframe。override_audit.assessment_id 必须使用 V2C-GATE-*。</p>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="footer-flow">
+    <strong>VAC 使用原则</strong>
+    <span>定义 Scenario</span><span>→</span>
+    <span>识别 Primary / Secondary Capabilities</span><span>→</span>
+    <span>观察多个 Change</span><span>→</span>
+    <span>选择 Primary Change</span><span>→</span>
+    <span>聚焦一条 Business Impact Chain</span><span>→</span>
+    <span>冻结指标口径并建立 Baseline</span><span>→</span>
+    <span>多轮观察 / 修正</span><span>→</span>
+    <span>谨慎归因 Value</span>
+  </div>
+  <div class="footer-note">V2C Value Attribution Canvas · Template v1.2 · FDE Template · A3 Landscape Fixed Layout</div>
+</footer>
+
+</main>
+</div>
+
+<script id="canvas-data" type="application/json">
+{
+  "version":"v1",
+  "instance":"sample-vac",
+  "canvas_type":"v2c-vac",
+  "page_type":"v2c-vac",
+  "generation_path":"pipeline",
+  "project_slug":"sample-project",
+  "group_id":"sample-group",
+  "topic_slug":"sample-topic",
+  "source_file":"modules/V2C-VAC-sample-vac-v1.md",
+  "prototype_type":"example template based on V2C template v1.2",
+  "core_semantics":["scenario","ai_enabled_capability","change","business_impact","value"],
+  "sections":{
+    "headline":"示例 Scenario 中，示例 AI-enabled Capability 可能贡献于示例 Primary Change，并进一步影响示例 Value。",
+    "summary":"Scenario -> Capability -> Change -> Business Impact -> Value",
+    "gaps":["V2C-AG01","V2C-AG02","V2C-AG03","V2C-AG04","V2C-AG05","V2C-AG06"],
+    "quality":["semantics","honesty","verifiability","next_step"]
+  },
+  "auth":{
+    "gate_recommendation":"pass",
+    "render_authorized":true,
+    "confirmation_mode":"gate_pass",
+    "override_audit":{"items":[]}
+  },
+  "structural_principle":"Multiple capabilities may converge; multiple changes may be observed; one Primary Change enters one Business Impact Chain",
+  "canvas_nature":"observational / iterative",
+  "measurement_policy":"KPI and evidence are attached measurements, not causal nodes",
+  "change_policy":"Multiple observable changes are allowed; only one Primary Change enters the Business Impact chain per assessment cycle",
+  "capability_change_link_policy":"Primary AI-enabled Capability and supported Optional Secondary Capabilities may converge on the single Primary Change; secondary capability links are hypotheses and should be removed when unsupported; no Capability links to non-primary Observed Changes",
+  "business_impact_policy":"One VAC focuses on one Business Impact Chain starting from the single Primary Change; independent value paths should use separate VACs",
+  "baseline_policy":"No quantified improvement or value claim before metric definition and baseline are frozen",
+  "revision_policy":"Reassess and version the canvas whenever new field observations, business data, or validation evidence become available",
+  "attribution_policy":"Keep unsupported relationships as H or ?; do not complete the chain for visual completeness; use contributes-to before causal evidence is sufficient",
+  "display_policy":"A3 landscape fixed physical baseline (420×297 mm); no responsive reflow; screen viewing uses browser zoom; print uses the same layout",
+  "evidence_status":["F","H","?","E"],
+  "default_gate":"proceed_to_redesign_validate",
+  "layout_policy":"single fixed A3 baseline; no responsive reflow"
+}
+</script>
+</body>
+</html>
