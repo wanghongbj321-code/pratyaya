@@ -399,7 +399,7 @@ python3 skills/canvas-render/scripts/audit_canvas_html.py \
 3. 模式视觉：实际色板、字体、网格、组件及专属组件符合用户选定模式，没有明显混搭或偏离。
 4. **示例比对**（该 `canvas_type` 在 `examples/` 有示例时）：整体版面与签名视觉须与示例一致；无示例时按 render-contract 自检并在交付说明标注。
 5. **Caveat 视觉**（仅 override 模块）：caveat 标识与风险详情在桌面、窄屏下均可见。
-6. **Workflow 流程图视觉**（全局页）：桌面三泳道（Agent 执行 / 人工操作确认 / 人审 + Agent 执行）归属正确、元素无重叠；连接线均为横 / 竖 / 肘型且端点接入节点边框中点，无斜线；节点左上角编号徽标清晰且与 `canvas-data.workflow.nodes[].number` 一致；窄屏单流横向滚动（自身容器滚动），图例（bpmn-legend）在两种视口下均可见。
+6. **Workflow 流程图视觉**（全局页）：桌面三泳道（Agent 执行 / 人工操作确认 / 人审 + Agent 执行）归属正确、元素无重叠；连接线均为横 / 竖 / 肘型且端点接入节点边框中点（顶 / 底 / 左 / 右边缘中心），无斜线；Task / Gateway 节点左上角显示黑色小字号编号文字（无背景色），与 `canvas-data.workflow.nodes[].number` 一致，Start / End 不显示徽标；窄屏单流横向滚动（自身容器滚动），图例（bpmn-legend）在两种视口下均可见。
 
 浏览器验收不重复检查锚点、JSON、授权字段和离线字符串；这些由 Python 审计负责。Python 审计不能替代真实布局检查，两阶段都通过后才能交付正式 HTML。
 

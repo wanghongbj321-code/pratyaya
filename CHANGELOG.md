@@ -17,8 +17,8 @@
 
 ### 优化（PATCH）
 
-- **Sequence Flow 正交化**：所有连接线改为横 / 竖 / 肘型折线（禁止曲线 / 斜线）；"预算内"分支竖线接入节点左边缘中部（对齐节点边框中点）；静态审计新增"Sequence Flow 禁止曲线命令（`C`/`Q`/`S`/`A`）"断言。
-- **节点编号徽标**：每个 BPMN 节点左上角显示流程序号徽标（`01`–`07`，按 Start → End 拓扑序）；`canvas-data.workflow.nodes[]` 新增 `number` 字段；静态审计校验 `number` 存在且唯一。任务类型识别保持 BPMN 标准 Task Marker 图标（未采用背景色方案）。
+- **Sequence Flow 正交化**：所有连接线改为横 / 竖 / 肘型折线（禁止曲线 / 斜线）；所有端点对齐节点边中点（顶 / 底 / 左 / 右边缘中心）；静态审计新增"Sequence Flow 禁止曲线命令（`C`/`Q`/`S`/`A`）"断言。
+- **节点编号徽标**：Task / Gateway 节点左上角显示流程序号（黑色小字号、无背景色，`01`–`07`，按 Start → End 拓扑序）；Start / End 不显示徽标；`canvas-data.workflow.nodes[]` 新增 `number` 字段；静态审计校验 `number` 存在且唯一。任务类型识别保持 BPMN 标准 Task Marker 图标（未采用背景色方案）。
 
 ### 兼容性与迁移边界
 
