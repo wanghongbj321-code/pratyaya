@@ -439,10 +439,10 @@ body {
                 <path class="bpmn-sequence" d="M514 115 H535" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#flow-arrow)"/>
                 <path class="bpmn-sequence" d="M595 115 H746 V217" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#flow-arrow)"/>
                 <text class="bpmn-flow-label" x="660" y="108" text-anchor="middle">超出预算</text>
-                <path class="bpmn-sequence" d="M565 145 V300 H925 V347" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#flow-arrow)"/>
-                <text class="bpmn-flow-label" x="745" y="312" text-anchor="middle">预算内</text>
-                <path class="bpmn-sequence" d="M746 273 H1000 V375" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#flow-arrow)"/>
-                <text class="bpmn-flow-label" x="873" y="266" text-anchor="middle">审核通过</text>
+                <path class="bpmn-sequence" d="M565 145 V200 H925 V347" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#flow-arrow)"/>
+                <text class="bpmn-flow-label" x="745" y="192" text-anchor="middle">预算内</text>
+                <path class="bpmn-sequence" d="M816 245 V403 H925" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#flow-arrow)"/>
+                <text class="bpmn-flow-label" x="870" y="395" text-anchor="middle">审核通过</text>
                 <path class="bpmn-sequence" d="M1000 375 H1054" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#flow-arrow)"/>
               </g>
               <g class="bpmn-node" data-node-type="start" data-node-id="w0">
@@ -452,7 +452,7 @@ body {
               <g class="bpmn-node" data-node-type="agent_execution" data-node-id="w1" data-node-number="02">
                 <rect x="200" y="87" width="150" height="56" rx="10" fill="#fff" stroke="#000" stroke-width="1.6"/>
                 <g class="bpmn-number">
-                  <text x="206" y="100" fill="#000" font-size="9">02</text>
+                  <text x="196" y="99" text-anchor="end" fill="#000" font-size="9">02</text>
                 </g>
                 <text x="275" y="113" text-anchor="middle">收集库存与</text>
                 <text x="275" y="127" text-anchor="middle">销售数据</text>
@@ -464,7 +464,7 @@ body {
               <g class="bpmn-node" data-node-type="agent_execution" data-node-id="w2" data-node-number="03">
                 <rect x="384" y="87" width="130" height="56" rx="10" fill="#fff" stroke="#000" stroke-width="1.6"/>
                 <g class="bpmn-number">
-                  <text x="390" y="100" fill="#000" font-size="9">03</text>
+                  <text x="380" y="99" text-anchor="end" fill="#000" font-size="9">03</text>
                 </g>
                 <text x="449" y="113" text-anchor="middle">生成补货</text>
                 <text x="449" y="127" text-anchor="middle">建议</text>
@@ -476,7 +476,7 @@ body {
               <g class="bpmn-node" data-node-type="gateway" data-node-id="w3" data-node-number="04">
                 <polygon points="565,85 595,115 565,145 535,115" fill="#fff" stroke="#000" stroke-width="1.6"/>
                 <g class="bpmn-number">
-                  <text x="541" y="100" fill="#000" font-size="9">04</text>
+                  <text x="565" y="78" text-anchor="middle" fill="#000" font-size="9">04</text>
                 </g>
                 <text x="565" y="119" text-anchor="middle">预算内?</text>
               </g>
@@ -495,8 +495,7 @@ body {
               <g class="bpmn-node" data-node-type="human_review" data-node-id="w5" data-node-number="06">
                 <rect x="850" y="347" width="150" height="56" rx="10" fill="#fff" stroke="#000" stroke-width="1.6"/>
                 <g class="bpmn-number">
-                  <rect x="854" y="351" width="17" height="13" rx="3" fill="#000"/>
-                  <text x="862.5" y="361" text-anchor="middle" fill="#fff" font-size="8.5">06</text>
+                  <text x="846" y="359" text-anchor="end" fill="#000" font-size="9">06</text>
                 </g>
                 <text x="925" y="373" text-anchor="middle">人审后 Agent</text>
                 <text x="925" y="387" text-anchor="middle">生成采购单</text>
