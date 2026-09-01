@@ -3,6 +3,22 @@
 > 本文件记录 Pratyaya 专家的正式版本变更。
 > 完整 SemVer 与架构说明见 [`README.md`](./README.md) / [`DESIGN.md`](./DESIGN.md) / [docs/MVL-整体架构设计.md](./docs/MVL-整体架构设计.md)。
 
+## [v3.1.0] - 2026-09-01
+
+### 新增功能（MINOR）
+
+- **Workflow 板块 BPMN 可视化流程图**：MAAU 全局画布（Phase 2 M1-M6 汇总页与 MAAU transcript-direct 实例页）的 Workflow 板块在文本框下方新增派生只读的 BPMN 流程图（`#workflow-flow`）。采用 BPMN 图形语言子集（Start Event / Task / Exclusive Gateway / End Event / Sequence Flow），三类节点用 Service Task（齿轮，Agent 执行）/ User Task（小人头，人工操作/确认）/ 组合节点（人审 + Agent 执行）图标区分；桌面三泳道（Agent 执行 / 人工操作确认 / 人审 + Agent 执行）、窄屏单流横向滚动。
+- **数据派生（Q1=A）**：流程图从确认包 Workflow section（`trigger` / `steps` / `completion_condition` + 三类节点 + `rules`）静态生成内联 SVG，**不改数据契约**（`maau-synth-spec.md` / `workshop-canvas-map.md` 不变）；`canvas-data` 顶层新增 `workflow.nodes` / `workflow.edges` 派生拓扑，供静态审计一致性校验。
+- **渲染契约**：`render-contract.md` 新增 §A1「Workflow BPMN 流程图（`#workflow-flow`）」DOM 契约、BPMN 子集与元素映射、派生规则、泳道/响应式与拓扑数据约束；示例母版 `examples/mvl-canvas/maau-global-canvas.html` 新增三泳道示例 SVG 与图例（门店补货智能体）。
+- **静态审计**：`GLOBAL_MAIN_IDS` 新增 `workflow-flow` 锚点；`audit_workflow_flow` 断言 Start/End Event 存在、`nodes` 覆盖三类节点、SVG `bpmn-node` 数量与 `nodes` 数量一致、`edges.from/to` 引用有效、传入 `--source` 时确认包含三类节点章节。
+- **测试**：新增 `tests/test_workflow_flow.py`（7 项）；MAAU fixture `maau-global-canvas-retail-demo.html` 同步补 `#workflow-flow` 与拓扑。
+
+### 兼容性与迁移边界
+
+- 无 schema 变更；`state.schema.json` `schema_version` 仍 `"2.3"`。
+- 渲染参数不变（仍 `canvas_type=mvl` + `page_type=global`），主 Agent 无需改动。
+- 已渲染的旧全局页不包含流程图，需按流程重新渲染才套用新契约。
+
 ## [v3.0.0] - 2026-08-13
 
 ### 新增功能（MAJOR）

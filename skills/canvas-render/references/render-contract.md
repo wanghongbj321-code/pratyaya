@@ -38,6 +38,7 @@
       <div id="workflow-human-checkpoints"></div>
       <div id="workflow-human-agent-nodes"></div>
       <div id="workflow-rules"></div>
+      <div id="workflow-flow">...</div>
     </section>
     <section id="context">
       <div id="context-knowledge">...</div>
@@ -57,6 +58,86 @@
 ```
 
 全局页面六大板块必须齐全，但板块内的小模块可以显示"未讨论"——不能为了填满而编造内容。
+
+### A1. Workflow BPMN 流程图（`#workflow-flow`）
+
+Workflow 板块在 `.maau-fields` 文本框之下必须包含一张**派生只读**的 BPMN 可视化流程图（`id="workflow-flow"`，全局页稳定锚点）。流程图是展示层派生视图：渲染时由 LLM 从确认包（`MAAU-{slug}-v{N}.md` / `Mx-v{N}.md`）Workflow section 按以下规则静态生成内联 SVG，不新增分析、不补写业务内容。
+
+#### A1.1 DOM 结构
+
+```html
+<div class="maau-flow" id="workflow-flow" aria-label="Workflow BPMN 流程图">
+  <svg class="bpmn-flow" role="img" aria-label="Workflow BPMN 流程图" viewBox="...">
+    <defs><marker id="flow-arrow" ...>...</marker></defs>
+    <!-- 泳道（桌面）/ 节点 / 顺序流，全部内联 SVG -->
+  </svg>
+  <div class="bpmn-legend" aria-label="BPMN 图例">
+    <!-- 三类节点符号图例：齿轮 = Agent 执行；小人头 = 人工操作/确认；组合 = 人审 + Agent 执行；菱形 = 关键规则分支 -->
+  </div>
+</div>
+```
+
+- `#workflow-flow` 必须唯一；空数据时显示"未讨论"占位，结构与锚点仍存在。
+- 现有 `#workflow-*` 文本框锚点保持不变（文本框是本地批注载体，流程图是派生只读视图）。
+- SVG 必须使用内联样式与系统字体，禁止外链资源（沿用离线约束）。
+
+#### A1.2 BPMN 子集与元素映射
+
+| BPMN 元素 | 标准符号 | 数据映射 | SVG 标记 |
+|---|---|---|---|
+| Start Event | 单线空心圆 | `trigger` | `data-node-type="start"` |
+| Task | 圆角矩形 | `steps` 中的步骤 | `data-node-type="agent_execution"` / `"human_operation"` / `"human_review"` |
+| Exclusive Gateway | 菱形 | `rules` 中的分支（升级/停止/回退） | `data-node-type="gateway"` |
+| End Event | 粗线实心圆 | `completion_condition` | `data-node-type="end"` |
+| Sequence Flow | 实线箭头，可带条件标签 | 步骤间流向；Gateway 流出线标注条件 | `<path>` + `marker-end="url(#flow-arrow)"` |
+
+三类节点任务类型符号（必须呈现，供图例与审计识别）：
+- **Agent 执行** → Service Task（右上角齿轮图标）；
+- **人工操作/确认** → User Task（右上角小人头图标）；
+- **人审 + Agent 执行** → 组合节点（User Task + Service Task 串联，或置于泳道交界）。
+
+每个 SVG 节点必须是 `<g class="bpmn-node" data-node-type="{type}" ...>`，且 `data-node-type` 与 `canvas-data.workflow.nodes[].type` 一致。
+
+#### A1.3 派生规则
+
+1. **主干链**：`steps` 列表顺序 → 默认线性 Sequence Flow 链。
+2. **起止**：`trigger` → Start Event 置于链首；`completion_condition` → End Event 置于链尾。
+3. **分支**：`rules` 含分支语义（升级/停止/回退/如果→否则）时，在对应位置插入 Exclusive Gateway（菱形），流出线标注条件标签。
+4. **节点归类**：每个步骤按内容归入三类节点之一 → 桌面版入对应泳道（Lane），窄屏版打节点角标，并应用对应 Task 图标。
+5. **无法确定性推断的拓扑**：保守线性连接，不确定的分支信息进入缺口表承载，不编造分支。
+6. **缺类/缺字段**：按既有规则显示"未讨论"，不得补写。
+
+#### A1.4 泳道（桌面）与响应式
+
+- 桌面：Pool = MAAU 工作流；三个水平 Lane = Agent 执行 / 人工操作确认 / 人审 + Agent 执行；跨泳道箭头表达人机交接。
+- 窄屏（390px）：退化为单流（泳道转为节点角标/图标），置于横向滚动容器（`overflow-x: auto`）。
+
+#### A1.5 `canvas-data` 拓扑数据
+
+`canvas-data` 顶层新增 `workflow` 对象（与 `sections.workflow` 并存）：
+
+```json
+"workflow": {
+  "nodes": [
+    { "id": "w0", "type": "start", "label": "触发条件（trigger）" },
+    { "id": "w1", "type": "agent_execution", "label": "..." },
+    { "id": "w2", "type": "gateway", "label": "关键规则分支" },
+    { "id": "w3", "type": "human_operation", "label": "..." },
+    { "id": "w4", "type": "human_review", "label": "..." },
+    { "id": "w5", "type": "end", "label": "完成条件（completion_condition）" }
+  ],
+  "edges": [
+    { "from": "w0", "to": "w1" },
+    { "from": "w2", "to": "w3", "label": "条件标签" }
+  ]
+}
+```
+
+约束：
+- `nodes[].type ∈ {start, end, gateway, agent_execution, human_operation, human_review}`；
+- `nodes` 必须覆盖 `agent_execution / human_operation / human_review` 三类（与确认包三类节点一一对应）；
+- `edges[].from / to` 必须引用存在的 node id；
+- SVG 中 `bpmn-node` 数量必须等于 `nodes` 数量；`data-node-type` 与 `nodes[].type` 一致。
 
 ## B. 模块详情 Canvas 页面结构
 
@@ -214,6 +295,7 @@
     "generation_path": "m1-m6 | transcript-direct",
     "instance": "{slug}",   // 仅 instance 化输出（非 MVL / MAAU transcript-direct）
     "source_file": "modules/Mx-v{N}.md | modules/MAAU-{slug}-v{N}.md",
+    "workflow": { "nodes": [ { "id": "w0", "type": "start", "label": "..." }, ... ], "edges": [ { "from": "w0", "to": "w1" }, ... ] },  // 全局页 Workflow 流程图派生拓扑（见 §A1.5）
     "auth": {
       "gate_recommendation": "pass | fail",
       "render_authorized": true,

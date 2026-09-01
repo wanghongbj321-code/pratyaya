@@ -17,10 +17,10 @@ from .audit_models import (
 )
 from .audit_helpers import (
     audit_hmw_content_mapping, audit_index_page, audit_maau_transcript_direct, audit_persona_content_mapping,
-    audit_v2c_vac_override, expected_in_order, gc_source_identity, hmw_source_identity, journey_source_identity,
-    load_contract_anchor_orders, load_gc_anchor_orders, load_json, maau_source_identity, normalize_version, parse_html,
-    persona_source_identity, select_instance_state, select_maau_instance_state, source_identity, audit_v2c_vac_identity,
-    v2c_vac_source_identity,
+    audit_v2c_vac_identity, audit_v2c_vac_override, audit_workflow_flow, expected_in_order, gc_source_identity,
+    hmw_source_identity, journey_source_identity, load_contract_anchor_orders, load_gc_anchor_orders, load_json,
+    maau_source_identity, normalize_version, parse_html, persona_source_identity, select_instance_state,
+    select_maau_instance_state, source_identity, v2c_vac_source_identity,
 )
 from .audit_template_gates import (
     audit_journey_dynamic_structure, audit_journey_template_gate, audit_template_gate, element_is_hidden,
@@ -283,6 +283,8 @@ def audit(
         if is_v2c_vac:
             findings.extend(audit_v2c_vac_identity(canvas_data, source_path))
             findings.extend(audit_v2c_vac_override(canvas_data))
+        if page_type == "global":
+            findings.extend(audit_workflow_flow(source, html, canvas_data, source_path))
 
     if "iframe" in html.tags:
         findings.append(Finding("OFFLINE", "iframe is forbidden"))

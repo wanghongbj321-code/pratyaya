@@ -100,7 +100,7 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 非 MVL: {
 
 - 输入只能是全部 M1–M6 都已 `rendered`，且均指向最新确认版本。
 - 输出 `output/maau-global-canvas.html`。
-- 展示 Intent / User / Agent Team / Workflow / Context / Validation 六大板块。
+- 展示 Intent / User / Agent Team / Workflow / Context / Validation 六大板块；Workflow 板块派生 BPMN 流程图（`#workflow-flow`，契约见 `render-contract.md` §A1）。
 - 显示版本、确认人、时间、剩余 minor 缺口、风险、override caveat 与最后更新时间。
 - 保留结论 ID，并用普通相对链接下钻到模块详情 Canvas。
 - **全局 caveat 浮现**：扫描六模块 `confirmation_mode`，对 `override` 模块在全局页和管理层摘要中显式标注 caveat 与风险摘要。
@@ -110,8 +110,8 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 非 MVL: {
 - 输入 `canvas_type=mvl` + `page_type=global` + `generation_path=transcript-direct`，数据源为 `modules/MAAU-{slug}-v{N}.md`，授权读取 `state.maau.{slug}`。
 - 输出 `output/maau-global-canvas-{slug}.html`；Python 静态审计 + 浏览器视觉验收通过后才算成功。
 - HTML 必须写 `data-instance="{slug}"` 与 `canvas-data.instance`。
-- 展示 Intent / User / Agent Team / Workflow / Context / Validation 六大板块。
-- `canvas-data` 记录 `generation_path=transcript-direct`、`instance`、`source_file`、`auth`；页面必须含 `[来源: transcript-direct]` 标头。
+- 展示 Intent / User / Agent Team / Workflow / Context / Validation 六大板块；Workflow 板块派生 BPMN 流程图（`#workflow-flow`，契约见 `render-contract.md` §A1）。
+- `canvas-data` 记录 `generation_path=transcript-direct`、`instance`、`source_file`、`auth`、`workflow`（派生拓扑 nodes/edges）；页面必须含 `[来源: transcript-direct]` 标头。
 - **不伪造 M1-M6 模块详情下钻**：transcript-direct 是单源一次性综合，无六模块详情页；无模块详情时不得生成虚假的下钻链接，只展示六板块或按 render-contract 规则处理。
 - 与 Phase 2 全局页（`output/maau-global-canvas.html`）互斥：同一 group 的 MAAU 输出只能二选一（transcript-direct 实例页或 M1-M6 Phase 2 全局页），不得同时作为正式输出。
 
@@ -270,6 +270,7 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 非 MVL: {
 - GC 使用规定的 WHY / HOW / WHAT 三层 + 跨层一致性板块，无子模块详情页。
 - V2C VAC 使用规定的 Scenario / Capability / Change / Business Impact / Value 主链、Attribution Gaps、Quality Check 与 Inferences；不得从逐字稿直接分析、补写或改写确认包未确认的业务结论。
 - Workflow 必须分别呈现 Agent 执行、人工操作 / 确认、人审 + Agent 执行三类节点。
+- 全局页（Phase 2 汇总页与 MAAU transcript-direct 实例页）的 Workflow 板块必须派生 BPMN 流程图（`#workflow-flow`，锚点契约与派生规则见 `render-contract.md` §A1）：渲染时从确认包 Workflow section 静态生成内联 SVG（Start / Task / Exclusive Gateway / End / Sequence Flow），三类节点用 Service Task（齿轮）/ User Task（小人头）/ 组合节点图标区分；桌面三泳道、窄屏单流横向滚动。`canvas-data` 顶层 `workflow` 对象内嵌派生拓扑（`nodes` / `edges`），供静态审计一致性校验。
 - 内嵌 `<script type="application/json" id="canvas-data">`，内容包含同版本确认包 + 授权元数据（`render_authorized` / `confirmation_mode` / `override_audit`）。
 - 每个模块、结论、缺口和共享区域使用 `render-contract.md` 规定的稳定锚点。
 - 必须区分事实、决策、假设和建议；推断不得伪装成确认事实。
@@ -385,6 +386,7 @@ python3 skills/canvas-render/scripts/audit_canvas_html.py \
 3. 模块锚点在 `#module-outputs` 内的相对顺序与 `render-contract.md` 对应映射表行顺序一致。
 4. `canvas-data` 为合法 JSON；传入确认包和 `state.json` 时，版本、模块及授权元数据一致。
 5. 离线安全、草稿标记及 override caveat 必需结构符合契约。
+6. 全局页 Workflow 流程图（`#workflow-flow`）契约：SVG 含 Start/End Event；`canvas-data.workflow.nodes` 覆盖三类节点（agent_execution / human_operation / human_review）；SVG `bpmn-node` 数量与 `nodes` 数量一致；`edges.from / to` 引用存在的 node id；传入 `--source` 时确认包含三类节点章节。
 
 脚本返回非零状态时必须阻断，按输出的失败项修订同一版本 HTML 后重跑。不得绕过、删除失败锚点或手工改写审计结果。HMW / Persona / Journey / V2C VAC 的 Template Gate 失败属于渲染结构失败，**不可 override**。
 
@@ -397,6 +399,7 @@ python3 skills/canvas-render/scripts/audit_canvas_html.py \
 3. 模式视觉：实际色板、字体、网格、组件及专属组件符合用户选定模式，没有明显混搭或偏离。
 4. **示例比对**（该 `canvas_type` 在 `examples/` 有示例时）：整体版面与签名视觉须与示例一致；无示例时按 render-contract 自检并在交付说明标注。
 5. **Caveat 视觉**（仅 override 模块）：caveat 标识与风险详情在桌面、窄屏下均可见。
+6. **Workflow 流程图视觉**（全局页）：桌面三泳道（Agent 执行 / 人工操作确认 / 人审 + Agent 执行）归属正确、元素无重叠、箭头与条件标签可读；窄屏单流横向滚动（自身容器滚动），图例（bpmn-legend）在两种视口下均可见。
 
 浏览器验收不重复检查锚点、JSON、授权字段和离线字符串；这些由 Python 审计负责。Python 审计不能替代真实布局检查，两阶段都通过后才能交付正式 HTML。
 

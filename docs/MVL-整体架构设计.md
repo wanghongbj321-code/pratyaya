@@ -587,6 +587,17 @@ flowchart TB
 
 **铁律**：三类节点都必须由讨论形成且至少有一项。Workflow 不是普通业务流程图，是**从触发到结果的 AI 应用工作流**。
 
+### 7.5 全局 Canvas Workflow BPMN 流程图（`#workflow-flow`，v3.1.0）
+
+MAAU 全局画布（Phase 2 M1-M6 汇总页与 MAAU transcript-direct 实例页）的 Workflow 板块在文本框下方渲染一张**派生只读**的 BPMN 可视化流程图（`#workflow-flow`）：
+
+- **数据派生（不改契约）**：渲染时从确认包 Workflow section（`trigger` / `steps` / `completion_condition` + 三类节点 + `rules`）静态生成内联 SVG。`steps` 顺序形成默认 Sequence Flow 主干链，`trigger` → Start Event、`completion_condition` → End Event、`rules` 的分支语义 → Exclusive Gateway（条件标签）；无法确定性推断的拓扑保守线性连接，不编造分支。
+- **BPMN 图形语言子集**：Start Event（单线空心圆）/ Task（圆角矩形）/ Exclusive Gateway（菱形）/ End Event（粗线实心圆）/ Sequence Flow（实线箭头）。三类节点用 BPMN 任务类型符号区分：Agent 执行 = Service Task（齿轮）、人工操作/确认 = User Task（小人头）、人审 + Agent 执行 = 组合节点。
+- **泳道与响应式**：桌面三泳道（Pool = MAAU 工作流，Lane = Agent 执行 / 人工操作确认 / 人审 + Agent 执行），跨泳道箭头表达人机交接；窄屏退化为单流（节点角标/图标），置于横向滚动容器。
+- **`canvas-data` 拓扑**：顶层 `workflow.nodes` / `workflow.edges` 内嵌派生拓扑；`nodes[].type ∈ {start, end, gateway, agent_execution, human_operation, human_review}` 且必须覆盖三类节点；SVG `bpmn-node` 数量与 `nodes` 数量一致，`edges.from / to` 引用有效节点。
+- **审计**：全局页强制要求 `#workflow-flow` 锚点（`GLOBAL_MAIN_IDS`）；`audit_workflow_flow` 校验 Start/End、三类节点覆盖、SVG 节点数一致性、edges 引用；传入 `--source` 时校验确认包含三类节点章节。
+- **契约来源**：DOM 结构与派生规则以 `skills/canvas-render/references/render-contract.md` §A1 为权威；版面以 `skills/canvas-render/examples/mvl-canvas/maau-global-canvas.html` 示例为事实源。
+
 ---
 
 ## 8. 部署、扩展与风险控制
