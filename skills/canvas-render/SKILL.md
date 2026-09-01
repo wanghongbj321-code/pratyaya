@@ -270,7 +270,7 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 非 MVL: {
 - GC 使用规定的 WHY / HOW / WHAT 三层 + 跨层一致性板块，无子模块详情页。
 - V2C VAC 使用规定的 Scenario / Capability / Change / Business Impact / Value 主链、Attribution Gaps、Quality Check 与 Inferences；不得从逐字稿直接分析、补写或改写确认包未确认的业务结论。
 - Workflow 必须分别呈现 Agent 执行、人工操作 / 确认、人审 + Agent 执行三类节点。
-- 全局页（Phase 2 汇总页与 MAAU transcript-direct 实例页）的 Workflow 板块必须派生 BPMN 流程图（`#workflow-flow`，锚点契约与派生规则见 `render-contract.md` §A1）：渲染时从确认包 Workflow section 静态生成内联 SVG（Start / Task / Exclusive Gateway / End / Sequence Flow），三类节点用 Service Task（齿轮）/ User Task（小人头）/ 组合节点图标区分；连接线必须正交（横 / 竖 / 肘型，禁止曲线）；每个节点左上角显示流程序号徽标。桌面三泳道、窄屏单流横向滚动。`canvas-data` 顶层 `workflow` 对象内嵌派生拓扑（`nodes` / `edges`，`nodes[].number` 为流程序号），供静态审计一致性校验。
+- 全局页（Phase 2 汇总页与 MAAU transcript-direct 实例页）的 Workflow 板块必须派生 BPMN 流程图（`#workflow-flow`，锚点契约与派生规则见 `render-contract.md` §A1）：渲染时从确认包 Workflow section 静态生成内联 SVG（Start / Task / Exclusive Gateway / End / Sequence Flow），三类节点由泳道（桌面）/ 节点在流程中的位置区分（不使用 BPMN Task Marker 图标）；连接线必须正交（横 / 竖 / 肘型，禁止曲线），端点对齐节点边中点；所有节点（含 Start / End）左上角显示流程序号徽标（白底黑色小字号）。桌面三泳道、窄屏单流横向滚动。`canvas-data` 顶层 `workflow` 对象内嵌派生拓扑（`nodes` / `edges`，`nodes[].number` 为流程序号），供静态审计一致性校验。
 - 内嵌 `<script type="application/json" id="canvas-data">`，内容包含同版本确认包 + 授权元数据（`render_authorized` / `confirmation_mode` / `override_audit`）。
 - 每个模块、结论、缺口和共享区域使用 `render-contract.md` 规定的稳定锚点。
 - 必须区分事实、决策、假设和建议；推断不得伪装成确认事实。
@@ -399,7 +399,7 @@ python3 skills/canvas-render/scripts/audit_canvas_html.py \
 3. 模式视觉：实际色板、字体、网格、组件及专属组件符合用户选定模式，没有明显混搭或偏离。
 4. **示例比对**（该 `canvas_type` 在 `examples/` 有示例时）：整体版面与签名视觉须与示例一致；无示例时按 render-contract 自检并在交付说明标注。
 5. **Caveat 视觉**（仅 override 模块）：caveat 标识与风险详情在桌面、窄屏下均可见。
-6. **Workflow 流程图视觉**（全局页）：桌面三泳道（Agent 执行 / 人工操作确认 / 人审 + Agent 执行）归属正确、元素无重叠；连接线均为横 / 竖 / 肘型且端点接入节点边框中点（顶 / 底 / 左 / 右边缘中心），无斜线；Task / Gateway 节点左上角显示黑色小字号编号文字（无背景色），与 `canvas-data.workflow.nodes[].number` 一致，Start / End 不显示徽标；窄屏单流横向滚动（自身容器滚动），图例（bpmn-legend）在两种视口下均可见。
+6. **Workflow 流程图视觉**（全局页）：桌面三泳道（Agent 执行 / 人工操作确认 / 人审 + Agent 执行）归属正确、元素无重叠；连接线均为横 / 竖 / 肘型且端点接入节点边框中点（顶 / 底 / 左 / 右边缘中心），无斜线；所有节点（含 Start / End）左上角显示流程序号徽标（白底黑色小字号），与 `canvas-data.workflow.nodes[].number` 一致；窄屏单流横向滚动（自身容器滚动），图例（bpmn-legend，仅 Start / Task / Gateway / End 四类符号）在两种视口下均可见。
 
 浏览器验收不重复检查锚点、JSON、授权字段和离线字符串；这些由 Python 审计负责。Python 审计不能替代真实布局检查，两阶段都通过后才能交付正式 HTML。
 

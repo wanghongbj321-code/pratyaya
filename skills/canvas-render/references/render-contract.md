@@ -96,7 +96,7 @@ Workflow 板块在 `.maau-fields` 文本框之下必须包含一张**派生只�
 - **人工操作/确认** → User Task（右上角小人头图标）；
 - **人审 + Agent 执行** → 组合节点（User Task + Service Task 串联，或置于泳道交界）。
 
-每个 SVG 节点必须是 `<g class="bpmn-node" data-node-type="{type}" data-node-id="{id}" ...>`，且 `data-node-type` 与 `canvas-data.workflow.nodes[].type` 一致。Task（`agent_execution` / `human_operation` / `human_review`）与 Gateway（`gateway`）节点**左上角显示流程序号徽标**（无背景色的黑色小字号文字，`01` 起按 Start → End 拓扑序递增），徽标数字与 `canvas-data.workflow.nodes[].number` 一致；Start / End 事件不显示徽标。任务类型仍用右上角 BPMN Task Marker 图标识别。
+每个 SVG 节点必须是 `<g class="bpmn-node" data-node-type="{type}" data-node-id="{id}" ...>`，且 `data-node-type` 与 `canvas-data.workflow.nodes[].type` 一致。所有节点（含 Start / End 事件）**左上角显示流程序号徽标**（白底黑色小字号，`01` 起按 Start → End 拓扑序递增），徽标数字与 `canvas-data.workflow.nodes[].number` 一致。任务类型**不使用** BPMN Task Marker 图标，由泳道（桌面三泳道）/ 节点在流程中的位置区分；图例（`.bpmn-legend`）只列 Start / Task / Gateway / End 四类图形符号。
 
 #### A1.3 派生规则
 
