@@ -275,6 +275,31 @@ body {
   .maau-footer-flow{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
   .maau-footer-note{ color:var(--muted); text-align:right; white-space:nowrap; }
 
+  /* Workflow BPMN 流程图（#workflow-flow，派生只读视图；SVG 内联、单文件自包含） */
+  .maau-flow{
+    margin-top:12px; padding-top:10px; border-top:1px dashed var(--line);
+  }
+  .maau-flow-title{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    font-size:11px; font-weight:800; color:var(--ink); margin-bottom:8px;
+  }
+  .maau-flow-title em{ font-style:normal; font-weight:700; color:var(--muted); }
+  .bpmn-flow-wrap{
+    overflow-x:auto; -webkit-overflow-scrolling:touch;
+    border:1px solid var(--line); border-radius:6px; background:var(--paper);
+  }
+  .bpmn-flow{ display:block; width:100%; min-width:1020px; height:auto; }
+  .bpmn-flow text{ font-family:var(--font); }
+  .bpmn-flow .bpmn-node text{ font-size:11px; fill:var(--ink); }
+  .bpmn-flow .bpmn-lane-label{ font-size:10px; font-weight:700; fill:var(--ink); }
+  .bpmn-flow .bpmn-flow-label{ font-size:9.5px; fill:var(--ink); }
+  .bpmn-legend{
+    display:flex; flex-wrap:wrap; gap:6px 16px; margin-top:8px;
+    font-size:10.5px; color:var(--ink); line-height:1.4;
+  }
+  .bpmn-legend-item{ display:inline-flex; align-items:center; gap:5px; }
+  .bpmn-legend-symbol{ width:18px; height:18px; flex:0 0 auto; }
+
   @media(max-width:1100px){
     .maau-header{ flex-direction:column; }
     .maau-meta{ min-width:0; width:100%; }
@@ -386,6 +411,107 @@ body {
           <div class="maau-field"><span class="field-label">人工确认 / Human Checkpoints</span><div class="fill" id="workflow-human-checkpoints" contenteditable="true" data-ph="人工操作 / 确认节点..."></div></div>
           <div class="maau-field"><span class="field-label">人审 + Agent / Human + Agent</span><div class="fill" id="workflow-human-agent-nodes" contenteditable="true" data-ph="人审 + Agent 执行节点..."></div></div>
           <div class="maau-field"><span class="field-label">关键规则 / Rules</span><div class="fill" id="workflow-rules" contenteditable="true" data-ph="决定流向、升级、停止或回退的关键规则..."></div></div>
+        </div>
+        <div class="maau-flow" id="workflow-flow" aria-label="Workflow BPMN 流程图">
+          <div class="maau-flow-title"><span>流程可视化 / BPMN Flow <em>（派生自确认包 Workflow section，只读）</em></span><span>示例：门店补货智能体</span></div>
+          <div class="bpmn-flow-wrap">
+            <svg class="bpmn-flow" role="img" aria-label="Workflow BPMN 流程图（示例：门店补货智能体）" viewBox="0 0 1240 540">
+              <defs>
+                <marker id="flow-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+                  <path d="M0,0 L10,5 L0,10 z" fill="#000"/>
+                </marker>
+              </defs>
+              <g class="bpmn-lane" data-lane="agent_execution">
+                <rect x="46" y="50" width="1174" height="130" fill="#fafafa" stroke="#000" stroke-width="1"/>
+                <text class="bpmn-lane-label" transform="translate(23,115) rotate(-90)" text-anchor="middle">Agent 执行</text>
+              </g>
+              <g class="bpmn-lane" data-lane="human_operation">
+                <rect x="46" y="180" width="1174" height="130" fill="#f2f2f2" stroke="#000" stroke-width="1"/>
+                <text class="bpmn-lane-label" transform="translate(23,245) rotate(-90)" text-anchor="middle">人工操作 / 确认</text>
+              </g>
+              <g class="bpmn-lane" data-lane="human_review">
+                <rect x="46" y="310" width="1174" height="130" fill="#fafafa" stroke="#000" stroke-width="1"/>
+                <text class="bpmn-lane-label" transform="translate(23,375) rotate(-90)" text-anchor="middle">人审 + Agent 执行</text>
+              </g>
+              <g class="bpmn-flow-path">
+                <path class="bpmn-sequence" d="M146 115 H200" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#flow-arrow)"/>
+                <path class="bpmn-sequence" d="M350 115 H384" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#flow-arrow)"/>
+                <path class="bpmn-sequence" d="M514 115 H535" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#flow-arrow)"/>
+                <path class="bpmn-sequence" d="M595 115 H746 V217" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#flow-arrow)"/>
+                <text class="bpmn-flow-label" x="660" y="108" text-anchor="middle">超出预算</text>
+                <path class="bpmn-sequence" d="M565 145 V375 H850" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#flow-arrow)"/>
+                <text class="bpmn-flow-label" x="582" y="168" text-anchor="start">预算内</text>
+                <path class="bpmn-sequence" d="M816 245 H925 V347" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#flow-arrow)"/>
+                <text class="bpmn-flow-label" x="870" y="238" text-anchor="middle">审核通过</text>
+                <path class="bpmn-sequence" d="M1000 375 H1054" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#flow-arrow)"/>
+              </g>
+              <g class="bpmn-node" data-node-type="start" data-node-id="w0">
+                <circle cx="120" cy="115" r="26" fill="#fff" stroke="#000" stroke-width="1.6"/>
+                <text x="120" y="119" text-anchor="middle">触发</text>
+                <g class="bpmn-number">
+                  <rect x="111.5" y="68" width="17" height="13" rx="3" fill="#fff"/>
+                  <text x="120" y="78" text-anchor="middle" fill="#000" font-size="8.5">01</text>
+                </g>
+              </g>
+              <g class="bpmn-node" data-node-type="agent_execution" data-node-id="w1" data-node-number="02">
+                <rect x="200" y="87" width="150" height="56" rx="10" fill="#fff" stroke="#000" stroke-width="1.6"/>
+                <g class="bpmn-number">
+                  <rect x="204" y="91" width="17" height="13" rx="3" fill="#fff"/>
+                  <text x="212.5" y="101" text-anchor="middle" fill="#000" font-size="8.5">02</text>
+                </g>
+                <text x="275" y="113" text-anchor="middle">收集库存与</text>
+                <text x="275" y="127" text-anchor="middle">销售数据</text>
+              </g>
+              <g class="bpmn-node" data-node-type="agent_execution" data-node-id="w2" data-node-number="03">
+                <rect x="384" y="87" width="130" height="56" rx="10" fill="#fff" stroke="#000" stroke-width="1.6"/>
+                <g class="bpmn-number">
+                  <rect x="388" y="91" width="17" height="13" rx="3" fill="#fff"/>
+                  <text x="396.5" y="101" text-anchor="middle" fill="#000" font-size="8.5">03</text>
+                </g>
+                <text x="449" y="113" text-anchor="middle">生成补货</text>
+                <text x="449" y="127" text-anchor="middle">建议</text>
+              </g>
+              <g class="bpmn-node" data-node-type="gateway" data-node-id="w3" data-node-number="04">
+                <polygon points="565,85 595,115 565,145 535,115" fill="#fff" stroke="#000" stroke-width="1.6"/>
+                <g class="bpmn-number">
+                  <rect x="556.5" y="66" width="17" height="13" rx="3" fill="#fff"/>
+                  <text x="565" y="76" text-anchor="middle" fill="#000" font-size="8.5">04</text>
+                </g>
+                <text x="565" y="119" text-anchor="middle">预算内?</text>
+              </g>
+              <g class="bpmn-node" data-node-type="human_operation" data-node-id="w4" data-node-number="05">
+                <rect x="676" y="217" width="140" height="56" rx="10" fill="#fff" stroke="#000" stroke-width="1.6"/>
+                <g class="bpmn-number">
+                  <rect x="680" y="221" width="17" height="13" rx="3" fill="#fff"/>
+                  <text x="688.5" y="231" text-anchor="middle" fill="#000" font-size="8.5">05</text>
+                </g>
+                <text x="746" y="243" text-anchor="middle">人工审核确认</text>
+              </g>
+              <g class="bpmn-node" data-node-type="human_review" data-node-id="w5" data-node-number="06">
+                <rect x="850" y="347" width="150" height="56" rx="10" fill="#fff" stroke="#000" stroke-width="1.6"/>
+                <g class="bpmn-number">
+                  <rect x="854" y="351" width="17" height="13" rx="3" fill="#fff"/>
+                  <text x="862.5" y="361" text-anchor="middle" fill="#000" font-size="8.5">06</text>
+                </g>
+                <text x="925" y="373" text-anchor="middle">人审后 Agent</text>
+                <text x="925" y="387" text-anchor="middle">生成采购单</text>
+              </g>
+              <g class="bpmn-node" data-node-type="end" data-node-id="w6">
+                <circle cx="1080" cy="375" r="26" fill="#fff" stroke="#000" stroke-width="3.5"/>
+                <text x="1080" y="379" text-anchor="middle">完成</text>
+                <g class="bpmn-number">
+                  <rect x="1071.5" y="328" width="17" height="13" rx="3" fill="#fff"/>
+                  <text x="1080" y="338" text-anchor="middle" fill="#000" font-size="8.5">07</text>
+                </g>
+              </g>
+            </svg>
+          </div>
+          <div class="bpmn-legend" aria-label="BPMN 图例">
+            <span class="bpmn-legend-item"><svg class="bpmn-legend-symbol" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="7" fill="#fff" stroke="#000" stroke-width="1.4"/></svg>Start 触发</span>
+            <span class="bpmn-legend-item"><svg class="bpmn-legend-symbol" viewBox="0 0 18 18" aria-hidden="true"><rect x="1" y="4" width="16" height="10" rx="2" fill="#fff" stroke="#000" stroke-width="1.4"/></svg>Task 任务</span>
+            <span class="bpmn-legend-item"><svg class="bpmn-legend-symbol" viewBox="0 0 18 18" aria-hidden="true"><polygon points="9,1 17,9 9,17 1,9" fill="#fff" stroke="#000" stroke-width="1.4"/></svg>Gateway 网关（关键规则）</span>
+            <span class="bpmn-legend-item"><svg class="bpmn-legend-symbol" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="7" fill="#fff" stroke="#000" stroke-width="3"/></svg>End 结束</span>
+          </div>
         </div>
         <div class="maau-output">输出 Output: 流程 | Agent 执行 | 人工确认 | 人审 + Agent | 关键规则</div>
         <div class="maau-source" data-module="M2/M3/M4">来源：M2/M3/M4 <a href="./module-3-canvas.html">查看 M3 草案</a> <a href="./module-4-canvas.html">查看 M4 冻结版</a></div>
@@ -513,6 +639,26 @@ body {
     "workflow": { "steps": "", "automation": "", "human_checkpoints": "", "human_agent_nodes": "", "rules": "" },
     "context": { "knowledge": "", "data_sources": "", "tools_skills": "" },
     "validation": { "executable": "", "value": "", "evolution": "" }
+  },
+  "workflow": {
+    "nodes": [
+      { "id": "w0", "number": "01", "type": "start", "label": "触发补货（缺货预警 / 补货请求）" },
+      { "id": "w1", "number": "02", "type": "agent_execution", "label": "收集库存与销售数据" },
+      { "id": "w2", "number": "03", "type": "agent_execution", "label": "生成补货建议" },
+      { "id": "w3", "number": "04", "type": "gateway", "label": "建议是否超出预算？" },
+      { "id": "w4", "number": "05", "type": "human_operation", "label": "人工审核确认" },
+      { "id": "w5", "number": "06", "type": "human_review", "label": "人审后 Agent 生成采购单" },
+      { "id": "w6", "number": "07", "type": "end", "label": "采购单提交，预算签核通过" }
+    ],
+    "edges": [
+      { "from": "w0", "to": "w1" },
+      { "from": "w1", "to": "w2" },
+      { "from": "w2", "to": "w3" },
+      { "from": "w3", "to": "w4", "label": "超出预算" },
+      { "from": "w3", "to": "w5", "label": "预算内" },
+      { "from": "w4", "to": "w5", "label": "审核通过" },
+      { "from": "w5", "to": "w6" }
+    ]
   },
   "auth": {
     "gate_recommendation": "pending",

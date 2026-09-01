@@ -343,6 +343,128 @@ def audit_maau_transcript_direct(
 
     return findings
 
+WORKFLOW_FLOW_NODE_TYPES = (
+    "start", "end", "gateway", "agent_execution", "human_operation", "human_review",
+)
+WORKFLOW_FLOW_REQUIRED_TYPES = ("agent_execution", "human_operation", "human_review")
+WORKFLOW_FLOW_SOURCE_SECTIONS = ("Agent 执行节点", "人工操作/确认节点", "人审 + Agent 执行节点")
+
+
+def audit_workflow_flow(
+    source: str,
+    html: HtmlSnapshot,
+    canvas_data: JsonDict,
+    source_path: Path | None,
+) -> list[Finding]:
+    """校验全局页 Workflow BPMN 流程图（#workflow-flow）契约。
+
+    断言（设计方案 §7.1 + v3.1.1 优化）：
+    - SVG 必须含 Start Event（data-node-type="start"）与 End Event（data-node-type="end"）；
+    - Sequence Flow 禁止曲线命令（C/Q/S/A），只允许正交 M/H/V；
+    - canvas-data.workflow.nodes 必须覆盖三类节点（agent_execution / human_operation / human_review）；
+    - canvas-data.workflow.nodes 必须有 number 字段且唯一（节点编号徽标）；
+    - SVG 中 bpmn-node 数量必须等于 canvas-data.workflow.nodes 数量；
+    - edges.from / to 必须引用存在的 node id；
+    - 有 --source 时，确认包必须含三类节点章节（与派生来源一致）。
+    """
+    findings: list[Finding] = []
+    if "workflow-flow" not in html.ids:
+        # GLOBAL_MAIN_IDS 已报 MISSING_ID，此处不重复
+        return findings
+    if 'data-node-type="start"' not in source:
+        findings.append(
+            Finding("WORKFLOW_FLOW", 'Workflow 流程图缺少 Start Event（data-node-type="start"）')
+        )
+    if 'data-node-type="end"' not in source:
+        findings.append(
+            Finding("WORKFLOW_FLOW", 'Workflow 流程图缺少 End Event（data-node-type="end"）')
+        )
+    # 正交连接线：Sequence Flow 只允许横/竖/肘型（M/H/V），禁止曲线/斜线命令（C/Q/S/A）
+    sequence_paths = (
+        re.findall(r'class="[^"]*\bbpmn-sequence\b"[^>]*\bd="([^"]*)"', source)
+        + re.findall(r'\bd="([^"]*)"[^>]*class="[^"]*\bbpmn-sequence\b"', source)
+    )
+    for path_d in sequence_paths:
+        if re.search(r"[CQSA]", path_d):
+            findings.append(
+                Finding(
+                    "WORKFLOW_FLOW",
+                    f"Sequence Flow 禁止曲线命令（必须正交 M/H/V）: {path_d}",
+                )
+            )
+            break
+    workflow = canvas_data.get("workflow")
+    if not isinstance(workflow, dict):
+        findings.append(Finding("WORKFLOW_FLOW", "canvas-data.workflow must be an object"))
+        return findings
+    nodes = workflow.get("nodes")
+    edges = workflow.get("edges")
+    if not isinstance(nodes, list) or not nodes:
+        findings.append(Finding("WORKFLOW_FLOW", "canvas-data.workflow.nodes must be a non-empty array"))
+    if not isinstance(edges, list):
+        findings.append(Finding("WORKFLOW_FLOW", "canvas-data.workflow.edges must be an array"))
+    if isinstance(nodes, list) and nodes:
+        node_ids: set[str] = set()
+        node_types: set[str] = set()
+        numbers: list[str] = []
+        for node in nodes:
+            if not isinstance(node, dict):
+                findings.append(Finding("WORKFLOW_FLOW", "canvas-data.workflow.nodes item must be an object"))
+                continue
+            node_id = node.get("id")
+            node_type = node.get("type")
+            node_number = node.get("number")
+            numbers.append(str(node_number) if node_number is not None else "")
+            if node_id:
+                node_ids.add(str(node_id))
+            if node_type not in WORKFLOW_FLOW_NODE_TYPES:
+                findings.append(
+                    Finding(
+                        "WORKFLOW_FLOW",
+                        f"node {node_id!r} type={node_type!r} must be one of {', '.join(WORKFLOW_FLOW_NODE_TYPES)}",
+                    )
+                )
+            else:
+                node_types.add(str(node_type))
+        if not all(numbers):
+            findings.append(Finding("WORKFLOW_FLOW", "canvas-data.workflow.nodes 缺少 number 字段"))
+        elif len(set(numbers)) != len(numbers):
+            findings.append(Finding("WORKFLOW_FLOW", "canvas-data.workflow.nodes number 必须唯一"))
+        for required in WORKFLOW_FLOW_REQUIRED_TYPES:
+            if required not in node_types:
+                findings.append(
+                    Finding("WORKFLOW_FLOW", f"canvas-data.workflow.nodes 缺少三类节点之一: {required}")
+                )
+        svg_node_count = len(re.findall(r"class=\"[^\"]*\bbpmn-node\b", source))
+        if svg_node_count != len(nodes):
+            findings.append(
+                Finding(
+                    "WORKFLOW_FLOW",
+                    f"SVG bpmn-node 数量 {svg_node_count} != canvas-data.workflow.nodes 数量 {len(nodes)}",
+                )
+            )
+        if isinstance(edges, list):
+            for edge in edges:
+                if not isinstance(edge, dict):
+                    findings.append(Finding("WORKFLOW_FLOW", "canvas-data.workflow.edges item must be an object"))
+                    continue
+                edge_from = str(edge.get("from", ""))
+                edge_to = str(edge.get("to", ""))
+                if edge_from not in node_ids:
+                    findings.append(Finding("WORKFLOW_FLOW", f"edge.from={edge_from!r} 引用了不存在的 node id"))
+                if edge_to not in node_ids:
+                    findings.append(Finding("WORKFLOW_FLOW", f"edge.to={edge_to!r} 引用了不存在的 node id"))
+    if source_path is not None:
+        try:
+            package = source_path.read_text(encoding="utf-8")
+        except (OSError, UnicodeError) as exc:
+            findings.append(Finding("WORKFLOW_FLOW", f"cannot read source for workflow flow: {exc}"))
+        else:
+            for section in WORKFLOW_FLOW_SOURCE_SECTIONS:
+                if section not in package:
+                    findings.append(Finding("WORKFLOW_FLOW", f"source 缺少 Workflow 三类节点章节: {section}"))
+    return findings
+
 def extract_markdown_table_rows(path: Path, heading: str) -> list[list[str]]:
     """从 Markdown 文件指定标题下提取表格数据行。"""
     markdown = path.read_text(encoding="utf-8")

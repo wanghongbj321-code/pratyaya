@@ -163,6 +163,46 @@ body {
     <section class="board" id="workflow">
       <h2>Workflow</h2>
       <div class="maau-output">预测 → 建议 → 人工确认 → 执行 → 复盘</div>
+      <div class="maau-flow" id="workflow-flow" aria-label="Workflow BPMN 流程图">
+        <svg class="bpmn-flow" role="img" aria-label="Workflow BPMN 流程图" viewBox="0 0 980 160">
+          <defs>
+            <marker id="flow-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="#000"/>
+            </marker>
+          </defs>
+          <g class="bpmn-flow-path">
+            <path class="bpmn-sequence" d="M84 80 H120" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#flow-arrow)"/>
+            <path class="bpmn-sequence" d="M250 80 H290" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#flow-arrow)"/>
+            <path class="bpmn-sequence" d="M420 80 H460" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#flow-arrow)"/>
+            <path class="bpmn-sequence" d="M600 80 H640" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#flow-arrow)"/>
+            <path class="bpmn-sequence" d="M770 80 H876" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#flow-arrow)"/>
+          </g>
+          <g class="bpmn-node" data-node-type="start" data-node-id="w0" data-node-number="01">
+            <circle cx="60" cy="80" r="24" fill="#fff" stroke="#000" stroke-width="1.6"/>
+            <text x="60" y="84" text-anchor="middle" font-size="10">触发</text>
+          </g>
+          <g class="bpmn-node" data-node-type="agent_execution" data-node-id="w1" data-node-number="02">
+            <rect x="120" y="52" width="130" height="56" rx="10" fill="#fff" stroke="#000" stroke-width="1.6"/>
+            <text x="185" y="84" text-anchor="middle" font-size="11">预测</text>
+          </g>
+          <g class="bpmn-node" data-node-type="agent_execution" data-node-id="w2" data-node-number="03">
+            <rect x="290" y="52" width="130" height="56" rx="10" fill="#fff" stroke="#000" stroke-width="1.6"/>
+            <text x="355" y="84" text-anchor="middle" font-size="11">建议</text>
+          </g>
+          <g class="bpmn-node" data-node-type="human_operation" data-node-id="w3" data-node-number="04">
+            <rect x="460" y="52" width="140" height="56" rx="10" fill="#fff" stroke="#000" stroke-width="1.6"/>
+            <text x="530" y="84" text-anchor="middle" font-size="11">人工确认</text>
+          </g>
+          <g class="bpmn-node" data-node-type="human_review" data-node-id="w4" data-node-number="05">
+            <rect x="640" y="52" width="130" height="56" rx="10" fill="#fff" stroke="#000" stroke-width="1.6"/>
+            <text x="705" y="84" text-anchor="middle" font-size="11">执行</text>
+          </g>
+          <g class="bpmn-node" data-node-type="end" data-node-id="w5" data-node-number="06">
+            <circle cx="900" cy="80" r="24" fill="#fff" stroke="#000" stroke-width="3.5"/>
+            <text x="900" y="84" text-anchor="middle" font-size="10">复盘</text>
+          </g>
+        </svg>
+      </div>
     </section>
     <section class="board" id="context">
       <h2>Context</h2>
@@ -203,6 +243,23 @@ body {
     "workflow": { "steps": "预测 → 建议 → 人工确认 → 执行 → 复盘", "automation": "", "human_checkpoints": "", "human_agent_nodes": "", "rules": "" },
     "context": { "knowledge": "", "data_sources": "", "tools_skills": "" },
     "validation": { "executable": "三片区试点可跑通", "value": "缺货率降两成", "evolution": "" }
+  },
+  "workflow": {
+    "nodes": [
+      { "id": "w0", "number": "01", "type": "start", "label": "触发预测" },
+      { "id": "w1", "number": "02", "type": "agent_execution", "label": "预测" },
+      { "id": "w2", "number": "03", "type": "agent_execution", "label": "建议" },
+      { "id": "w3", "number": "04", "type": "human_operation", "label": "人工确认" },
+      { "id": "w4", "number": "05", "type": "human_review", "label": "执行" },
+      { "id": "w5", "number": "06", "type": "end", "label": "复盘" }
+    ],
+    "edges": [
+      { "from": "w0", "to": "w1" },
+      { "from": "w1", "to": "w2" },
+      { "from": "w2", "to": "w3" },
+      { "from": "w3", "to": "w4" },
+      { "from": "w4", "to": "w5" }
+    ]
   },
   "auth": {
     "gate_recommendation": "pass",

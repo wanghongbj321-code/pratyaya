@@ -169,7 +169,7 @@ class TestSkillRegistration:
             assert skill in plugin["skills"], f"plugin.json missing MAAU skill {skill}"
         for skill in EXPECTED_V2C_VAC_SKILLS:
             assert skill in plugin["skills"], f"plugin.json missing V2C VAC skill {skill}"
-        assert plugin["version"] == "3.0.0"
+        assert plugin["version"] == "3.1.1"
 
     def test_plugin_registers_persona_skills(self) -> None:
         plugin = json.loads(read(REPO_ROOT / ".codebuddy-plugin" / "plugin.json"))
@@ -622,7 +622,7 @@ class TestExplicitCanvasRoutingContract:
 
     def test_plugin_json_version_and_entry_context(self) -> None:
         plugin = json.loads(read(REPO_ROOT / ".codebuddy-plugin" / "plugin.json"))
-        assert plugin["version"] == "3.0.0"
+        assert plugin["version"] == "3.1.1"
         # v3.0 入口语境：displayDescription 与 quickPrompts 已显式包含 V2C VAC，且不再宣称 MAAU 默认
         assert "V2C VAC" in plugin["displayDescription"]["zh"]
         assert "V2C" in plugin["displayDescription"]["en"]

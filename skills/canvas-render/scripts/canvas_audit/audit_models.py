@@ -207,7 +207,7 @@ MODULE_MAIN_IDS = (
     "module-evidence",
     "module-gaps",
 )
-GLOBAL_MAIN_IDS = ("intent", "user", "agent-team", "workflow", "context", "validation")
+GLOBAL_MAIN_IDS = ("intent", "user", "agent-team", "workflow", "context", "validation", "workflow-flow")
 GC_MAIN_IDS = ("why", "how", "what", "cross-layer-alignment")
 GC_ANCHORS = (
     "canvas-headline",

@@ -7,8 +7,6 @@
 
 详细专家定位、标签、快速指令以 `.codebuddy-plugin/plugin.json` 为权威来源。
 
-V2C 系列画布的思路来源于**王鸿**的 **Value-to-Capability FDE 工作方法论**。其中 V2C VAC 聚焦在具体业务观察场景中，审查 AI-enabled Capability 可能如何贡献于 Observable Change、Business Impact 与 Value。
-
 ## 支持的画布类型
 
 | 画布 | 结构 | 流程 |
@@ -107,9 +105,11 @@ workshop/{project_slug}/
 - [DEVELOPMENT.md](./DEVELOPMENT.md) — 维护者与 AI 助教命令清单
 - [DESIGN.md](./DESIGN.md) — 设计文档（架构、不变量、状态机、画布类型）
 
-## 致谢
+## 版权声明
 
-思想源于**北京大学汇丰商学院未来实验室**导师**檀林**老师的工作坊教学实践；初版由**王鸿**、**陈嘉杰**共同开发。
+- MAAU 画布思想源于**北京大学汇丰商学院未来实验室**导师**檀林**老师的工作坊教学实践。
+- V2C 系列画布的思路来源于**王鸿**的 **Value-to-Capability FDE 工作方法论**。其中 V2C VAC 聚焦在具体业务观察场景中，审查 AI-enabled Capability 可能如何贡献于 Observable Change、Business Impact 与 Value。
+- 初版由**王鸿**、**陈嘉杰**共同开发。
 
 ## 开源协议
 
