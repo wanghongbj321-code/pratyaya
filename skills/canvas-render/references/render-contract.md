@@ -96,7 +96,7 @@ Workflow 板块在 `.maau-fields` 文本框之下必须包含一张**派生只�
 - **人工操作/确认** → User Task（右上角小人头图标）；
 - **人审 + Agent 执行** → 组合节点（User Task + Service Task 串联，或置于泳道交界）。
 
-每个 SVG 节点必须是 `<g class="bpmn-node" data-node-type="{type}" ...>`，且 `data-node-type` 与 `canvas-data.workflow.nodes[].type` 一致。
+每个 SVG 节点必须是 `<g class="bpmn-node" data-node-type="{type}" data-node-number="{NN}" ...>`，且 `data-node-type` 与 `canvas-data.workflow.nodes[].type` 一致。每个节点**左上角必须显示流程序号徽标**（`01` 起，按 Start → End 拓扑序递增），徽标数字与 `data-node-number`、`canvas-data.workflow.nodes[].number` 一致；任务类型仍用右上角 BPMN Task Marker 图标识别。
 
 #### A1.3 派生规则
 
@@ -106,6 +106,7 @@ Workflow 板块在 `.maau-fields` 文本框之下必须包含一张**派生只�
 4. **节点归类**：每个步骤按内容归入三类节点之一 → 桌面版入对应泳道（Lane），窄屏版打节点角标，并应用对应 Task 图标。
 5. **无法确定性推断的拓扑**：保守线性连接，不确定的分支信息进入缺口表承载，不编造分支。
 6. **缺类/缺字段**：按既有规则显示"未讨论"，不得补写。
+7. **连接线正交**：Sequence Flow 只使用横线 / 竖线 / 肘型折线（SVG 路径命令仅 `M` / `H` / `V`），禁止曲线 / 斜线命令（`C` / `Q` / `S` / `A`）；连接线端点必须落在节点边框的中点（左 / 右 / 上 / 下边缘中心），不得接到节点边角或顶部任意位置。
 
 #### A1.4 泳道（桌面）与响应式
 
@@ -119,12 +120,12 @@ Workflow 板块在 `.maau-fields` 文本框之下必须包含一张**派生只�
 ```json
 "workflow": {
   "nodes": [
-    { "id": "w0", "type": "start", "label": "触发条件（trigger）" },
-    { "id": "w1", "type": "agent_execution", "label": "..." },
-    { "id": "w2", "type": "gateway", "label": "关键规则分支" },
-    { "id": "w3", "type": "human_operation", "label": "..." },
-    { "id": "w4", "type": "human_review", "label": "..." },
-    { "id": "w5", "type": "end", "label": "完成条件（completion_condition）" }
+    { "id": "w0", "number": "01", "type": "start", "label": "触发条件（trigger）" },
+    { "id": "w1", "number": "02", "type": "agent_execution", "label": "..." },
+    { "id": "w2", "number": "03", "type": "gateway", "label": "关键规则分支" },
+    { "id": "w3", "number": "04", "type": "human_operation", "label": "..." },
+    { "id": "w4", "number": "05", "type": "human_review", "label": "..." },
+    { "id": "w5", "number": "06", "type": "end", "label": "完成条件（completion_condition）" }
   ],
   "edges": [
     { "from": "w0", "to": "w1" },
@@ -136,8 +137,10 @@ Workflow 板块在 `.maau-fields` 文本框之下必须包含一张**派生只�
 约束：
 - `nodes[].type ∈ {start, end, gateway, agent_execution, human_operation, human_review}`；
 - `nodes` 必须覆盖 `agent_execution / human_operation / human_review` 三类（与确认包三类节点一一对应）；
+- `nodes[].number` 必填且唯一（流程序号，`01` 起按拓扑序，与左上角徽标一致）；
 - `edges[].from / to` 必须引用存在的 node id；
-- SVG 中 `bpmn-node` 数量必须等于 `nodes` 数量；`data-node-type` 与 `nodes[].type` 一致。
+- SVG 中 `bpmn-node` 数量必须等于 `nodes` 数量；`data-node-type` 与 `nodes[].type` 一致；
+- Sequence Flow 只允许正交折线（`M` / `H` / `V`），禁止曲线命令（`C` / `Q` / `S` / `A`）。
 
 ## B. 模块详情 Canvas 页面结构
 

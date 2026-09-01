@@ -358,9 +358,11 @@ def audit_workflow_flow(
 ) -> list[Finding]:
     """校验全局页 Workflow BPMN 流程图（#workflow-flow）契约。
 
-    断言（设计方案 §7.1）：
+    断言（设计方案 §7.1 + v3.1.1 优化）：
     - SVG 必须含 Start Event（data-node-type="start"）与 End Event（data-node-type="end"）；
+    - Sequence Flow 禁止曲线命令（C/Q/S/A），只允许正交 M/H/V；
     - canvas-data.workflow.nodes 必须覆盖三类节点（agent_execution / human_operation / human_review）；
+    - canvas-data.workflow.nodes 必须有 number 字段且唯一（节点编号徽标）；
     - SVG 中 bpmn-node 数量必须等于 canvas-data.workflow.nodes 数量；
     - edges.from / to 必须引用存在的 node id；
     - 有 --source 时，确认包必须含三类节点章节（与派生来源一致）。
@@ -377,6 +379,20 @@ def audit_workflow_flow(
         findings.append(
             Finding("WORKFLOW_FLOW", 'Workflow 流程图缺少 End Event（data-node-type="end"）')
         )
+    # 正交连接线：Sequence Flow 只允许横/竖/肘型（M/H/V），禁止曲线/斜线命令（C/Q/S/A）
+    sequence_paths = (
+        re.findall(r'class="[^"]*\bbpmn-sequence\b"[^>]*\bd="([^"]*)"', source)
+        + re.findall(r'\bd="([^"]*)"[^>]*class="[^"]*\bbpmn-sequence\b"', source)
+    )
+    for path_d in sequence_paths:
+        if re.search(r"[CQSA]", path_d):
+            findings.append(
+                Finding(
+                    "WORKFLOW_FLOW",
+                    f"Sequence Flow 禁止曲线命令（必须正交 M/H/V）: {path_d}",
+                )
+            )
+            break
     workflow = canvas_data.get("workflow")
     if not isinstance(workflow, dict):
         findings.append(Finding("WORKFLOW_FLOW", "canvas-data.workflow must be an object"))
@@ -390,12 +406,15 @@ def audit_workflow_flow(
     if isinstance(nodes, list) and nodes:
         node_ids: set[str] = set()
         node_types: set[str] = set()
+        numbers: list[str] = []
         for node in nodes:
             if not isinstance(node, dict):
                 findings.append(Finding("WORKFLOW_FLOW", "canvas-data.workflow.nodes item must be an object"))
                 continue
             node_id = node.get("id")
             node_type = node.get("type")
+            node_number = node.get("number")
+            numbers.append(str(node_number) if node_number is not None else "")
             if node_id:
                 node_ids.add(str(node_id))
             if node_type not in WORKFLOW_FLOW_NODE_TYPES:
@@ -407,6 +426,10 @@ def audit_workflow_flow(
                 )
             else:
                 node_types.add(str(node_type))
+        if not all(numbers):
+            findings.append(Finding("WORKFLOW_FLOW", "canvas-data.workflow.nodes 缺少 number 字段"))
+        elif len(set(numbers)) != len(numbers):
+            findings.append(Finding("WORKFLOW_FLOW", "canvas-data.workflow.nodes number 必须唯一"))
         for required in WORKFLOW_FLOW_REQUIRED_TYPES:
             if required not in node_types:
                 findings.append(

@@ -105,3 +105,35 @@ class TestWorkflowFlowFail:
         assert result.returncode != 0
         assert "WORKFLOW_FLOW" in result.stdout
         assert "w-missing" in result.stdout
+
+    def test_curve_sequence_flow_fails(self, tmp_path: Path) -> None:
+        """Sequence Flow 含曲线命令（C）→ WORKFLOW_FLOW（连接线必须正交）。"""
+        out = copy_and_mutate(tmp_path, 'd="M84 80 H120"', 'd="M84 80 C 100 60, 110 100, 120 80"')
+        result = run_audit(out)
+        assert result.returncode != 0
+        assert "WORKFLOW_FLOW" in result.stdout
+        assert "曲线命令" in result.stdout
+
+    def test_missing_node_number_fails(self, tmp_path: Path) -> None:
+        """canvas-data.workflow.nodes 缺 number 字段 → WORKFLOW_FLOW。"""
+        out = copy_and_mutate(
+            tmp_path,
+            '{ "id": "w0", "number": "01", "type": "start", "label": "触发预测" }',
+            '{ "id": "w0", "type": "start", "label": "触发预测" }',
+        )
+        result = run_audit(out)
+        assert result.returncode != 0
+        assert "WORKFLOW_FLOW" in result.stdout
+        assert "number 字段" in result.stdout
+
+    def test_duplicate_node_number_fails(self, tmp_path: Path) -> None:
+        """canvas-data.workflow.nodes number 重复 → WORKFLOW_FLOW。"""
+        out = copy_and_mutate(
+            tmp_path,
+            '{ "id": "w1", "number": "02", "type": "agent_execution", "label": "预测" }',
+            '{ "id": "w1", "number": "01", "type": "agent_execution", "label": "预测" }',
+        )
+        result = run_audit(out)
+        assert result.returncode != 0
+        assert "WORKFLOW_FLOW" in result.stdout
+        assert "number 必须唯一" in result.stdout

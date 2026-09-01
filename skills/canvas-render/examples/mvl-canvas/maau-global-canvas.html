@@ -437,20 +437,28 @@ body {
                 <path class="bpmn-sequence" d="M146 115 H200" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#flow-arrow)"/>
                 <path class="bpmn-sequence" d="M350 115 H384" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#flow-arrow)"/>
                 <path class="bpmn-sequence" d="M514 115 H535" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#flow-arrow)"/>
-                <path class="bpmn-sequence" d="M595 115 H676 V217" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#flow-arrow)"/>
+                <path class="bpmn-sequence" d="M595 115 H676 V245" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#flow-arrow)"/>
                 <text class="bpmn-flow-label" x="620" y="135" text-anchor="middle">超出预算</text>
-                <path class="bpmn-sequence" d="M565 145 C 660 300, 850 350, 925 347" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#flow-arrow)"/>
-                <text class="bpmn-flow-label" x="790" y="358" text-anchor="middle">预算内</text>
-                <path class="bpmn-sequence" d="M816 245 H925 V347" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#flow-arrow)"/>
+                <path class="bpmn-sequence" d="M565 145 V300 H925 V347" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#flow-arrow)"/>
+                <text class="bpmn-flow-label" x="790" y="312" text-anchor="middle">预算内</text>
+                <path class="bpmn-sequence" d="M816 245 H1000 V375" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#flow-arrow)"/>
                 <text class="bpmn-flow-label" x="868" y="238" text-anchor="middle">审核通过</text>
                 <path class="bpmn-sequence" d="M1000 375 H1054" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#flow-arrow)"/>
               </g>
-              <g class="bpmn-node" data-node-type="start" data-node-id="w0">
+              <g class="bpmn-node" data-node-type="start" data-node-id="w0" data-node-number="01">
                 <circle cx="120" cy="115" r="26" fill="#fff" stroke="#000" stroke-width="1.6"/>
+                <g class="bpmn-number">
+                  <rect x="98" y="93" width="17" height="13" rx="3" fill="#000"/>
+                  <text x="106.5" y="103" text-anchor="middle" fill="#fff" font-size="8.5">01</text>
+                </g>
                 <text x="120" y="119" text-anchor="middle">触发</text>
               </g>
-              <g class="bpmn-node" data-node-type="agent_execution" data-node-id="w1">
+              <g class="bpmn-node" data-node-type="agent_execution" data-node-id="w1" data-node-number="02">
                 <rect x="200" y="87" width="150" height="56" rx="10" fill="#fff" stroke="#000" stroke-width="1.6"/>
+                <g class="bpmn-number">
+                  <rect x="204" y="91" width="17" height="13" rx="3" fill="#000"/>
+                  <text x="212.5" y="101" text-anchor="middle" fill="#fff" font-size="8.5">02</text>
+                </g>
                 <text x="275" y="113" text-anchor="middle">收集库存与</text>
                 <text x="275" y="127" text-anchor="middle">销售数据</text>
                 <g class="task-icon service" transform="translate(338,99)">
@@ -458,8 +466,12 @@ body {
                   <path d="M0 -7 L0 -5 M0 7 L0 5 M-7 0 L-5 0 M7 0 L5 0 M-5 -5 L-3.5 -3.5 M5 5 L3.5 3.5 M5 -5 L3.5 -3.5 M-5 5 L-3.5 3.5" stroke="#000" stroke-width="1.1"/>
                 </g>
               </g>
-              <g class="bpmn-node" data-node-type="agent_execution" data-node-id="w2">
+              <g class="bpmn-node" data-node-type="agent_execution" data-node-id="w2" data-node-number="03">
                 <rect x="384" y="87" width="130" height="56" rx="10" fill="#fff" stroke="#000" stroke-width="1.6"/>
+                <g class="bpmn-number">
+                  <rect x="388" y="91" width="17" height="13" rx="3" fill="#000"/>
+                  <text x="396.5" y="101" text-anchor="middle" fill="#fff" font-size="8.5">03</text>
+                </g>
                 <text x="449" y="113" text-anchor="middle">生成补货</text>
                 <text x="449" y="127" text-anchor="middle">建议</text>
                 <g class="task-icon service" transform="translate(502,99)">
@@ -467,20 +479,32 @@ body {
                   <path d="M0 -7 L0 -5 M0 7 L0 5 M-7 0 L-5 0 M7 0 L5 0 M-5 -5 L-3.5 -3.5 M5 5 L3.5 3.5 M5 -5 L3.5 -3.5 M-5 5 L-3.5 3.5" stroke="#000" stroke-width="1.1"/>
                 </g>
               </g>
-              <g class="bpmn-node" data-node-type="gateway" data-node-id="w3">
+              <g class="bpmn-node" data-node-type="gateway" data-node-id="w3" data-node-number="04">
                 <polygon points="565,85 595,115 565,145 535,115" fill="#fff" stroke="#000" stroke-width="1.6"/>
+                <g class="bpmn-number">
+                  <rect x="539" y="89" width="17" height="13" rx="3" fill="#000"/>
+                  <text x="547.5" y="99" text-anchor="middle" fill="#fff" font-size="8.5">04</text>
+                </g>
                 <text x="565" y="119" text-anchor="middle">预算内?</text>
               </g>
-              <g class="bpmn-node" data-node-type="human_operation" data-node-id="w4">
+              <g class="bpmn-node" data-node-type="human_operation" data-node-id="w4" data-node-number="05">
                 <rect x="676" y="217" width="140" height="56" rx="10" fill="#fff" stroke="#000" stroke-width="1.6"/>
+                <g class="bpmn-number">
+                  <rect x="680" y="221" width="17" height="13" rx="3" fill="#000"/>
+                  <text x="688.5" y="231" text-anchor="middle" fill="#fff" font-size="8.5">05</text>
+                </g>
                 <text x="746" y="243" text-anchor="middle">人工审核确认</text>
                 <g class="task-icon user" transform="translate(804,229)">
                   <circle cy="-3.5" r="3" fill="#fff" stroke="#000" stroke-width="1.1"/>
                   <path d="M-4.5 3.5 Q0 7 4.5 3.5" fill="none" stroke="#000" stroke-width="1.1"/>
                 </g>
               </g>
-              <g class="bpmn-node" data-node-type="human_review" data-node-id="w5">
+              <g class="bpmn-node" data-node-type="human_review" data-node-id="w5" data-node-number="06">
                 <rect x="850" y="347" width="150" height="56" rx="10" fill="#fff" stroke="#000" stroke-width="1.6"/>
+                <g class="bpmn-number">
+                  <rect x="854" y="351" width="17" height="13" rx="3" fill="#000"/>
+                  <text x="862.5" y="361" text-anchor="middle" fill="#fff" font-size="8.5">06</text>
+                </g>
                 <text x="925" y="373" text-anchor="middle">人审后 Agent</text>
                 <text x="925" y="387" text-anchor="middle">生成采购单</text>
                 <g class="task-icon hybrid" transform="translate(986,359)">
@@ -490,8 +514,12 @@ body {
                   <path d="M5.5 -5 L5.5 -3.5 M8.5 -5 L8.5 -3.5 M3.5 -2 L5 -2 M9 -2 L10.5 -2 M5.5 1 L5.5 -0.5 M8.5 1 L8.5 -0.5" stroke="#000" stroke-width="0.9"/>
                 </g>
               </g>
-              <g class="bpmn-node" data-node-type="end" data-node-id="w6">
+              <g class="bpmn-node" data-node-type="end" data-node-id="w6" data-node-number="07">
                 <circle cx="1080" cy="375" r="26" fill="#fff" stroke="#000" stroke-width="3.5"/>
+                <g class="bpmn-number">
+                  <rect x="1058" y="353" width="17" height="13" rx="3" fill="#000"/>
+                  <text x="1066.5" y="363" text-anchor="middle" fill="#fff" font-size="8.5">07</text>
+                </g>
                 <text x="1080" y="379" text-anchor="middle">完成</text>
               </g>
             </svg>
@@ -635,13 +663,13 @@ body {
   },
   "workflow": {
     "nodes": [
-      { "id": "w0", "type": "start", "label": "触发补货（缺货预警 / 补货请求）" },
-      { "id": "w1", "type": "agent_execution", "label": "收集库存与销售数据" },
-      { "id": "w2", "type": "agent_execution", "label": "生成补货建议" },
-      { "id": "w3", "type": "gateway", "label": "建议是否超出预算？" },
-      { "id": "w4", "type": "human_operation", "label": "人工审核确认" },
-      { "id": "w5", "type": "human_review", "label": "人审后 Agent 生成采购单" },
-      { "id": "w6", "type": "end", "label": "采购单提交，预算签核通过" }
+      { "id": "w0", "number": "01", "type": "start", "label": "触发补货（缺货预警 / 补货请求）" },
+      { "id": "w1", "number": "02", "type": "agent_execution", "label": "收集库存与销售数据" },
+      { "id": "w2", "number": "03", "type": "agent_execution", "label": "生成补货建议" },
+      { "id": "w3", "number": "04", "type": "gateway", "label": "建议是否超出预算？" },
+      { "id": "w4", "number": "05", "type": "human_operation", "label": "人工审核确认" },
+      { "id": "w5", "number": "06", "type": "human_review", "label": "人审后 Agent 生成采购单" },
+      { "id": "w6", "number": "07", "type": "end", "label": "采购单提交，预算签核通过" }
     ],
     "edges": [
       { "from": "w0", "to": "w1" },

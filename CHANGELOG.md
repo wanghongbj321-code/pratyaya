@@ -3,7 +3,9 @@
 > 本文件记录 Pratyaya 专家的正式版本变更。
 > 完整 SemVer 与架构说明见 [`README.md`](./README.md) / [`DESIGN.md`](./DESIGN.md) / [docs/MVL-整体架构设计.md](./docs/MVL-整体架构设计.md)。
 
-## [v3.1.0] - 2026-09-01
+## [v3.1.1] - 2026-09-01
+
+> v3.1.0 未发布（分支未合并即进入优化），Workflow BPMN 流程图功能与三项视觉/契约优化合并为 v3.1.1 一并发布。
 
 ### 新增功能（MINOR）
 
@@ -12,6 +14,11 @@
 - **渲染契约**：`render-contract.md` 新增 §A1「Workflow BPMN 流程图（`#workflow-flow`）」DOM 契约、BPMN 子集与元素映射、派生规则、泳道/响应式与拓扑数据约束；示例母版 `examples/mvl-canvas/maau-global-canvas.html` 新增三泳道示例 SVG 与图例（门店补货智能体）。
 - **静态审计**：`GLOBAL_MAIN_IDS` 新增 `workflow-flow` 锚点；`audit_workflow_flow` 断言 Start/End Event 存在、`nodes` 覆盖三类节点、SVG `bpmn-node` 数量与 `nodes` 数量一致、`edges.from/to` 引用有效、传入 `--source` 时确认包含三类节点章节。
 - **测试**：新增 `tests/test_workflow_flow.py`（7 项）；MAAU fixture `maau-global-canvas-retail-demo.html` 同步补 `#workflow-flow` 与拓扑。
+
+### 优化（PATCH）
+
+- **Sequence Flow 正交化**：所有连接线改为横 / 竖 / 肘型折线（禁止曲线 / 斜线）；"预算内"分支竖线接入节点左边缘中部（对齐节点边框中点）；静态审计新增"Sequence Flow 禁止曲线命令（`C`/`Q`/`S`/`A`）"断言。
+- **节点编号徽标**：每个 BPMN 节点左上角显示流程序号徽标（`01`–`07`，按 Start → End 拓扑序）；`canvas-data.workflow.nodes[]` 新增 `number` 字段；静态审计校验 `number` 存在且唯一。任务类型识别保持 BPMN 标准 Task Marker 图标（未采用背景色方案）。
 
 ### 兼容性与迁移边界
 

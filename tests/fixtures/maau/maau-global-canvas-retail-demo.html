@@ -177,27 +177,27 @@ body {
             <path class="bpmn-sequence" d="M600 80 H640" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#flow-arrow)"/>
             <path class="bpmn-sequence" d="M770 80 H876" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#flow-arrow)"/>
           </g>
-          <g class="bpmn-node" data-node-type="start" data-node-id="w0">
+          <g class="bpmn-node" data-node-type="start" data-node-id="w0" data-node-number="01">
             <circle cx="60" cy="80" r="24" fill="#fff" stroke="#000" stroke-width="1.6"/>
             <text x="60" y="84" text-anchor="middle" font-size="10">触发</text>
           </g>
-          <g class="bpmn-node" data-node-type="agent_execution" data-node-id="w1">
+          <g class="bpmn-node" data-node-type="agent_execution" data-node-id="w1" data-node-number="02">
             <rect x="120" y="52" width="130" height="56" rx="10" fill="#fff" stroke="#000" stroke-width="1.6"/>
             <text x="185" y="84" text-anchor="middle" font-size="11">预测</text>
           </g>
-          <g class="bpmn-node" data-node-type="agent_execution" data-node-id="w2">
+          <g class="bpmn-node" data-node-type="agent_execution" data-node-id="w2" data-node-number="03">
             <rect x="290" y="52" width="130" height="56" rx="10" fill="#fff" stroke="#000" stroke-width="1.6"/>
             <text x="355" y="84" text-anchor="middle" font-size="11">建议</text>
           </g>
-          <g class="bpmn-node" data-node-type="human_operation" data-node-id="w3">
+          <g class="bpmn-node" data-node-type="human_operation" data-node-id="w3" data-node-number="04">
             <rect x="460" y="52" width="140" height="56" rx="10" fill="#fff" stroke="#000" stroke-width="1.6"/>
             <text x="530" y="84" text-anchor="middle" font-size="11">人工确认</text>
           </g>
-          <g class="bpmn-node" data-node-type="human_review" data-node-id="w4">
+          <g class="bpmn-node" data-node-type="human_review" data-node-id="w4" data-node-number="05">
             <rect x="640" y="52" width="130" height="56" rx="10" fill="#fff" stroke="#000" stroke-width="1.6"/>
             <text x="705" y="84" text-anchor="middle" font-size="11">执行</text>
           </g>
-          <g class="bpmn-node" data-node-type="end" data-node-id="w5">
+          <g class="bpmn-node" data-node-type="end" data-node-id="w5" data-node-number="06">
             <circle cx="900" cy="80" r="24" fill="#fff" stroke="#000" stroke-width="3.5"/>
             <text x="900" y="84" text-anchor="middle" font-size="10">复盘</text>
           </g>
@@ -246,12 +246,12 @@ body {
   },
   "workflow": {
     "nodes": [
-      { "id": "w0", "type": "start", "label": "触发预测" },
-      { "id": "w1", "type": "agent_execution", "label": "预测" },
-      { "id": "w2", "type": "agent_execution", "label": "建议" },
-      { "id": "w3", "type": "human_operation", "label": "人工确认" },
-      { "id": "w4", "type": "human_review", "label": "执行" },
-      { "id": "w5", "type": "end", "label": "复盘" }
+      { "id": "w0", "number": "01", "type": "start", "label": "触发预测" },
+      { "id": "w1", "number": "02", "type": "agent_execution", "label": "预测" },
+      { "id": "w2", "number": "03", "type": "agent_execution", "label": "建议" },
+      { "id": "w3", "number": "04", "type": "human_operation", "label": "人工确认" },
+      { "id": "w4", "number": "05", "type": "human_review", "label": "执行" },
+      { "id": "w5", "number": "06", "type": "end", "label": "复盘" }
     ],
     "edges": [
       { "from": "w0", "to": "w1" },
