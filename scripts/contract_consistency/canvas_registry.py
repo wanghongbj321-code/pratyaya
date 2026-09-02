@@ -36,6 +36,7 @@ FIELDS: tuple[str, ...] = (
     "gate",
     "gate_id_prefix",
     "page_type",
+    "template",
     "triggers",
 )
 
@@ -54,6 +55,7 @@ class CanvasRow:
     gate: str
     gate_id_prefix: str
     page_type: str
+    template: str
     triggers: str
 
     def value(self, field: str) -> str:

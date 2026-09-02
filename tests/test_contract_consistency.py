@@ -22,6 +22,16 @@ from pathlib import Path
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+
+# v3.3.0 P2：注册表解析器随契约检查器一同提供，供结构化断言使用
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from scripts.contract_consistency.canvas_registry import (  # noqa: E402
+    by_id,
+    parse_canvas_registry,
+)
+
 SKILLS = REPO_ROOT / "skills"
 DISTILL = SKILLS / "hmw-distill"
 GATE = SKILLS / "hmw-gate"
@@ -554,13 +564,19 @@ class TestJourneyAgentContract:
     def test_agent_contains_journey_phase_and_routing(self) -> None:
         agent = read(REPO_ROOT / "agents" / "pratyaya.md")
         for phrase in (
-            "## Phase Journey：用户旅程工作流",
             "用户提到 \"用户旅程\" / \"Journey\" / \"User Journey\" / \"旅程画布\" / \"当前旅程\"",
             "不属于 MVL / GC / HMW / Persona",
             "直接进入 Phase Journey",
             "Persona 为独立画布",
         ):
             assert phrase in agent
+        # v3.3.0 P2：Journey 专属 Phase 章节已并入「标准画布管线」，
+        # 章节标题字面量断言由注册表结构化断言替代（Q3-B）。
+        journey = by_id(parse_canvas_registry(agent), "journey")
+        assert journey is not None, "画布注册表缺少 journey 条目"
+        assert journey.distill == "journey-distill"
+        assert journey.gate == "journey-gate"
+        assert "## 标准画布管线" in agent
 
     def test_agent_contains_journey_mandatory_instruction_card(self) -> None:
         agent = read(REPO_ROOT / "agents" / "pratyaya.md")
@@ -577,19 +593,32 @@ class TestJourneyAgentContract:
             assert phrase in agent
 
     def test_agent_contains_journey_state_and_render_paths(self) -> None:
+        """v3.3.0 P2：Journey 的产物路径由画布注册表推导，不再硬编码在正文。
+
+        参数化后正文只保留 ``modules/{文件前缀}-{slug}-v{N}.md`` 这类模板，
+        具体值（JOURNEY / journey）的唯一事实源是注册表，故改为双层断言：
+        ① 注册表 journey 条目取值正确；② 标准管线仍声明了参数化路径模板。
+        """
         agent = read(REPO_ROOT / "agents" / "pratyaya.md")
-        for phrase in (
-            "state.journey",
-            "transcripts/journey-TXX-raw.md",
-            "modules/JOURNEY-{slug}-keypoints.md",
-            "modules/JOURNEY-{slug}-v{N}.md",
-            "modules/JOURNEY-{slug}-gaps.md",
-            "output/journey-canvas-{slug}.html",
-            "--type journey",
-            "--template skills/canvas-render/examples/user-journey-canvas.html",
+        journey = by_id(parse_canvas_registry(agent), "journey")
+        assert journey is not None, "画布注册表缺少 journey 条目"
+        assert journey.state_key == "journey.{slug}"
+        assert journey.file_prefix == "JOURNEY"
+        assert journey.output_prefix == "journey"
+        assert journey.audit_type == "journey"
+        assert (
+            journey.template
+            == "skills/canvas-render/examples/user-journey-canvas.html"
+        )
+        for pattern in (
+            "modules/{文件前缀}-{slug}-keypoints.md",
+            "modules/{文件前缀}-{slug}-v{N}.md",
+            "modules/{文件前缀}-{slug}-gaps.md",
+            "output/{输出前缀}-canvas-{slug}.html",
+            "state.{state_key}.gate_recommendation",
             "render-contract-journey.md",
         ):
-            assert phrase in agent
+            assert pattern in agent, f"标准管线缺参数化路径模板：{pattern}"
 
 
 class TestExplicitCanvasRoutingContract:
