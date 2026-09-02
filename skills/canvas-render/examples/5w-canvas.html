@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>5W 五个为什么 Five Whys Canvas（一等公民 · 示例）</title>
+<style>
+/* ============================================================
+   Pratyaya 工作坊画布 · 共享主题层
+   标准 pratyaya 黑灰配色（black-gray-professional，单色方案）
+   通过 body[data-theme="base"] 选择器声明；不提供配色切换（CSS 已内联进各画布 HTML，单文件自包含）
+   ============================================================ */
+
+/* ---------- 标准黑灰主题（1:1 还原 pratyaya 黑灰母版） ---------- */
+:root,
+[data-theme="base"] {
+  --brand: #000000;
+  --brand-dark: #000000;
+  --brand-soft: #FFFFFF;
+  --brand-pale: #F2F2F2;
+  --accent: #000000;
+  --ink: #000000;
+  --muted: #8A8A8A;
+  --line: #000000;
+  --paper: #FFFFFF;
+  --page-bg: #FFFFFF;
+  --stripe: #F2F2F2;
+  --title-color: #000000;
+  --hint-color: #A5A5A5;
+  --head-bg: transparent;
+  --head-fg: #000000;
+  --radius: 10px;
+  --border-w: 1.6px;
+  --font: "Helvetica Neue", Arial, "Microsoft YaHei", "PingFang SC", sans-serif;
+  --shadow: none;
+  --fill-line: #E3E3E3;
+}
+
+/* ---------- 基础版式 ---------- */
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--page-bg);
+  color: var(--ink);
+  font-family: var(--font);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap { max-width: 1660px; margin: 0 auto; padding: 24px 24px 40px; }
+
+/* 页头 */
+.canvas-head {
+  display: flex; justify-content: space-between; align-items: flex-end;
+  gap: 24px; margin-bottom: 14px; padding-bottom: 10px;
+  border-bottom: 2px solid var(--brand);
+}
+.canvas-head .eyebrow {
+  font-size: 10px; font-weight: 700; letter-spacing: .2em;
+  color: var(--muted); text-transform: uppercase; margin-bottom: 6px;
+}
+.canvas-head h1 {
+  margin: 0; font-size: clamp(22px, 2.6vw, 34px); font-weight: 700;
+  color: var(--title-color); line-height: 1.2; letter-spacing: -.01em;
+}
+.canvas-head .sub { margin: 6px 0 0; font-size: 13px; color: var(--muted); max-width: 900px; }
+.canvas-head .meta { text-align: right; font-size: 11px; color: var(--muted); line-height: 1.7; white-space: nowrap; }
+.canvas-head .meta strong { display: block; font-size: 12px; color: var(--title-color); }
+
+/* 行动摘要（一句话结论） */
+#canvas-headline {
+  background: var(--brand-pale);
+  border-left: 5px solid var(--brand);
+  padding: 10px 14px;
+  border-radius: 6px;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 700;
+  margin: 14px 0 4px;
+  line-height: 1.55;
+}
+
+/* 可填写区：横线纸效果 */
+.fill {
+  min-height: 120px; padding: 2px 0; outline: none; font-size: 13px;
+  line-height: 26px;
+  background-image: repeating-linear-gradient(
+    to bottom, transparent 0, transparent 25px, var(--fill-line) 25px, var(--fill-line) 26px);
+}
+.fill:focus { background-color: var(--brand-pale); }
+.fill:empty::before { content: attr(data-ph); color: var(--hint-color); font-size: 12px; }
+
+/* 下划线填空 */
+.blank {
+  display: inline-block; min-width: 90px; border-bottom: 1px solid var(--ink);
+  outline: none; padding: 0 4px; font-size: 13px; line-height: 1.7;
+}
+.blank:focus { background: var(--brand-pale); }
+.blank:empty::before { content: "\00a0"; }
+
+/* 区块标题 */
+.cell-title {
+  display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
+  margin: 0 0 4px; font-size: 15px; font-weight: 700; color: var(--ink);
+}
+.cell-title .en { font-size: 14px; font-weight: 700; color: var(--ink); }
+.cell-hint { margin: 0 0 10px; font-size: 10.5px; color: var(--hint-color); line-height: 1.5; }
+
+/* 治理面板 override 警示（黑灰体系：虚线 + 灰底，不引入红） */
+.govern .caveat {
+  margin-top: 12px; padding: 10px 12px; border: 1.5px dashed #000; border-radius: var(--radius);
+  font-size: 12px; color: #000; background: var(--brand-pale);
+}
+
+/* 脚注 */
+.footnote {
+  margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line);
+  font-size: 10px; color: var(--muted); line-height: 1.7;
+}
+.footnote b { color: var(--title-color); }
+
+/* A3 横版打印（PC 浏览优先，用户确认） */
+@page { size: A3 landscape; margin: 6mm; }
+
+/* 响应式 */
+@media (max-width: 980px) {
+  .canvas-head { flex-direction: column; align-items: flex-start; }
+  .canvas-head .meta { text-align: left; }
+}
+@media (max-width: 720px) {
+  .wrap { padding: 16px 12px 32px; }
+}
+@media print {
+  body { background: #fff; }
+  .wrap { padding: 0; max-width: none; }
+}
+</style>
+<style>
+  /* ============================================================
+     5W 一等公民画布示例 · black-gray-professional 视觉系统
+     （复用 10-black-gray-professional，不新增 5W 专属模式）
+     ============================================================
+     签名布局 1:1 沿用离线工作表 canvas-templates/06-5W画布.html：
+     - A3 横版（@page A3 landscape），PC 浏览优先
+     - 5 层因果链 1–5 卡片横向并排（flex row 等宽等高），层间 → 箭头，窄屏回退纵向
+     - 三层面标注（直接原因层 → 漏检缺口层 → 系统缺陷层）+ 每层合格检查点 3 连
+     - 判别记录（rubric）+ 页脚三条红线
+     ============================================================ */
+
+  /* ① 问题陈述通栏 */
+  .problem{
+    border: var(--border-w) solid var(--line); border-radius: var(--radius);
+    background: var(--paper); box-shadow: var(--shadow);
+    padding: 14px 22px 16px; margin-bottom: 12px;
+  }
+  .problem .tag{
+    font-size: 10px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase;
+    color: var(--title-color); margin-bottom: 8px;
+  }
+  .problem .statement{ font-size: 15px; line-height: 2.2; font-weight: 700; }
+  .problem .meta-row{
+    display: flex; flex-wrap: wrap; gap: 8px 36px; margin-top: 6px;
+    font-size: 12.5px; color: var(--muted);
+  }
+  .problem .meta-row b{ color: var(--title-color); font-weight: 700; }
+
+  /* ② 因果链（5 层横向并排卡片，三层面标注，A3 横版） */
+  .chain{ display: flex; flex-direction: row; align-items: stretch; gap: 8px; margin-bottom: 10px; }
+  .why-row{
+    flex: 1 1 0; min-width: 0;
+    border: var(--border-w) solid var(--line); border-radius: var(--radius);
+    background: var(--paper); box-shadow: var(--shadow);
+    padding: 9px 11px 11px; display: flex; flex-direction: column; gap: 5px;
+  }
+  .why-row .why-head{ display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+  .why-no{
+    display: inline-grid; place-items: center; width: 22px; height: 22px; flex: 0 0 auto;
+    background: var(--title-color); color: var(--brand-soft);
+    font-size: 10.5px; font-weight: 800; border-radius: 50%;
+  }
+  /* 三层面标签：直接原因层 / 漏检缺口层 / 系统缺陷层 */
+  .layer-tag{
+    flex: 0 0 auto; font-size: 9px; font-weight: 800; letter-spacing: .1em;
+    color: var(--title-color); border: 1.3px solid var(--title-color);
+    border-radius: 999px; padding: 1px 7px; white-space: nowrap;
+  }
+  .why-row .why-q{ font-size: 12.5px; font-weight: 700; color: var(--ink); line-height: 1.6; }
+  .why-row .fill{
+    flex: 1; min-height: 44px; font-size: 11.5px; line-height: 21px;
+    background-image: repeating-linear-gradient(to bottom, transparent 0, transparent 20px, var(--fill-line) 20px, var(--fill-line) 21px);
+  }
+  /* 每层合格检查点 */
+  .why-check{
+    display: flex; flex-wrap: wrap; gap: 3px 12px;
+    font-size: 9.5px; color: var(--muted); line-height: 1.5;
+  }
+  .why-check span{ white-space: nowrap; }
+  /* 层间横向箭头（转折点标注） */
+  .why-link{
+    flex: 0 0 auto; align-self: center;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    padding: 0 1px; font-size: 9px; font-weight: 700; letter-spacing: .1em;
+    color: var(--muted); text-align: center; line-height: 1.4; text-transform: uppercase;
+  }
+  .why-link .arrow{ font-size: 22px; line-height: 1; font-weight: 800; color: var(--title-color); }
+  .why-link b{ color: var(--title-color); font-weight: 800; }
+
+  /* ③ 根因高亮框 */
+  .root{
+    border: 2.4px solid var(--brand); border-radius: var(--radius);
+    background: var(--brand-pale); box-shadow: var(--shadow);
+    padding: 10px 16px 12px; margin-bottom: 10px;
+  }
+  .root .tag{
+    font-size: 10px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase;
+    color: var(--title-color); margin-bottom: 6px;
+  }
+  .root .fill{ background-color: #fff; }
+  .root .check{
+    margin-top: 6px; font-size: 10.5px; color: var(--muted); line-height: 1.7;
+  }
+
+  /* ④ 对策四列 */
+  .grid4{ display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 10px; }
+  .col{
+    border: var(--border-w) solid var(--line); border-radius: var(--radius);
+    background: var(--paper); box-shadow: var(--shadow);
+    padding: 10px 12px 12px; min-height: 108px; display: flex; flex-direction: column;
+  }
+  .col .step-no{
+    display: inline-grid; place-items: center; width: 20px; height: 20px; flex: 0 0 auto;
+    border: 1.5px solid var(--title-color); border-radius: 50%;
+    font-size: 10px; font-weight: 800; color: var(--title-color); margin-bottom: 6px;
+  }
+  .col .fill{ flex: 1; min-height: 70px; }
+  .col .cell-hint{ margin: 0 0 6px; font-size: 10px; color: var(--hint-color); line-height: 1.6; }
+  .cell-title{ margin: 0 0 2px; font-size: 14px; font-weight: 700; color: var(--title-color); }
+  .cell-title .en{ display: block; font-size: 10px; font-weight: 400; color: var(--muted); margin-top: 1px; }
+
+  /* ⑤ 其他分支备注 */
+  .branch{
+    border: var(--border-w) solid var(--line); border-radius: var(--radius);
+    background: var(--paper); box-shadow: var(--shadow);
+    padding: 10px 16px 12px; display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px;
+  }
+  .branch .tag{
+    font-size: 10px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase;
+    color: var(--title-color);
+  }
+  .branch .fill{ min-height: 36px; }
+
+  /* ⑥ 判别记录（rubric） */
+  .rubric-wrap{
+    border: var(--border-w) solid var(--line); border-radius: var(--radius);
+    background: var(--paper); box-shadow: var(--shadow);
+    padding: 12px 16px 14px; margin-bottom: 10px;
+  }
+  .rubric{ width: 100%; border-collapse: collapse; font-size: 10px; }
+  .rubric th, .rubric td{ border: 1px solid var(--line); padding: 4px 8px; text-align: left; vertical-align: top; }
+  .rubric th{ background: var(--brand-pale); color: var(--title-color); font-weight: 700; white-space: nowrap; }
+  .rubric tr:nth-child(even) td{ background: var(--stripe); }
+  .rubric .bad::before{ content: "✗ "; font-weight: 800; }
+  .rubric .good::before{ content: "✓ "; font-weight: 800; }
+
+  /* 质量与治理面板 */
+  .govern{
+    border: var(--border-w) solid var(--line); border-radius: var(--radius);
+    background: var(--paper); box-shadow: var(--shadow); padding: 16px 18px 18px;
+  }
+  .govern dl{ margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; font-size: 12.5px; }
+  .govern dt{ color: var(--muted); }
+  .govern dd{ margin: 0; font-weight: 700; color: var(--ink); }
+
+  /* 本地备注 */
+  .local-notes{
+    margin-top: 16px; border: 1px dashed var(--line); border-radius: var(--radius);
+    padding: 12px 14px; font-size: 12.5px; min-height: 48px; color: var(--ink);
+  }
+  .local-notes:empty::before{ content: "本地备注（浏览器内可编辑，刷新即清空）…"; color: var(--hint-color); }
+
+  /* 窄屏回退：5 卡片纵向 */
+  @media(max-width: 1180px){
+    .chain{ flex-direction: column; }
+    .why-link{ flex-direction: row; gap: 6px; }
+    .why-link .arrow{ font-size: 16px; }
+    .why-link span{ white-space: nowrap; }
+  }
+  @media(max-width: 1100px){ .grid4{ grid-template-columns: repeat(2, 1fr); } }
+  @media(max-width: 720px){ .grid4{ grid-template-columns: 1fr; } .problem .statement{ font-size: 14px; } }
+  @media print{
+    .col{ min-height: 100px; } .grid4{ gap: 8px; }
+    .chain{ gap: 6px; } .why-row .fill{ min-height: 34px; }
+  }
+</style>
+</head>
+<body data-theme="base" data-mode="formal" data-canvas="5w" data-page-type="5w" data-visual-mode="black-gray-professional" data-version="1" data-instance="sample-5w">
+<div class="wrap">
+  <header class="canvas-head" id="canvas-header">
+    <div>
+      <div class="eyebrow">Pratyaya Canvas · 一等公民 · Five Whys</div>
+      <h1>5W 五个为什么 Five Whys Canvas</h1>
+      <p class="sub">对问题连续追问"为什么"，穿透表面症状，沿因果链锁定根本原因并制定对策。三层面追问：为什么会发生（制造）→ 为什么没发现（检验）→ 为什么没预防（体系）。每层标注追问方向与合格检查点，底部判别记录——讲解、示范、现场填写三用。</p>
+      <div id="canvas-headline">一句话结论：{在此填写根因链终点与核心对策}</div>
+    </div>
+    <div class="meta">
+      <strong>Canvas · 5W</strong>
+      project：{project_slug}<br>
+      group：{group_id}<br>
+      topic：{topic_slug}<br>
+      instance：{slug}<br>
+      版本：<span id="quality-version">v0（草稿）</span>
+    </div>
+  </header>
+
+  <!-- ① 问题陈述 -->
+  <section class="problem" id="5w-problem" aria-label="问题陈述">
+    <div class="tag">① 问题陈述 · Problem Statement</div>
+    <div id="5w-problem-statement" class="statement">发生了什么：{事实陈述（一句话，非结论）。例："本月 3 份交付物逾期"是问题；"团队混乱"是结论。}</div>
+    <div id="5w-problem-meta" class="meta-row">
+      <span><b>发生日期：</b>{occurred_at}</span>
+      <span><b>影响 / 频次：</b>{impact_frequency}</span>
+      <span><b>参与者：</b>{participants}</span>
+    </div>
+  </section>
+
+  <!-- ② 五层因果链（三层面：直接原因 → 漏检缺口 → 系统缺陷） -->
+  <section class="chain" id="5w-chain" aria-label="5 层为什么因果链（三层面标注）">
+    <div class="why-row" id="5w-why-1" data-why-layer="direct">
+      <div class="why-head"><span class="why-no">1</span><span class="layer-tag">直接原因层</span><span class="why-q">为什么【问题现象】发生？</span></div>
+      <div class="fill" data-ph="因为…（写事实，附依据：日期 / 记录 / 日志）"></div>
+      <div class="why-check"><span>□ 是事实（有证据）</span><span>□ 可行动（处理它防复发）</span><span>□ 非个人归因</span></div>
+    </div>
+    <div class="why-link"><b class="arrow">→</b><span>为什么？<br>直接原因层继续</span></div>
+    <div class="why-row" id="5w-why-2" data-why-layer="direct">
+      <div class="why-head"><span class="why-no">2</span><span class="layer-tag">直接原因层</span><span class="why-q">为什么【原因 1】存在？</span></div>
+      <div class="fill" data-ph="因为…（写事实，附依据）"></div>
+      <div class="why-check"><span>□ 是事实（有证据）</span><span>□ 可行动（处理它防复发）</span><span>□ 非个人归因</span></div>
+    </div>
+    <div class="why-link"><b class="arrow">→</b><span>为什么？<br>转入<b>漏检缺口层</b><br>问"为什么没发现"</span></div>
+    <div class="why-row" id="5w-why-3" data-why-layer="inspection">
+      <div class="why-head"><span class="why-no">3</span><span class="layer-tag">漏检缺口层</span><span class="why-q">为什么【原因 2】没有被发现？</span></div>
+      <div class="fill" data-ph="因为…（指向检查 / 检测 / 监控环节的缺口）"></div>
+      <div class="why-check"><span>□ 是事实（有证据）</span><span>□ 可行动（处理它防复发）</span><span>□ 非个人归因</span></div>
+    </div>
+    <div class="why-link"><b class="arrow">→</b><span>为什么？<br>漏检缺口层继续</span></div>
+    <div class="why-row" id="5w-why-4" data-why-layer="inspection">
+      <div class="why-head"><span class="why-no">4</span><span class="layer-tag">漏检缺口层</span><span class="why-q">为什么【原因 3】没有被拦截？</span></div>
+      <div class="fill" data-ph="因为…（指向防线 / 校验 / 复核环节的缺口）"></div>
+      <div class="why-check"><span>□ 是事实（有证据）</span><span>□ 可行动（处理它防复发）</span><span>□ 非个人归因</span></div>
+    </div>
+    <div class="why-link"><b class="arrow">→</b><span>为什么？<br>转入<b>系统缺陷层</b><br>问"为什么流程允许"</span></div>
+    <div class="why-row" id="5w-why-5" data-why-layer="system">
+      <div class="why-head"><span class="why-no">5</span><span class="layer-tag">系统缺陷层</span><span class="why-q">为什么流程 / 制度允许【原因 4】存在？</span></div>
+      <div class="fill" data-ph="因为…（指向流程 / 制度 / 标准 / 职责的缺口）&#10;注：真因提前出现（如第 3 次）可提前停止；5 次不够可继续追问。"></div>
+      <div class="why-check"><span>□ 是事实（有证据）</span><span>□ 可行动（处理它防复发）</span><span>□ 非个人归因</span></div>
+    </div>
+  </section>
+
+  <!-- ③ 根本原因 -->
+  <section class="root" id="5w-root" aria-label="根本原因">
+    <div class="tag">③ 根本原因 · Root Cause</div>
+    <div id="5w-root-cause" class="fill" data-ph="找出那个"处理掉它问题就不会再发生"的原因——通常是流程缺失或没做好，而不是个人品质。"></div>
+    <div id="5w-root-check" class="check">
+      停止准则：① 这个原因处理后，问题不会再复发吗？② 再问"为什么"会进入另一个无关问题吗？③ 因果链通过"因此"检验了吗（根因 → 因此 → 直接原因 → 因此 → 问题）？
+    </div>
+  </section>
+
+  <!-- ④ 对策与行动（四要素） -->
+  <section class="grid4" id="5w-countermeasures" aria-label="对策与行动">
+    <div class="col" id="5w-countermeasure">
+      <div class="step-no">④</div>
+      <h2 class="cell-title">对策 <span class="en">Countermeasure</span></h2>
+      <p class="cell-hint">对根因的预防性回应（改变流程 / 系统 / 行为），不是临时修复症状。</p>
+      <div class="fill" data-ph="例：在润滑泵上加装滤网；新增发布检查门禁。"></div>
+    </div>
+    <div class="col" id="5w-owner">
+      <div class="step-no">④</div>
+      <h2 class="cell-title">负责人 <span class="en">Owner</span></h2>
+      <p class="cell-hint">唯一署名，对落地负责。</p>
+      <div class="fill" data-ph="姓名 / 角色："></div>
+    </div>
+    <div class="col" id="5w-due">
+      <div class="step-no">④</div>
+      <h2 class="cell-title">截止日期 <span class="en">Due Date</span></h2>
+      <p class="cell-hint">明确到具体日期。</p>
+      <div class="fill" data-ph="YYYY-MM-DD"></div>
+    </div>
+    <div class="col" id="5w-verify">
+      <div class="step-no">④</div>
+      <h2 class="cell-title">如何验证有效 <span class="en">Verify</span></h2>
+      <p class="cell-hint">对策落地后，用什么信号 / 指标判断问题不再复发。</p>
+      <div class="fill" data-ph="例：连续 90 天该停机类型零复发；发布检查门禁执行率 100%。"></div>
+    </div>
+  </section>
+
+  <!-- ⑤ 其他原因分支 -->
+  <section class="branch" id="5w-branches" aria-label="其他原因分支">
+    <div class="tag">⑤ 其他原因分支 · Other Causes Noticed</div>
+    <div id="5w-branches-list" class="fill" data-ph="真实问题往往不止一条因果链。把本次未追踪的分支写下来，问题复发时它们是首选线索。未讨论时显示"未讨论"并标为缺口。"></div>
+  </section>
+
+  <!-- ⑥ 判别记录（rubric：坏答案 vs 好答案） -->
+  <section class="rubric-wrap" id="5w-rubric" aria-label="判别记录">
+    <h2 class="cell-title">⑥ 判别记录 <span class="en">Rubric · 坏答案 vs 好答案</span></h2>
+    <p class="cell-hint">记录工作坊中实际发生的打回对照（数据源：确认包第 11 节）。无实际打回记录时显示"无"。此节为 5w-rubric-table anchor 的事实源。</p>
+    <table class="rubric" id="5w-rubric-table">
+      <thead>
+        <tr><th style="width:30%;">坏答案（被打回）</th><th style="width:18%;">问题类型</th><th style="width:52%;">好答案（采纳）</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="bad">未讨论</td><td>—</td><td class="good">无</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 质量与治理面板 -->
+  <aside class="govern" id="quality-panel" aria-label="质量与治理">
+    <h3 class="cell-title">质量与对齐</h3>
+    <dl>
+      <dt>版本</dt><dd id="quality-version-dd">v1</dd>
+    </dl>
+    <div id="quality-approval">
+      <dl>
+        <dt>Gate 建议</dt><dd id="quality-gate">pending</dd>
+        <dt>授权渲染</dt><dd id="quality-authorized">false</dd>
+        <dt>确认模式</dt><dd id="quality-mode">null</dd>
+      </dl>
+    </div>
+    <dl>
+      <dt>缺口摘要</dt><dd id="quality-gaps">—</dd>
+      <dt>风险摘要</dt><dd id="quality-risks">—</dd>
+    </dl>
+    <div class="caveat" id="quality-caveat" hidden>
+      <b>Override 警示：</b><span id="quality-caveat-text">仅在 override 时显示——列出被接受的业务风险（因此链 / 可行动 / 预防性）与影响。</span>
+    </div>
+  </aside>
+
+  <section class="local-notes" id="local-notes" contenteditable="true"></section>
+
+  <p class="footnote">
+    <b>及格线：</b>问题陈述是事实而非结论；每层"为什么"基于证据回答；停止在可行动处（能改变的原因）；对策 + 负责人 + 截止日期 + 验证信号四要素齐全。
+    <b>三条红线：</b>① 不归因于个人品质（"因为某人不认真"）；② 不停留在表面症状（换保险丝式修复）；③ 不把"5 次"当硬规定——真因在 3 次出现就停在 3 次。
+    <b>方法来源：</b>丰田生产方式（TPS）· 大野耐一《丰田生产方式》；三层面追问：为什么会发生（制造）→ 为什么没发现（检验）→ 为什么没预防（体系/流程）。
+  </p>
+</div>
+
+<script type="application/json" id="canvas-data">
+{
+  "canvas_type": "5w",
+  "page_type": "5w",
+  "version": "1",
+  "instance": "sample-5w",
+  "visual_mode": {
+    "id": "black-gray-professional",
+    "zh_name": "黑灰专业",
+    "visual_system": "Black Gray Professional"
+  },
+  "sections": {
+    "canvas-headline": "必展项 → 一句话结论",
+    "5w-problem-statement": "6：statement（事实陈述）",
+    "5w-problem-meta": "6：occurred_at / impact_frequency / participants",
+    "5w-why-1": "7：因果链 Why 1（直接原因）",
+    "5w-why-2": "7：因果链 Why 2（直接原因）",
+    "5w-why-3": "7：因果链 Why 3（漏检缺口）",
+    "5w-why-4": "7：因果链 Why 4（漏检缺口）",
+    "5w-why-5": "7：因果链 Why 5（系统缺陷）",
+    "5w-root-cause": "8：root_cause（根本原因）",
+    "5w-root-check": "8：so_therefore（因此检验链）+ stop_check",
+    "5w-countermeasure": "9：countermeasure（对策）",
+    "5w-owner": "9：owner（负责人）",
+    "5w-due": "9：due_date（截止日期）",
+    "5w-verify": "9：verify（如何验证有效）",
+    "5w-branches-list": "10：其他原因分支",
+    "5w-rubric-table": "11：判别记录（rubric）"
+  },
+  "auth": {
+    "gate_recommendation": "pending",
+    "render_authorized": false,
+    "confirmation_mode": null,
+    "override_audit": null
+  }
+}
+</script>
+</body>
+</html>

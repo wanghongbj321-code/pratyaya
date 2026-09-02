@@ -32,8 +32,14 @@ PERSONA_CONTRACT = (
 V2C_VAC_CONTRACT = (
     REPO_ROOT / "references" / "render-contract-v2c-vac.md"
 )
+FIVE_WHYS_CONTRACT = (
+    REPO_ROOT / "references" / "render-contract-5w.md"
+)
 HMW_TEMPLATE = (
     REPO_ROOT / "examples" / "hmw-canvas.html"
+)
+FIVE_WHYS_TEMPLATE = (
+    REPO_ROOT / "examples" / "5w-canvas.html"
 )
 JOURNEY_TEMPLATE = (
     REPO_ROOT / "examples" / "user-journey-canvas.html"
@@ -193,6 +199,55 @@ V2C_VAC_TPL_GOVERN_IDS = (
     "quality-risks",
     "quality-caveat",
 )
+# 5W 一级模块（内容 Gate 必需 ID；canvas-header/quality-panel/local-notes/canvas-data 已在 SHARED_IDS）
+FIVE_WHYS_MAIN_IDS = (
+    "5w-problem",
+    "5w-chain",
+    "5w-root",
+    "5w-countermeasures",
+    "5w-branches",
+    "5w-rubric",
+)
+# 5W 稳定锚点（内容锚点 + canvas-data.sections 映射检查）
+FIVE_WHYS_ANCHORS = (
+    "canvas-headline",
+    "5w-problem-statement",
+    "5w-problem-meta",
+    "5w-why-1",
+    "5w-why-2",
+    "5w-why-3",
+    "5w-why-4",
+    "5w-why-5",
+    "5w-root-cause",
+    "5w-root-check",
+    "5w-countermeasure",
+    "5w-owner",
+    "5w-due",
+    "5w-verify",
+    "5w-branches-list",
+    "5w-rubric-table",
+)
+# 5W Template Gate 一级模块（兜底；主依据为 render-contract-5w.md 模板 profile）
+FIVE_WHYS_TPL_MAIN_IDS = (
+    "canvas-header",
+    "5w-problem",
+    "5w-chain",
+    "5w-root",
+    "5w-countermeasures",
+    "5w-branches",
+    "5w-rubric",
+    "quality-panel",
+    "local-notes",
+    "canvas-data",
+)
+FIVE_WHYS_TPL_STABLE_ANCHORS = FIVE_WHYS_ANCHORS
+FIVE_WHYS_TPL_GOVERN_IDS = (
+    "quality-version",
+    "quality-approval",
+    "quality-gaps",
+    "quality-risks",
+    "quality-caveat",
+)
 # 约定隐藏方式（Template Gate 与内容/授权 Gate 共用）：任一命中即视为隐藏
 HIDDEN_PATTERNS = (
     r"hidden\b",  # hidden HTML 属性
@@ -255,6 +310,7 @@ INSTANCE_STATE_KEYS = {
     "persona": "persona",
     "journey": "journey",
     "v2c-vac": "v2c_vac",
+    "5w": "five_whys",
 }
 VOID_TAGS = {
     "area",

@@ -10,7 +10,7 @@
 1. 确认专家已安装并验证（详见 [安装指南 §5](./installation.md#5-如何找到并验证专家)）
 2. 在"我的专家"中找到 “Pratyaya Canvas Expert”
 3. 点击进入主 Agent 对话
-4. 选择画布类型（MAAU 综合 / MVL / 黄金圈 / HMW / 用户画像 / 用户旅程 / V2C VAC，见 §2）与模式（A / B / C）
+4. 选择画布类型（MAAU 综合 / MVL / 黄金圈 / HMW / 用户画像 / 用户旅程 / V2C VAC / 5W，见 §2）与模式（A / B / C）
 5. 按 §3 决策分支逐模块推进
 
 新工作坊会创建在 `workshop/{project_slug}/{group_id}/{topic_slug}/` 下。`project_slug` / `group_id` / `topic_slug` 是目录短名（kebab-case ASCII，如 `zhongruan-power`、`group-a`、`opportunity-evaluation`）；中文项目名、组名和议题名会作为 `project_name` / `group_name` / `topic_name` 显示，不直接作为目录键。同一组可围绕多个议题（topic）并行推进，`topic_slug` 是议题边界，不替代画布实例 `instance_slug`。
@@ -19,7 +19,7 @@
 
 ## 2. 模式选择
 
-主 Agent 启动时会先确认**画布类型**，再问你"想用哪种模式"。只给逐字稿或会议材料时也必须先指定画布类型；系统不会默认进入 MAAU、V2C VAC 或任何其他画布。
+主 Agent 启动时会先确认**画布类型**，再问你"想用哪种模式"。只给逐字稿或会议材料时也必须先指定画布类型；系统不会默认进入 MAAU、V2C VAC、5W 或任何其他画布。
 
 启动时还会确认项目与组：
 
@@ -43,8 +43,10 @@
 | **用户画像** | "开始用户画像画布" / "Persona" | 9 基本信息 + 6 宫格 + 4 质量鉴别，单画布 |
 | **用户旅程** | "开始用户旅程画布" / "Journey" | 动态阶段 × 5 行合并结构，单画布 |
 | **V2C VAC** | "开始 V2C VAC" / "价值归因画布" / "Value Attribution Canvas" | Scenario → Capability → Change → Business Impact → Value 归因链，支持多阶段管道和一次性综合 |
+| **5W** | "开始 5W 画布" / "丰田 5W" / "根因分析" / "五问法" | 问题陈述 + 五层因果链（制造层 Why 1-2 / 检验层 Why 3-4 / 体系层 Why 5）+ 根本原因 + 对策四要素，单画布（见 §4.8） |
 
 > V2C 系列画布的思路来源于王鸿的 Value-to-Capability FDE 工作方法论。V2C VAC 用来观察和审查价值归因假设，不把尚未验证的业务收益包装成确定结论。
+> 5W 默认采用丰田自身推荐的根因分析思考模型（三层面追问框架）：先确认问题陈述是事实，再逐层追问"为什么"直到体系层，最后用"因此"检验根本原因并落实可行动对策。
 
 **模式**（各画布共用；具体字段由对应 Skill 定义）：
 
@@ -174,6 +176,22 @@ V2C VAC 用于审查一个具体业务场景中，AI-enabled Capability 是否�
 
 V2C VAC Gate 使用 `V2C-GATE-01..12`。只有 `business_risk` 类 Gate FAIL 可由用户显式 override；`information_integrity` FAIL 必须补问或修订。override 审计项的 `assessment_id` 必须使用 `V2C-GATE-*`，不能使用 `V2C-AGxx`。
 
+### 4.8 5W 根因分析画布（多 instance 画布）
+
+5W（Five Whys）用于对一个**问题陈述**做根因分析，默认采用丰田自身推荐的思考模型（三层面追问框架）。它不是头脑风暴工具，而是约束性追问工具：每个"Why"必须基于事实回答，根本原因必须通过"因此"检验，对策必须可行动、可验证。
+
+| 环节 | 说明 |
+|---|---|
+| 问题陈述 | 必须是事实（时间 / 地点 / 现象 / 影响），不是结论或个人归因 |
+| 五层因果链 | 制造层 Why 1-2（为什么会发生）→ 检验层 Why 3-4（为什么没发现）→ 体系层 Why 5（为什么没预防） |
+| 根本原因 | 用"因此"检验三连问确认因果链成立 |
+| 对策四要素 | 对策 / 负责人 / 截止日期 / 验证方式，缺一不可 |
+| 其他原因分支 | 非主链原因单独记录，不强行并入五层链 |
+
+每个 instance 对应一个问题（`instance_slug`，kebab-case，拒绝 `default`）。产物：`5W-{slug}-keypoints.md`（6 节 Key Points）→ `5W-{slug}-v{N}.md`（17 节确认包，唯一事实源）→ `5W-{slug}-gate-report-v{N}.md` → `5w-canvas-{slug}.html`（A3 横版，1-5 卡片横向并排 + 三层面标注）。
+
+5W Gate 使用 `5W-GATE-01..07`：`5W-GATE-01~04`（事实陈述 / 五层有内容 / 证据 / 无个人归因）为 `information_integrity`，不可 override；`5W-GATE-05~07`（"因此"检验 / 根因可行动 + 对策四要素 / 预防性回应）为 `business_risk`，可由用户显式 override（`assessment_id` 必须为 `5W-GATE-*`）。
+
 ## 5. 常用指令速查
 
 按使用阶段组织。完整指令集见 `agents/pratyaya.md` 的指令卡章节。
@@ -182,7 +200,7 @@ V2C VAC Gate 使用 `V2C-GATE-01..12`。只有 `business_risk` 类 Gate FAIL 可
 
 - "开始 A 引导模式，项目名中软国际 Power 商机评估，项目短名 zhongruan-power，组号 group-a，议题短名 opportunity-evaluation，议题显示名商机评估"
 - "开始 B 转写模式"
-- "开始黄金圈画布" / "开始 HMW 画布" / "开始用户画像画布" / "开始用户旅程画布" / "开始 V2C VAC"
+- "开始黄金圈画布" / "开始 HMW 画布" / "开始用户画像画布" / "开始用户旅程画布" / "开始 V2C VAC" / "开始 5W 画布"
 - "检查本组所有 topic" / "本组议题进度"（读取 group 级 manifest，按 topic 汇总）
 - "检查所有组状态" / "跨组对比"（读取项目级 manifest，按 group × topic 汇总）
 - "切换 topic"（切换到当前组下另一个议题，不复制状态；目标不存在时进入初始化）
@@ -223,6 +241,13 @@ V2C VAC Gate 使用 `V2C-GATE-01..12`。只有 `business_risk` 类 Gate FAIL 可
 - "开始 V2C VAC pipeline，先做 scenario 阶段"
 - "V2C VAC 提炼" / "V2C VAC 补问" / "V2C VAC 先看个样子" / "V2C VAC 确认 v1"
 - "V2C VAC override（已阅读 V2C-GATE-09 的影响）" / "生成 V2C VAC 画布" / "V2C VAC 状态"
+
+**5W 阶段**：
+
+- "开始 5W 画布，instance qc-issue，问题陈述：XX 批次产品检验漏检率上升"
+- "5W 转写" / "5W 提炼" / "5W 补问" / "5W 先看个样子" / "5W 确认 v1"
+- "5W override（已阅读 5W-GATE-06 的影响）" / "生成 5W 画布" / "5W 状态"
+- "5W 门禁" / "5W 质量检查"（重跑 `5w-gate` 评估当前确认包）
 
 ### Journey 画布迁移边界（v2.3.2 PATCH 起）
 
@@ -301,8 +326,8 @@ V2C VAC Gate 使用 `V2C-GATE-01..12`。只有 `business_risk` 类 Gate FAIL 可
 
 | 特征 | 草稿 Canvas | 正式 Canvas |
 |---|---|---|
-| 顶部字样 | 草稿 / 未确认 / 禁止用于管理层决策 | 画布名 + 版本号（MVL Canvas / Golden Circle / HMW Canvas / Persona Canvas / Journey Canvas / V2C Value Attribution Canvas） |
-| 数据源 | 对应 Key Points 或阶段草稿（非确认包） | 对应确认包（`Mx-v{N}.md` / `GC-{slug}-v{N}.md` / `HMW-{slug}-v{N}.md` / `PERSONA-{slug}-v{N}.md` / `JOURNEY-{slug}-v{N}.md` / `MAAU-{slug}-v{N}.md` / `V2C-VAC-{slug}-v{N}.md`） |
+| 顶部字样 | 草稿 / 未确认 / 禁止用于管理层决策 | 画布名 + 版本号（MVL Canvas / Golden Circle / HMW Canvas / Persona Canvas / Journey Canvas / V2C Value Attribution Canvas / 5W Canvas） |
+| 数据源 | 对应 Key Points 或阶段草稿（非确认包） | 对应确认包（`Mx-v{N}.md` / `GC-{slug}-v{N}.md` / `HMW-{slug}-v{N}.md` / `PERSONA-{slug}-v{N}.md` / `JOURNEY-{slug}-v{N}.md` / `MAAU-{slug}-v{N}.md` / `V2C-VAC-{slug}-v{N}.md` / `5W-{slug}-v{N}.md`） |
 | 视觉来源 | 用户选定的 `visual-patterns/NN-{id}.md` | 用户选定的 `visual-patterns/NN-{id}.md` |
 | 视觉系统 | 用户选定 | 用户选定 |
 | 状态变化 | 不改变画布状态 | 画布状态改为 `rendered` |

@@ -8,7 +8,9 @@ from pathlib import Path
 from typing import cast
 
 from .audit_models import (
-    AUTH_FIELDS, DEFAULT_CONTRACT, GC_CONTRACT, GC_MAIN_IDS, GLOBAL_MAIN_IDS, HMW_ANCHORS, HMW_CONTRACT,
+    AUTH_FIELDS, DEFAULT_CONTRACT, FIVE_WHYS_ANCHORS, FIVE_WHYS_CONTRACT, FIVE_WHYS_MAIN_IDS,
+    FIVE_WHYS_TPL_GOVERN_IDS, FIVE_WHYS_TPL_MAIN_IDS, FIVE_WHYS_TPL_STABLE_ANCHORS, GC_CONTRACT,
+    GC_MAIN_IDS, GLOBAL_MAIN_IDS, HMW_ANCHORS, HMW_CONTRACT,
     HMW_MAIN_IDS, HMW_TPL_GOVERN_IDS, HMW_TPL_MAIN_IDS, HMW_TPL_STABLE_ANCHORS, INSTANCE_STATE_KEYS,
     JOURNEY_ANCHORS, JOURNEY_CONTRACT, JOURNEY_MAIN_IDS, JOURNEY_TEMPLATE, JOURNEY_TPL_MAIN_IDS,
     MODULE_MAIN_IDS, PERSONA_CONTRACT, PERSONA_MAIN_IDS, PERSONA_STABLE_ANCHORS, PERSONA_TPL_GOVERN_IDS,
@@ -16,15 +18,18 @@ from .audit_models import (
     Finding, JsonDict,
 )
 from .audit_helpers import (
-    audit_hmw_content_mapping, audit_index_page, audit_maau_transcript_direct, audit_persona_content_mapping,
-    audit_v2c_vac_identity, audit_v2c_vac_override, audit_workflow_flow, expected_in_order, gc_source_identity,
+    audit_5w_content_mapping, audit_5w_override, audit_hmw_content_mapping, audit_index_page,
+    audit_maau_transcript_direct,
+    audit_persona_content_mapping, audit_v2c_vac_identity, audit_v2c_vac_override, audit_workflow_flow,
+    expected_in_order, five_whys_source_identity, gc_source_identity,
     hmw_source_identity, journey_source_identity, load_contract_anchor_orders, load_gc_anchor_orders, load_json,
     maau_source_identity, normalize_version, parse_html, persona_source_identity, select_instance_state,
     select_maau_instance_state, source_identity, v2c_vac_source_identity,
 )
 from .audit_template_gates import (
     audit_journey_dynamic_structure, audit_journey_template_gate, audit_template_gate, element_is_hidden,
-    load_hmw_template_profile, load_journey_template_profile, load_persona_template_profile, load_v2c_vac_template_profile,
+    load_5w_template_profile, load_hmw_template_profile, load_journey_template_profile,
+    load_persona_template_profile, load_v2c_vac_template_profile,
     stylesheet_hides_element,
 )
 
@@ -45,6 +50,7 @@ def audit(
     is_journey = canvas_type == "journey"
     is_persona = canvas_type == "persona"
     is_v2c_vac = canvas_type == "v2c-vac"
+    is_5w = canvas_type == "5w"
     # MAAU transcript-direct：mvl + global + 显式 --instance 即判定为一次性综合实例页
     is_maau = canvas_type == "mvl" and instance_slug is not None and not index
     findings: list[Finding] = []
@@ -53,6 +59,7 @@ def audit(
     hmw_anchors: list[str] = []
     persona_anchors: list[str] = []
     v2c_vac_anchors: list[str] = []
+    five_whys_anchors: list[str] = []
     if is_gc:
         try:
             gc_anchors = load_gc_anchor_orders(contract_path)
@@ -74,6 +81,9 @@ def audit(
     elif is_v2c_vac:
         profile = load_v2c_vac_template_profile(contract_path)
         v2c_vac_anchors = profile.get("stable_anchors") or list(V2C_VAC_ANCHORS)
+    elif is_5w:
+        profile = load_5w_template_profile(contract_path)
+        five_whys_anchors = profile.get("stable_anchors") or list(FIVE_WHYS_ANCHORS)
     else:
         try:
             orders = load_contract_anchor_orders(contract_path)
@@ -106,6 +116,8 @@ def audit(
         valid_types = {"persona"}
     elif is_v2c_vac:
         valid_types = {"v2c-vac"}
+    elif is_5w:
+        valid_types = {"5w"}
     else:
         valid_types = {"module-detail", "global"}
     if page_type not in valid_types:
@@ -130,7 +142,7 @@ def audit(
             )
 
     required: list[str] = list(SHARED_IDS)
-    if is_gc or is_hmw or is_journey or is_persona or is_v2c_vac:
+    if is_gc or is_hmw or is_journey or is_persona or is_v2c_vac or is_5w:
         if is_gc:
             required.extend(GC_MAIN_IDS)
         elif is_hmw:
@@ -139,6 +151,8 @@ def audit(
             required.extend(JOURNEY_MAIN_IDS)
         elif is_v2c_vac:
             required.extend(V2C_VAC_MAIN_IDS)
+        elif is_5w:
+            required.extend(FIVE_WHYS_MAIN_IDS)
         else:
             required.extend(PERSONA_MAIN_IDS)
         # 单画布契约无 alignment-section（MVL 专属），审计不要求
@@ -187,6 +201,13 @@ def audit(
         if anchor_missing:
             findings.append(
                 Finding("MISSING_ANCHOR", f"V2C VAC missing anchors: {', '.join(anchor_missing)}")
+            )
+    elif is_5w:
+        expected_anchors = list(five_whys_anchors)
+        anchor_missing = [anchor for anchor in expected_anchors if counts[anchor] == 0]
+        if anchor_missing:
+            findings.append(
+                Finding("MISSING_ANCHOR", f"5W missing anchors: {', '.join(anchor_missing)}")
             )
     elif page_type == "module-detail":
         if module not in orders:
@@ -249,6 +270,10 @@ def audit(
             findings.append(
                 Finding("CANVAS_TYPE", f"canvas-data.canvas_type must be 'v2c-vac', got {canvas_data.get('canvas_type')!r}")
             )
+        if is_5w and canvas_data.get("canvas_type") != "5w":
+            findings.append(
+                Finding("CANVAS_TYPE", f"canvas-data.canvas_type must be '5w', got {canvas_data.get('canvas_type')!r}")
+            )
         if canvas_type in INSTANCE_STATE_KEYS and instance_slug is not None:
             data_instance = canvas_data.get("instance") or canvas_data.get("instance_slug")
             if data_instance != instance_slug:
@@ -256,13 +281,16 @@ def audit(
                     Finding("INSTANCE", f"canvas-data instance={data_instance!r} must match --instance {instance_slug!r}")
                 )
         sections = canvas_data.get("sections")
-        if expected_anchors and isinstance(sections, dict) and not is_v2c_vac:
-            section_missing = [anchor for anchor in expected_anchors if anchor not in sections]
+        # 5W 的 expected_anchors 含治理锚点（quality-panel 等，来自模板 profile），
+        # 但 canvas-data.sections 仅映射业务内容锚点，故 sections 检查以 FIVE_WHYS_ANCHORS 为基准。
+        sections_anchor_base = FIVE_WHYS_ANCHORS if is_5w else expected_anchors
+        if sections_anchor_base and isinstance(sections, dict) and not is_v2c_vac:
+            section_missing = [anchor for anchor in sections_anchor_base if anchor not in sections]
             if section_missing:
                 findings.append(
                     Finding("SECTION_DATA", f"canvas-data.sections missing: {', '.join(section_missing)}")
                 )
-        elif expected_anchors and not isinstance(sections, dict):
+        elif sections_anchor_base and not isinstance(sections, dict):
             findings.append(Finding("SECTION_DATA", "canvas-data.sections must be an object"))
         if is_journey:
             findings.extend(audit_journey_dynamic_structure(html, canvas_data, source_path))
@@ -283,6 +311,8 @@ def audit(
         if is_v2c_vac:
             findings.extend(audit_v2c_vac_identity(canvas_data, source_path))
             findings.extend(audit_v2c_vac_override(canvas_data))
+        if is_5w:
+            findings.extend(audit_5w_override(canvas_data))
         if page_type == "global":
             findings.extend(audit_workflow_flow(source, html, canvas_data, source_path))
 
@@ -317,6 +347,8 @@ def audit(
         caveat_page_types = {"persona"}
     elif is_v2c_vac:
         caveat_page_types = {"v2c-vac"}
+    elif is_5w:
+        caveat_page_types = {"5w"}
     else:
         caveat_page_types = {"module-detail"}
     if canvas_data is not None and page_type in caveat_page_types:
@@ -348,6 +380,18 @@ def audit(
                         f"{section_id} must be visible",
                     )
                 )
+    if is_5w:
+        for section_id in ("5w-rubric", "quality-panel"):
+            attrs = html.attrs_by_id.get(section_id, {})
+            if counts[section_id] and (
+                element_is_hidden(source, attrs) or stylesheet_hides_element(source, section_id)
+            ):
+                findings.append(
+                    Finding(
+                        "HIDDEN_SECTION",
+                        f"{section_id} must be visible",
+                    )
+                )
 
     if html.body_attrs.get("data-mode") == "draft":
         if "草稿" not in html.text or "未确认" not in html.text:
@@ -365,6 +409,8 @@ def audit(
                 source_module, source_version = persona_source_identity(source_path)
             elif is_v2c_vac:
                 source_module, source_version = v2c_vac_source_identity(source_path)
+            elif is_5w:
+                source_module, source_version = five_whys_source_identity(source_path)
             elif is_maau:
                 source_module, source_version = maau_source_identity(source_path)
             else:
@@ -401,6 +447,13 @@ def audit(
                             f"source slug={source_module!r} must match --instance {instance_slug!r}",
                         )
                     )
+                if is_5w and instance_slug is not None and source_module != instance_slug:
+                    findings.append(
+                        Finding(
+                            "5W_SOURCE_SLUG",
+                            f"source slug={source_module!r} must match --instance {instance_slug!r}",
+                        )
+                    )
                 if body_version and source_version != body_version:
                     findings.append(
                         Finding("SOURCE_VERSION", f"HTML={body_version!r}, source={source_version!r}")
@@ -429,6 +482,10 @@ def audit(
                 state_module = select_instance_state(state, "v2c-vac", instance_slug)
                 if not isinstance(state_module, dict):
                     raise ValueError("state.json has no v2c_vac instance record")
+            elif is_5w:
+                state_module = select_instance_state(state, "5w", instance_slug)
+                if not isinstance(state_module, dict):
+                    raise ValueError("state.json has no 5w instance record")
             elif is_maau:
                 state_module = select_maau_instance_state(state, instance_slug)
                 if not isinstance(state_module, dict):
@@ -505,6 +562,8 @@ def audit(
                     findings.extend(audit_hmw_content_mapping(html, source_path))
                 if is_persona and source_path is not None:
                     findings.extend(audit_persona_content_mapping(html, source_path))
+                if is_5w and source_path is not None:
+                    findings.extend(audit_5w_content_mapping(html, source_path))
 
     return findings
 
@@ -524,7 +583,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     _ = parser.add_argument(
         "--instance",
         dest="instance_slug",
-        help="non-MVL canvas instance slug; required with --state for gc/hmw/persona/journey",
+        help="non-MVL canvas instance slug; required with --state for gc/hmw/persona/journey/v2c-vac/5w",
     )
     _ = parser.add_argument(
         "--index",
@@ -534,14 +593,14 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     _ = parser.add_argument(
         "--type",
         dest="canvas_type",
-        choices=("mvl", "gc", "hmw", "persona", "journey", "v2c-vac"),
+        choices=("mvl", "gc", "hmw", "persona", "journey", "v2c-vac", "5w"),
         default="mvl",
-        help="canvas type: mvl (default), gc (golden circle), hmw, persona, journey or v2c-vac",
+        help="canvas type: mvl (default), gc (golden circle), hmw, persona, journey, v2c-vac or 5w",
     )
     _ = parser.add_argument(
         "--page-type",
         dest="page_type_arg",
-        choices=("global", "module-detail", "golden-circle-index", "hmw-index", "persona-index", "journey-index", "v2c-vac-index"),
+        choices=("global", "module-detail", "golden-circle-index", "hmw-index", "persona-index", "journey-index", "v2c-vac-index", "5w-index"),
         default=None,
         help="page type hint (MAAU transcript-direct 实例页必须传 global；非 MVL 索引页可传 {canvas_type}-index)",
     )
@@ -575,6 +634,8 @@ def main(argv: list[str] | None = None) -> int:
         contract_arg = PERSONA_CONTRACT
     elif canvas_type == "v2c-vac":
         contract_arg = V2C_VAC_CONTRACT
+    elif canvas_type == "5w":
+        contract_arg = FIVE_WHYS_CONTRACT
     else:
         contract_arg = DEFAULT_CONTRACT
     state_arg = cast("Path | None", args.state)
@@ -748,6 +809,46 @@ def main(argv: list[str] | None = None) -> int:
                     )
             except (OSError, UnicodeError) as exc:
                 template_findings.append(Finding("V2C-VAC-TPL-GATE-00", f"模板读取失败: {exc}"))
+    elif canvas_type == "5w":
+        if template_arg is None:
+            if source_arg is not None or state_arg is not None:
+                template_findings.append(
+                    Finding("5W-TPL-GATE-00", "5W 正式交付必须传入 --template 示例模板路径")
+                )
+        else:
+            try:
+                template_source, template = parse_html(template_arg)
+                profile = load_5w_template_profile(contract_arg)
+                if not profile["main_order"]:
+                    template_findings.append(
+                        Finding("5W-TPL-GATE-00", "render-contract-5w.md 模板 profile 无法解析")
+                    )
+                else:
+                    # 模板自审计
+                    template_findings.extend(
+                        audit_template_gate(
+                            template, template_source, template_arg, template, profile,
+                            gate_prefix="5W",
+                            check_ids=FIVE_WHYS_TPL_MAIN_IDS,
+                            check_stable_anchors=FIVE_WHYS_TPL_STABLE_ANCHORS,
+                            check_govern_ids=FIVE_WHYS_TPL_GOVERN_IDS,
+                            hidden_section_ids=("5w-rubric", "quality-panel"),
+                        )
+                    )
+                    # 成品 Template Gate
+                    html_source, html_snapshot = parse_html(html_arg)
+                    template_findings.extend(
+                        audit_template_gate(
+                            html_snapshot, html_source, html_arg, template, profile,
+                            gate_prefix="5W",
+                            check_ids=FIVE_WHYS_TPL_MAIN_IDS,
+                            check_stable_anchors=FIVE_WHYS_TPL_STABLE_ANCHORS,
+                            check_govern_ids=FIVE_WHYS_TPL_GOVERN_IDS,
+                            hidden_section_ids=("5w-rubric", "quality-panel"),
+                        )
+                    )
+            except (OSError, UnicodeError) as exc:
+                template_findings.append(Finding("5W-TPL-GATE-00", f"模板读取失败: {exc}"))
 
     content_fail = bool(findings)
     template_fail = bool(template_findings)

@@ -4,17 +4,17 @@
 
 ## 1. 决策
 
-**单专家 + 多 Skill**：一个 `pratyaya` 专家包，调度十三个 Skill（`mvl-distill` / `gc-distill` / `hmw-distill` / `persona-distill` / `journey-distill` / `maau-synthesize` / `module-conclusion-gate` / `gc-gate` / `hmw-gate` / `persona-gate` / `journey-gate` / `faq-answer` / `canvas-render`）完成工作流与支持问答。每个 Skill 内部用最简、确定的契约约束 LLM 行为。五类画布（MVL / 黄金圈 / HMW / 用户画像 / 用户旅程）共享同一治理语义；MAAU 一次性综合路径是 MVL 全局画布的**默认生成路径**（`generation_path=transcript-direct`），M1-M6 六模块管线为**分步备选路径**，不是新增画布类型；用户画像拥有独立提炼 Skill、门禁 Skill 与渲染契约，用户旅程拥有独立提炼 Skill、门禁 Skill 与渲染契约。`faq-answer` 是支持型 Skill，只回答使用、状态和异常解释问题，不进入画布状态机，不新增 Gate 或渲染契约。
+**单专家 + 多 Skill**：一个 `pratyaya` 专家包，调度十七个 Skill（`mvl-distill` / `gc-distill` / `hmw-distill` / `persona-distill` / `journey-distill` / `v2c-vac-distill` / `5w-distill` / `maau-synthesize` / `module-conclusion-gate` / `gc-gate` / `hmw-gate` / `persona-gate` / `journey-gate` / `v2c-vac-gate` / `5w-gate` / `faq-answer` / `canvas-render`）完成工作流与支持问答。每个 Skill 内部用最简、确定的契约约束 LLM 行为。七类画布（MVL / 黄金圈 / HMW / 用户画像 / 用户旅程 / V2C VAC / 5W）共享同一治理语义；MAAU 一次性综合路径是 MVL 全局画布的**默认生成路径**（`generation_path=transcript-direct`），M1-M6 六模块管线为**分步备选路径**，不是新增画布类型；用户画像拥有独立提炼 Skill、门禁 Skill 与渲染契约，用户旅程拥有独立提炼 Skill、门禁 Skill 与渲染契约，V2C VAC 拥有独立提炼 Skill、门禁 Skill 与渲染契约，5W 拥有独立提炼 Skill（`5w-distill`）、门禁 Skill（`5w-gate`）与渲染契约（`render-contract-5w.md`）。`faq-answer` 是支持型 Skill，只回答使用、状态和异常解释问题，不进入画布状态机，不新增 Gate 或渲染契约。
 
 **人仍是最终决策者**：Skill 之间通过显式的确认包（v{N}.md）交付，每一步可被工作坊组织者审阅和回退。
 
-**画布类型路由**：主 Agent 在步骤 -1 判定画布类型（MVL / 黄金圈 / HMW / Persona / Journey / MAAU 一次性综合），加载对应框架与确认包命名空间，各画布互不串扰（详见 [agents/pratyaya.md](./agents/pratyaya.md)）。
+**画布类型路由**：主 Agent 在步骤 -1 判定画布类型（MVL / 黄金圈 / HMW / Persona / Journey / V2C VAC / 5W / MAAU 一次性综合），加载对应框架与确认包命名空间，各画布互不串扰（详见 [agents/pratyaya.md](./agents/pratyaya.md)）。
 
 **MVL Gate 表格格式**：M1-M6 Gate 策略文件正式采用 5 列精简版（`ID / 条件 / 分类 / 风险等级 / 来源`）。8 列详版（`ID / 检查项 / 结果 / 分类 / 风险等级 / 来源 ID / 影响 / 建议`）仅作为历史兼容格式；新增或维护 M1-M6 Gate 时优先使用 5 列精简版。
 
 ## 2. 北极星目标
 
-- 一份能被生产团队复用的结论资产：MVL 覆盖目标、用户、Agent Team、Workflow、Context、Validation 六角度；黄金圈覆盖 WHY/HOW/WHAT 三层；HMW 覆盖问题陈述四字段与想法种子；Journey 覆盖动态阶段、痛点与机会和质量鉴别
+- 一份能被生产团队复用的结论资产：MVL 覆盖目标、用户、Agent Team、Workflow、Context、Validation 六角度；黄金圈覆盖 WHY/HOW/WHAT 三层；HMW 覆盖问题陈述四字段与想法种子；Journey 覆盖动态阶段、痛点与机会和质量鉴别；5W 覆盖问题陈述、五层因果链、根本原因与对策四要素
 - 同一份资产同时支撑：模块化智能体画布、对外汇报、长期复盘
 - 一类画布输出同一套治理语义：版本化确认包 + Gate 建议 + 用户授权 + 可审计渲染
 
@@ -35,9 +35,9 @@
 四层流水线（画布类型决定分析层与治理层的具体 Skill）：
 
 - **原始材料层** — 转写稿、上下文快照、用户输入
-- **分析层**（mvl-distill / gc-distill / hmw-distill / persona-distill / journey-distill / maau-synthesize【默认综合提炼】） — Key Points 概览（MVL：`Mx-keypoints.md`；非 MVL：`{GC|HMW|PERSONA|JOURNEY}-{slug}-keypoints.md`）+ 确认包（MVL：`Mx-v{N}.md`；非 MVL：`{GC|HMW|PERSONA|JOURNEY}-{slug}-v{N}.md`；MAAU：`MAAU-{slug}-v{N}.md`）+ 缺口 + 推断
-- **治理层**（module-conclusion-gate / gc-gate / hmw-gate / persona-gate / journey-gate） — LLM Gate 评估（输出 `gate_recommendation` + `override_eligible` 建议，**不**写最终授权）+ 用户决策（主 Agent 写入 `render_authorized` + `confirmation_mode` + `override_audit`）；MAAU 路径使用 `module-conclusion-gate` 的 `references/MAAU-gate.md`（`MAAU-GATE-*` 独立 ID 空间）
-- **展示层**（canvas-render） — 模块 Canvas / 黄金圈 Canvas / HMW Canvas / Persona Canvas / Journey Canvas + 全局 Canvas + MAAU transcript-direct 实例页（`maau-global-canvas-{slug}.html`，只读 MAAU 源包）+ 管理层报告
+- **分析层**（mvl-distill / gc-distill / hmw-distill / persona-distill / journey-distill / v2c-vac-distill / 5w-distill / maau-synthesize【默认综合提炼】） — Key Points 概览（MVL：`Mx-keypoints.md`；非 MVL：`{GC|HMW|PERSONA|JOURNEY|V2C-VAC|5W}-{slug}-keypoints.md`）+ 确认包（MVL：`Mx-v{N}.md`；非 MVL：`{GC|HMW|PERSONA|JOURNEY|V2C-VAC|5W}-{slug}-v{N}.md`；MAAU：`MAAU-{slug}-v{N}.md`）+ 缺口 + 推断
+- **治理层**（module-conclusion-gate / gc-gate / hmw-gate / persona-gate / journey-gate / v2c-vac-gate / 5w-gate） — LLM Gate 评估（输出 `gate_recommendation` + `override_eligible` 建议，**不**写最终授权）+ 用户决策（主 Agent 写入 `render_authorized` + `confirmation_mode` + `override_audit`）；MAAU 路径使用 `module-conclusion-gate` 的 `references/MAAU-gate.md`（`MAAU-GATE-*` 独立 ID 空间）
+- **展示层**（canvas-render） — 模块 Canvas / 黄金圈 Canvas / HMW Canvas / Persona Canvas / Journey Canvas / V2C VAC Canvas / 5W Canvas + 全局 Canvas + MAAU transcript-direct 实例页（`maau-global-canvas-{slug}.html`，只读 MAAU 源包）+ 管理层报告
 - **支持问答层**（faq-answer） — 使用说明、当前 group 状态解释、Gate / override / 渲染异常说明与下一步建议；只读，不写业务产物
 
 ## 5. 数据源与视觉模式
@@ -53,11 +53,11 @@
 
 | 资产 | 路径 | 角色 |
 |---|---|---|
-| 确认包（唯一事实源） | `workshop/{project_slug}/{group_id}/{topic_slug}/modules/Mx-v{N}.md` / `{GC|HMW|PERSONA|JOURNEY}-{slug}-v{N}.md` / `MAAU-{slug}-v{N}.md` | 正式 Canvas 渲染依据（画布类型和 instance slug 对应命名空间；MAAU 为一次性综合源包） |
-| Key Points 概览 | `workshop/{project_slug}/{group_id}/{topic_slug}/modules/Mx-keypoints.md` / `{GC|HMW|PERSONA|JOURNEY}-{slug}-keypoints.md` | 草稿 Canvas 数据源（不进入正式流程） |
-| Gate 评估产物 | `skills/{module-conclusion-gate,gc-gate,hmw-gate,persona-gate,journey-gate}/references/*-gate.md`（MAAU 用 `references/MAAU-gate.md`） | LLM 输出 Markdown 判定报告，含 `gate_recommendation`（pass/fail/pending）+ `override_eligible`（true/false）；最终授权由用户在主 Agent 写入 `render_authorized` 与 `confirmation_mode` |
+| 确认包（唯一事实源） | `workshop/{project_slug}/{group_id}/{topic_slug}/modules/Mx-v{N}.md` / `{GC|HMW|PERSONA|JOURNEY|V2C-VAC|5W}-{slug}-v{N}.md` / `MAAU-{slug}-v{N}.md` | 正式 Canvas 渲染依据（画布类型和 instance slug 对应命名空间；MAAU 为一次性综合源包） |
+| Key Points 概览 | `workshop/{project_slug}/{group_id}/{topic_slug}/modules/Mx-keypoints.md` / `{GC|HMW|PERSONA|JOURNEY|V2C-VAC|5W}-{slug}-keypoints.md` | 草稿 Canvas 数据源（不进入正式流程） |
+| Gate 评估产物 | `skills/{module-conclusion-gate,gc-gate,hmw-gate,persona-gate,journey-gate,v2c-vac-gate,5w-gate}/references/*-gate.md`（MAAU 用 `references/MAAU-gate.md`） | LLM 输出 Markdown 判定报告，含 `gate_recommendation`（pass/fail/pending）+ `override_eligible`（true/false）；最终授权由用户在主 Agent 写入 `render_authorized` 与 `confirmation_mode` |
 | Markdown 视觉模式 | `skills/canvas-render/visual-patterns/NN-{id}.md` | 10 个可扫描模式；frontmatter 用于推荐，六节正文定义色板、字体、网格、组件及边界 |
-| HTML 静态审计 | `skills/canvas-render/scripts/audit_canvas_html.py` | 直接读取渲染契约，确定性检查结构、稳定锚点顺序、版本/授权、离线与 caveat 约束；HMW 与 Journey 采用**双 Gate 模型**（内容/授权 Gate + Template Gate，见 §12 / §13） |
+| HTML 静态审计 | `skills/canvas-render/scripts/audit_canvas_html.py` | 直接读取渲染契约，确定性检查结构、稳定锚点顺序、版本/授权、离线与 caveat 约束；HMW / Journey / V2C VAC / 5W 采用**双 Gate 模型**（内容/授权 Gate + Template Gate，见 §12 / §13） |
 | Schema（非强制参考） | `schemas/*.schema.json` | 详见 [schemas/README.md](./schemas/README.md) |
 | group 级汇总 | `workshop/{project_slug}/{group_id}/manifest.json` | 从当前 group 各 topic 的 `state.json` 派生的缓存视图；可重建，不是业务真相源 |
 | 项目级汇总 | `workshop/{project_slug}/manifest.json` | 从各 `{group_id}/{topic_slug}/state.json` 派生的 groups + topics 嵌套缓存视图；可重建，不是业务真相源 |
@@ -66,9 +66,9 @@
 
 ## 6. 核心数据资产
 
-- **画布记录**：以确认包 Markdown 形式存储（MVL：`Mx-v{N}.md`；非 MVL：`{GC|HMW|PERSONA|JOURNEY}-{slug}-v{N}.md`），含业务内容节（MVL 第 1–11 节 / GC 第 6a 跨层一致性 / HMW 第 6a 质量鉴别、6b 想法种子、6c 想法↔HMW 对应 / Persona 9 基本信息 + 6 宫格 + 4 质量鉴别 / Journey 第 6 节阶段地图、6a 质量鉴别、6b 痛点与机会）+ 第 12 节"Gate 与用户决策"治理元数据，以及业务 5 字段（conclusions / gaps / inferences / alignment / evidence）+ 治理 4 字段（gate_recommendation / render_authorized / confirmation_mode / override_audit）
-- **Schema**：`schemas/state.schema.json`（v2.3，非强制参考，详见 [schemas/README.md](./schemas/README.md)）；实际数据源为各画布确认包 Markdown
-- **工作坊状态**：以 `workshop/{project_slug}/{group_id}/{topic_slug}/state.json` 形式存储，MVL 使用 `modules.M1`-`M6` 固定模块记录；非 MVL 使用 `golden_circle.{slug}` / `hmw.{slug}` / `persona.{slug}` / `journey.{slug}` instance map；MAAU 一次性综合（**默认路径**）使用 `maau.{slug}` instance map（`generation_path=transcript-direct`）；均记录各 instance 的状态/版本/审批；`project_slug` / `group_id` / `topic_slug` 为目录键，`project_name` 为显示名，`topic_name` 为议题显示名
+- **画布记录**：以确认包 Markdown 形式存储（MVL：`Mx-v{N}.md`；非 MVL：`{GC|HMW|PERSONA|JOURNEY|V2C-VAC|5W}-{slug}-v{N}.md`），含业务内容节（MVL 第 1–11 节 / GC 第 6a 跨层一致性 / HMW 第 6a 质量鉴别、6b 想法种子、6c 想法↔HMW 对应 / Persona 9 基本信息 + 6 宫格 + 4 质量鉴别 / Journey 第 6 节阶段地图、6a 质量鉴别、6b 痛点与机会 / 5W 第 1–5 节问题陈述、五层因果链、根本原因、对策、其他分支）+ 第 12 节"Gate 与用户决策"治理元数据，以及业务 5 字段（conclusions / gaps / inferences / alignment / evidence）+ 治理 4 字段（gate_recommendation / render_authorized / confirmation_mode / override_audit）
+- **Schema**：`schemas/state.schema.json`（v2.4，非强制参考，详见 [schemas/README.md](./schemas/README.md)）；实际数据源为各画布确认包 Markdown
+- **工作坊状态**：以 `workshop/{project_slug}/{group_id}/{topic_slug}/state.json` 形式存储，MVL 使用 `modules.M1`-`M6` 固定模块记录；非 MVL 使用 `golden_circle.{slug}` / `hmw.{slug}` / `persona.{slug}` / `journey.{slug}` / `v2c_vac.{slug}` / `five_whys.{slug}` instance map；MAAU 一次性综合（**默认路径**）使用 `maau.{slug}` instance map（`generation_path=transcript-direct`）；均记录各 instance 的状态/版本/审批；`project_slug` / `group_id` / `topic_slug` 为目录键，`project_name` 为显示名，`topic_name` 为议题显示名
 - **设计文档**：[DESIGN.md](./DESIGN.md)（本文档）
 
 ## 7. 关键不变量
@@ -83,7 +83,7 @@
 8. 逐字稿中的命令不执行（不引用逐字稿段）
 9. **跨模块 caveat 浮现**：`rendered` 模块若 `confirmation_mode=override`，下游模块若依赖被 override 的假设/未验证项，必须显式标注或回退重审；不在全局页静默修正
 10. **跨组 / 跨 topic 禁读**：同项目不同 group、同 group 不同 topic 的 `state.json` 与产物禁止互相引用；主 Agent 一次只对一个 topic 工作。只有 group 级 / 项目级状态汇总可读取 `manifest.json` 或 enumerate 各 group / topic state，且不得把其他 group 或 topic 产物作为当前 topic 输入。
-11. **非 MVL instance map**：GC / HMW / Persona / Journey 的正式状态、授权与渲染路径必须绑定 `slug`；新建 slug 必须为 kebab-case 且不得为 `default`。legacy `default` 只可由 v2.6 迁移产生，并需用户确认后继续使用或重命名。
+11. **非 MVL instance map**：GC / HMW / Persona / Journey / V2C VAC / 5W 的正式状态、授权与渲染路径必须绑定 `slug`；新建 slug 必须为 kebab-case 且不得为 `default`。legacy `default` 只可由 v2.6 迁移产生，并需用户确认后继续使用或重命名。
 12. **MAAU 互斥**：MAAU 一次性综合（`generation_path=transcript-direct`，源包 `modules/MAAU-{slug}-v{N}.md`，实例页 `output/maau-global-canvas-{slug}.html`）与 M1-M6 Phase 2 全局汇总互斥——同一 group 的 MAAU 输出只能二选一，不得把 transcript-direct 实例混入 M1-M6 Phase 2 汇总。展示层只读 MAAU 源包（`modules/MAAU-{slug}-v{N}.md`），不得直接读转写渲染；不伪造 M1-M6 模块详情下钻。**MAAU 一次性综合为默认路径，互斥语义不受默认/备选语境影响（保持不变）。**
 
 ## 8. 为什么保留 HTML 草稿
@@ -105,7 +105,7 @@
 
 ## 10. 当前状态机
 
-5 态转换（MVL 模块级 / 黄金圈、HMW 与 Journey 画布级共用）：
+5 态转换（MVL 模块级 / 黄金圈、HMW、Journey、Persona、V2C VAC 与 5W 画布级共用）：
 
 ```mermaid
 stateDiagram-v2
@@ -125,16 +125,16 @@ stateDiagram-v2
 
 ### 已实现
 
-- 单专家调度十三个 Skill（`mvl-distill` / `gc-distill` / `hmw-distill` / `persona-distill` / `journey-distill` / `maau-synthesize` / `module-conclusion-gate` / `gc-gate` / `hmw-gate` / `persona-gate` / `journey-gate` / `faq-answer` / `canvas-render`）
+- 单专家调度十七个 Skill（`mvl-distill` / `gc-distill` / `hmw-distill` / `persona-distill` / `journey-distill` / `v2c-vac-distill` / `5w-distill` / `maau-synthesize` / `module-conclusion-gate` / `gc-gate` / `hmw-gate` / `persona-gate` / `journey-gate` / `v2c-vac-gate` / `5w-gate` / `faq-answer` / `canvas-render`）
 - **MAAU 一次性综合路径**：`maau-synthesize` 把一次性逐字稿综合为 MVL 全局画布六板块源包（`MAAU-{slug}-v{N}.md`），走 `MAAU-GATE-01~09` 独立闸门 ID 空间，渲染为 `maau-global-canvas-{slug}.html`；与 M1-M6 Phase 2 全局汇总互斥
 - **FAQ Q/A 支持能力**：`faq-answer` 解释使用、当前 group 状态、Gate / override / 渲染异常与下一步；不进入画布状态机，不新增 `state.faq`，不新增渲染契约
-- **五状态画布生命周期**（`draft → gaps_open ↔ review_ready → confirmed → rendered`），五类画布共用
-- 模块和全局质量策略（MVL）与单画布质量策略（黄金圈 / HMW / Persona / Journey）
+- **五状态画布生命周期**（`draft → gaps_open ↔ review_ready → confirmed → rendered`），七类画布共用
+- 模块和全局质量策略（MVL）与单画布质量策略（黄金圈 / HMW / Persona / Journey / V2C VAC / 5W）
 - JSON Schema（当前标注为非强制参考，详见 [schemas/README.md](./schemas/README.md)）
-- **LLM 评估闸门**（输出 Markdown 判定报告 `skills/{mvl-conclusion-gate,gc-gate,hmw-gate,persona-gate,journey-gate}/references/*-gate.md`）
-- 本地离线 HTML 的渲染契约（MVL / GC / HMW / Persona / Journey 五份）
+- **LLM 评估闸门**（输出 Markdown 判定报告 `skills/{mvl-conclusion-gate,gc-gate,hmw-gate,persona-gate,journey-gate,v2c-vac-gate,5w-gate}/references/*-gate.md`）
+- 本地离线 HTML 的渲染契约（MVL / GC / HMW / Persona / Journey / V2C VAC / 5W 七份）
 - **HMW 双 Gate 审计**：`audit_canvas_html.py --type hmw --template ...`，内容/授权 Gate + Template Gate（详见 [DEVELOPMENT.md](./DEVELOPMENT.md) §3.1 与 [render-contract-hmw.md](./skills/canvas-render/references/render-contract-hmw.md)）
-- **一等公民示例模板**：`skills/canvas-render/examples/`（persona / gc / hmw / journey + 共享主题），作为渲染版面的视觉参照
+- **一等公民示例模板**：`skills/canvas-render/examples/`（persona / gc / hmw / journey / v2c-vac / 5w + 共享主题），作为渲染版面的视觉参照
 
 ### 仍需验证
 
@@ -216,7 +216,57 @@ python3 skills/canvas-render/scripts/audit_canvas_html.py output/journey-canvas-
   --instance {slug} \
   --template skills/canvas-render/examples/user-journey-canvas.html
 ```
-状态机与第 10 节共用 5 态；`state.json` 使用 `hmw` 区块（v2.3 schema，可选）。渲染契约要求的一级模块顺序、稳定锚点集合、占位语义（`data-state="placeholder"`）与四态隐藏检测规则，见 [render-contract-hmw.md](./skills/canvas-render/references/render-contract-hmw.md)。
+状态机与第 10 节共用 5 态；`state.json` 使用 `journey` 区块（v2.4 schema，可选）。渲染契约要求的一级模块顺序、稳定锚点集合、占位语义（`data-state="placeholder"`）与四态隐藏检测规则，见 [render-contract-journey.md](./skills/canvas-render/references/render-contract-journey.md)。
+
+---
+
+## 14. 丰田 5W 画布（三层面追问框架 + 双 Gate 模型）
+
+5W（Five Whys，根因分析）是**独立的一等公民画布**，与 GC / HMW / V2C VAC 对称：拥有自己的 `5w-distill` / `5w-gate` / `render-contract-5w.md`，可被任何项目单独使用。默认采用**丰田自身推荐的 5W 根因分析思考模型**（三层面追问框架：制造层 Why 1-2 → 检验层 Why 3-4 → 体系层 Why 5），不提供其他思考模型切换。
+
+### 14.1 数据源边界
+
+- 唯一事实源：`modules/5W-{slug}-v{N}.md`（17 节确认包，含 Gate 与用户决策记录）。
+- Key Points：`modules/5W-{slug}-keypoints.md`（固定 6 节，仅作讨论地图与草稿数据源，不进入正式渲染）。
+- 补问清单：`modules/5W-{slug}-gaps.md`。
+- Gate 报告：`modules/5W-{slug}-gate-report-v{N}.md`。
+- 版面原型：`internal/pratyaya-internal/docs/refs/canvas-templates/06-5W画布.html`（离线工作表，双产物模型，不走 audit 门禁）；契约化示例 `skills/canvas-render/examples/5w-canvas.html`（Template Gate 比对基准）。
+- 机器标识三套分离（防数字开头歧义）：文件前缀 / Gate ID `5W-`、`canvas_type` / 锚点前缀 `5w`、state 键 `five_whys`；Python 代码常量用 `FIVE_WHYS_*`。
+
+### 14.2 正式数据契约
+
+正式 5W 确认包为 `modules/5W-{slug}-v{N}.md`。固定 section：
+
+1. 问题陈述（事实而非结论）2. 五层因果链（Why 1-5）3. 根本原因 4. 对策与行动 5. 其他原因分支 6-14. 确认包固定 section（Gate 与用户决策等）。
+
+三层面追问框架与五层锚点（`5w-why-1` ~ `5w-why-5`）**必须全部存在**；层数弹性（少于 5 层）暂不支持，每层内容或缺口标注必须来自确认包。
+
+### 14.3 Gate 与 override
+
+5W Gate 共 7 条稳定条件（`5W-GATE-01~07`）：
+
+- `5W-GATE-01~04`（问题陈述是事实 / Why 1-5 有内容或标缺口 / 每层附证据 / 无个人归因）：分类为 `information_integrity`，**不可 override**。
+- `5W-GATE-05~07`（"因此"检验 / 根因可行动 + 对策四要素 / 预防性回应）：分类为 `business_risk`，可由用户显式接受风险后 override（`assessment_id` 必须为 `5W-GATE-*`，pattern `^5W-GATE-[0-9]+$`）。
+
+### 14.4 双 Gate 审计模型
+
+正式渲染的 5W Canvas 必须通过：
+
+1. **内容/授权 Gate**：版本、事实源、`state.five_whys` 授权、五层锚点、问题陈述 / 根本原因 / 对策锚点、caveat、离线安全。
+2. **Template Gate**：一级模块顺序、稳定锚点集合、`5w-rubric` 与 `quality-panel` 隐藏检测、打印与横向滚动钩子。规则 ID `5W-TPL-GATE-01~06`；正式交付缺 `--template` 参数 → `5W-TPL-GATE-00` FAIL。模板自身先通过结构自审计才放行成品。
+
+正式交付命令：
+
+```bash
+python3 skills/canvas-render/scripts/audit_canvas_html.py output/5w-canvas-{slug}.html \
+  --source modules/5W-{slug}-v{N}.md \
+  --state state.json \
+  --type 5w \
+  --instance {slug} \
+  --template skills/canvas-render/examples/5w-canvas.html
+```
+
+状态机与第 10 节共用 5 态；`state.json` 使用 `five_whys` 区块（v2.4 schema，可选）。渲染契约要求的一级模块顺序、稳定锚点集合与四态隐藏检测规则，见 [render-contract-5w.md](./skills/canvas-render/references/render-contract-5w.md)。
 
 ---
 

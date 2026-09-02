@@ -19,7 +19,7 @@ def schema() -> dict:
 
 def base_state() -> dict:
     return {
-        "schema_version": "2.3",
+        "schema_version": "2.4",
         "project_slug": "demo-project",
         "project_name": "Demo 项目",
         "group_id": "group-a",

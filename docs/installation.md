@@ -17,14 +17,15 @@
 | **用户画像** | User Persona 用户理解 | 9 基本信息 + 6 宫格 |
 | **用户旅程** | User Journey 当前旅程梳理 | 动态阶段 × 5 行合并结构 |
 | **V2C VAC** | Value Attribution Canvas 价值归因观察 | Scenario → Capability → Change → Business Impact → Value |
+| **5W** | Five Whys 根因分析 | 问题陈述 + 五层因果链（制造层 Why 1-2 / 检验层 Why 3-4 / 体系层 Why 5）+ 根本原因 + 对策四要素 |
 
-V2C 系列画布的思路来源于王鸿的 Value-to-Capability FDE 工作方法论。V2C VAC 是其中的价值归因观察画布。
+V2C 系列画布的思路来源于王鸿的 Value-to-Capability FDE 工作方法论。V2C VAC 是其中的价值归因观察画布。5W 默认采用丰田自身推荐的根因分析思考模型（三层面追问框架）。
 
 核心能力：
 
-- 多类画布（MVL / MAAU / 黄金圈 / HMW / 用户画像 / 用户旅程 / V2C VAC）的引导、转写提炼与确认包沉淀；非 MVL 一等公民画布支持同一 group 多 instance
+- 多类画布（MVL / MAAU / 黄金圈 / HMW / 用户画像 / 用户旅程 / V2C VAC / 5W）的引导、转写提炼与确认包沉淀；非 MVL 一等公民画布支持同一 group 多 instance
 - 质量门禁（Gate）建议 + 用户授权
-- 模块化智能体画布（Canvas）的生成（HMW / Persona / Journey / V2C VAC 走双 Gate 审计）
+- 模块化智能体画布（Canvas）的生成（HMW / Persona / Journey / V2C VAC / 5W 走双 Gate 审计）
 - 5 态画布生命周期管理（多类画布共用）
 
 专家包的元数据（`displayName` / `profession` / `displayDescription` / `quickPrompts` / `tags`）定义在 `.codebuddy-plugin/plugin.json`。**本指南不重复 plugin.json 字段，统一以一句话指向 plugin.json 作为权威来源**。详细字段值请查阅 `plugin.json`。
@@ -99,7 +100,7 @@ WorkBuddy 完成专家注册后必须重启，才能完整加载 agent、skill�
 confirmation_mode：gate_pass / override / null（属性，不是状态）
 ```
 
-也可验证画布类型路由："请介绍一下你支持哪几种画布"（预期：MVL / MAAU / 黄金圈 / HMW / 用户画像 / 用户旅程 / V2C VAC）。只提供逐字稿但不指定画布类型时，预期会先追问画布类型，不默认进入 MAAU。
+也可验证画布类型路由："请介绍一下你支持哪几种画布"（预期：MVL / MAAU / 黄金圈 / HMW / 用户画像 / 用户旅程 / V2C VAC / 5W）。只提供逐字稿但不指定画布类型时，预期会先追问画布类型，不默认进入 MAAU。
 
 > `confirmation_mode` 是属性（不是状态）；用户可对 `business_risk` 显式 override 后进入 `confirmed`，并触发 caveat 显式呈现。HMW / Persona / Journey / V2C VAC 正式渲染额外要求结构 Template Gate 通过（详见 [DEVELOPMENT.md §3.1](../DEVELOPMENT.md#31-python-静态审计)）。
 
@@ -123,14 +124,14 @@ confirmation_mode：gate_pass / override / null（属性，不是状态）
 
 ### 6.4 工作流异常
 
-- 检查 `skills/` 目录完整（应含主流程 Skill：mvl-distill / gc-distill / hmw-distill / persona-distill / journey-distill / v2c-vac-distill / maau-synthesize / module-conclusion-gate / gc-gate / hmw-gate / persona-gate / journey-gate / v2c-vac-gate / faq-answer / canvas-render）
+- 检查 `skills/` 目录完整（应含主流程 Skill：mvl-distill / gc-distill / hmw-distill / persona-distill / journey-distill / v2c-vac-distill / 5w-distill / maau-synthesize / module-conclusion-gate / gc-gate / hmw-gate / persona-gate / journey-gate / v2c-vac-gate / 5w-gate / faq-answer / canvas-render）
 - 检查 `skills/canvas-render/visual-patterns/` 包含 `README.md` 和 10 个编号模式文件
 - 检查 `examples/modules/` 与 `skills/canvas-render/examples/` 目录完整
 
 ### 6.5 草稿 Canvas 与正式 Canvas 混淆
 
 - 草稿 Canvas 顶部应有"草稿 / 未确认 / 禁止用于管理层决策"字样
-- 正式 Canvas 顶部应有画布名（MVL Canvas / Golden Circle / HMW Canvas / Persona Canvas / Journey Canvas / V2C Value Attribution Canvas）+ 版本号；非 MVL instance 页还应绑定 `data-instance`
+- 正式 Canvas 顶部应有画布名（MVL Canvas / Golden Circle / HMW Canvas / Persona Canvas / Journey Canvas / V2C Value Attribution Canvas / 5W Canvas）+ 版本号；非 MVL instance 页还应绑定 `data-instance`
 - 如无区分标志，请重新安装
 - HMW / Persona / Journey / V2C VAC 正式 Canvas 无法生成时，检查是否已通过双 Gate（`--template` 缺失会 FAIL）；非 MVL instance 页还需检查审计命令是否携带 `--instance {slug}`
 

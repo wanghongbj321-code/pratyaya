@@ -1,7 +1,7 @@
 {
   "name": "pratyaya",
-  "version": "3.1.1",
-  "description": "pratyaya: AI-native multi-canvas workshop platform — explicit canvas routing for MAAU one-shot synthesis, MVL M1-M6 pipeline, Golden Circle, HMW (How Might We), User Persona, User Journey and V2C Value Attribution Canvas. Distills traceable conclusions; blocks incomplete modules; obtains versioned human confirmation; renders Canvas HTML.",
+  "version": "3.2.0",
+  "description": "pratyaya: AI-native multi-canvas workshop platform — explicit canvas routing for MAAU one-shot synthesis, MVL M1-M6 pipeline, Golden Circle, HMW (How Might We), User Persona, User Journey, V2C Value Attribution Canvas and 5W (Five Whys) root-cause analysis. Distills traceable conclusions; blocks incomplete modules; obtains versioned human confirmation; renders Canvas HTML.",
   "agents": [
     "./agents/pratyaya.md"
   ],
@@ -12,12 +12,14 @@
     "./skills/persona-distill",
     "./skills/journey-distill",
     "./skills/v2c-vac-distill",
+    "./skills/5w-distill",
     "./skills/module-conclusion-gate",
     "./skills/gc-gate",
     "./skills/hmw-gate",
     "./skills/persona-gate",
     "./skills/journey-gate",
     "./skills/v2c-vac-gate",
+    "./skills/5w-gate",
     "./skills/faq-answer",
     "./skills/maau-synthesize",
     "./skills/canvas-render"
@@ -33,8 +35,8 @@
     "zh": "Pratyaya Canvas Expert"
   },
   "displayDescription": {
-    "en": "AI-native multi-canvas workshop platform: explicit routing for MVL, MAAU, V2C VAC, Golden Circle, HMW, User Persona and User Journey canvases.",
-    "zh": "AI 原生多画布平台：显式选择 MVL、MAAU、V2C VAC、黄金圈、HMW、画像、旅程"
+    "en": "AI-native multi-canvas workshop platform: explicit routing for MVL, MAAU, V2C VAC, Golden Circle, HMW, User Persona, User Journey and 5W root-cause canvases.",
+    "zh": "AI 原生多画布平台：支持 MVL、MAAU、V2C VAC、黄金圈、HMW、画像、旅程、5W 根因"
   },
   "avatar": "avatars/expert.png",
   "categoryId": "12-IndustryConsultant",

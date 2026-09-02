@@ -14,7 +14,7 @@
   ],
   "properties": {
     "schema_version": {
-      "const": "2.3"
+      "const": "2.4"
     },
     "group_id": {
       "type": "string",
@@ -252,6 +252,10 @@
       "$ref": "#/$defs/v2c_vac_instance_map",
       "description": "V2C Value Attribution Canvas 实例 map。每个 slug 一个 V2C VAC 价值归因画布实例，支持 generation_path=pipeline 或 transcript-direct；不使用 legacy `default` slug。"
     },
+    "five_whys": {
+      "$ref": "#/$defs/five_whys_instance_map",
+      "description": "5W（Five Whys，根因分析）Canvas 实例 map。每个 slug 一个 5W 根因分析画布实例；不使用 legacy `default` slug。"
+    },
     "updated_at": {
       "type": "string",
       "minLength": 1
@@ -265,7 +269,8 @@
     { "required": ["persona"] },
     { "required": ["journey"] },
     { "required": ["maau"] },
-    { "required": ["v2c_vac"] }
+    { "required": ["v2c_vac"] },
+    { "required": ["five_whys"] }
   ],
   "$defs": {
     "single_canvas_state_base": {
@@ -708,6 +713,44 @@
                     "properties": {
                       "assessment_id": {
                         "pattern": "^MAAU-GATE-[0-9]+$"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "five_whys_instance_map": {
+      "type": "object",
+      "propertyNames": {
+        "maxLength": 64,
+        "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+        "not": { "const": "default" }
+      },
+      "patternProperties": {
+        "^[a-z0-9]+(-[a-z0-9]+)*$": {
+          "$ref": "#/$defs/five_whys_instance_state"
+        }
+      },
+      "additionalProperties": false,
+      "description": "5W 根因分析实例 map。map key 必须为 kebab-case ASCII，且不得为 `default`（5W 没有 legacy default，新建 slug 必须语义化命名）。"
+    },
+    "five_whys_instance_state": {
+      "allOf": [
+        { "$ref": "#/$defs/single_canvas_state_base" },
+        {
+          "required": ["slug"],
+          "properties": {
+            "override_audit": {
+              "properties": {
+                "items": {
+                  "items": {
+                    "properties": {
+                      "assessment_id": {
+                        "pattern": "^5W-GATE-[0-9]+$"
                       }
                     }
                   }
