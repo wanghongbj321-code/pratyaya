@@ -37,6 +37,7 @@
 - **原始材料层** — 转写稿、上下文快照、用户输入
 - **分析层**（mvl-distill / gc-distill / hmw-distill / persona-distill / journey-distill / v2c-vac-distill / 5w-distill / maau-synthesize【默认综合提炼】） — Key Points 概览（MVL：`Mx-keypoints.md`；非 MVL：`{GC|HMW|PERSONA|JOURNEY|V2C-VAC|5W}-{slug}-keypoints.md`）+ 确认包（MVL：`Mx-v{N}.md`；非 MVL：`{GC|HMW|PERSONA|JOURNEY|V2C-VAC|5W}-{slug}-v{N}.md`；MAAU：`MAAU-{slug}-v{N}.md`）+ 缺口 + 推断
 - **治理层**（module-conclusion-gate / gc-gate / hmw-gate / persona-gate / journey-gate / v2c-vac-gate / 5w-gate） — LLM Gate 评估（输出 `gate_recommendation` + `override_eligible` 建议，**不**写最终授权）+ 用户决策（主 Agent 写入 `render_authorized` + `confirmation_mode` + `override_audit`）；MAAU 路径使用 `module-conclusion-gate` 的 `references/MAAU-gate.md`（`MAAU-GATE-*` 独立 ID 空间）
+- **规则判定层**（`skills/_engine/`，v3.3.0 新增） — 主 Agent 为**薄控制面**（只做意图识别 + 路由 + 治理不变式），确定性规则由引擎强制：5 态机合法跃迁、Gate 三态汇总、升版重置、授权 if-then、`override_audit` 完整性、确认包文件名 / 版本 / instance 一致性。引擎只做规则判定，不渲染、不做语义判定、不替人拍板（`authorization.grant()` 强制携带用户确认证据）。依赖方向单向：`canvas_registry`（零副作用）← `canvas_audit` ← `audit_canvas_html.py`。
 - **展示层**（canvas-render） — 模块 Canvas / 黄金圈 Canvas / HMW Canvas / Persona Canvas / Journey Canvas / V2C VAC Canvas / 5W Canvas + 全局 Canvas + MAAU transcript-direct 实例页（`maau-global-canvas-{slug}.html`，只读 MAAU 源包）+ 管理层报告
 - **支持问答层**（faq-answer） — 使用说明、当前 group 状态解释、Gate / override / 渲染异常说明与下一步建议；只读，不写业务产物
 

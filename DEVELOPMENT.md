@@ -255,7 +255,7 @@ python skills/canvas-render/scripts/audit_canvas_html.py \
 ### 6.4 不在迁移范围内
 
 - **`JOURNEY-Fxx` ID 前缀**：含义已切换为「痛点 / 机会条目」，但前缀本身保留；迁移期不强制替换。
-- **`state.schema.json` `schema_version`**：保持 2.3；v2.6.0 通过 `_meta.instance_map_schema_version` 标记一等公民画布 instance map 子版本。旧 GC / HMW / Persona / Journey 单字段 state 需先迁移为 `state.{canvas}.{slug}`。
+- **`state.schema.json` `schema_version`**：当前 `2.4`（v3.2.0 新增 5W 时由 2.3 升版）；v2.6.0 通过 `_meta.instance_map_schema_version` 标记一等公民画布 instance map 子版本。旧 GC / HMW / Persona / Journey 单字段 state 需先迁移为 `state.{canvas}.{slug}`。
 - **离线工作表** `internal/.../02-用户旅程画布.html`：文案已切到新字段，但属设计参考；不参与 audit。
 
 ## 7. 命令速查

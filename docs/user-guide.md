@@ -269,7 +269,7 @@ V2C VAC Gate 使用 `V2C-GATE-01..12`。只有 `business_risk` 类 Gate FAIL 可
 **关键约束**：
 
 - `JOURNEY-Fxx` ID 前缀保留（含义切到「痛点 / 机会条目」，但不需要替换 ID）。
-- `state.schema.json` `schema_version` 保持 2.3。
+- `state.schema.json` `schema_version` 当前为 2.4（v3.2.0 新增 5W 时由 2.3 升版）。
 - **不要沿用旧 Gate 结论**：v2.3.2 重构后 `journey-gate` 的覆盖要求已切到「至少 2 个痛点、1 个机会」，旧 Gate 的「等待 / 返工 + 风险节点」结论不适用于新契约。
 
 **全局阶段**：
