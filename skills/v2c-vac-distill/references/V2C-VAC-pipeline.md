@@ -2,6 +2,10 @@
 
 > 本文是 `agents/pratyaya.md`「标准画布管线」在 V2C VAC 画布的展开参考。治理不变式以 agent 为唯一事实源，只写执行。
 
+<!-- rule:bump-version: 业务内容变更触发升版 version+1，重置 gate_recommendation / render_authorized / confirmation_mode / override_audit 并回落状态；仅第 12 节治理元数据写入不触发升版。 -->
+<!-- rule:authorization-if-then: override 需 gate_recommendation=fail 且 render_authorized=true 且 override_audit 必填；gate_pass 需 pass 且 true；draft/gaps_open/review_ready 态 render_authorized 必须 false。 -->
+<!-- rule:gate-summary: 全 PASS→gate_recommendation=pass；仅 business_risk FAIL→fail 且可 override；含 information_integrity FAIL→fail 且不可 override。 -->
+
 ## 画布参数（值来自 agent「画布注册表」，不改写）
 
 | 参数 | 值 |

@@ -2,6 +2,10 @@
 
 > 本文是 `agents/pratyaya.md`「Phase 2」的执行细节展开。触发路径与冲突分流见 `agents/pratyaya.md` 步骤 -1；治理不变式以 agent 为唯一事实源。
 
+<!-- rule:bump-version: 业务内容变更触发升版 version+1，重置 gate_recommendation / render_authorized / confirmation_mode / override_audit 并回落状态；仅第 12 节治理元数据写入不触发升版。 -->
+<!-- rule:authorization-if-then: override 需 gate_recommendation=fail 且 render_authorized=true 且 override_audit 必填；gate_pass 需 pass 且 true；draft/gaps_open/review_ready 态 render_authorized 必须 false。 -->
+<!-- rule:gate-summary: 全 PASS→gate_recommendation=pass；仅 business_risk FAIL→fail 且可 override；含 information_integrity FAIL→fail 且不可 override。 -->
+
 ## 输入
 
 - M1–M6 六个 `modules/Mx-v{N}.md` 确认包（各自最新确认版本）；

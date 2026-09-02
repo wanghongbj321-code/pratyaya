@@ -3,6 +3,10 @@
 > 本文是 `agents/pratyaya.md`「Phase 1」步骤 0–8 的执行细节展开，供 MVL 模块流程读取。
 > 治理不变式（Gate 只建议 / 人确认的是版本 / 五态状态机 / 升版边界 / 第 12 节写入）以 `agents/pratyaya.md` 为唯一事实源，本文只展开执行步骤，**不重复、不覆盖**治理规则。
 
+<!-- rule:bump-version: 业务内容变更触发升版 version+1，重置 gate_recommendation / render_authorized / confirmation_mode / override_audit 并回落状态；仅第 12 节治理元数据写入不触发升版。 -->
+<!-- rule:authorization-if-then: override 需 gate_recommendation=fail 且 render_authorized=true 且 override_audit 必填；gate_pass 需 pass 且 true；draft/gaps_open/review_ready 态 render_authorized 必须 false。 -->
+<!-- rule:gate-summary: 全 PASS→gate_recommendation=pass；仅 business_risk FAIL→fail 且可 override；含 information_integrity FAIL→fail 且不可 override。 -->
+
 ## 输入
 
 - 逐字稿 / 转写文本或文件路径（原样存档，不做事实性改写）；
