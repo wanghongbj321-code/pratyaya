@@ -1,0 +1,470 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HMW 问题重构画布 How Might We Canvas（一等公民 · 示例）</title>
+<style>
+/* ============================================================
+   Pratyaya 工作坊画布 · 共享主题层
+   标准 pratyaya 黑灰配色（black-gray-professional，单色方案）
+   通过 body[data-theme="base"] 选择器声明；不提供配色切换（CSS 已内联进各画布 HTML，单文件自包含）
+   ============================================================ */
+
+/* ---------- 标准黑灰主题（1:1 还原 pratyaya 黑灰母版） ---------- */
+:root,
+[data-theme="base"] {
+  --brand: #000000;
+  --brand-dark: #000000;
+  --brand-soft: #FFFFFF;
+  --brand-pale: #F2F2F2;
+  --accent: #000000;
+  --ink: #000000;
+  --muted: #8A8A8A;
+  --line: #000000;
+  --paper: #FFFFFF;
+  --page-bg: #FFFFFF;
+  --stripe: #F2F2F2;
+  --title-color: #000000;
+  --hint-color: #A5A5A5;
+  --head-bg: transparent;
+  --head-fg: #000000;
+  --radius: 10px;
+  --border-w: 1.6px;
+  --font: "Helvetica Neue", Arial, "Microsoft YaHei", "PingFang SC", sans-serif;
+  --shadow: none;
+  --fill-line: #E3E3E3;
+}
+
+/* ---------- 基础版式 ---------- */
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--page-bg);
+  color: var(--ink);
+  font-family: var(--font);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wwrap, .wrap { max-width: 1400px; margin: 0 auto; padding: 26px 24px 44px; }
+
+/* 页头 */
+.canvas-head {
+  display: flex; justify-content: space-between; align-items: flex-end;
+  gap: 24px; margin-bottom: 18px; padding-bottom: 14px;
+  border-bottom: 2px solid var(--brand);
+}
+.canvas-head .eyebrow {
+  font-size: 10px; font-weight: 700; letter-spacing: .2em;
+  color: var(--muted); text-transform: uppercase; margin-bottom: 6px;
+}
+.canvas-head h1 {
+  margin: 0; font-size: clamp(22px, 2.6vw, 34px); font-weight: 700;
+  color: var(--title-color); line-height: 1.2; letter-spacing: -.01em;
+}
+.canvas-head .sub { margin: 6px 0 0; font-size: 13px; color: var(--muted); max-width: 760px; }
+.canvas-head .meta { text-align: right; font-size: 11px; color: var(--muted); line-height: 1.7; white-space: nowrap; }
+.canvas-head .meta strong { display: block; font-size: 12px; color: var(--title-color); }
+
+/* 画布外框 */
+.canvas {
+  background: var(--paper);
+  border: var(--border-w) solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+/* 区块通用 */
+.cell-title {
+  display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
+  margin: 0 0 4px; font-size: 15px; font-weight: 700; color: var(--ink);
+}
+.cell-title .en { font-size: 14px; font-weight: 700; color: var(--ink); }
+.cell-hint { margin: 0 0 10px; font-size: 10.5px; color: var(--hint-color); line-height: 1.5; }
+
+/* 可填写区：横线纸效果 */
+.fill {
+  min-height: 120px; padding: 2px 0; outline: none; font-size: 13px;
+  line-height: 26px;
+  background-image: repeating-linear-gradient(
+    to bottom, transparent 0, transparent 25px, var(--fill-line) 25px, var(--fill-line) 26px);
+}
+.fill:focus { background-color: var(--brand-pale); }
+.fill:empty::before { content: attr(data-ph); color: var(--hint-color); font-size: 12px; }
+
+/* 下划线填空 */
+.blank {
+  display: inline-block; min-width: 90px; border-bottom: 1px solid var(--ink);
+  outline: none; padding: 0 4px; font-size: 13px; line-height: 1.7;
+}
+.blank:focus { background: var(--brand-pale); }
+.blank:empty::before { content: "\00a0"; }
+
+/* 质量鉴别结论色（黑灰体系内区分，不引入彩色） */
+.verdict-pass { color: #000; font-weight: 700; }
+.verdict-fail { color: #000; font-weight: 700; text-decoration: underline; }
+.verdict-pending { color: var(--muted); font-weight: 700; }
+
+/* 治理面板 override 警示（黑灰体系：虚线 + 灰底，不引入红） */
+.govern .caveat {
+  margin-top: 12px; padding: 10px 12px; border: 1.5px dashed #000; border-radius: var(--radius);
+  font-size: 12px; color: #000; background: var(--brand-pale);
+}
+
+/* 脚注 */
+.footnote {
+  margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line);
+  font-size: 10px; color: var(--muted); line-height: 1.7;
+}
+.footnote b { color: var(--title-color); }
+
+/* 响应式 */
+@media (max-width: 980px) {
+  .canvas-head { flex-direction: column; align-items: flex-start; }
+  .canvas-head .meta { text-align: left; }
+}
+@media (max-width: 720px) {
+  .wrap { padding: 16px 12px 32px; }
+}
+
+</style>
+<style>
+  /* ============================================================
+     HMW 一等公民画布示例 · Bain Red · 行动洞察 视觉系统 override
+     (v2.3.5 落地，见 internal/pratyaya-internal/docs/debugs/HMW画布贝恩红模式Hero配色修复方案-2026-0808.md §6.2)
+     ============================================================
+     设计原则（Pan-Mode Invariants v2.3.5 §14.5）：
+     1. Hero 永远白纸底（本文件 inline override 后生效）
+     2. 主色 #cc0000 仅作 eyebrow / 标题色 / 4px 底线 / 行动摘要 5px 左线 / pale 卡背景
+     3. 禁止 hero 整片铺红（违反 07-bain-red-action.md §反例 第 1 条）
+     4. CSS 变量 shim：覆盖 shared/canvas-theme.css 的 --brand-pale / --title-color / --accent 等
+     ============================================================ */
+  [data-theme="base"] {
+    --brand: #cc0000;          /* Pan-Mode Invariant #2: 主色 = 本模式主色 token */
+    --brand-dark: #8a0000;
+    --brand-soft: #ffffff;
+    --brand-pale: #fff0f0;     /* 浅红卡背景（行动摘要 / 质量判定卡） */
+    --accent: #cc0000;
+    --ink: #111111;
+    --muted: #6a6a6a;
+    --line: #e5e5e5;
+    --paper: #ffffff;
+    --title-color: #cc0000;    /* h1 / headline 标题色 = 主色 */
+    --hint-color: #8a8a8a;
+  }
+
+  /* HMW 签名布局：顶部 4 字段陈述通栏 + 底部 2×4 想法格 */
+
+  /* Hero override：白纸底 + 卡片化（Bain Red 修正） */
+  .canvas-head {
+    border: var(--border-w) solid var(--line);
+    border-radius: var(--radius);
+    background: var(--paper);
+    padding: 26px 28px 20px;
+    margin-bottom: 18px;
+    align-items: flex-start;
+  }
+  /* 4px 主色规则线（Pan-Mode Invariant #4） */
+  .canvas-head::after {
+    content: "";
+    display: block;
+    height: 4px;
+    background: var(--brand);
+    border-radius: 2px;
+    margin-top: 18px;
+  }
+  /* eyebrow 改为主红色（Pan-Mode Invariant #3） */
+  .canvas-head .eyebrow {
+    color: var(--brand);
+  }
+  /* h1 标题色=主色（Pan-Mode Invariant #2） */
+  .canvas-head h1 {
+    color: var(--title-color);
+  }
+
+  /* 行动摘要 override：pale 卡 + 5px 主红左边框（Pan-Mode Invariant #5/#6） */
+  #canvas-headline {
+    background: var(--brand-pale);
+    border-left: 5px solid var(--brand);
+    padding: 10px 14px;
+    border-radius: 6px;
+    color: var(--ink) !important;
+    font-size: 13px !important;
+    font-weight: 700;
+    margin: 14px 0 4px !important;
+    line-height: 1.55;
+  }
+
+  /* 陈述通栏 */
+  .hmw-statement{
+    border:var(--border-w) solid var(--line); border-radius:var(--radius);
+    background:var(--paper); box-shadow:var(--shadow);
+    padding:18px 24px 20px; margin-bottom:16px;
+  }
+  .hmw-statement .tag{
+    font-size:10px; font-weight:700; letter-spacing:.18em; text-transform:uppercase;
+    color:var(--title-color); margin-bottom:10px;
+  }
+  .sentence{ font-size:16px; line-height:1.9; font-weight:700; color:var(--ink); }
+  .sentence .field{
+    display:block; margin:6px 0 0; font-weight:400; font-size:13px;
+    padding-left:12px; border-left:2px solid var(--line);
+  }
+  .sentence .field b{ display:inline-block; min-width:150px; font-weight:700; color:var(--title-color); }
+
+  /* 质量鉴别（4 维度） */
+  .quality{
+    border:var(--border-w) solid var(--line); border-radius:var(--radius);
+    background:var(--paper); box-shadow:var(--shadow);
+    padding:16px 18px 18px; margin-bottom:16px;
+  }
+  .q-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:10px; }
+  .q-item{ border:1px solid var(--line); border-radius:var(--radius); padding:10px 12px; }
+  .q-item .q-name{ font-size:13px; font-weight:700; color:var(--ink); }
+  .q-item .q-en{ font-size:11px; color:var(--hint-color); }
+  .q-item .q-verdict{ margin-top:6px; font-size:12px; }
+
+  /* 想法种子 2×4 格 */
+  .ideas{
+    border:var(--border-w) solid var(--line); border-radius:var(--radius);
+    background:var(--paper); box-shadow:var(--shadow);
+    padding:16px 18px 18px; margin-bottom:16px;
+  }
+  .idea-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:10px; }
+  .idea{
+    border:1px solid var(--line); border-radius:var(--radius); min-height:118px;
+    padding:10px 12px; display:flex; flex-direction:column;
+  }
+  .idea .idea-no{
+    width:20px; height:20px; border:1.5px solid var(--brand); border-radius:50%;
+    display:inline-grid; place-items:center; font-size:10px; font-weight:700;
+    color:var(--brand); margin-bottom:6px; flex:0 0 auto;
+  }
+  .idea .idea-fill{ flex:1; font-size:12.5px; line-height:1.5; }
+  .idea .idea-meta{ margin-top:6px; font-size:10px; color:var(--hint-color); }
+  .idea.placeholder .idea-fill{ color:var(--hint-color); }
+
+  /* 想法 ↔ HMW 对应 */
+  .coherence{
+    border:var(--border-w) solid var(--line); border-radius:var(--radius);
+    background:var(--paper); box-shadow:var(--shadow);
+    padding:16px 18px 18px; margin-bottom:16px;
+  }
+  .coherence table{ width:100%; border-collapse:collapse; font-size:12.5px; margin-top:10px; }
+  .coherence th,.coherence td{ border:1px solid var(--line); padding:8px 10px; text-align:left; vertical-align:top; }
+  .coherence th{ background:var(--brand-pale); font-weight:700; color:var(--title-color); border-bottom:2px solid var(--brand); }
+  .coherence td:first-child{ font-weight:700; white-space:nowrap; }
+
+  /* 质量与治理面板（与 persona 同款） */
+  .lower{ display:grid; grid-template-columns:1fr; gap:16px; }
+  .govern{
+    border:var(--border-w) solid var(--line); border-radius:var(--radius);
+    background:var(--paper); box-shadow:var(--shadow); padding:16px 18px 18px;
+  }
+  .govern dl{ margin:0; display:grid; grid-template-columns:auto 1fr; gap:6px 12px; font-size:12.5px; }
+  .govern dt{ color:var(--muted); }
+  .govern dd{ margin:0; font-weight:700; color:var(--ink); }
+
+  /* 本地备注 */
+  .local-notes{
+    margin-top:16px; border:1px dashed var(--line); border-radius:var(--radius);
+    padding:12px 14px; font-size:12.5px; min-height:48px; color:var(--ink);
+  }
+  .local-notes:empty::before{ content:"本地备注（浏览器内可编辑，刷新即清空）…"; color:var(--hint-color); }
+
+  @media(max-width:1100px){ .q-grid{ grid-template-columns:repeat(2,1fr); } .idea-grid{ grid-template-columns:repeat(2,1fr); } }
+  @media(max-width:720px){ .q-grid{ grid-template-columns:1fr; } .idea-grid{ grid-template-columns:1fr; } }
+</style>
+</head>
+<body data-theme="base" data-mode="formal" data-canvas="hmw" data-page-type="hmw" data-visual-mode="bain-red-action" data-version="1" data-instance="retail-demo">
+<div class="wrap">
+  <header class="canvas-head" id="canvas-header">
+    <div>
+      <div class="eyebrow">Pratyaya Canvas · 一等公民 · How Might We</div>
+      <h1>HMW 问题重构画布 How Might We Canvas</h1>
+      <p class="sub">不是问"能不能做"，而是问"如何能做到"。把限制性思维转变成创造性思维：先说清谁在何时卡住，再说清我们如何能帮助他。</p>
+      <div id="canvas-headline" style="margin-top:8px;font-size:14px;font-weight:700;color:var(--title-color);">一句话结论：让干部在早会前 30 分钟内定位异常并给出分析方向，而不是花 2 小时找答案。</div>
+    </div>
+    <div class="meta">
+      <strong>Canvas · HMW</strong>
+      项目：零售经营分析 demo<br>
+      小组：零售 demo 组<br>
+      版本：<span id="quality-version">v1</span>
+    </div>
+  </header>
+
+  <!-- HMW 陈述：4 字段 -->
+  <section class="hmw-statement" id="hmw-statement" aria-label="HMW 陈述">
+    <div class="tag">核心提问 · HMW Statement</div>
+    <div class="sentence">
+      我们如何能让
+      <span class="field" id="hmw-situation"><b>situation · 问题情境</b>干部在早会前 30 分钟拿到前夜经营报表，卡在"哪个指标异常、为什么异常"，需 2 小时人工核对才能定位</span>
+      <span class="field" id="hmw-question"><b>question · 我们可以如何</b>我们如何能让干部在早会前快速定位异常指标并理解原因？</span>
+      <span class="field" id="hmw-for"><b>for · 为 / 给</b>区域干部层（早会决策者）</span>
+      <span class="field" id="hmw-sothat"><b>so_that · 以便</b>早会前完成异常归因，会议直接进入对策讨论（目标：定位时间从 2 小时降至 30 分钟内）</span>
+    </div>
+  </section>
+
+  <!-- 想法种子：8 固定格（2×4） -->
+  <section class="ideas" id="hmw-ideas" aria-label="想法种子">
+    <h2 class="cell-title">想法种子 <span class="en">Idea Seeds</span></h2>
+    <p class="cell-hint">至少 1–2 条想法，且每条回应 HMW 问句而非复述。未讨论的想法格保留占位（data-state="placeholder"），锚点不可缺失。</p>
+    <div class="idea-grid">
+      <div class="idea" id="hmw-idea-1"><span class="idea-no">1</span><div class="idea-fill">按异常等级自动排序的经营仪表盘</div><div class="idea-meta">功能 · 候选 · HMW-Idea-1</div></div>
+      <div class="idea" id="hmw-idea-2"><span class="idea-no">2</span><div class="idea-fill">异常根因模板库（常见 10 类问题的自检清单）</div><div class="idea-meta">流程 · 已采纳 · HMW-Idea-2</div></div>
+      <div class="idea" id="hmw-idea-3"><span class="idea-no">3</span><div class="idea-fill">一线录入自动汇总到干部侧的分析简报</div><div class="idea-meta">机制 · 候选 · HMW-Idea-3</div></div>
+      <div class="idea" id="hmw-idea-4" data-state="placeholder"><span class="idea-no">4</span><div class="idea-fill">未讨论</div><div class="idea-meta">功能 / 流程 / 机制 / 体验</div></div>
+      <div class="idea" id="hmw-idea-5" data-state="placeholder"><span class="idea-no">5</span><div class="idea-fill">未讨论</div><div class="idea-meta">功能 / 流程 / 机制 / 体验</div></div>
+      <div class="idea" id="hmw-idea-6" data-state="placeholder"><span class="idea-no">6</span><div class="idea-fill">未讨论</div><div class="idea-meta">功能 / 流程 / 机制 / 体验</div></div>
+      <div class="idea" id="hmw-idea-7" data-state="placeholder"><span class="idea-no">7</span><div class="idea-fill">未讨论</div><div class="idea-meta">功能 / 流程 / 机制 / 体验</div></div>
+      <div class="idea" id="hmw-idea-8" data-state="placeholder"><span class="idea-no">8</span><div class="idea-fill">未讨论</div><div class="idea-meta">功能 / 流程 / 机制 / 体验</div></div>
+    </div>
+  </section>
+
+  <!-- 想法 ↔ HMW 对应 -->
+  <section class="coherence" id="hmw-coherence" aria-label="想法与 HMW 对应">
+    <h2 class="cell-title">想法 ↔ HMW 对应 <span class="en">Coherence Map</span></h2>
+    <p class="cell-hint">每条想法回应哪条 HMW 问句？对应哪个质量维度？一致性判断（一致 / 部分一致 / 未建立）。此节为 hmw-coherence-map anchor 的事实源。</p>
+    <div id="hmw-coherence-map">
+      <table>
+        <thead><tr><th>想法 ID</th><th>回应问句</th><th>对应质量维度</th><th>一致性</th></tr></thead>
+        <tbody>
+          <tr><td>HMW-Idea-1</td><td>question（我们可以如何）</td><td>tension</td><td>一致</td></tr>
+          <tr><td>HMW-Idea-2</td><td>question（我们可以如何）</td><td>user_moment</td><td>一致</td></tr>
+          <tr><td>HMW-Idea-3</td><td>question（我们可以如何）</td><td>tension</td><td>部分一致</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 质量鉴别：4 维度 -->
+  <section class="quality" id="hmw-quality" aria-label="质量鉴别">
+    <h2 class="cell-title">质量鉴别 <span class="en">Quality Check</span></h2>
+    <p class="cell-hint">四维度各判 通过 / 不通过（源自 M3 HMW 改写三步法）。此节为 render-contract-hmw.md 中 hmw-quality-* anchor 的事实源。</p>
+    <div class="q-grid">
+      <div class="q-item" id="hmw-quality-preset">
+        <div class="q-name">预设解法 <span class="q-en">preset_solution</span></div>
+        <div class="q-verdict verdict-pass" data-verdict>通过：问句未夹带技术名词；"自动定位工具"在讨论中被排除出问句本体</div>
+      </div>
+      <div class="q-item" id="hmw-quality-vague">
+        <div class="q-name">含糊 <span class="q-en">vague</span></div>
+        <div class="q-verdict verdict-pass" data-verdict>通过：有具体用户时刻（早会前 30 分钟）与动作（定位异常）</div>
+      </div>
+      <div class="q-item" id="hmw-quality-moment">
+        <div class="q-name">用户时刻 <span class="q-en">user_moment</span></div>
+        <div class="q-verdict verdict-pass" data-verdict>通过：谁（干部）+ 何时（早会前）+ 卡住（异常归因）齐备</div>
+      </div>
+      <div class="q-item" id="hmw-quality-tension">
+        <div class="q-name">张力 <span class="q-en">tension</span></div>
+        <div class="q-verdict verdict-pass" data-verdict>通过：想要"数据说话" vs 现实"找人对答案"，落差可辨识</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 质量与治理面板 -->
+  <div class="lower">
+    <aside class="govern" id="quality-panel" aria-label="质量与治理">
+      <h3 class="cell-title">质量与对齐</h3>
+      <dl>
+        <dt>版本</dt><dd id="quality-version-dd">v0（草稿）</dd>
+      </dl>
+      <div id="quality-approval">
+        <dl>
+          <dt>Gate 建议</dt><dd id="quality-gate">pending</dd>
+          <dt>授权渲染</dt><dd id="quality-authorized">false</dd>
+          <dt>确认模式</dt><dd id="quality-mode">null</dd>
+        </dl>
+      </div>
+      <dl>
+        <dt>缺口摘要</dt><dd id="quality-gaps">—</dd>
+        <dt>风险摘要</dt><dd id="quality-risks">—</dd>
+      </dl>
+      <div class="caveat" id="quality-caveat" hidden>
+        <b>Override 警示：</b><span id="quality-caveat-text">仅在 override 时显示——列出被接受的业务风险（预设解法 / 张力）与影响。</span>
+      </div>
+    </aside>
+  </div>
+
+  <section class="local-notes" id="local-notes" contenteditable="true"></section>
+
+  <p class="footnote">
+    <b>说明：</b>本文件为 HMW <b>一等公民画布示例</b>（对齐 <code>render-contract-hmw.md</code>），签名布局 1:1 沿用工作表 <code>canvas-templates/03-HMW画布.html</code> 的 4 字段陈述 + 8 想法格，并扩展质量鉴别、想法↔HMW 对应与 Gate / 授权治理面板。
+    采用标准 pratyaya 黑灰配色（单色方案，无配色切换），按 Ctrl/Cmd + P 可直接横版打印。本示例为静态骨架（占位内容），正式渲染由 <code>canvas-render</code> Skill 经 <code>提炼→门禁→渲染</code> 管线生成 <code>output/hmw-canvas-{slug}.html</code>。
+  </p>
+</div>
+
+<script type="application/json" id="canvas-data">
+{
+  "canvas_type": "hmw",
+  "page_type": "hmw",
+  "instance": "retail-demo",
+  "version": "1",
+  "visual_mode": {
+    "id": "bain-red-action",
+    "zh_name": "贝恩红·行动",
+    "visual_system": "Bain Red",
+    "pan_mode_invariants_version": "v2.3.5"
+  },
+  "schema_version_target": "2.4",
+  "sections": {
+    "canvas-headline": "让干部在早会前 30 分钟内定位异常并给出分析方向",
+    "hmw-situation": "干部在早会前 30 分钟拿到前夜经营报表，卡在\"哪个指标异常、为什么异常\"，需 2 小时人工核对才能定位",
+    "hmw-question": "我们如何能让干部在早会前快速定位异常指标并理解原因？",
+    "hmw-for": "区域干部层（早会决策者）",
+    "hmw-sothat": "早会前完成异常归因，会议直接进入对策讨论（目标：定位时间从 2 小时降至 30 分钟内）",
+    "hmw-quality-preset": "通过",
+    "hmw-quality-vague": "通过",
+    "hmw-quality-moment": "通过",
+    "hmw-quality-tension": "通过",
+    "hmw-idea-1": "按异常等级自动排序的经营仪表盘",
+    "hmw-idea-2": "异常根因模板库（常见 10 类问题的自检清单）",
+    "hmw-idea-3": "一线录入自动汇总到干部侧的分析简报",
+    "hmw-idea-4": "未讨论",
+    "hmw-idea-5": "未讨论",
+    "hmw-idea-6": "未讨论",
+    "hmw-idea-7": "未讨论",
+    "hmw-idea-8": "未讨论",
+    "hmw-coherence-map": "想法 ↔ HMW 对应"
+  },
+  "statement": {
+    "situation": "干部在早会前 30 分钟拿到前夜经营报表，卡在\"哪个指标异常、为什么异常\"，需 2 小时人工核对才能定位",
+    "question": "我们如何能让干部在早会前快速定位异常指标并理解原因？",
+    "for": "区域干部层（早会决策者）",
+    "so_that": "早会前完成异常归因，会议直接进入对策讨论（目标：定位时间从 2 小时降至 30 分钟内）"
+  },
+  "quality": {
+    "preset_solution": "pass",
+    "vague": "pass",
+    "user_moment": "pass",
+    "tension": "pass"
+  },
+  "ideas": {
+    "idea_1": {"content": "按异常等级自动排序的经营仪表盘", "type": "功能", "link_to_statement": "question", "status": "候选"},
+    "idea_2": {"content": "异常根因模板库（常见 10 类问题的自检清单）", "type": "流程", "link_to_statement": "question", "status": "已采纳"},
+    "idea_3": {"content": "一线录入自动汇总到干部侧的分析简报", "type": "机制", "link_to_statement": "question", "status": "候选"},
+    "idea_4": {"content": "", "type": "", "link_to_statement": "", "status": "placeholder"},
+    "idea_5": {"content": "", "type": "", "link_to_statement": "", "status": "placeholder"},
+    "idea_6": {"content": "", "type": "", "link_to_statement": "", "status": "placeholder"},
+    "idea_7": {"content": "", "type": "", "link_to_statement": "", "status": "placeholder"},
+    "idea_8": {"content": "", "type": "", "link_to_statement": "", "status": "placeholder"}
+  },
+  "coherence": {
+    "map": [
+      {"idea_id": "HMW-Idea-1", "question": "question（我们可以如何）", "dimension": "tension", "consistency": "一致"},
+      {"idea_id": "HMW-Idea-2", "question": "question（我们可以如何）", "dimension": "user_moment", "consistency": "一致"},
+      {"idea_id": "HMW-Idea-3", "question": "question（我们可以如何）", "dimension": "tension", "consistency": "部分一致"}
+    ]
+  },
+  "auth": {
+    "gate_recommendation": "pass",
+    "render_authorized": true,
+    "confirmation_mode": "gate_pass",
+    "override_audit": {"items": []}
+  }
+}
+</script>
+</body>
+</html>

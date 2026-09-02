@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>User Journey 用户旅程画布（一等公民 · 示例）</title>
+<style>
+/* ============================================================
+   Pratyaya 工作坊画布 · 共享主题层
+   标准 pratyaya 黑灰配色（black-gray-professional，单色方案）
+   通过 body[data-theme="base"] 选择器声明；不提供配色切换（CSS 已内联进各画布 HTML，单文件自包含）
+   ============================================================ */
+
+/* ---------- 标准黑灰主题（1:1 还原 pratyaya 黑灰母版） ---------- */
+:root,
+[data-theme="base"] {
+  --brand: #000000;
+  --brand-dark: #000000;
+  --brand-soft: #FFFFFF;
+  --brand-pale: #F2F2F2;
+  --accent: #000000;
+  --ink: #000000;
+  --muted: #8A8A8A;
+  --line: #000000;
+  --paper: #FFFFFF;
+  --page-bg: #FFFFFF;
+  --stripe: #F2F2F2;
+  --title-color: #000000;
+  --hint-color: #A5A5A5;
+  --head-bg: transparent;
+  --head-fg: #000000;
+  --radius: 10px;
+  --border-w: 1.6px;
+  --font: "Helvetica Neue", Arial, "Microsoft YaHei", "PingFang SC", sans-serif;
+  --shadow: none;
+  --fill-line: #E3E3E3;
+}
+
+/* ---------- 基础版式 ---------- */
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--page-bg);
+  color: var(--ink);
+  font-family: var(--font);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wwrap, .wrap { max-width: 1400px; margin: 0 auto; padding: 26px 24px 44px; }
+
+/* 页头 */
+.canvas-head {
+  display: flex; justify-content: space-between; align-items: flex-end;
+  gap: 24px; margin-bottom: 18px; padding-bottom: 14px;
+  border-bottom: 2px solid var(--brand);
+}
+.canvas-head .eyebrow {
+  font-size: 10px; font-weight: 700; letter-spacing: .2em;
+  color: var(--muted); text-transform: uppercase; margin-bottom: 6px;
+}
+.canvas-head h1 {
+  margin: 0; font-size: clamp(22px, 2.6vw, 34px); font-weight: 700;
+  color: var(--title-color); line-height: 1.2; letter-spacing: -.01em;
+}
+.canvas-head .sub { margin: 6px 0 0; font-size: 13px; color: var(--muted); max-width: 760px; }
+.canvas-head .meta { text-align: right; font-size: 11px; color: var(--muted); line-height: 1.7; white-space: nowrap; }
+.canvas-head .meta strong { display: block; font-size: 12px; color: var(--title-color); }
+
+/* 画布外框 */
+.canvas {
+  background: var(--paper);
+  border: var(--border-w) solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+/* 区块通用 */
+.cell-title {
+  display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
+  margin: 0 0 4px; font-size: 15px; font-weight: 700; color: var(--ink);
+}
+.cell-title .en { font-size: 14px; font-weight: 700; color: var(--ink); }
+.cell-hint { margin: 0 0 10px; font-size: 10.5px; color: var(--hint-color); line-height: 1.5; }
+
+/* 可填写区：横线纸效果 */
+.fill {
+  min-height: 120px; padding: 2px 0; outline: none; font-size: 13px;
+  line-height: 26px;
+  background-image: repeating-linear-gradient(
+    to bottom, transparent 0, transparent 25px, var(--fill-line) 25px, var(--fill-line) 26px);
+}
+.fill:focus { background-color: var(--brand-pale); }
+.fill:empty::before { content: attr(data-ph); color: var(--hint-color); font-size: 12px; }
+
+/* 下划线填空 */
+.blank {
+  display: inline-block; min-width: 90px; border-bottom: 1px solid var(--ink);
+  outline: none; padding: 0 4px; font-size: 13px; line-height: 1.7;
+}
+.blank:focus { background: var(--brand-pale); }
+.blank:empty::before { content: "\00a0"; }
+
+/* 质量鉴别结论色（黑灰体系内区分，不引入彩色） */
+.verdict-pass { color: #000; font-weight: 700; }
+.verdict-fail { color: #000; font-weight: 700; text-decoration: underline; }
+.verdict-pending { color: var(--muted); font-weight: 700; }
+
+/* 治理面板 override 警示（黑灰体系：虚线 + 灰底，不引入红） */
+.govern .caveat {
+  margin-top: 12px; padding: 10px 12px; border: 1.5px dashed #000; border-radius: var(--radius);
+  font-size: 12px; color: #000; background: var(--brand-pale);
+}
+
+/* 脚注 */
+.footnote {
+  margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line);
+  font-size: 10px; color: var(--muted); line-height: 1.7;
+}
+.footnote b { color: var(--title-color); }
+
+/* 响应式 */
+@media (max-width: 980px) {
+  .canvas-head { flex-direction: column; align-items: flex-start; }
+  .canvas-head .meta { text-align: left; }
+}
+@media (max-width: 720px) {
+  .wrap { padding: 16px 12px 32px; }
+}
+
+</style>
+<style>
+  .journey-map{
+    border:var(--border-w) solid var(--line); border-radius:var(--radius);
+    background:var(--paper); box-shadow:var(--shadow);
+    padding:16px 18px 18px; margin-bottom:16px;
+  }
+  .stage-scroll{ overflow-x:auto; padding-bottom:4px; }
+  .stage-grid{
+    display:grid; grid-template-columns:150px repeat(3,minmax(220px,1fr));
+    min-width:860px; border:1px solid var(--line); border-radius:var(--radius);
+  }
+  .row-label,.stage-head,.stage-cell{
+    border-right:1px solid var(--line); border-bottom:1px solid var(--line);
+    padding:10px 12px; min-height:58px; font-size:12.5px; line-height:1.5;
+  }
+  .stage-grid > :nth-child(4n){ border-right:0; }
+  .stage-grid > :nth-last-child(-n+4){ border-bottom:0; }
+  .row-label,.stage-head{ background:var(--brand-pale); color:var(--title-color); font-weight:700; }
+  .stage-head small{ display:block; color:var(--hint-color); font-weight:400; margin-top:3px; }
+  .stage-cell{ background:var(--paper); color:var(--ink); }
+  .stage-cell[data-state="placeholder"]{ color:var(--hint-color); }
+
+  .journey-map,.journey-quality,.govern{
+    border:var(--border-w) solid var(--line); border-radius:var(--radius);
+    background:var(--paper); box-shadow:var(--shadow); padding:16px 18px 18px;
+    margin-bottom:16px;
+  }
+  .quality-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:10px; }
+  .q-item{ border:1px solid var(--line); border-radius:var(--radius); padding:10px 12px; }
+  .q-name{ font-size:13px; font-weight:700; color:var(--ink); }
+  .q-en{ font-size:11px; color:var(--hint-color); }
+  .q-verdict{ margin-top:6px; font-size:12px; }
+  .govern dl{ margin:0; display:grid; grid-template-columns:auto 1fr; gap:6px 12px; font-size:12.5px; }
+  .govern dt{ color:var(--muted); }
+  .govern dd{ margin:0; font-weight:700; color:var(--ink); }
+  .caveat{ margin-top:12px; border:1px solid var(--line); border-radius:var(--radius); padding:10px 12px; }
+  .local-notes{
+    margin-top:16px; border:1px dashed var(--line); border-radius:var(--radius);
+    padding:12px 14px; font-size:12.5px; min-height:48px; color:var(--ink);
+  }
+  .local-notes:empty::before{ content:"本地备注（浏览器内可编辑，刷新即清空）…"; color:var(--hint-color); }
+
+  @media(max-width:1000px){
+    .quality-grid{ grid-template-columns:repeat(2,1fr); }
+  }
+  @media(max-width:720px){
+    .quality-grid{ grid-template-columns:1fr; }
+    .stage-grid{ min-width:760px; grid-template-columns:130px repeat(3,minmax(210px,1fr)); }
+  }
+</style>
+</head>
+<body data-instance="retail-demo" data-theme="base" data-canvas="journey" data-page-type="journey" data-visual-mode="black-gray-professional" data-version="1">
+<div class="wrap">
+  <header class="canvas-head" id="canvas-header">
+    <div>
+      <div class="eyebrow">Pratyaya Canvas · 一等公民 · User Journey</div>
+      <h1>User Journey 用户旅程画布</h1>
+      <p class="sub">按真实阶段动态展开，主表忠实保留 5 行合并结构：行动、触点与系统、情绪、痛点、机会。</p>
+      <div id="canvas-headline" style="margin-top:8px;font-size:14px;font-weight:700;color:var(--title-color);">一句话结论：{在此填写当前旅程的核心痛点与机会}</div>
+    </div>
+    <div class="meta">
+      <strong>Canvas · Journey</strong>
+      日期：__________<br>
+      小组：__________<br>
+      版本：<span id="quality-version">v0（草稿）</span>
+    </div>
+  </header>
+
+  <section class="journey-map" id="journey-map" aria-label="阶段地图">
+    <h2 class="cell-title">阶段地图 <span class="en">Dynamic Journey Map</span></h2>
+    <p class="cell-hint">阶段数量由确认包第 6 节表格数据行决定；示例保留 3 个阶段占位以满足最低结构。</p>
+    <div class="stage-scroll">
+      <div class="stage-grid" role="table" aria-label="Journey 5 行阶段表">
+        <div class="row-label"></div>
+        <article class="stage-head" id="journey-stage-1">阶段 1<small>阶段名待填写</small></article>
+        <article class="stage-head" id="journey-stage-2">阶段 2<small>阶段名待填写</small></article>
+        <article class="stage-head" id="journey-stage-3">阶段 3<small>阶段名待填写</small></article>
+
+        <div class="row-label">行动</div>
+        <div class="stage-cell" id="journey-stage-1-action" data-state="placeholder">未讨论</div>
+        <div class="stage-cell" id="journey-stage-2-action" data-state="placeholder">未讨论</div>
+        <div class="stage-cell" id="journey-stage-3-action" data-state="placeholder">未讨论</div>
+
+        <div class="row-label">触点与系统</div>
+        <div class="stage-cell" id="journey-stage-1-touchpoint-system" data-state="placeholder">未讨论</div>
+        <div class="stage-cell" id="journey-stage-2-touchpoint-system" data-state="placeholder">未讨论</div>
+        <div class="stage-cell" id="journey-stage-3-touchpoint-system" data-state="placeholder">未讨论</div>
+
+        <div class="row-label">情绪</div>
+        <div class="stage-cell" id="journey-stage-1-emotion" data-state="placeholder">未讨论</div>
+        <div class="stage-cell" id="journey-stage-2-emotion" data-state="placeholder">未讨论</div>
+        <div class="stage-cell" id="journey-stage-3-emotion" data-state="placeholder">未讨论</div>
+
+        <div class="row-label">痛点</div>
+        <div class="stage-cell" id="journey-stage-1-pain-point" data-state="placeholder">未讨论</div>
+        <div class="stage-cell" id="journey-stage-2-pain-point" data-state="placeholder">未讨论</div>
+        <div class="stage-cell" id="journey-stage-3-pain-point" data-state="placeholder">未讨论</div>
+
+        <div class="row-label">机会</div>
+        <div class="stage-cell" id="journey-stage-1-opportunity" data-state="placeholder">未讨论</div>
+        <div class="stage-cell" id="journey-stage-2-opportunity" data-state="placeholder">未讨论</div>
+        <div class="stage-cell" id="journey-stage-3-opportunity" data-state="placeholder">未讨论</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="journey-quality" id="journey-quality" aria-label="质量鉴别">
+    <h2 class="cell-title">质量鉴别 <span class="en">Canvas-visible Quality Check</span></h2>
+    <p class="cell-hint">质量鉴别是正式画布外显能力，不进入主表成为第 6 行。</p>
+    <div class="quality-grid">
+      <div class="q-item" id="journey-quality-user-perspective">
+        <div class="q-name">用户视角 <span class="q-en">user_perspective</span></div>
+        <div class="q-verdict verdict-pending">待判定</div>
+      </div>
+      <div class="q-item" id="journey-quality-business-outcome">
+        <div class="q-name">到达业务结果 <span class="q-en">business_outcome</span></div>
+        <div class="q-verdict verdict-pending">待判定</div>
+      </div>
+      <div class="q-item" id="journey-quality-pain-opportunity-visible">
+        <div class="q-name">痛点与机会可见 <span class="q-en">pain_opportunity_visible</span></div>
+        <div class="q-verdict verdict-pending">待判定</div>
+      </div>
+      <div class="q-item" id="journey-quality-no-solution-bias">
+        <div class="q-name">未预设方案 <span class="q-en">no_solution_bias</span></div>
+        <div class="q-verdict verdict-pending">待判定</div>
+      </div>
+    </div>
+  </section>
+
+  <aside class="govern" id="quality-panel" aria-label="质量与治理">
+    <h3 class="cell-title">质量与治理</h3>
+    <dl>
+      <dt>版本</dt><dd id="quality-version-dd">v0（草稿）</dd>
+    </dl>
+    <div id="quality-approval">
+      <dl>
+        <dt>Gate 建议</dt><dd id="quality-gate">pending</dd>
+        <dt>授权渲染</dt><dd id="quality-authorized">false</dd>
+        <dt>确认模式</dt><dd id="quality-mode">null</dd>
+      </dl>
+    </div>
+    <dl>
+      <dt>缺口摘要</dt><dd id="quality-gaps">—</dd>
+      <dt>风险摘要</dt><dd id="quality-risks">—</dd>
+    </dl>
+    <div class="caveat" id="quality-caveat" hidden>
+      <b>Override 警示：</b><span id="quality-caveat-text">仅在 override 时显示，列出被接受的 business_risk Gate 项与影响。</span>
+    </div>
+  </aside>
+
+  <section class="local-notes" id="local-notes" contenteditable="true"></section>
+
+  <p class="footnote">
+    <b>说明：</b>本文件为 User Journey <b>一等公民画布示例</b>（对齐 <code>render-contract-journey.md</code>），签名布局延续工作表 <code>canvas-templates/02-用户旅程画布.html</code> 的阶段横向展开、要素纵向排列心智。
+    本示例为静态骨架（占位内容），正式渲染由 <code>canvas-render</code> Skill 经 <code>提炼→门禁→渲染</code> 管线生成 <code>output/journey-canvas-{slug}.html</code>。
+  </p>
+</div>
+
+<script type="application/json" id="canvas-data">
+{
+  "canvas_type": "journey",
+  "page_type": "journey",
+  "visual_mode": {
+    "id": "black-gray-professional",
+    "zh_name": "黑灰专业",
+    "visual_system": "Black Gray Professional"
+  },
+  "version": "1",
+  "schema_version_target": "2.3",
+  "sections": {
+    "canvas-headline": "一句话结论",
+    "journey-map": "6：阶段地图",
+    "journey-quality-user-perspective": "6a：user_perspective",
+    "journey-quality-business-outcome": "6a：business_outcome",
+    "journey-quality-pain-opportunity-visible": "6a：pain_opportunity_visible",
+    "journey-quality-no-solution-bias": "6a：no_solution_bias"
+  },
+  "stages": [
+    {
+      "stage_index": 1,
+      "stage_name": "阶段名待填写",
+      "action": "",
+      "touchpoint_system": "",
+      "emotion": "",
+      "pain_point": "",
+      "opportunity": ""
+    },
+    {
+      "stage_index": 2,
+      "stage_name": "阶段名待填写",
+      "action": "",
+      "touchpoint_system": "",
+      "emotion": "",
+      "pain_point": "",
+      "opportunity": ""
+    },
+    {
+      "stage_index": 3,
+      "stage_name": "阶段名待填写",
+      "action": "",
+      "touchpoint_system": "",
+      "emotion": "",
+      "pain_point": "",
+      "opportunity": ""
+    }
+  ],
+  "quality": {
+    "user_perspective": "pending",
+    "business_outcome": "pending",
+    "pain_opportunity_visible": "pending",
+    "no_solution_bias": "pending"
+  },
+  "auth": {
+    "gate_recommendation": "pass",
+    "render_authorized": true,
+    "confirmation_mode": "gate_pass",
+    "override_audit": {
+      "items": []
+    }
+  },
+  "instance": "retail-demo"
+}
+</script>
+</body>
+</html>

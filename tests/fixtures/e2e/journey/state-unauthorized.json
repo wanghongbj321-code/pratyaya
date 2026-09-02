@@ -1,0 +1,23 @@
+{
+  "schema_version": "2.4",
+  "project_slug": "journey-demo-project",
+  "project_name": "Journey demo",
+  "group_id": "group-1",
+  "topic_slug": "default",
+  "topic_name": "default",
+  "journey": {
+    "retail-demo": {
+      "slug": "retail-demo",
+      "version": 1,
+      "source_file": "modules/JOURNEY-retail-demo-v1.md",
+      "status": "review_ready",
+      "gate_recommendation": "pending",
+      "render_authorized": false,
+      "confirmation_mode": null,
+      "override_audit": {
+        "items": []
+      }
+    }
+  },
+  "updated_at": "2026-08-07T12:30:00+08:00"
+}

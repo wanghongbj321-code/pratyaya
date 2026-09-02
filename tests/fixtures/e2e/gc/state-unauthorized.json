@@ -1,0 +1,23 @@
+{
+  "schema_version": "2.4",
+  "project_slug": "gc-demo-project",
+  "project_name": "教育科技 golden circle demo",
+  "group_id": "group-1",
+  "topic_slug": "default",
+  "topic_name": "default",
+  "golden_circle": {
+    "retail-demo": {
+      "slug": "retail-demo",
+      "version": 1,
+      "source_file": "modules/GC-retail-demo-v1.md",
+      "status": "review_ready",
+      "gate_recommendation": "pending",
+      "render_authorized": false,
+      "confirmation_mode": null,
+      "override_audit": {
+        "items": []
+      }
+    }
+  },
+  "updated_at": "2026-08-06T15:00:00+08:00"
+}
