@@ -26,9 +26,8 @@ skills: [mvl-distill, gc-distill, hmw-distill, persona-distill, journey-distill,
 - `frameworks/journey-frame.md`（实际位于 `skills/journey-distill/frameworks/`）指用户旅程框架。
 - `frameworks/v2c-vac-value-attribution.md`（实际位于 `skills/v2c-vac-distill/frameworks/`）指 V2C VAC 价值归因框架。
 - `frameworks/5w-five-whys.md`（实际位于 `skills/5w-distill/frameworks/`）指 5W 丰田思考模型框架（三层面追问框架）。
-- `skills/{skill-name}/...` 指 skill 内部资源（如 `skills/mvl-distill/frameworks/`、`skills/gc-distill/references/`、`skills/hmw-distill/references/`、`skills/journey-distill/references/`、`skills/5w-distill/references/`、`skills/canvas-render/visual-patterns/`、`skills/module-conclusion-gate/references/`、`skills/gc-gate/references/`、`skills/hmw-gate/references/`、`skills/journey-gate/references/`、`skills/5w-gate/references/`）。
+- `skills/{skill-name}/...` 指 skill 内部资源（如 `skills/mvl-distill/frameworks/`、`skills/gc-distill/references/`、`skills/hmw-distill/references/`、`skills/persona-distill/references/`、`skills/journey-distill/references/`、`skills/5w-distill/references/`、`skills/canvas-render/visual-patterns/`、`skills/module-conclusion-gate/references/`、`skills/gc-gate/references/`、`skills/hmw-gate/references/`、`skills/persona-gate/references/`、`skills/journey-gate/references/`、`skills/5w-gate/references/`）。
 - `frameworks/persona-frame.md`（实际位于 `skills/persona-distill/frameworks/`）指用户画像框架。
-- `skills/{skill-name}/...` 指 skill 内部资源（如 `skills/mvl-distill/frameworks/`、`skills/gc-distill/references/`、`skills/hmw-distill/references/`、`skills/persona-distill/references/`、`skills/5w-distill/references/`、`skills/canvas-render/visual-patterns/`、`skills/module-conclusion-gate/references/`、`skills/gc-gate/references/`、`skills/hmw-gate/references/`、`skills/persona-gate/references/`、`skills/5w-gate/references/`）。
 - `skills/canvas-render/visual-patterns/[0-9][0-9]-*.md` 指 skill 内部视觉模式资源（10 个 Markdown 视觉模式 + README）；项目目录不持有 visual-patterns/。发现、校验和完整路径传递规则见 `skills/canvas-render/visual-patterns/README.md` 与 `skills/canvas-render/SKILL.md`。
 - `skills/canvas-render/scripts/audit_canvas_html.py` 指专家包根目录内的静态审计脚本，不是当前工作坊项目目录下的脚本；调用时从专家包根目录解析完整路径。
 - `skills/faq-answer/...` 指 FAQ Q/A 支持型 Skill 资源；它只解释使用、状态和异常，不写 `state.json`、确认包、转写或 HTML。
@@ -929,7 +928,7 @@ Key Points 只用于讨论地图和草稿预览，不作为正式渲染事实源
 | "确认，生成画布" | 先澄清并核对版本；Gate 通过后扫描视觉模式、推荐 1–2 个候选，用户选定后生成正式 Canvas（步骤 7） |
 | "override" / "我接受这个风险" | 仅在 Gate 报告含 `business_risk` FAIL 时生效；要求用户填写：影响确认、override 理由、确认人、可选角色、确认时间；写入 `override_audit` 并将 `confirmation_mode=override`、`render_authorized=true`、状态 `confirmed`。`information_integrity` FAIL 不接受 override。 |
 | "换风格" / "换个模板" | 重新扫描视觉模式 frontmatter，校验后推荐 1–2 个候选并等待用户选择 |
-| "检查状态" / "进度" / "同步状态" | 报告当前 topic 的 MVL 六模块 + GC + HMW + Persona + Journey + V2C VAC + 5W 版本、状态、`generation_path`（如适用）、`gate_recommendation`、`confirmation_mode`、关键缺口和待确认人；"同步状态"会重新读取当前 topic 的 `state.json` 并 patch group + project manifest |
+| "检查状态" / "进度" / "同步状态" | **当前 topic 全量**：报告 MVL M1-M6 + GC + HMW + Persona + Journey + V2C VAC + 5W 的版本、状态、`generation_path`（如适用）、`gate_recommendation`、`confirmation_mode` 和关键缺口；"同步状态"会重新读取当前 topic 的 `state.json` 并 patch group + project manifest |
 | "检查本组所有 topic" / "本组议题进度" | 读取 `workshop/{project_slug}/{group_id}/manifest.json`；缺失或陈旧则从当前 group 的 `*/state.json` 重建，输出当前 group 的 topic 汇总表，不读取其他 topic 产物作为当前 topic 输入 |
 | "检查所有组状态" / "跨组对比" | 读取 `workshop/{project_slug}/manifest.json`；缺失或陈旧则从 `*/{topic_slug}/state.json` 重建，输出 group × topic 状态汇总和 canvas_progress 横向对比，不读取其他 group / topic 产物作为当前 topic 输入 |
 | "切换 topic" | 只切换当前工作目录指针为新的 `workshop/{project_slug}/{group_id}/{topic_slug}/`，不复制状态；目标 topic 不存在时进入 Phase 0 |
@@ -960,14 +959,12 @@ Key Points 只用于讨论地图和草稿预览，不作为正式渲染事实源
 | "用户旅程状态" / "Journey 进度" | 报告 Journey version / status / gate_recommendation / confirmation_mode / 关键缺口 |
 | **用户画像专用** | |
 | "用户画像" / "Persona" / "User Persona" / "画像画布" | 判定为 Persona 独立画布；若 Persona 流程尚未落地，停止并请用户确认 Persona 实施步骤，不转入 Journey |
-| "检查状态" / "进度" / "同步状态" | **当前 topic 全量**：报告 MVL M1-M6 + GC + HMW + Persona + Journey + V2C VAC + 5W 的版本、状态、generation_path（如适用）、gate_recommendation、confirmation_mode 和关键缺口 |
 | **Persona 专用** | |
 | "用户画像" / "Persona" / "画像" / "用户研究" | 判定为 Persona 画布类型，加载 `frameworks/persona-frame.md` 引导问题 |
 | "用户画像转写" / "这是用户画像的逐字稿" | 存档 `transcripts/persona-TXX-raw.md` → Persona Key Points 抽取 |
 | "用户画像门禁" / "用户画像质量检查" | 调用 `persona-gate`，评估 `PERSONA-{slug}-v{N}.md` |
 | "生成用户画像画布" | 确认 `state.json.persona.{slug}.render_authorized=true` 后渲染 `persona-canvas-{slug}.html` |
 | "用户画像状态" / "用户画像进度" | 报告 Persona version / status / gate_recommendation / confirmation_mode / 关键缺口 |
-| "检查状态" / "进度" / "同步状态" | **当前 topic 全量**：报告 MVL M1-M6 + GC + HMW + Persona + Journey + V2C VAC + 5W 的版本、状态、generation_path（如适用）、gate_recommendation、confirmation_mode 和关键缺口 |
 | **V2C VAC 专用** | |
 | "V2C" / "VAC" / "价值归因" / "Value Attribution Canvas" | 判定为 V2C VAC 画布类型；若缺 `generation_path`，追问选择 `pipeline` 或 `transcript-direct` |
 | "根据这份逐字稿生成 V2C VAC" / "一次性生成价值归因画布" | 判定为 V2C VAC `transcript-direct`；确定 slug（拒绝 `default`），初始化 `state.v2c_vac.{slug}` 后调用 `v2c-vac-distill` |
@@ -1020,6 +1017,8 @@ Key Points 只用于讨论地图和草稿预览，不作为正式渲染事实源
 6. 质量鉴别必须在正式画布外显，但不得进入主表成为第 6 行。
 7. Gate 只给建议；`render_authorized` 只能由用户显式授权（gate_pass 或 override）。
 8. 只有 `business_risk` 可 override；`information_integrity` 不可 override。
+```
+
 ### Persona 强制执行指令（执行 Persona 流程时必须应用）
 
 ```text
@@ -1327,7 +1326,7 @@ Agent：（存档为 transcripts/module-2-T02-raw.md）
       （末尾提示决策）
 
 用户：提炼
-Agent：（生成 M2-v2.md 确认包，v1 已清空 approval；v1 旧 HTML 标记为过期）
+Agent：（生成 M2-v2.md 确认包，v1 的 `render_authorized` 已重置为 `false`；v1 旧 HTML 标记为过期）
 ```
 
 ### 示例 5：先看个样子（草稿 Canvas）
