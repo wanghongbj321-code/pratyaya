@@ -443,6 +443,86 @@ draft → gaps_open ↔ review_ready → confirmed → rendered
 
 输出下一模块引导问题，并带上本模块会影响下一模块的已确认结论和仍待验证的 minor 项。
 
+## Phase 2：MVL 全局汇总
+
+触发：用户要求全局 Canvas 或领导汇报。
+
+1. 校验 M1-M6 全部为 `rendered`，且 HTML 与各模块最新确认版本一致。
+2. 校验所有当前版本 `state.json` 的 `confirmation_mode`。
+3. **跨模块 caveat 浮现**：
+   - 扫描六个当前版本的 `confirmation_mode`；
+   - 收集所有 `confirmation_mode=override` 模块的 `override_audit.items`；
+   - 检查每项业务风险是否影响其他模块；
+   - 若下游模块依赖被 override 的假设或未验证项，必须显式标注，或回退相关模块升版重审；
+   - 不得因模块已进入 `rendered` 而忽略 caveat。
+4. Agent 对 M1-M6 的 `Mx-v{N}.md` 进行跨模块一致性审核：
+   - 目标是否被指标覆盖；
+   - 用户结果是否被流程承接；
+   - 流程是否是完整的 AI 应用工作流，三类节点是否齐全，并有 Agent、Context 和人工责任支持；
+   - 验证是否覆盖核心假设；
+   - 数字、边界、术语和版本是否一致。
+5. 有冲突时回退相关模块升版和重审，不在全局页中静默修正。
+6. **对齐总检**：跨六个模块检查是否存在业务方与技术方对同一事项的理解仍然不一致的情况。具体检查：
+   - Intent 的"业务价值"与 Validation 的"实测结果"是否对齐（业务方认可技术方的验证）；
+   - User 的"最重要结果"与 Workflow 的"完成条件"是否对齐（业务方认可技术方的闭环路径）；
+   - Agent Team 的"决策边界"在 Workflow 各节点是否一致（技术方认可业务方的授权）；
+   - 六个模块的重大分歧是否都已显式关闭或明确标记为 accepted_risk；
+   - 管理层最关心的风险点是否在 Validation 和 M6 的能力边界中有对应。
+7. 按步骤 7 重新扫描视觉模式、推荐 1–2 个候选并等待用户明确选择；把选定模式的完整仓库相对路径传给 `canvas-render`。
+8. 调用 `canvas-render` 生成：
+   - `output/maau-global-canvas.html`
+   - `output/mvl-final-report.html`
+9. 全局 Canvas 用普通相对链接进入各模块详情，禁止用 iframe，保证本地 `file://` 可打开。
+10. **管理层摘要分开呈现**：
+    - 无保留确认结论（`confirmation_mode=gate_pass`）；
+    - **带保留意见的结论（`confirmation_mode=override`）**——必须单列，含风险摘要；
+    - 未验证假设；
+    - 关键风险；
+    - 补救动作（Owner + 日期）。
+    不得把 override 结论混入"已完全验证"或"无风险"的成果表述。
+
+## Phase 3：逐字稿 → MAAU 源包（transcript-direct 一次性综合）
+
+触发：用户明确要求综合生成 MAAU 全局画布（关键词见步骤 -1），或明确指定 `maau-synthesize`。只提供逐字稿 / 会议材料但未指定 MAAU 时，不进入本 Phase，必须先追问画布类型。
+
+**冲突分流（必须先判定，不混用）**：
+
+| 情况 | 走哪条路径 |
+|---|---|
+| 已有 M1-M6 全部 `rendered`，用户要汇总模块 | Phase 2（M1-M6 → `maau-global-canvas.html`） |
+| 用户提供新逐字稿，并明确要求 MAAU 一次性综合 | Phase 3（逐字稿 → `MAAU-{slug}-v{N}.md` → `maau-global-canvas-{slug}.html`） |
+| 两者同时成立 | **必须让用户选择**，不得自动混用；说明两条路径互斥；可说明基于新逐字稿走 transcript-direct（Phase 3）会新建实例，用户也可改选基于既有 M1-M6 汇总（Phase 2） |
+
+**流程**：
+
+1. 确定 `instance_slug`：用户指定或推荐 kebab-case ASCII slug；**拒绝 `default`**。
+2. 初始化 `state.maau.{slug}`：`slug={slug}`、`generation_path=transcript-direct`、`version=0`、`status=draft`、`gate_recommendation=pending`、`render_authorized=false`、`confirmation_mode=null`、`source_file=null`、`output_file=null`。
+3. 存档转写为 `transcripts/maau-{slug}-raw.md`，更新 `transcripts/manifest.json`。
+4. 调用 `maau-synthesize`，读取 `skills/maau-synthesize/references/maau-synth-spec.md` + `skills/mvl-distill/references/mvl-canvas-spec.md` + `skills/mvl-distill/references/workshop-canvas-map.md`。
+5. 写 `modules/MAAU-{slug}-v1.md`（六板块源包，唯一事实源）。
+6. 状态按缺口进入 `gaps_open` 或 `review_ready`。
+7. 调用 `module-conclusion-gate` 的 MAAU 模式（`gate_reference=references/MAAU-gate.md`），输出 `modules/MAAU-{slug}-gate-report-v{N}.md`；`gate_recommendation` 写入 `state.maau.{slug}`。
+8. 展示 Gate 报告，等用户 **确认 vN / override / 补问**。
+9. 授权后（`render_authorized=true`）调用 `canvas-render`（`canvas_type=mvl`、`page_type=global`、`generation_path=transcript-direct`、`instance_slug={slug}`），输出 `output/maau-global-canvas-{slug}.html`。
+10. 运行审计 + 浏览器验收通过后置 `rendered`：
+    ```bash
+    python3 skills/canvas-render/scripts/audit_canvas_html.py output/maau-global-canvas-{slug}.html \
+      --source modules/MAAU-{slug}-v{N}.md \
+      --state state.json \
+      --type mvl \
+      --page-type global \
+      --instance {slug} \
+      --generation-path transcript-direct
+    ```
+
+**关键约束**：
+
+- MAAU 源包不引用逐字稿段落；来源线索基于 Key Points / 源包自身 section。
+- Workflow 三类节点（Agent 执行 / 人工操作确认 / 人审 + Agent 执行）缺类标 `information_integrity` 缺口，不自动补写。
+- Context 只列逐字稿讨论确认项并说明可获得性，不按常见做法自动补全。
+- `information_integrity` FAIL 不接受 override；`business_risk` 可 override（`override_audit.items[].assessment_id` 为 `MAAU-GATE-*` 且 `category=business_risk`）。
+- 实例页**不伪造 M1-M6 模块详情下钻**；与 Phase 2 全局页互斥，不把 transcript-direct 实例混入 M1-M6 Phase 2 汇总。
+
 ## Phase GC：黄金圈工作流
 
 触发：用户选择黄金圈画布类型。
@@ -830,86 +910,6 @@ Key Points 只用于讨论地图和草稿预览，不作为正式渲染事实源
 ### 5W 步骤 8：完成
 
 5W instance 输出 `5w-canvas-{slug}.html` 即完成（单画布即终点，无「预告下一模块」）；需要汇总时再生成 `5w-canvas.html` 索引页（`audit --type 5w --index`）。状态查询读取 `state.five_whys.{slug}`，报告 version / status / gate_recommendation / confirmation_mode / 关键缺口。
-
-## Phase 2：MVL 全局汇总
-
-触发：用户要求全局 Canvas 或领导汇报。
-
-1. 校验 M1-M6 全部为 `rendered`，且 HTML 与各模块最新确认版本一致。
-2. 校验所有当前版本 `state.json` 的 `confirmation_mode`。
-3. **跨模块 caveat 浮现**：
-   - 扫描六个当前版本的 `confirmation_mode`；
-   - 收集所有 `confirmation_mode=override` 模块的 `override_audit.items`；
-   - 检查每项业务风险是否影响其他模块；
-   - 若下游模块依赖被 override 的假设或未验证项，必须显式标注，或回退相关模块升版重审；
-   - 不得因模块已进入 `rendered` 而忽略 caveat。
-4. Agent 对 M1-M6 的 `Mx-v{N}.md` 进行跨模块一致性审核：
-   - 目标是否被指标覆盖；
-   - 用户结果是否被流程承接；
-   - 流程是否是完整的 AI 应用工作流，三类节点是否齐全，并有 Agent、Context 和人工责任支持；
-   - 验证是否覆盖核心假设；
-   - 数字、边界、术语和版本是否一致。
-5. 有冲突时回退相关模块升版和重审，不在全局页中静默修正。
-6. **对齐总检**：跨六个模块检查是否存在业务方与技术方对同一事项的理解仍然不一致的情况。具体检查：
-   - Intent 的"业务价值"与 Validation 的"实测结果"是否对齐（业务方认可技术方的验证）；
-   - User 的"最重要结果"与 Workflow 的"完成条件"是否对齐（业务方认可技术方的闭环路径）；
-   - Agent Team 的"决策边界"在 Workflow 各节点是否一致（技术方认可业务方的授权）；
-   - 六个模块的重大分歧是否都已显式关闭或明确标记为 accepted_risk；
-   - 管理层最关心的风险点是否在 Validation 和 M6 的能力边界中有对应。
-7. 按步骤 7 重新扫描视觉模式、推荐 1–2 个候选并等待用户明确选择；把选定模式的完整仓库相对路径传给 `canvas-render`。
-8. 调用 `canvas-render` 生成：
-   - `output/maau-global-canvas.html`
-   - `output/mvl-final-report.html`
-9. 全局 Canvas 用普通相对链接进入各模块详情，禁止用 iframe，保证本地 `file://` 可打开。
-10. **管理层摘要分开呈现**：
-    - 无保留确认结论（`confirmation_mode=gate_pass`）；
-    - **带保留意见的结论（`confirmation_mode=override`）**——必须单列，含风险摘要；
-    - 未验证假设；
-    - 关键风险；
-    - 补救动作（Owner + 日期）。
-    不得把 override 结论混入"已完全验证"或"无风险"的成果表述。
-
-## Phase 3：逐字稿 → MAAU 源包（transcript-direct 一次性综合）
-
-触发：用户明确要求综合生成 MAAU 全局画布（关键词见步骤 -1），或明确指定 `maau-synthesize`。只提供逐字稿 / 会议材料但未指定 MAAU 时，不进入本 Phase，必须先追问画布类型。
-
-**冲突分流（必须先判定，不混用）**：
-
-| 情况 | 走哪条路径 |
-|---|---|
-| 已有 M1-M6 全部 `rendered`，用户要汇总模块 | Phase 2（M1-M6 → `maau-global-canvas.html`） |
-| 用户提供新逐字稿，并明确要求 MAAU 一次性综合 | Phase 3（逐字稿 → `MAAU-{slug}-v{N}.md` → `maau-global-canvas-{slug}.html`） |
-| 两者同时成立 | **必须让用户选择**，不得自动混用；说明两条路径互斥；可说明基于新逐字稿走 transcript-direct（Phase 3）会新建实例，用户也可改选基于既有 M1-M6 汇总（Phase 2） |
-
-**流程**：
-
-1. 确定 `instance_slug`：用户指定或推荐 kebab-case ASCII slug；**拒绝 `default`**。
-2. 初始化 `state.maau.{slug}`：`slug={slug}`、`generation_path=transcript-direct`、`version=0`、`status=draft`、`gate_recommendation=pending`、`render_authorized=false`、`confirmation_mode=null`、`source_file=null`、`output_file=null`。
-3. 存档转写为 `transcripts/maau-{slug}-raw.md`，更新 `transcripts/manifest.json`。
-4. 调用 `maau-synthesize`，读取 `skills/maau-synthesize/references/maau-synth-spec.md` + `skills/mvl-distill/references/mvl-canvas-spec.md` + `skills/mvl-distill/references/workshop-canvas-map.md`。
-5. 写 `modules/MAAU-{slug}-v1.md`（六板块源包，唯一事实源）。
-6. 状态按缺口进入 `gaps_open` 或 `review_ready`。
-7. 调用 `module-conclusion-gate` 的 MAAU 模式（`gate_reference=references/MAAU-gate.md`），输出 `modules/MAAU-{slug}-gate-report-v{N}.md`；`gate_recommendation` 写入 `state.maau.{slug}`。
-8. 展示 Gate 报告，等用户 **确认 vN / override / 补问**。
-9. 授权后（`render_authorized=true`）调用 `canvas-render`（`canvas_type=mvl`、`page_type=global`、`generation_path=transcript-direct`、`instance_slug={slug}`），输出 `output/maau-global-canvas-{slug}.html`。
-10. 运行审计 + 浏览器验收通过后置 `rendered`：
-    ```bash
-    python3 skills/canvas-render/scripts/audit_canvas_html.py output/maau-global-canvas-{slug}.html \
-      --source modules/MAAU-{slug}-v{N}.md \
-      --state state.json \
-      --type mvl \
-      --page-type global \
-      --instance {slug} \
-      --generation-path transcript-direct
-    ```
-
-**关键约束**：
-
-- MAAU 源包不引用逐字稿段落；来源线索基于 Key Points / 源包自身 section。
-- Workflow 三类节点（Agent 执行 / 人工操作确认 / 人审 + Agent 执行）缺类标 `information_integrity` 缺口，不自动补写。
-- Context 只列逐字稿讨论确认项并说明可获得性，不按常见做法自动补全。
-- `information_integrity` FAIL 不接受 override；`business_risk` 可 override（`override_audit.items[].assessment_id` 为 `MAAU-GATE-*` 且 `category=business_risk`）。
-- 实例页**不伪造 M1-M6 模块详情下钻**；与 Phase 2 全局页互斥，不把 transcript-direct 实例混入 M1-M6 Phase 2 汇总。
 
 ## 指令卡
 
