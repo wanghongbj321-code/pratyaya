@@ -1,0 +1,17 @@
+{
+  "v2c_vac": {
+    "sample-vac": {
+      "slug": "sample-vac",
+      "version": "v1",
+      "generation_path": "transcript-direct",
+      "status": "confirmed",
+      "source_file": "modules/V2C-VAC-sample-vac-v1.md",
+      "gate_recommendation": "pass",
+      "render_authorized": true,
+      "confirmation_mode": "gate_pass",
+      "override_audit": {
+        "items": []
+      }
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "schema_version": "2.4",
+  "project_slug": "maau-test-project",
+  "project_name": "MAAU 测试项目",
+  "group_id": "group-1",
+  "maau": {
+    "retail-demo": {
+      "slug": "retail-demo",
+      "generation_path": "transcript-direct",
+      "version": 1,
+      "status": "review_ready",
+      "gate_recommendation": "pending",
+      "render_authorized": false,
+      "confirmation_mode": null
+    }
+  },
+  "updated_at": "2026-08-08T18:00:00+08:00",
+  "topic_slug": "default",
+  "topic_name": "default"
+}

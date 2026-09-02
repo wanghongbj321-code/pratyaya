@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MAAU Canvas · retail-demo · transcript-direct</title>
+<style>
+/* ============================================================
+   Pratyaya 工作坊画布 · 共享主题层
+   标准 pratyaya 黑灰配色（black-gray-professional，单色方案）
+   通过 body[data-theme="base"] 选择器声明；不提供配色切换（CSS 已内联进各画布 HTML，单文件自包含）
+   ============================================================ */
+
+/* ---------- 标准黑灰主题（1:1 还原 pratyaya 黑灰母版） ---------- */
+:root,
+[data-theme="base"] {
+  --brand: #000000;
+  --brand-dark: #000000;
+  --brand-soft: #FFFFFF;
+  --brand-pale: #F2F2F2;
+  --accent: #000000;
+  --ink: #000000;
+  --muted: #8A8A8A;
+  --line: #000000;
+  --paper: #FFFFFF;
+  --page-bg: #FFFFFF;
+  --stripe: #F2F2F2;
+  --title-color: #000000;
+  --hint-color: #A5A5A5;
+  --head-bg: transparent;
+  --head-fg: #000000;
+  --radius: 10px;
+  --border-w: 1.6px;
+  --font: "Helvetica Neue", Arial, "Microsoft YaHei", "PingFang SC", sans-serif;
+  --shadow: none;
+  --fill-line: #E3E3E3;
+}
+
+/* ---------- 基础版式 ---------- */
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--page-bg);
+  color: var(--ink);
+  font-family: var(--font);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wwrap, .wrap { max-width: 1400px; margin: 0 auto; padding: 26px 24px 44px; }
+
+/* 页头 */
+.canvas-head {
+  display: flex; justify-content: space-between; align-items: flex-end;
+  gap: 24px; margin-bottom: 18px; padding-bottom: 14px;
+  border-bottom: 2px solid var(--brand);
+}
+.canvas-head .eyebrow {
+  font-size: 10px; font-weight: 700; letter-spacing: .2em;
+  color: var(--muted); text-transform: uppercase; margin-bottom: 6px;
+}
+.canvas-head h1 {
+  margin: 0; font-size: clamp(22px, 2.6vw, 34px); font-weight: 700;
+  color: var(--title-color); line-height: 1.2; letter-spacing: -.01em;
+}
+.canvas-head .sub { margin: 6px 0 0; font-size: 13px; color: var(--muted); max-width: 760px; }
+.canvas-head .meta { text-align: right; font-size: 11px; color: var(--muted); line-height: 1.7; white-space: nowrap; }
+.canvas-head .meta strong { display: block; font-size: 12px; color: var(--title-color); }
+
+/* 画布外框 */
+.canvas {
+  background: var(--paper);
+  border: var(--border-w) solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+/* 区块通用 */
+.cell-title {
+  display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
+  margin: 0 0 4px; font-size: 15px; font-weight: 700; color: var(--ink);
+}
+.cell-title .en { font-size: 14px; font-weight: 700; color: var(--ink); }
+.cell-hint { margin: 0 0 10px; font-size: 10.5px; color: var(--hint-color); line-height: 1.5; }
+
+/* 可填写区：横线纸效果 */
+.fill {
+  min-height: 120px; padding: 2px 0; outline: none; font-size: 13px;
+  line-height: 26px;
+  background-image: repeating-linear-gradient(
+    to bottom, transparent 0, transparent 25px, var(--fill-line) 25px, var(--fill-line) 26px);
+}
+.fill:focus { background-color: var(--brand-pale); }
+.fill:empty::before { content: attr(data-ph); color: var(--hint-color); font-size: 12px; }
+
+/* 下划线填空 */
+.blank {
+  display: inline-block; min-width: 90px; border-bottom: 1px solid var(--ink);
+  outline: none; padding: 0 4px; font-size: 13px; line-height: 1.7;
+}
+.blank:focus { background: var(--brand-pale); }
+.blank:empty::before { content: "\00a0"; }
+
+/* 质量鉴别结论色（黑灰体系内区分，不引入彩色） */
+.verdict-pass { color: #000; font-weight: 700; }
+.verdict-fail { color: #000; font-weight: 700; text-decoration: underline; }
+.verdict-pending { color: var(--muted); font-weight: 700; }
+
+/* 治理面板 override 警示（黑灰体系：虚线 + 灰底，不引入红） */
+.govern .caveat {
+  margin-top: 12px; padding: 10px 12px; border: 1.5px dashed #000; border-radius: var(--radius);
+  font-size: 12px; color: #000; background: var(--brand-pale);
+}
+
+/* 脚注 */
+.footnote {
+  margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line);
+  font-size: 10px; color: var(--muted); line-height: 1.7;
+}
+.footnote b { color: var(--title-color); }
+
+/* 响应式 */
+@media (max-width: 980px) {
+  .canvas-head { flex-direction: column; align-items: flex-start; }
+  .canvas-head .meta { text-align: left; }
+}
+@media (max-width: 720px) {
+  .wrap { padding: 16px 12px 32px; }
+}
+
+</style>
+<style>
+  .wrap{ max-width:1600px; padding:24px; }
+  .local-notes{ min-height:40px; }
+</style>
+</head>
+<body data-theme="base" data-mode="formal" data-canvas="mvl" data-page-type="global" data-visual-mode="black-gray-professional" data-version="1" data-instance="retail-demo">
+<div class="wrap">
+  <header class="maau-header" id="canvas-header">
+    <div class="maau-title-row">
+      <h1 id="headline">门店补货智能体</h1>
+    </div>
+    <div class="maau-meta">
+      <div class="maau-meta-row"><b>来源</b><span>[来源: transcript-direct]</span></div>
+    </div>
+  </header>
+
+  <main>
+    <section class="board" id="intent">
+      <h2>Intent</h2>
+      <div class="maau-output">建立门店补货的 AI 应用闭环，减少缺货与压货</div>
+    </section>
+    <section class="board" id="user">
+      <h2>User</h2>
+      <div class="maau-output">管乡镇夫妻店的快消业务代表</div>
+    </section>
+    <section class="board" id="agent-team">
+      <h2>Agent Team</h2>
+      <div class="maau-output">补货建议 Agent + 人工兜底确认</div>
+    </section>
+    <section class="board" id="workflow">
+      <h2>Workflow</h2>
+      <div class="maau-output">预测 → 建议 → 人工确认 → 执行 → 复盘</div>
+      <div class="maau-flow" id="workflow-flow" aria-label="Workflow BPMN 流程图">
+        <svg class="bpmn-flow" role="img" aria-label="Workflow BPMN 流程图" viewBox="0 0 980 160">
+          <defs>
+            <marker id="flow-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="#000"/>
+            </marker>
+          </defs>
+          <g class="bpmn-flow-path">
+            <path class="bpmn-sequence" d="M84 80 H120" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#flow-arrow)"/>
+            <path class="bpmn-sequence" d="M250 80 H290" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#flow-arrow)"/>
+            <path class="bpmn-sequence" d="M420 80 H460" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#flow-arrow)"/>
+            <path class="bpmn-sequence" d="M600 80 H640" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#flow-arrow)"/>
+            <path class="bpmn-sequence" d="M770 80 H876" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#flow-arrow)"/>
+          </g>
+          <g class="bpmn-node" data-node-type="start" data-node-id="w0" data-node-number="01">
+            <circle cx="60" cy="80" r="24" fill="#fff" stroke="#000" stroke-width="1.6"/>
+            <text x="60" y="84" text-anchor="middle" font-size="10">触发</text>
+          </g>
+          <g class="bpmn-node" data-node-type="agent_execution" data-node-id="w1" data-node-number="02">
+            <rect x="120" y="52" width="130" height="56" rx="10" fill="#fff" stroke="#000" stroke-width="1.6"/>
+            <text x="185" y="84" text-anchor="middle" font-size="11">预测</text>
+          </g>
+          <g class="bpmn-node" data-node-type="agent_execution" data-node-id="w2" data-node-number="03">
+            <rect x="290" y="52" width="130" height="56" rx="10" fill="#fff" stroke="#000" stroke-width="1.6"/>
+            <text x="355" y="84" text-anchor="middle" font-size="11">建议</text>
+          </g>
+          <g class="bpmn-node" data-node-type="human_operation" data-node-id="w3" data-node-number="04">
+            <rect x="460" y="52" width="140" height="56" rx="10" fill="#fff" stroke="#000" stroke-width="1.6"/>
+            <text x="530" y="84" text-anchor="middle" font-size="11">人工确认</text>
+          </g>
+          <g class="bpmn-node" data-node-type="human_review" data-node-id="w4" data-node-number="05">
+            <rect x="640" y="52" width="130" height="56" rx="10" fill="#fff" stroke="#000" stroke-width="1.6"/>
+            <text x="705" y="84" text-anchor="middle" font-size="11">执行</text>
+          </g>
+          <g class="bpmn-node" data-node-type="end" data-node-id="w5" data-node-number="06">
+            <circle cx="900" cy="80" r="24" fill="#fff" stroke="#000" stroke-width="3.5"/>
+            <text x="900" y="84" text-anchor="middle" font-size="10">复盘</text>
+          </g>
+        </svg>
+      </div>
+    </section>
+    <section class="board" id="context">
+      <h2>Context</h2>
+      <div class="maau-output">门店历史补货、POS 数据、补货预测模型</div>
+    </section>
+    <section class="board" id="validation">
+      <h2>Validation</h2>
+      <div class="maau-output">三片区试点可跑通，缺货率降两成</div>
+    </section>
+  </main>
+
+  <aside class="maau-governance" id="quality-panel" aria-label="质量与治理">
+    <div class="governance-row" id="quality-version">v1</div>
+    <div class="governance-row" id="quality-approval">gate_pass</div>
+    <div class="governance-row" id="quality-gaps">MAAU-G01</div>
+    <div class="governance-row" id="quality-risks">无</div>
+    <div class="governance-caveat" id="quality-caveat" hidden>无</div>
+    <section class="governance-alignment" id="alignment-section">
+      <div>对齐摘要</div>
+    </section>
+  </aside>
+
+  <section class="local-notes" id="local-notes" contenteditable="true" aria-label="本地批注"></section>
+</div>
+
+<script type="application/json" id="canvas-data">
+{
+  "canvas_type": "mvl",
+  "page_type": "global",
+  "generation_path": "transcript-direct",
+  "instance": "retail-demo",
+  "source_file": "MAAU-retail-demo-v1.md",
+  "version": "1",
+  "sections": {
+    "intent": { "goal": "建立门店补货的 AI 应用闭环，减少缺货与压货", "value": "", "success_metrics": "" },
+    "user": { "users": "管乡镇夫妻店的快消业务代表", "needs": "", "pain_points": "", "most_important_outcomes": "" },
+    "agent-team": { "roles": "", "collaboration": "" },
+    "workflow": { "steps": "预测 → 建议 → 人工确认 → 执行 → 复盘", "automation": "", "human_checkpoints": "", "human_agent_nodes": "", "rules": "" },
+    "context": { "knowledge": "", "data_sources": "", "tools_skills": "" },
+    "validation": { "executable": "三片区试点可跑通", "value": "缺货率降两成", "evolution": "" }
+  },
+  "workflow": {
+    "nodes": [
+      { "id": "w0", "number": "01", "type": "start", "label": "触发预测" },
+      { "id": "w1", "number": "02", "type": "agent_execution", "label": "预测" },
+      { "id": "w2", "number": "03", "type": "agent_execution", "label": "建议" },
+      { "id": "w3", "number": "04", "type": "human_operation", "label": "人工确认" },
+      { "id": "w4", "number": "05", "type": "human_review", "label": "执行" },
+      { "id": "w5", "number": "06", "type": "end", "label": "复盘" }
+    ],
+    "edges": [
+      { "from": "w0", "to": "w1" },
+      { "from": "w1", "to": "w2" },
+      { "from": "w2", "to": "w3" },
+      { "from": "w3", "to": "w4" },
+      { "from": "w4", "to": "w5" }
+    ]
+  },
+  "auth": {
+    "gate_recommendation": "pass",
+    "render_authorized": true,
+    "confirmation_mode": "gate_pass",
+    "override_audit": null
+  }
+}
+</script>
+</body>
+</html>

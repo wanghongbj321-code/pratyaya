@@ -1,0 +1,16 @@
+{
+  "five_whys": {
+    "sample-5w": {
+      "slug": "sample-5w",
+      "version": "v1",
+      "status": "review_ready",
+      "source_file": "modules/5W-sample-5w-v1.md",
+      "gate_recommendation": "pending",
+      "render_authorized": false,
+      "confirmation_mode": null,
+      "override_audit": {
+        "items": []
+      }
+    }
+  }
+}
