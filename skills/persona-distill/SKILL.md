@@ -36,6 +36,8 @@ description: 把用户画像工作坊讨论产物提炼为 Markdown 资产。先
 
 逐字稿从"证据"降级为"背景材料"，仅作存档，不作引用源。
 
+> **调用契约**：Persona 画布执行细节与强制执行指令见 `references/PERSONA-pipeline.md`。
+
 ## 输入与输出
 
 | Stage | 输入 | 输出 |

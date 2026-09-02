@@ -36,6 +36,8 @@ description: 把黄金圈（Golden Circle）工作坊讨论产物提炼为 Markd
 
 逐字稿从"证据"降级为"背景材料"，仅作存档，不作引用源。
 
+> **调用契约**：GC 画布执行细节（步骤展开与 Gate 要求）见 `references/GC-pipeline.md`。
+
 ## 输入与输出
 
 | Stage | 输入 | 输出 |

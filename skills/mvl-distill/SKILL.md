@@ -35,6 +35,8 @@ description: 把 MVL 工作坊讨论产物提炼为模块化 Markdown 资产。�
 
 逐字稿从"证据"降级为"背景材料"，仅作存档，不作引用源。
 
+> **调用契约**：MVL 模块级执行细节（步骤 0-8）见 `references/M-pipeline.md`；全局汇总细节见 `references/global-pipeline.md`。
+
 ## 输入与输出
 
 | Stage | 输入 | 输出 |

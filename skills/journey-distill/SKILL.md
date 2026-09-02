@@ -47,6 +47,8 @@ Journey 是独立一等公民画布，不影响 MVL：
 
 逐字稿从“证据”降级为“背景材料”，仅作存档，不作引用源。
 
+> **调用契约**：Journey 画布执行细节与强制执行指令见 `references/JOURNEY-pipeline.md`。
+
 ## 输入与输出
 
 | Stage | 输入 | 输出 |
