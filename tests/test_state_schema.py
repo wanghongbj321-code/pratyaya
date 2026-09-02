@@ -1,4 +1,4 @@
-"""state.schema.json v2.3 校验测试（HMW / Persona / Journey + 向后兼容）。"""
+"""state.schema.json v2.4 校验测试（HMW / Persona / Journey + 向后兼容）。"""
 
 from __future__ import annotations
 
@@ -53,8 +53,8 @@ def validate(state: dict, schema: dict) -> list[str]:
 
 
 class TestSchemaVersion:
-    def test_schema_version_is_2_3(self, schema: dict) -> None:
-        assert schema["properties"]["schema_version"]["const"] == "2.3"
+    def test_schema_version_is_2_4(self, schema: dict) -> None:
+        assert schema["properties"]["schema_version"]["const"] == "2.4"
 
     def test_instance_canvas_blocks_are_present(self, schema: dict) -> None:
         for key in ("modules", "golden_circle", "hmw", "persona", "journey"):
@@ -68,13 +68,13 @@ class TestValidHmwStates:
     )
     def test_valid_states_pass(self, fixture: str, schema: dict) -> None:
         state = load_migrated_fixture(fixture)
-        state["schema_version"] = "2.3"
+        state["schema_version"] = "2.4"
         errors = validate(state, schema)
         assert errors == []
 
     def test_agent_initialized_hmw_block_passes(self, schema: dict) -> None:
         state = load_migrated_fixture("legacy-v2-without-hmw.json")
-        state["schema_version"] = "2.3"
+        state["schema_version"] = "2.4"
         state["hmw"] = {
             "default": {
                 "slug": "default",
@@ -97,12 +97,14 @@ class TestValidPersonaStates:
         ["persona-draft.json", "persona-gate-pass.json", "persona-override.json"],
     )
     def test_valid_states_pass(self, fixture: str, schema: dict) -> None:
-        errors = validate(load_migrated_fixture(fixture), schema)
+        state = load_migrated_fixture(fixture)
+        state["schema_version"] = "2.4"
+        errors = validate(state, schema)
         assert errors == []
 
     def test_agent_initialized_persona_block_passes(self, schema: dict) -> None:
         state = load_migrated_fixture("legacy-v2.1-without-persona.json")
-        state["schema_version"] = "2.3"
+        state["schema_version"] = "2.4"
         state["persona"] = {
             "default": {
                 "slug": "default",
@@ -125,12 +127,14 @@ class TestValidJourneyStates:
         ["journey-draft.json", "journey-gate-pass.json", "journey-override.json"],
     )
     def test_valid_states_pass(self, fixture: str, schema: dict) -> None:
-        errors = validate(load_migrated_fixture(fixture), schema)
+        state = load_migrated_fixture(fixture)
+        state["schema_version"] = "2.4"
+        errors = validate(state, schema)
         assert errors == []
 
     def test_agent_initialized_journey_block_passes(self, schema: dict) -> None:
         state = load_migrated_fixture("legacy-v22-without-journey.json")
-        state["schema_version"] = "2.3"
+        state["schema_version"] = "2.4"
         state["journey"] = {
             "default": {
                 "slug": "default",
@@ -150,41 +154,41 @@ class TestValidJourneyStates:
 class TestInvalidHmwStates:
     def test_override_with_information_integrity_fails(self, schema: dict) -> None:
         state = load_migrated_fixture("hmw-invalid-override.json")
-        state["schema_version"] = "2.3"
+        state["schema_version"] = "2.4"
         errors = validate(state, schema)
         assert any("category" in error for error in errors)
 
     def test_override_without_audit_fails(self, schema: dict) -> None:
         state = load_migrated_fixture("hmw-override.json")
-        state["schema_version"] = "2.3"
+        state["schema_version"] = "2.4"
         del canvas_instance(state, "hmw")["override_audit"]
         errors = validate(state, schema)
         assert any("override_audit" in e for e in errors)
 
     def test_override_with_wrong_gate_id_fails(self, schema: dict) -> None:
         state = load_migrated_fixture("hmw-override.json")
-        state["schema_version"] = "2.3"
+        state["schema_version"] = "2.4"
         canvas_instance(state, "hmw")["override_audit"]["items"][0]["assessment_id"] = "GC-GATE-01"
         errors = validate(state, schema)
         assert any("assessment_id" in e for e in errors)
 
     def test_conflicting_auth_fields_fail(self, schema: dict) -> None:
         state = load_migrated_fixture("hmw-gate-pass.json")
-        state["schema_version"] = "2.3"
+        state["schema_version"] = "2.4"
         canvas_instance(state, "hmw")["gate_recommendation"] = "fail"
         errors = validate(state, schema)
         assert any("gate_recommendation" in e for e in errors)
 
     def test_gate_pass_with_render_not_authorized_fails(self, schema: dict) -> None:
         state = load_migrated_fixture("hmw-gate-pass.json")
-        state["schema_version"] = "2.3"
+        state["schema_version"] = "2.4"
         canvas_instance(state, "hmw")["render_authorized"] = False
         errors = validate(state, schema)
         assert any("render_authorized" in e for e in errors)
 
     def test_unknown_status_fails(self, schema: dict) -> None:
         state = load_migrated_fixture("hmw-draft.json")
-        state["schema_version"] = "2.3"
+        state["schema_version"] = "2.4"
         canvas_instance(state, "hmw")["status"] = "shipped"
         errors = validate(state, schema)
         assert any("status" in e for e in errors)
@@ -267,18 +271,18 @@ class TestInvalidJourneyStates:
 class TestBackwardCompatibility:
     def test_legacy_v2_without_hmw_passes_non_hmw_shape(self, schema: dict) -> None:
         state = load_migrated_fixture("legacy-v2-without-hmw.json")
-        state["schema_version"] = "2.3"
+        state["schema_version"] = "2.4"
         errors = validate(state, schema)
         assert all("hmw" not in e for e in errors)
 
     def test_legacy_v2_1_without_persona_passes_non_persona_shape(self, schema: dict) -> None:
         state = load_migrated_fixture("legacy-v2.1-without-persona.json")
-        state["schema_version"] = "2.3"
+        state["schema_version"] = "2.4"
         errors = validate(state, schema)
         assert all("persona" not in e for e in errors)
 
     def test_legacy_v22_without_journey_passes_non_journey_shape(self, schema: dict) -> None:
         state = load_migrated_fixture("legacy-v22-without-journey.json")
-        state["schema_version"] = "2.3"
+        state["schema_version"] = "2.4"
         errors = validate(state, schema)
         assert all("journey" not in e for e in errors)

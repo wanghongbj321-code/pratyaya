@@ -1,19 +1,20 @@
 ---
 name: canvas-render
-description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 非 MVL: {GC|HMW|PERSONA|JOURNEY|V2C-VAC}-{slug}-v{N}.md）按用户选定的 Markdown 视觉模式渲染为可编辑、可追溯、离线可打开的 HTML Canvas。正式渲染前置条件：state.json 的 render_authorized=true 且 confirmation_mode ∈ {gate_pass, override}；非 MVL 必须传 instance_slug 并读取 state.{state_key}.{slug}；override 时必须携带完整 override_audit。主 Agent 扫描 visual-patterns frontmatter、推荐候选并传递完整模式路径 + canvas_type 参数；本 Skill 不自动选模式。
+description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 非 MVL: {GC|HMW|PERSONA|JOURNEY|V2C-VAC|5W}-{slug}-v{N}.md）按用户选定的 Markdown 视觉模式渲染为可编辑、可追溯、离线可打开的 HTML Canvas。正式渲染前置条件：state.json 的 render_authorized=true 且 confirmation_mode ∈ {gate_pass, override}；非 MVL 必须传 instance_slug 并读取 state.{state_key}.{slug}；override 时必须携带完整 override_audit。主 Agent 扫描 visual-patterns frontmatter、推荐候选并传递完整模式路径 + canvas_type 参数；本 Skill 不自动选模式。
 ---
 
 # Canvas 渲染
 
 本 Skill 是展示层，不是分析层。只把已确认的 Markdown 事实源转成 HTML；不得从转写直接提炼，不得为填满页面新增、润色或补齐业务结论。
 
-支持六种画布类型（由主 Agent 通过 `canvas_type` 参数指定）：
+支持七种画布类型（由主 Agent 通过 `canvas_type` 参数指定）：
 - `mvl`：MVL 六模块画布（默认）
 - `golden-circle`：黄金圈单画布
 - `hmw`：HMW 问题重构单画布
 - `journey`：User Journey 用户旅程单画布
 - `persona`：用户画像单画布
 - `v2c-vac`：V2C Value Attribution Canvas 价值归因单画布
+- `5w`：5W（Five Whys）根因分析单画布
 
 `mvl` 下存在两条生成路径：
 - **Phase 2 全局汇总**：M1-M6 六模块 → `output/maau-global-canvas.html`（沿用现有 MVL 全局模式）。
@@ -27,12 +28,14 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 非 MVL: {
 - `../hmw-distill/references/hmw-spec.md`：HMW section 规范与锚点映射。
 - `../journey-distill/references/journey-spec.md`：Journey section 规范、动态阶段与锚点映射。
 - `../v2c-vac-distill/references/v2c-vac-spec.md`：V2C VAC section、ID、证据状态与归因断点规范。
+- `../5w-distill/references/5w-spec.md`：5W Key Points 固定结构、确认包 section 与 Canvas 锚点映射规范。
 - `references/render-contract.md`：MVL DOM、共享结构、离线、数据完整性和 caveat 契约。
 - `references/render-contract-gc.md`：黄金圈 DOM、锚点映射、共享结构契约。
 - `references/render-contract-hmw.md`：HMW DOM、锚点映射、共享结构契约。
 - `references/render-contract-persona.md`：Persona DOM、锚点映射、共享结构契约。
 - `references/render-contract-journey.md`：Journey DOM、动态阶段、锚点映射、共享结构契约。
 - `references/render-contract-v2c-vac.md`：V2C VAC DOM、归因链、Template Gate、锚点映射、共享结构契约。
+- `references/render-contract-5w.md`：5W DOM、五层因果链、Template Gate、锚点映射、共享结构契约。
 - `examples/`：**所有画布类型的示例库**——渲染任何画布前必须在此目录按 `canvas_type` 查找对应示例并参照生成最终画布（见「示例参照」）；其中 `goden-circle-canvas.html` 是黄金圈 `gc-diagram` 3 圈图示的**唯一视觉事实源**（见 `render-contract-gc.md` §C）。
 - `visual-patterns/README.md`：视觉模式的发现、命名、字段、正文结构和阻断规则。
 - `scripts/audit_canvas_html.py`：确定性 HTML 静态审计；锚点顺序直接读取对应 render contract。
@@ -43,7 +46,7 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 非 MVL: {
 
 正式渲染和模块详情渲染必须同时收到：
 
-1. `canvas_type`：画布类型，`"mvl"`（默认）、`"golden-circle"`、`"hmw"`、`"persona"`、`"journey"` 或 `"v2c-vac"`。
+1. `canvas_type`：画布类型，`"mvl"`（默认）、`"golden-circle"`、`"hmw"`、`"persona"`、`"journey"`、`"v2c-vac"` 或 `"5w"`。
 2. 确认包路径：按当前项目工作目录解析。
    - MVL：`modules/Mx-v{N}.md`
    - GC：`modules/GC-{slug}-v{N}.md`
@@ -219,14 +222,35 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 非 MVL: {
 - 空字段显示"未讨论"或"待确认"，不得根据逐字稿直接分析、补写归因链、补足 KPI 或推断 Value。
 - 不改变模块状态，不进入正式输出。
 
+### 5W 正式模式
+
+- 输入 `canvas_type=5w`，状态为 `confirmed` 或 `rendered`，且 `state.five_whys.{slug}.render_authorized=true`。
+- 数据源只能是 `modules/5W-{slug}-v{N}.md`，不得从逐字稿、会议材料或 Key Points 直接生成正式 HTML。
+- 输出 `output/5w-canvas-{slug}.html`；Python 静态审计 + Template Gate + 浏览器视觉验收通过后才算成功。
+- 按 `render-contract-5w.md` 展示问题陈述、五层因果链（三层面：制造层 Why 1-2 → 检验层 Why 3-4 → 体系层 Why 5）、根本原因与"因此"检验、对策四要素、其他原因分支、判别记录与治理面板。
+- 五层锚点 `5w-why-1` ~ `5w-why-5` 必须全部存在（层数弹性暂不支持）；每层必须展示内容或显式缺口标注。
+- 布局沿用 A3 横版：1-5 张卡片横向并排、三层面标注、页脚三条红线（事实优先 / 系统而非个人 / 验证行动）。
+- `canvas-data.canvas_type`、`canvas-data.page_type` 与 `body[data-page-type]` 必须都是 `5w`；`canvas-data.visual_mode.id` 为 `black-gray-professional`。
+- `override_audit.items[].assessment_id` 必须引用 `5W-GATE-*`（pattern `^5W-GATE-[0-9]+$`）且 `category=business_risk`；`information_integrity` FAIL 不接受 override。
+- Template Gate（`5W-TPL-GATE-00..06`）检查结构与模板一致性，**不可 override**；`5W-TPL-GATE-00` 要求正式交付必须传 `--template`，失败时修订 HTML 或模板/契约，不得用用户授权绕过。
+- **不触发全局 Canvas**，不扫描跨模块 caveat，不读取或写入 MVL / MAAU 状态。5W 是单画布。
+
+### 5W 草稿模式
+
+- 仅在用户明确要求"用草稿辅助继续讨论"时生成。
+- 数据源：`modules/5W-{slug}-keypoints.md`。
+- 输出 `output/5w-canvas-{slug}.html`，带永久"草稿 / 未确认 / 禁止用于管理层决策"水印。
+- 空字段显示"未讨论"或"待确认"，不得根据逐字稿直接分析、补写因果链或补足对策。
+- 不改变模块状态，不进入正式输出。
+
 ### 非 MVL 索引页模式
 
-- 适用于 GC / HMW / Persona / Journey / V2C VAC。
+- 适用于 GC / HMW / Persona / Journey / V2C VAC / 5W。
 - 输入为 `state.{state_key}` 的全部 instance map，不读取转写，不重新渲染任何详情页。
-- 输出固定为 `output/{canvas}-canvas.html`，其中 `{canvas}` 为 `gc` / `hmw` / `persona` / `journey`；V2C VAC 使用 `output/v2c-vac-canvas.html`。
+- 输出固定为 `output/{canvas}-canvas.html`，其中 `{canvas}` 为 `gc` / `hmw` / `persona` / `journey`；V2C VAC 使用 `output/v2c-vac-canvas.html`，5W 使用 `output/5w-canvas.html`。
 - 页面按 slug 字典序列出每个 instance 的 slug、version、status、gate_recommendation、updated_at（如有）与详情页链接 `output/{canvas}-canvas-{slug}.html`。
 - index 页不写入任一 instance 的 `output_file`；它是派生视图，可随时从 state 与现有详情页重建。
-- 生成后运行 `audit_canvas_html.py --type {gc|hmw|persona|journey|v2c-vac} --index --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json`。
+- 生成后运行 `audit_canvas_html.py --type {gc|hmw|persona|journey|v2c-vac|5w} --index --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json`。
 
 ## 视觉模式实现
 
@@ -255,9 +279,10 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 非 MVL: {
    | `hmw` | `examples/hmw-canvas.html` |
    | `journey` | `examples/user-journey-canvas.html` |
    | `v2c-vac` | `examples/v2c-value-attribution-canvas.html` |
+   | `5w` | `examples/5w-canvas.html` |
    | 其他 | 暂无示例（见第 3 条处理） |
 
-2. **参照**：示例是最终画布的**版面与签名视觉事实源**——整体布局、签名图示（如 GC 三同心圆、V2C VAC 归因链箭头）、治理面板 / 质量面板位置、pratyaya 黑灰配色与交互骨架均须与示例一致；业务内容仍按对应 render-contract 映射到稳定锚点。HMW 正式输出必须按 `examples/hmw-canvas.html` 的版面与签名布局生成，并同时通过内容/授权审计和 Template Gate（`HMW-TPL-GATE-XX`，见 `scripts/audit_canvas_html.py --template`）。V2C VAC 正式输出必须按 `examples/v2c-value-attribution-canvas.html` 的 A3 landscape、黑灰视觉、归因链箭头和治理结构生成，并通过 `V2C-VAC-TPL-GATE-XX`。
+2. **参照**：示例是最终画布的**版面与签名视觉事实源**——整体布局、签名图示（如 GC 三同心圆、V2C VAC 归因链箭头、5W 五张卡片横向并排）、治理面板 / 质量面板位置、pratyaya 黑灰配色与交互骨架均须与示例一致；业务内容仍按对应 render-contract 映射到稳定锚点。HMW 正式输出必须按 `examples/hmw-canvas.html` 的版面与签名布局生成，并同时通过内容/授权审计和 Template Gate（`HMW-TPL-GATE-XX`，见 `scripts/audit_canvas_html.py --template`）。V2C VAC 正式输出必须按 `examples/v2c-value-attribution-canvas.html` 的 A3 landscape、黑灰视觉、归因链箭头和治理结构生成，并通过 `V2C-VAC-TPL-GATE-XX`。5W 正式输出必须按 `examples/5w-canvas.html` 的 A3 横版、黑灰单配色、1-5 卡片横向并排与三层面标注生成，并通过 `5W-TPL-GATE-XX`（正式交付必须传 `--template`，触发 `5W-TPL-GATE-00`）。
 
 3. **未找到示例**：不阻断渲染，但必须在交付说明中显式标注"该画布类型暂无示例参照"，并在浏览器视觉验收时按 render-contract 自行核对版面；同时提示需要补建对应示例（建议命名 `{canvas_type}-canvas.html`）。
 
@@ -265,10 +290,11 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 非 MVL: {
 
 ## 内容与数据契约
 
-- 正式页面内容只来自同版本确认包（MVL: `modules/Mx-v{N}.md` / MAAU(transcript-direct): `modules/MAAU-{slug}-v{N}.md` / GC: `modules/GC-{slug}-v{N}.md` / HMW: `modules/HMW-{slug}-v{N}.md` / Persona: `modules/PERSONA-{slug}-v{N}.md` / Journey: `modules/JOURNEY-{slug}-v{N}.md` / V2C VAC: `modules/V2C-VAC-{slug}-v{N}.md`）。
+- 正式页面内容只来自同版本确认包（MVL: `modules/Mx-v{N}.md` / MAAU(transcript-direct): `modules/MAAU-{slug}-v{N}.md` / GC: `modules/GC-{slug}-v{N}.md` / HMW: `modules/HMW-{slug}-v{N}.md` / Persona: `modules/PERSONA-{slug}-v{N}.md` / Journey: `modules/JOURNEY-{slug}-v{N}.md` / V2C VAC: `modules/V2C-VAC-{slug}-v{N}.md` / 5W: `modules/5W-{slug}-v{N}.md`）。
 - MVL 全局页只使用规定的六大板块；过程材料留在模块详情页并提供下钻入口。
 - GC 使用规定的 WHY / HOW / WHAT 三层 + 跨层一致性板块，无子模块详情页。
 - V2C VAC 使用规定的 Scenario / Capability / Change / Business Impact / Value 主链、Attribution Gaps、Quality Check 与 Inferences；不得从逐字稿直接分析、补写或改写确认包未确认的业务结论。
+- 5W 使用规定的问题陈述、五层因果链（制造层 Why 1-2 / 检验层 Why 3-4 / 体系层 Why 5）、根本原因与"因此"检验、对策四要素、其他原因分支与判别记录；五层锚点必须全部存在（层数弹性暂不支持），每层内容或缺口标注必须来自确认包，不得从逐字稿直接补写。
 - Workflow 必须分别呈现 Agent 执行、人工操作 / 确认、人审 + Agent 执行三类节点。
 - 全局页（Phase 2 汇总页与 MAAU transcript-direct 实例页）的 Workflow 板块必须派生 BPMN 流程图（`#workflow-flow`，锚点契约与派生规则见 `render-contract.md` §A1）：渲染时从确认包 Workflow section 静态生成内联 SVG（Start / Task / Exclusive Gateway / End / Sequence Flow），三类节点由泳道（桌面）/ 节点在流程中的位置区分（不使用 BPMN Task Marker 图标）；连接线必须正交（横 / 竖 / 肘型，禁止曲线），端点对齐节点边中点；所有节点（含 Start / End）左上角显示流程序号徽标（白底黑色小字号）。桌面三泳道、窄屏单流横向滚动。`canvas-data` 顶层 `workflow` 对象内嵌派生拓扑（`nodes` / `edges`，`nodes[].number` 为流程序号），供静态审计一致性校验。
 - 内嵌 `<script type="application/json" id="canvas-data">`，内容包含同版本确认包 + 授权元数据（`render_authorized` / `confirmation_mode` / `override_audit`）。
@@ -364,6 +390,18 @@ python3 skills/canvas-render/scripts/audit_canvas_html.py \
   --template skills/canvas-render/examples/v2c-value-attribution-canvas.html
 ```
 
+5W 正式画布审计（正式交付必须传 `--template`，触发 `5W-TPL-GATE-00`）：
+
+```bash
+python3 skills/canvas-render/scripts/audit_canvas_html.py \
+  workshop/{project_slug}/{group_id}/{topic_slug}/output/5w-canvas-{slug}.html \
+  --source workshop/{project_slug}/{group_id}/{topic_slug}/modules/5W-{slug}-v{N}.md \
+  --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json \
+  --type 5w \
+  --instance {slug} \
+  --template skills/canvas-render/examples/5w-canvas.html
+```
+
 全局页不绑定单一确认包，运行 `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/{topic_slug}/output/maau-global-canvas.html`。MAAU transcript-direct 实例页审计：
 
 ```bash
@@ -388,7 +426,7 @@ python3 skills/canvas-render/scripts/audit_canvas_html.py \
 5. 离线安全、草稿标记及 override caveat 必需结构符合契约。
 6. 全局页 Workflow 流程图（`#workflow-flow`）契约：SVG 含 Start/End Event；Sequence Flow 禁止曲线命令（`C`/`Q`/`S`/`A`，必须正交）；`canvas-data.workflow.nodes` 覆盖三类节点（agent_execution / human_operation / human_review）且 `number` 存在唯一；SVG `bpmn-node` 数量与 `nodes` 数量一致；`edges.from / to` 引用存在的 node id；传入 `--source` 时确认包含三类节点章节。
 
-脚本返回非零状态时必须阻断，按输出的失败项修订同一版本 HTML 后重跑。不得绕过、删除失败锚点或手工改写审计结果。HMW / Persona / Journey / V2C VAC 的 Template Gate 失败属于渲染结构失败，**不可 override**。
+脚本返回非零状态时必须阻断，按输出的失败项修订同一版本 HTML 后重跑。不得绕过、删除失败锚点或手工改写审计结果。HMW / Persona / Journey / V2C VAC / 5W 的 Template Gate 失败属于渲染结构失败，**不可 override**。
 
 ## 精简浏览器视觉验收
 

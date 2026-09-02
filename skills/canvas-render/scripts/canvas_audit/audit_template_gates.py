@@ -134,6 +134,41 @@ def load_v2c_vac_template_profile(contract_path: Path) -> dict[str, list[str]]:
         )
     return {"main_order": main_order, "stable_anchors": stable_anchors}
 
+def load_5w_template_profile(contract_path: Path) -> dict[str, list[str]]:
+    """从 render-contract-5w.md 解析 5W 模板结构 profile（一级模块顺序 + 稳定锚点）。
+
+    返回 {"main_order": [...], "stable_anchors": [...]}。
+
+    注意：5W 锚点以数字开头（`5w-*`），一级模块解析正则须允许数字首字符，
+    不能直接复用 hmw/persona 的 `[a-z]` 开头正则。
+    """
+    text = contract_path.read_text(encoding="utf-8")
+    main_order: list[str] = []
+    stable_anchors: list[str] = []
+
+    order_match = re.search(
+        r"### 一级模块必需性与 DOM 相对顺序（强制）\s*```text\s*(.*?)```",
+        text,
+        re.DOTALL,
+    )
+    if order_match:
+        for line in order_match.group(1).splitlines():
+            m = re.match(r"\s*→\s*([a-z0-9][a-z0-9-]*)\s*$", line)
+            if m:
+                main_order.append(m.group(1))
+
+    anchor_match = re.search(
+        r"### 稳定锚点集合（Template Gate 校验）(.*?)(?=\n### |\Z)",
+        text,
+        re.DOTALL,
+    )
+    if anchor_match:
+        stable_anchors = re.findall(
+            r"`(5w-[a-z0-9-]+|quality-[a-z0-9-]+|local-notes|canvas-data)`",
+            anchor_match.group(1),
+        )
+    return {"main_order": main_order, "stable_anchors": stable_anchors}
+
 def element_is_hidden(source: str, attrs: dict[str, str]) -> bool:
     """判断元素是否以约定方式隐藏（hidden 属性 / display:none / visibility:hidden / class=hidden）。"""
     if "hidden" in attrs:

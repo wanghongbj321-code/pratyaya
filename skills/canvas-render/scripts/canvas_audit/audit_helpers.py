@@ -137,6 +137,30 @@ def v2c_vac_source_generation_path(path: Path) -> str | None:
     )
     return match.group(1) if match else None
 
+def five_whys_source_identity(path: Path) -> tuple[str | None, str | None]:
+    """从 5W-{slug}-v{N}.md 确认包提取 slug 与版本号。
+
+    返回 ``(slug, "vN")``；无法解析时返回 ``(None, None)``。slug 从文件名提取，
+    版本号优先取首行标题（`# 5W 根因分析确认包 v{N}`），失败时回退文件名。
+    """
+    try:
+        head = "\n".join(path.read_text(encoding="utf-8").splitlines()[:30])
+    except OSError:
+        return (None, None)
+    filename_match = re.fullmatch(
+        r"5W-([a-z0-9]+(?:-[a-z0-9]+)*)-v(\d+)\.md",
+        path.name,
+    )
+    filename_slug = filename_match.group(1) if filename_match else None
+    filename_version = f"v{filename_match.group(2)}" if filename_match else None
+    version_match = re.search(
+        r"^#\s+5W 根因分析确认包\s*(v\d+)\s*$",
+        head,
+        re.MULTILINE,
+    )
+    version = version_match.group(1) if version_match else filename_version
+    return (filename_slug, version)
+
 def maau_source_identity(path: Path) -> tuple[str | None, str | None]:
     """从 MAAU-{slug}-vN 源包头部提取 slug 与版本号。
 
@@ -235,6 +259,47 @@ def audit_v2c_vac_override(canvas_data: JsonDict) -> list[Finding]:
             findings.append(
                 Finding(
                     "V2C_OVERRIDE",
+                    f"assessment_id={assessment_id!r} category must be business_risk, got {item.get('category')!r}",
+                )
+            )
+    return findings
+
+def audit_5w_override(canvas_data: JsonDict) -> list[Finding]:
+    """校验 5W override 审计项：assessment_id 为 5W-GATE-* 且 category=business_risk。
+
+    Gate 分类（5W-gate 规范）：information_integrity（5W-GATE-01..04）不可 override；
+    business_risk（5W-GATE-05..07）可 override。此处只校验 ID pattern 与 category。
+    """
+    findings: list[Finding] = []
+    auth = canvas_data.get("auth")
+    if not isinstance(auth, dict):
+        return findings
+    if auth.get("confirmation_mode") != "override":
+        return findings
+    override = auth.get("override_audit")
+    if not isinstance(override, dict):
+        findings.append(Finding("5W_OVERRIDE", "override_audit must be an object"))
+        return findings
+    items = override.get("items")
+    if not isinstance(items, list):
+        findings.append(Finding("5W_OVERRIDE", "override_audit.items must be an array"))
+        return findings
+    for item in items:
+        if not isinstance(item, dict):
+            findings.append(Finding("5W_OVERRIDE", "override_audit item must be an object"))
+            continue
+        assessment_id = str(item.get("assessment_id", ""))
+        if not re.fullmatch(r"5W-GATE-[0-9]+", assessment_id):
+            findings.append(
+                Finding(
+                    "5W_OVERRIDE",
+                    f"assessment_id={assessment_id!r} must match 5W-GATE-[0-9]+",
+                )
+            )
+        if item.get("category") != "business_risk":
+            findings.append(
+                Finding(
+                    "5W_OVERRIDE",
                     f"assessment_id={assessment_id!r} category must be business_risk, got {item.get('category')!r}",
                 )
             )
@@ -610,6 +675,88 @@ def audit_hmw_content_mapping(html: HtmlSnapshot, source_path: Path) -> list[Fin
             break
     return findings
 
+def audit_5w_content_mapping(html: HtmlSnapshot, source_path: Path) -> list[Finding]:
+    """确认正式 5W 成品的可见业务事实来自同版本确认包（第 6-9 节）。
+
+    校验：
+    - 6. 问题陈述：statement → 5w-problem-statement；occurred_at/impact_frequency/participants → 5w-problem-meta
+    - 7. 因果链：Why 1-5 的"答案（因为…）"列 → 5w-why-1..5
+    - 8. 根本原因：root_cause → 5w-root-cause；so_therefore/stop_check → 5w-root-check
+    - 9. 对策四要素：countermeasure/owner/due_date/verify → 5w-countermeasure/5w-owner/5w-due/5w-verify
+    """
+    try:
+        package = source_path.read_text(encoding="utf-8")
+    except (OSError, UnicodeError) as exc:
+        return [Finding("CONTENT_MAPPING", f"cannot read 5W package: {exc}")]
+
+    findings: list[Finding] = []
+
+    # 6. 问题陈述
+    for row in extract_hmw_table_rows(package, "6. 问题陈述"):
+        if len(row) < 2:
+            continue
+        if row[0] == "statement" or row[0].startswith("statement（"):
+            if row[1] not in html.text_by_id.get("5w-problem-statement", ""):
+                findings.append(
+                    Finding("CONTENT_MAPPING", "5w-problem-statement 未展示确认包问题陈述")
+                )
+        elif row[0] in ("occurred_at", "impact_frequency", "participants") or any(
+            row[0].startswith(f"{key}（") for key in ("occurred_at", "impact_frequency", "participants")
+        ):
+            if row[1] not in html.text_by_id.get("5w-problem-meta", ""):
+                findings.append(
+                    Finding("CONTENT_MAPPING", "5w-problem-meta 未展示确认包问题元数据")
+                )
+
+    # 7. 因果链（五层，三层面）：答案列（row[3]）→ 5w-why-1..5
+    for index, row in enumerate(
+        extract_hmw_table_rows(package, "7. 因果链（五层，三层面）")[:5],
+        start=1,
+    ):
+        if len(row) >= 4 and row[3] not in html.text_by_id.get(f"5w-why-{index}", ""):
+            findings.append(
+                Finding("CONTENT_MAPPING", f"5w-why-{index} 未展示确认包因果链答案")
+            )
+
+    # 8. 根本原因
+    root_ids = {
+        "root_cause": "5w-root-cause",
+        "so_therefore": "5w-root-check",
+        "stop_check": "5w-root-check",
+    }
+    for row in extract_hmw_table_rows(package, "8. 根本原因"):
+        if len(row) < 2:
+            continue
+        field = next(
+            (key for key in root_ids if row[0] == key or row[0].startswith(f"{key}（")),
+            None,
+        )
+        if field and row[1] not in html.text_by_id.get(root_ids[field], ""):
+            findings.append(
+                Finding("CONTENT_MAPPING", f"{root_ids[field]} 未展示确认包根本原因字段")
+            )
+
+    # 9. 对策四要素
+    countermeasure_ids = {
+        "countermeasure": "5w-countermeasure",
+        "owner": "5w-owner",
+        "due_date": "5w-due",
+        "verify": "5w-verify",
+    }
+    for row in extract_hmw_table_rows(package, "9. 对策四要素"):
+        if len(row) < 2:
+            continue
+        field = next(
+            (key for key in countermeasure_ids if row[0] == key or row[0].startswith(f"{key}（")),
+            None,
+        )
+        if field and row[1] not in html.text_by_id.get(countermeasure_ids[field], ""):
+            findings.append(
+                Finding("CONTENT_MAPPING", f"{countermeasure_ids[field]} 未展示确认包对策字段")
+            )
+
+    return findings
+
 def select_instance_state(
     state: JsonDict,
     canvas_type: str,
@@ -638,7 +785,7 @@ def audit_index_page(
     """Audit a non-MVL canvas instance index page."""
     findings: list[Finding] = []
     if canvas_type not in INSTANCE_STATE_KEYS:
-        findings.append(Finding("INDEX", "--index is only supported for gc/hmw/persona/journey/v2c-vac"))
+        findings.append(Finding("INDEX", "--index is only supported for gc/hmw/persona/journey/v2c-vac/5w"))
         return findings
 
     expected_page_type = f"{canvas_type}-index" if canvas_type != "gc" else "golden-circle-index"

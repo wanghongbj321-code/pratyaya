@@ -65,6 +65,10 @@ EXPECTED_V2C_VAC_SKILLS = (
     "./skills/v2c-vac-distill",
     "./skills/v2c-vac-gate",
 )
+EXPECTED_5W_SKILLS = (
+    "./skills/5w-distill",
+    "./skills/5w-gate",
+)
 EXPECTED_MAAU_FILES = (
     "SKILL.md",
     "references/maau-synth-spec.md",
@@ -169,7 +173,9 @@ class TestSkillRegistration:
             assert skill in plugin["skills"], f"plugin.json missing MAAU skill {skill}"
         for skill in EXPECTED_V2C_VAC_SKILLS:
             assert skill in plugin["skills"], f"plugin.json missing V2C VAC skill {skill}"
-        assert plugin["version"] == "3.1.1"
+        for skill in EXPECTED_5W_SKILLS:
+            assert skill in plugin["skills"], f"plugin.json missing 5W skill {skill}"
+        assert plugin["version"] == "3.2.0"
 
     def test_plugin_registers_persona_skills(self) -> None:
         plugin = json.loads(read(REPO_ROOT / ".codebuddy-plugin" / "plugin.json"))
@@ -190,6 +196,8 @@ class TestSkillRegistration:
         assert "maau-synthesize" in skills
         assert "v2c-vac-distill" in skills
         assert "v2c-vac-gate" in skills
+        assert "5w-distill" in skills
+        assert "5w-gate" in skills
 
     def test_agent_and_plugin_skills_have_identical_order(self) -> None:
         plugin = json.loads(read(REPO_ROOT / ".codebuddy-plugin" / "plugin.json"))
@@ -211,13 +219,15 @@ class TestSkillRegistration:
             "hmw-distill": 0,
             "persona-distill": 0,
             "journey-distill": 0,
+            "v2c-vac-distill": 0,
+            "5w-distill": 0,
             "module-conclusion-gate": 1,
             "gc-gate": 1,
             "hmw-gate": 1,
             "persona-gate": 1,
             "journey-gate": 1,
-            "v2c-vac-distill": 0,
             "v2c-vac-gate": 1,
+            "5w-gate": 1,
             "faq-answer": 2,
             "maau-synthesize": 2,
             "canvas-render": 3,
@@ -622,7 +632,7 @@ class TestExplicitCanvasRoutingContract:
 
     def test_plugin_json_version_and_entry_context(self) -> None:
         plugin = json.loads(read(REPO_ROOT / ".codebuddy-plugin" / "plugin.json"))
-        assert plugin["version"] == "3.1.1"
+        assert plugin["version"] == "3.2.0"
         # v3.0 入口语境：displayDescription 与 quickPrompts 已显式包含 V2C VAC，且不再宣称 MAAU 默认
         assert "V2C VAC" in plugin["displayDescription"]["zh"]
         assert "V2C" in plugin["displayDescription"]["en"]

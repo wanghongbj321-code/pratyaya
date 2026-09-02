@@ -23,7 +23,7 @@ def schema() -> dict:
 def base_state() -> dict:
     """构造一个最小合法 state（含 project_slug / group_id / maau.retail-demo draft）。"""
     return {
-        "schema_version": "2.3",
+        "schema_version": "2.4",
         "project_slug": "demo-project",
         "project_name": "Demo 项目",
         "group_id": "group-a",

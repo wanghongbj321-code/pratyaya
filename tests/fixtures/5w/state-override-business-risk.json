@@ -1,0 +1,27 @@
+{
+  "five_whys": {
+    "sample-5w": {
+      "slug": "sample-5w",
+      "version": "v1",
+      "status": "confirmed",
+      "source_file": "modules/5W-sample-5w-v1.md",
+      "gate_recommendation": "fail",
+      "render_authorized": true,
+      "confirmation_mode": "override",
+      "override_audit": {
+        "items": [
+          {
+            "assessment_id": "5W-GATE-05",
+            "source_id": "5W-G01",
+            "category": "business_risk",
+            "risk_level": "high",
+            "reason": "示例：Why 3 证据缺失为已知业务风险，用户接受先交付观察画布并在下一轮补证。",
+            "accepted_by": "sample-owner",
+            "accepted_at": "2026-09-02T10:30:00+08:00",
+            "mitigation": "下一轮补齐压差监测记录。"
+          }
+        ]
+      }
+    }
+  }
+}

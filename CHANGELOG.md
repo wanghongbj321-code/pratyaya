@@ -3,6 +3,21 @@
 > 本文件记录 Pratyaya 专家的正式版本变更。
 > 完整 SemVer 与架构说明见 [`README.md`](./README.md) / [`DESIGN.md`](./DESIGN.md) / [docs/MVL-整体架构设计.md](./docs/MVL-整体架构设计.md)。
 
+## [v3.2.0] - 2026-09-02
+
+### 新增功能（MINOR）
+
+- **丰田 5W 根因分析画布（一等公民）**：新增 5W（Five Whys）独立画布，与 GC / HMW / V2C VAC 对称。默认采用**丰田自身推荐的根因分析思考模型**（三层面追问框架：制造层 Why 1-2 → 检验层 Why 3-4 → 体系层 Why 5），问题陈述 + 五层因果链 + 根本原因 + 对策四要素 + 其他原因分支 + 判别记录。以离线工作表 `internal/pratyaya-internal/docs/refs/canvas-templates/06-5W画布.html` 为版面原型（A3 横版、1-5 卡片横向并排、三层面标注、黑灰单配色）。
+- **5W 分析与治理 Skill**：新增 `5w-distill`（Stage 1 Key Points 抽取 + Stage 2 原子提炼，17 节确认包）与 `5w-gate`（`5W-GATE-01~07`，其中 `01~04` 为 `information_integrity` 不可 override，`05~07` 为 `business_risk` 可 override）。机器标识三套分离：文件前缀 / Gate ID `5W-`、`canvas_type=5w`、state 键 `five_whys`。
+- **5W 渲染契约与审计**：新增 `render-contract-5w.md`、契约化示例 `examples/5w-canvas.html`、`audit_canvas_html.py --type 5w`、`--page-type 5w-index` 与 `5W-TPL-GATE-00..06` Template Gate（正式交付必须传 `--template`）；五层锚点 `5w-why-1` ~ `5w-why-5` 必须全部存在（层数弹性暂不支持）。
+- **状态 schema v2.4**：`state.schema.json` `schema_version` 升至 `"2.4"`，新增 `state.five_whys.{slug}` instance map（`assessment_id` pattern `^5W-GATE-[0-9]+$`），anyOf 追加第 8 分支。
+- **Agent 与文档同步**：`agents/pratyaya.md` 新增 Phase 5W 八步流程、5W 指令卡、强制执行指令与状态目录；`README.md` / `DESIGN.md`（§14）/ `DEVELOPMENT.md`（§3.5 调试 + 命令速查）/ `docs/user-guide.md`（§4.8）/ `docs/installation.md` 同步画布清单与流程。
+
+### 兼容性与迁移边界
+
+- 纯新增非破坏性升级；旧 state 无 `five_whys` 区块不阻断既有 MVL / MAAU / GC / HMW / Persona / Journey / V2C VAC 流程。
+- 5W 是独立单画布：不生成 MVL 全局 Canvas，不读取或写入 `state.modules` / `state.maau`。
+
 ## [v3.1.1] - 2026-09-01
 
 > v3.1.0 未发布（分支未合并即进入优化），Workflow BPMN 流程图功能与三项视觉/契约优化合并为 v3.1.1 一并发布。
