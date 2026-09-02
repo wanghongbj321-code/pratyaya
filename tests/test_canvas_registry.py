@@ -8,6 +8,7 @@
 
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 
@@ -16,6 +17,12 @@ import pytest
 REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
+
+# §7.6 依赖边界：audit_core 的 --type choices 从 skills._engine.canvas_registry 读取。
+# 此处把 canvas_audit 包所在目录加入 sys.path，以便交叉断言直接调用 `_audit_type_choices()`。
+_CANVAS_AUDIT_DIR = REPO_ROOT / "skills" / "canvas-render" / "scripts"
+if str(_CANVAS_AUDIT_DIR) not in sys.path:
+    sys.path.insert(0, str(_CANVAS_AUDIT_DIR))
 
 from scripts.contract_consistency.canvas_registry import (  # noqa: E402
     BEGIN,
@@ -149,6 +156,8 @@ def test_by_id_missing_returns_none() -> None:
 
 AGENT_MD = REPO_ROOT / "agents" / "pratyaya.md"
 GC_EXAMPLE = REPO_ROOT / "skills/canvas-render" / "examples" / "goden-circle-canvas.html"
+STATE_SCHEMA = REPO_ROOT / "schemas" / "state.schema.json"
+PLUGIN_JSON = REPO_ROOT / ".codebuddy-plugin" / "plugin.json"
 
 EXPECTED_CANVAS_IDS = {
     "mvl",
@@ -160,7 +169,30 @@ EXPECTED_CANVAS_IDS = {
     "v2c-vac",
     "5w",
 }
-EXPECTED_AUDIT_TYPES = {"mvl", "gc", "hmw", "persona", "journey", "v2c-vac", "5w"}
+
+# 画布区块顶层键（schema properties 中属于画布的部分，排除元数据键）。
+CANVAS_SCHEMA_BLOCKS = {
+    "modules",
+    "maau",
+    "golden_circle",
+    "hmw",
+    "persona",
+    "journey",
+    "v2c_vac",
+    "five_whys",
+}
+# 需从 schema 顶层排除的元数据键（注册表 state_key root 不覆盖它们）。
+SCHEMA_META_KEYS = {
+    "schema_version",
+    "project_slug",
+    "project_name",
+    "group_id",
+    "topic_slug",
+    "topic_name",
+    "current_module",
+    "_meta",
+    "updated_at",
+}
 
 
 def _real_rows():
@@ -178,7 +210,54 @@ def test_real_registry_audit_types_are_seven() -> None:
     ①② 双断言缺一不可：只用 canvas_type 做集合断言时，MAAU 会被去重掉，
     8 个条目只能证出 7 种，测试通过但注册表其实漏了 MAAU（§8.3 R1）。
     """
-    assert {r.audit_type for r in _real_rows()} == EXPECTED_AUDIT_TYPES
+    assert {r.audit_type for r in _real_rows()} == {
+        "mvl", "gc", "hmw", "persona", "journey", "v2c-vac", "5w",
+    }
+
+
+def test_registry_matches_audit_choices() -> None:
+    """§8.3 交叉断言：注册表 audit_type 集合 == audit CLI `--type` choices。
+
+    P4 后 `audit_core._audit_type_choices()` 从 `skills._engine.canvas_registry`
+    读取（§7.6），此处直接调用 audit 侧函数，锁定「注册表 = audit 合法集」单一事实源。
+    """
+    from canvas_audit.audit_core import _audit_type_choices
+
+    assert {r.audit_type for r in _real_rows()} == set(_audit_type_choices())
+
+
+def test_registry_matches_state_schema() -> None:
+    """§8.3 交叉断言：注册表 state_key 顶层区块名 ⊆ schema 顶层属性。
+
+    每个画布条目的 state_key root（如 golden_circle.{slug} → golden_circle）必须
+    是 state.schema.json 的顶层属性，且画布区块集合与 schema 完全一致。
+    """
+    schema = json.loads(STATE_SCHEMA.read_text(encoding="utf-8"))
+    schema_blocks = set(schema["properties"]) - SCHEMA_META_KEYS
+    rows = _real_rows()
+
+    registry_roots = {r.state_key.split(".", 1)[0] for r in rows}
+    assert registry_roots == CANVAS_SCHEMA_BLOCKS
+    assert registry_roots == schema_blocks, (
+        f"注册表 state_key root {sorted(registry_roots)} 与 schema 画布区块 "
+        f"{sorted(schema_blocks)} 不一致"
+    )
+
+
+def test_registry_skills_declared_in_plugin() -> None:
+    """§8.3 交叉断言：每个条目的 distill / gate skill 都在 plugin.json skills 数组。
+
+    替代 test_contract_consistency.py 中按画布硬编码的 EXPECTED_*_SKILLS——
+    从注册表推导，防止某画布新增 skill 后漏声明。
+    """
+    plugin = json.loads(PLUGIN_JSON.read_text(encoding="utf-8"))
+    declared = {p.removeprefix("./skills/") for p in plugin["skills"]}
+    rows = _real_rows()
+
+    assert len(rows) == 8
+    for r in rows:
+        assert r.distill in declared, f"{r.canvas_id}.distill={r.distill} 未在 plugin.json skills 声明"
+        assert r.gate in declared, f"{r.canvas_id}.gate={r.gate} 未在 plugin.json skills 声明"
 
 
 def test_real_registry_maau_shares_mvl_types() -> None:
