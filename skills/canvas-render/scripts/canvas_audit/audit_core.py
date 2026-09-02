@@ -3,9 +3,36 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import sys
 from collections import Counter
 from pathlib import Path
 from typing import cast
+
+# §7.6 依赖边界：canvas_registry 位于仓库根 skills/_engine/。
+# 本文件位于 skills/canvas-render/scripts/canvas_audit/，仓库根 = parents[4]。
+_REPO_ROOT = Path(__file__).resolve().parents[4]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+
+try:
+    from skills._engine.canvas_registry import audit_types as _registry_audit_types
+except Exception as _exc:  # noqa: BLE001 - 环境异常，交由 main 显式报错退出码 2
+    _registry_audit_types = None
+    _REGISTRY_IMPORT_ERROR: Exception | None = _exc
+else:
+    _REGISTRY_IMPORT_ERROR = None
+
+
+def _audit_type_choices() -> tuple[str, ...]:
+    """§7.3/§7.6：--type 合法集的单一事实源来自 canvas_registry，不做硬编码降级。"""
+    if _registry_audit_types is None:
+        raise RuntimeError(
+            "画布注册表 skills._engine.canvas_registry 导入失败（§7.6 依赖边界）。"
+            f"请确认 repo root（{_REPO_ROOT}）下存在 skills/_engine/canvas_registry.py。"
+            f"原始错误：{_REGISTRY_IMPORT_ERROR!r}"
+        )
+    return _registry_audit_types()
+
 
 from .audit_models import (
     AUTH_FIELDS, DEFAULT_CONTRACT, FIVE_WHYS_ANCHORS, FIVE_WHYS_CONTRACT, FIVE_WHYS_MAIN_IDS,
@@ -593,7 +620,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     _ = parser.add_argument(
         "--type",
         dest="canvas_type",
-        choices=("mvl", "gc", "hmw", "persona", "journey", "v2c-vac", "5w"),
+        choices=_audit_type_choices(),
         default="mvl",
         help="canvas type: mvl (default), gc (golden circle), hmw, persona, journey, v2c-vac or 5w",
     )
@@ -619,6 +646,14 @@ def main(argv: list[str] | None = None) -> int:
     - 内容/授权 Gate：所有画布类型（版本、事实源、授权、锚点、canvas-data、caveat、离线）。
     - Template Gate：HMW / Persona / Journey 且传入 --template 时运行（结构完整性，不可 override）。
     """
+    if _REGISTRY_IMPORT_ERROR is not None:
+        print(
+            "FATAL: 画布注册表导入失败（§7.6 依赖边界）。"
+            f"请确认 repo root 已加入 sys.path 且 skills/_engine/canvas_registry.py 存在。"
+            f"原始错误：{_REGISTRY_IMPORT_ERROR}",
+            file=sys.stderr,
+        )
+        return 2
     args = parse_args(argv)
     html_arg = cast(Path, args.html)
     canvas_type = cast(str, args.canvas_type)

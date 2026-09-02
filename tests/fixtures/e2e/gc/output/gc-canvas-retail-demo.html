@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>黄金圈画布 Golden Circle Canvas（一等公民 · 示例）</title>
+<style>
+/* ============================================================
+   Pratyaya 工作坊画布 · 共享主题层
+   标准 pratyaya 黑灰配色（black-gray-professional，单色方案）
+   通过 body[data-theme="base"] 选择器声明；不提供配色切换（CSS 已内联进各画布 HTML，单文件自包含）
+   ============================================================ */
+
+/* ---------- 标准黑灰主题（1:1 还原 pratyaya 黑灰母版） ---------- */
+:root,
+[data-theme="base"] {
+  --brand: #000000;
+  --brand-dark: #000000;
+  --brand-soft: #FFFFFF;
+  --brand-pale: #F2F2F2;
+  --accent: #000000;
+  --ink: #000000;
+  --muted: #8A8A8A;
+  --line: #000000;
+  --paper: #FFFFFF;
+  --page-bg: #FFFFFF;
+  --stripe: #F2F2F2;
+  --title-color: #000000;
+  --hint-color: #A5A5A5;
+  --head-bg: transparent;
+  --head-fg: #000000;
+  --radius: 10px;
+  --border-w: 1.6px;
+  --font: "Helvetica Neue", Arial, "Microsoft YaHei", "PingFang SC", sans-serif;
+  --shadow: none;
+  --fill-line: #E3E3E3;
+}
+
+/* ---------- 基础版式 ---------- */
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--page-bg);
+  color: var(--ink);
+  font-family: var(--font);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wwrap, .wrap { max-width: 1400px; margin: 0 auto; padding: 26px 24px 44px; }
+
+/* 页头 */
+.canvas-head {
+  display: flex; justify-content: space-between; align-items: flex-end;
+  gap: 24px; margin-bottom: 18px; padding-bottom: 14px;
+  border-bottom: 2px solid var(--brand);
+}
+.canvas-head .eyebrow {
+  font-size: 10px; font-weight: 700; letter-spacing: .2em;
+  color: var(--muted); text-transform: uppercase; margin-bottom: 6px;
+}
+.canvas-head h1 {
+  margin: 0; font-size: clamp(22px, 2.6vw, 34px); font-weight: 700;
+  color: var(--title-color); line-height: 1.2; letter-spacing: -.01em;
+}
+.canvas-head .sub { margin: 6px 0 0; font-size: 13px; color: var(--muted); max-width: 760px; }
+.canvas-head .meta { text-align: right; font-size: 11px; color: var(--muted); line-height: 1.7; white-space: nowrap; }
+.canvas-head .meta strong { display: block; font-size: 12px; color: var(--title-color); }
+
+/* 画布外框 */
+.canvas {
+  background: var(--paper);
+  border: var(--border-w) solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+/* 区块通用 */
+.cell-title {
+  display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
+  margin: 0 0 4px; font-size: 15px; font-weight: 700; color: var(--ink);
+}
+.cell-title .en { font-size: 14px; font-weight: 700; color: var(--ink); }
+.cell-hint { margin: 0 0 10px; font-size: 10.5px; color: var(--hint-color); line-height: 1.5; }
+
+/* 可填写区：横线纸效果 */
+.fill {
+  min-height: 120px; padding: 2px 0; outline: none; font-size: 13px;
+  line-height: 26px;
+  background-image: repeating-linear-gradient(
+    to bottom, transparent 0, transparent 25px, var(--fill-line) 25px, var(--fill-line) 26px);
+}
+.fill:focus { background-color: var(--brand-pale); }
+.fill:empty::before { content: attr(data-ph); color: var(--hint-color); font-size: 12px; }
+
+/* 下划线填空 */
+.blank {
+  display: inline-block; min-width: 90px; border-bottom: 1px solid var(--ink);
+  outline: none; padding: 0 4px; font-size: 13px; line-height: 1.7;
+}
+.blank:focus { background: var(--brand-pale); }
+.blank:empty::before { content: "\00a0"; }
+
+/* 质量鉴别结论色（黑灰体系内区分，不引入彩色） */
+.verdict-pass { color: #000; font-weight: 700; }
+.verdict-fail { color: #000; font-weight: 700; text-decoration: underline; }
+.verdict-pending { color: var(--muted); font-weight: 700; }
+
+/* 治理面板 override 警示（黑灰体系：虚线 + 灰底，不引入红） */
+.govern .caveat {
+  margin-top: 12px; padding: 10px 12px; border: 1.5px dashed #000; border-radius: var(--radius);
+  font-size: 12px; color: #000; background: var(--brand-pale);
+}
+
+/* 脚注 */
+.footnote {
+  margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line);
+  font-size: 10px; color: var(--muted); line-height: 1.7;
+}
+.footnote b { color: var(--title-color); }
+
+/* 响应式 */
+@media (max-width: 980px) {
+  .canvas-head { flex-direction: column; align-items: flex-start; }
+  .canvas-head .meta { text-align: left; }
+}
+@media (max-width: 720px) {
+  .wrap { padding: 16px 12px 32px; }
+}
+
+</style>
+<style>
+  /* 黄金圈 3 圈 hero 图示 */
+  .gc-hero{
+    display:flex; gap:22px; align-items:center;
+    border:var(--border-w) solid var(--line); border-radius:var(--radius);
+    background:var(--paper); box-shadow:var(--shadow); padding:16px 22px; margin-bottom:16px;
+  }
+  .gc-hero svg{ flex:0 0 auto; width:280px; height:280px; }
+  .hero-text{ flex:1; }
+  /* 黄金圈 WHY/HOW/WHAT 三层细化说明 */
+  .gc-whyhow-what{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:12px; }
+  .gh{ border:1px solid var(--line); border-radius:var(--radius); padding:10px 12px; background:var(--paper); }
+  .gh-title{ font-size:12.5px; font-weight:700; color:var(--ink); margin:0 0 6px; }
+  .gh-title em{ font-style:normal; font-weight:600; font-size:11px; color:var(--muted); }
+  .gh-body{ font-size:12px; line-height:1.55; color:var(--ink); margin:0 0 6px; }
+  .gh-q{ font-size:11px; line-height:1.5; color:var(--muted); margin:0; padding-top:6px; border-top:1px dashed var(--line); }
+  @media(max-width:1100px){ .gc-hero{ flex-direction:column; align-items:flex-start; } .gc-hero svg{ width:240px; height:240px; } .gc-whyhow-what{ grid-template-columns:1fr; } }
+
+  /* 黄金圈三层（WHY / HOW / WHAT） */
+  .gc-layers{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:16px; }
+  .layer{
+    border:var(--border-w) solid var(--line); border-radius:var(--radius);
+    background:var(--paper); box-shadow:var(--shadow);
+    padding:16px 18px 18px; display:flex; flex-direction:column;
+  }
+  .layer .cell-title{ margin-top:0; }
+  .layer .sub{ margin-bottom:14px; }
+  .layer .sub:last-child{ margin-bottom:0; }
+  .layer .sub-lbl{ font-size:12.5px; font-weight:700; color:var(--ink); display:block; margin-bottom:4px; }
+  .layer .sub-val{ font-size:13px; min-height:34px; color:var(--ink); outline:none; }
+  .layer .sub-val:empty::before{ content:"（未讨论）"; color:var(--hint-color); }
+
+  /* 跨层一致性 */
+  .alignment{
+    border:var(--border-w) solid var(--line); border-radius:var(--radius);
+    background:var(--paper); box-shadow:var(--shadow);
+    padding:16px 18px 18px; margin-bottom:16px;
+  }
+  .align-2{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:10px; }
+  .align-col{ border:1px solid var(--line); border-radius:var(--radius); padding:12px 14px; }
+  .align-col .sub-lbl{ font-size:12.5px; font-weight:700; color:var(--ink); display:block; margin-bottom:6px; }
+  .align-col .sub-val{ font-size:13px; min-height:40px; outline:none; }
+  .align-col .sub-val:empty::before{ content:"（未讨论）"; color:var(--hint-color); }
+
+  /* 质量鉴别 + 治理面板（与 Persona 示例同构） */
+  .lower{ display:grid; grid-template-columns:1.4fr 1fr; gap:16px; align-items:start; }
+  .quality{
+    border:var(--border-w) solid var(--line); border-radius:var(--radius);
+    background:var(--paper); box-shadow:var(--shadow); padding:16px 18px 18px;
+  }
+  .q-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-top:10px; }
+  .q-item{ border:1px solid var(--line); border-radius:var(--radius); padding:10px 12px; }
+  .q-item .q-name{ font-size:13px; font-weight:700; color:var(--ink); }
+  .q-item .q-en{ font-size:11px; color:var(--hint-color); }
+  .q-item .q-verdict{ margin-top:6px; font-size:12px; }
+  /* 质量结论色：黑灰体系内区分，不使用彩色 */
+  .verdict-pass{ color:#000; font-weight:700; }
+  .verdict-fail{ color:#000; font-weight:700; text-decoration:underline; }
+  .verdict-pending{ color:var(--muted); font-weight:700; }
+
+  .govern{
+    border:var(--border-w) solid var(--line); border-radius:var(--radius);
+    background:var(--paper); box-shadow:var(--shadow); padding:16px 18px 18px;
+  }
+  .govern dl{ margin:0; display:grid; grid-template-columns:auto 1fr; gap:6px 12px; font-size:12.5px; }
+  .govern dt{ color:var(--muted); }
+  .govern dd{ margin:0; font-weight:700; color:var(--ink); }
+  .govern .caveat{
+    margin-top:12px; padding:10px 12px; border:1.5px dashed #000; border-radius:var(--radius);
+    font-size:12px; color:#000; background:var(--brand-pale);
+  }
+
+  .local-notes{
+    margin-top:16px; border:1px dashed var(--line); border-radius:var(--radius);
+    padding:12px 14px; font-size:12.5px; min-height:48px; color:var(--ink); outline:none;
+  }
+  .local-notes:empty::before{ content:"本地备注（浏览器内可编辑，刷新即清空）…"; color:var(--hint-color); }
+
+  @media(max-width:1100px){ .gc-layers{ grid-template-columns:1fr; } .lower{ grid-template-columns:1fr; } .align-2{ grid-template-columns:1fr; } }
+</style>
+</head>
+<body data-theme="base" data-mode="formal" data-canvas="golden-circle" data-page-type="golden-circle" data-visual-mode="black-gray-professional" data-version="1" data-instance="retail-demo">
+<div class="wrap">
+  <header class="canvas-head" id="canvas-header">
+    <div>
+      <div class="eyebrow">Pratyaya Canvas · 一等公民 · Golden Circle</div>
+      <h1>黄金圈法则 Golden Circle</h1>
+      <p class="sub">从 WHY（信念）出发，经 HOW（方法）落到 WHAT（行动）——由内而外的追问，让"为什么做"贯穿产品与服务的每一层。</p>
+      <div id="canvas-headline" style="margin-top:8px;font-size:14px;font-weight:700;color:var(--title-color);">一句话结论：一家以 AI 认知诊断为核心的教育科技公司，源于教师的亲身挫败，用技术实现个性化学习的规模化和普惠化。</div>
+    </div>
+    <div class="meta">
+      <strong>Canvas · Golden Circle</strong>
+      项目：教育科技 demo<br>
+      小组：零售 demo 组<br>
+      版本：v1
+    </div>
+  </header>
+
+  <!-- 黄金圈 3 圈图示（hero 视觉，标志性的同心圆） -->
+  <section class="gc-hero" id="gc-diagram" aria-label="黄金圈三层模型示意">
+    <svg viewBox="0 0 340 340" role="img" aria-label="WHY / HOW / WHAT 同心圆">
+      <g stroke="var(--title-color)" stroke-width="2.5" fill="none">
+        <circle cx="170" cy="170" r="150"/>
+        <circle cx="170" cy="170" r="100"/>
+        <circle cx="170" cy="170" r="50"/>
+      </g>
+      <text x="170" y="177" text-anchor="middle" font-size="18" font-weight="700" fill="var(--title-color)">WHY</text>
+      <text x="170" y="248" text-anchor="middle" font-size="14" font-weight="600" fill="var(--ink)">HOW</text>
+      <text x="170" y="300" text-anchor="middle" font-size="14" font-weight="600" fill="var(--ink)">WHAT</text>
+    </svg>
+    <div class="hero-text">
+      <h2 class="cell-title" style="margin-top:0;">由内而外的追问 <span style="font-weight:500;font-size:13px;color:var(--muted)">· Golden Circle（Simon Sinek）</span></h2>
+      <p class="cell-hint">黄金圈是一个由内而外、层层嵌套的思维模型：先想清楚<b>为什么（WHY）</b>，再决定<b>怎么做（HOW）</b>，最后自然落成<b>做什么（WHAT）</b>。真正激励人的沟通与行动，都是从 WHY 出发——人们不因你所做的事而买单，而因你做事背后的<b>理由与信念</b>而买单。下面是三层各自的职责、检验问题与生物学依据。</p>
+      <div class="gc-whyhow-what">
+        <section class="gh">
+          <h3 class="gh-title">WHY · 信念与存在理由 <em>（最内圈）</em></h3>
+          <p class="gh-body">组织或个人存在的根本原因、驱动每一天行动的核心动机。它回答"<b>我们为何存在？我们因何而战？</b>"——对应大脑中负责<b>情感、信任与忠诚</b>的边缘脑（Limbic Brain），不靠逻辑说服，而靠共鸣激发行动。</p>
+          <p class="gh-q">检验问题：若剥离所有产品，这份信念还能否让人记住我们？</p>
+        </section>
+        <section class="gh">
+          <h3 class="gh-title">HOW · 方法与差异化 <em>（中圈）</em></h3>
+          <p class="gh-body">把信念转化为现实的<b>具体差异化流程、策略与技术</b>。它回答"<b>我们如何与众不同地做这件事？</b>"——与 WHY 同属边缘脑，是把抽象信念具象为独特路径的桥梁，避免空谈理想。</p>
+          <p class="gh-q">检验问题：我们的做法，是否只有相信这份信念的人才会选择？</p>
+        </section>
+        <section class="gh">
+          <h3 class="gh-title">WHAT · 产品与服务 <em>（最外圈）</em></h3>
+          <p class="gh-body">向外界展示的<b>有形结果</b>——具体行动、产品与服务。它对应大脑负责<b>理性、逻辑与语言</b>的新皮质（Neocortex）。这是多数人最熟悉的沟通起点，却也是最表层的部分。</p>
+          <p class="gh-q">检验问题：这个结果，能否被上下游一致地解释为信念与方法的外化？</p>
+        </section>
+      </div>
+      <p class="cell-hint" style="margin-top:10px;"><b>一致性铁律：</b>三层必须内外一致、可相互推导。若最外层（WHAT）与最内层（WHY）脱节，说明只是"为做而做"而非"因信而做"——这正是下方各栏填写的检验标准。</p>
+    </div>
+  </section>
+
+  <!-- WHY / HOW / WHAT 三层 -->
+  <div class="gc-layers">
+    <section class="layer" id="why" aria-label="WHY">
+      <h2 class="cell-title">WHY — 信念、目标与使命</h2>
+      <p class="cell-hint">最内层：你存在的根本理由，是别人无法复制的信念。</p>
+      <div class="sub">
+        <span class="sub-lbl">信念 Belief</span>
+        <div class="sub-val" id="why-belief" contenteditable="true">"每个学习者都应有专属的学习路径"——源于创始人一线教学挫败经历</div>
+      </div>
+      <div class="sub">
+        <span class="sub-lbl">存在目的 Purpose</span>
+        <div class="sub-val" id="why-purpose" contenteditable="true">让优质个性化教育不再是少数人的特权，希望通过技术实现普惠</div>
+      </div>
+      <div class="sub">
+        <span class="sub-lbl">使命 / 愿景 Mission</span>
+        <div class="sub-val" id="why-mission" contenteditable="true">在 2030 年前让 1000 万学习者拥有 AI 驱动的个性化学习体验</div>
+      </div>
+    </section>
+
+    <section class="layer" id="how" aria-label="HOW">
+      <h2 class="cell-title">HOW — 核心差异化与方法</h2>
+      <p class="cell-hint">中间层：你如何把信念转化为独特的行动方式。</p>
+      <div class="sub">
+        <span class="sub-lbl">做事原则 Principles</span>
+        <div class="sub-val" id="how-principles" contenteditable="true">学习效果优先于商业指标；技术和教研双驱动</div>
+      </div>
+      <div class="sub">
+        <span class="sub-lbl">差异化 Differentiation</span>
+        <div class="sub-val" id="how-differentiation" contenteditable="true">自研认知诊断模型：实时评估薄弱点、动态调整学习路径；区别于竞品的内容推荐模式</div>
+      </div>
+      <div class="sub">
+        <span class="sub-lbl">方法 / 流程 Methods</span>
+        <div class="sub-val" id="how-methods" contenteditable="true">"诊断-规划-执行-评估"四步闭环，每步由数据和教研共同驱动</div>
+      </div>
+    </section>
+
+    <section class="layer" id="what" aria-label="WHAT">
+      <h2 class="cell-title">WHAT — 产品与服务</h2>
+      <p class="cell-hint">最外层：信念与方法最终落成的 tangible 结果。</p>
+      <div class="sub">
+        <span class="sub-lbl">产品 Products</span>
+        <div class="sub-val" id="what-products" contenteditable="true">自学 App（C 端）、教师辅助平台（B 端）、学校管理系统（G 端）三端覆盖</div>
+      </div>
+      <div class="sub">
+        <span class="sub-lbl">服务 Services</span>
+        <div class="sub-val" id="what-services" contenteditable="true">教师培训、内容审核、定制化课程设计</div>
+      </div>
+      <div class="sub">
+        <span class="sub-lbl">市场证据 Evidence</span>
+        <div class="sub-val" id="what-evidence" contenteditable="true">App 上线 6 月：DAU 5 万、NPS 72、月留存率 45%，高于行业均值 40%</div>
+      </div>
+    </section>
+  </div>
+
+  <!-- 跨层一致性 -->
+  <section class="alignment" id="cross-layer-alignment" aria-label="跨层一致性">
+    <h2 class="cell-title">跨层一致性</h2>
+    <p class="cell-hint">推导链数据源：<code>GC-{slug}-v{N}.md</code> 第 6a 节，不由 canvas-render 推断。未讨论的字段显示"（未讨论）"并标为缺口。</p>
+    <div class="align-2">
+      <div class="align-col">
+        <span class="sub-lbl">WHY → HOW 推导链</span>
+        <div class="sub-val" id="alignment-why-how" contenteditable="true">创始人的个性化教育信念（WHY）直接驱动了认知诊断模型的核心差异化（HOW）——"专属学习路径"对应"实时评估+动态调整"；一致</div>
+      </div>
+      <div class="align-col">
+        <span class="sub-lbl">HOW → WHAT 推导链</span>
+        <div class="sub-val" id="alignment-how-what" contenteditable="true">诊断-规划-执行-评估闭环（HOW）在三端产品中均有体现——App 端自动诊断与规划、教师端辅助执行、学校端提供评估数据；部分一致</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 质量鉴别 + 治理面板 -->
+  <div class="lower">
+    <section class="quality" id="gc-quality" aria-label="质量鉴别">
+      <h2 class="cell-title">质量与对齐 <span class="en">Quality Check</span></h2>
+      <p class="cell-hint">GC 为单画布，无子模块详情与全局汇总。门禁判定源自 <code>GC-GATE-*.md</code>。</p>
+      <div class="q-grid">
+        <div class="q-item" id="gc-quality-wholeness">
+          <div class="q-name">三层齐全 <span class="q-en">layer_wholeness</span></div>
+          <div class="q-verdict verdict-pending" data-verdict>待判定</div>
+        </div>
+        <div class="q-item" id="gc-quality-alignment">
+          <div class="q-name">推导链完整 <span class="q-en">alignment_complete</span></div>
+          <div class="q-verdict verdict-pending" data-verdict>待判定</div>
+        </div>
+        <div class="q-item" id="gc-quality-evidence">
+          <div class="q-name">证据支撑 <span class="q-en">evidence_backed</span></div>
+          <div class="q-verdict verdict-pending" data-verdict>待判定</div>
+        </div>
+        <div class="q-item" id="gc-quality-coherence">
+          <div class="q-name">内外一致 <span class="q-en">coherent</span></div>
+          <div class="q-verdict verdict-pending" data-verdict>待判定</div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="govern" id="quality-panel" aria-label="质量与治理">
+      <h3 class="cell-title">质量与对齐</h3>
+      <dl>
+        <dt>版本</dt><dd id="quality-version">v1（草稿）</dd>
+      </dl>
+      <div id="quality-approval">
+        <dl>
+          <dt>Gate 建议</dt><dd id="quality-gate">pending</dd>
+          <dt>授权渲染</dt><dd id="quality-authorized">false</dd>
+          <dt>确认模式</dt><dd id="quality-mode">null</dd>
+        </dl>
+      </div>
+      <dl>
+        <dt>缺口摘要</dt><dd id="quality-gaps">—</dd>
+        <dt>风险摘要</dt><dd id="quality-risks">—</dd>
+      </dl>
+      <div class="caveat" id="quality-caveat" hidden>
+        <b>Override 警示：</b><span id="quality-caveat-text">仅 override 时显示——列出被接受的业务风险与影响（Gate 建议、override 项数量、高风险项数量、风险详情）。</span>
+      </div>
+    </aside>
+  </div>
+
+  <section class="local-notes" id="local-notes" contenteditable="true"></section>
+
+  <p class="footnote">
+    <b>说明：</b>本文件为 Golden Circle <b>一等公民画布示例</b>（对齐 <code>render-contract-gc.md</code>），结构 1:1 映射契约的 WHY / HOW / WHAT 三层 + 跨层一致性锚点。
+    采用标准 pratyaya 黑灰配色（单色方案，无配色切换），与黄金圈 / HMW 渲染产物一致，按 Ctrl/Cmd + P 可直接打印。本示例为静态骨架，正式渲染由 <code>canvas-render</code> Skill 经 <code>提炼→门禁→渲染</code> 管线生成 <code>output/gc-canvas-{slug}.html</code>。
+  </p>
+</div>
+
+<script type="application/json" id="canvas-data">
+{
+  "canvas_type": "golden-circle",
+  "page_type": "golden-circle",
+  "instance": "retail-demo",
+  "visual_mode": {
+    "id": "black-gray-professional",
+    "zh_name": "黑灰专业",
+    "visual_system": "Black Gray Professional"
+  },
+  "version": "1",
+  "schema_version_target": "2.4",
+  "sections": {
+    "canvas-headline": "一家以 AI 认知诊断为核心的教育科技公司，源于教师的亲身挫败，用技术实现个性化学习的规模化和普惠化",
+    "why-belief": "每个学习者都应有专属的学习路径——源于创始人一线教学挫败经历",
+    "why-purpose": "让优质个性化教育不再是少数人的特权，希望通过技术实现普惠",
+    "why-mission": "在 2030 年前让 1000 万学习者拥有 AI 驱动的个性化学习体验",
+    "how-principles": "学习效果优先于商业指标；技术和教研双驱动",
+    "how-differentiation": "自研认知诊断模型：实时评估薄弱点、动态调整学习路径；区别于竞品的内容推荐模式",
+    "how-methods": "诊断-规划-执行-评估四步闭环，每步由数据和教研共同驱动",
+    "what-products": "自学 App（C 端）、教师辅助平台（B 端）、学校管理系统（G 端）三端覆盖",
+    "what-services": "教师培训、内容审核、定制化课程设计",
+    "what-evidence": "App 上线 6 月：DAU 5 万、NPS 72、月留存率 45%，高于行业均值 40%",
+    "alignment-why-how": "创始人的个性化教育信念直接驱动了认知诊断模型的核心差异化——一致",
+    "alignment-how-what": "诊断-规划-执行-评估闭环在三端产品中均有体现——部分一致"
+  },
+  "governance": {
+    "gate_recommendation": "pass",
+    "render_authorized": true,
+    "confirmation_mode": "gate_pass",
+    "override_audit": {"items": []}
+  },
+  "auth": {
+    "gate_recommendation": "pass",
+    "render_authorized": true,
+    "confirmation_mode": "gate_pass",
+    "override_audit": {"items": []}
+  }
+}
+</script>
+</body>
+</html>

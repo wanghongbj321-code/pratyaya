@@ -3,6 +3,21 @@
 > 本文件记录 Pratyaya 专家的正式版本变更。
 > 完整 SemVer 与架构说明见 [`README.md`](./README.md) / [`DESIGN.md`](./DESIGN.md) / [docs/MVL-整体架构设计.md](./docs/MVL-整体架构设计.md)。
 
+## [v3.3.0] - 2026-09-02
+
+### 新增功能（MINOR）
+
+- **主 Agent 薄控制面重构（P1+P2+P3）**：`agents/pratyaya.md` 由 1360 行收敛至 397 行。修复 4 项 defect（Journey 指令块未闭合 / 指令卡重复错位 / 路径约定重复 / `approval` 术语残留）并重排 Phase 编号；引入**画布注册表**（8 画布 × 12 字段，含 `canvas_type` / `audit_type` 双列——GC 为唯一 `golden-circle` ≠ `gc` 的画布）与参数化标准 8 步管线，6 份同构 Phase 合并为 1 份；8 类画布执行细节下沉到各 `{canvas}-distill/references/{PREFIX}-pipeline.md`（9 个文件），各 distill SKILL.md 新增"先读 pipeline reference"强制读取契约。治理不变式（Gate 只建议 / 人确认版本 / 升版边界 / override 规则）保留在控制面。
+- **共享画布引擎（P4）**：新增 `skills/_engine/` 13 模块（canvas_registry / paths / session / state / executor / gate / authorization / contract / files / reconcile / migration / manifest）。引擎只做**规则型判定**（5 态机合法跃迁、Gate 三态汇总、升版重置、授权 if-then、override 完整性、确认包文件名/版本/instance 一致性），不做语义判定、不渲染 HTML、不替人拍板（`authorization.grant()` 强制携带 `confirmed_by` / `confirmed_at` / `user_confirmation_text`）。依赖方向单向：`canvas_registry`（零副作用、标准库 only）← `canvas_audit` ← `audit_canvas_html.py`；audit `--type` choices 改为从注册表读取，消除第二份清单。
+- **规则一致性防线（R14）**：9 个 pipeline references 顶部加入 `<!-- rule:{id}: ... -->` 确定性规则注释块（升版重置 / 授权 if-then / Gate 汇总），由 CI 测试校验 references 声明与引擎实现一致。
+- **测试与门禁**：新增 `tests/test_engine/`（15 个文件，含绕过检测、导入边界、禁 HTML 写出、规则块防线）；新增注册表三方交叉断言（audit choices / state schema / plugin skills）；新增 B 组正式授权链路审计 `tests/test_e2e_authorization.py`（5w / v2c-vac / maau 三段式 fixture + 未授权反向用例）。全量测试 **454 passed + 5 skipped**。
+
+### 兼容性与迁移边界
+
+- `state.schema.json` `schema_version` 保持 `"2.4"` 不变。
+- `_engine` 不加入 plugin.json `skills` 数组（共享库，非 skill，由各 SKILL.md 以相对路径调用）。
+- 缺正式成品 HTML 的 gc / hmw / persona / journey / MVL 模块页 e2e fixture 标注 skip，待 canvas-render Skill 人工生成成品后启用。
+
 ## [v3.2.0] - 2026-09-02
 
 ### 新增功能（MINOR）

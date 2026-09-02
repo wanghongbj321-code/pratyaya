@@ -23,6 +23,8 @@ description: 把「一次性逐字稿」综合提炼为 MAAU 六板块源包（M
 
 只综合逐字稿中实际讨论的内容。框架之外的方法或术语不自动成为必填项；只有用户明确使用时，才按原话记录。
 
+> **调用契约**：MAAU transcript-direct 一次性综合的执行细节见 `references/MAAU-pipeline.md`。
+
 ## 输入与输出
 
 | 输入 | 逐字稿（文本或文件路径，可多份）、project_slug、group_id、instance_slug |

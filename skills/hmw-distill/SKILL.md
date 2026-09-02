@@ -36,6 +36,8 @@ description: 把 HMW（How Might We，问题重构）工作坊讨论产物提炼
 
 逐字稿从"证据"降级为"背景材料"，仅作存档，不作引用源。
 
+> **调用契约**：HMW 画布执行细节与强制执行指令见 `references/HMW-pipeline.md`。
+
 ## 输入与输出
 
 | Stage | 输入 | 输出 |

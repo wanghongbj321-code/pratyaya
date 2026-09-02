@@ -6,7 +6,8 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent))  # canvas_audit 包所在 scripts/
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))  # repo root（skills._engine 包，§7.6）
 from canvas_audit.audit_core import audit, main, parse_args
 from canvas_audit.audit_helpers import persona_source_identity
 from canvas_audit.audit_models import (

@@ -70,6 +70,7 @@ pratyaya/
 │   ├── v2c-vac-gate/    # V2C VAC 门禁
 │   ├── 5w-gate/         # 5W 门禁
 │   ├── faq-answer/      # FAQ Q/A（使用、状态、异常解释；不进入画布状态机）
+│   ├── _engine/         # 共享画布引擎（v3.3.0）：5 态机 / Gate 汇总 / 授权 / 契约等规则型判定（非 skill，不入 plugin.json skills）
 │   └── canvas-render/   # 统一渲染（画布类型感知）
 │       └── visual-patterns/ # 10 个视觉模式（所有画布复用）
 ├── schemas/             # 非强制参考 Schema（v2.4 状态 + v2.4 project/group 路径分层）

@@ -1,0 +1,58 @@
+{
+  "schema_version": "2.4",
+  "project_slug": "mvl-demo-project",
+  "project_name": "MVL 六模块 demo",
+  "group_id": "group-1",
+  "topic_slug": "default",
+  "topic_name": "default",
+  "current_module": "M1",
+  "modules": {
+    "M1": {
+      "version": 1,
+      "source_file": "modules/M1-v1.md",
+      "status": "review_ready",
+      "gate_recommendation": "pending",
+      "render_authorized": false,
+      "confirmation_mode": null,
+      "override_audit": {
+        "items": []
+      }
+    },
+    "M2": {
+      "version": 0,
+      "status": "draft",
+      "gate_recommendation": "pending",
+      "render_authorized": false,
+      "confirmation_mode": null
+    },
+    "M3": {
+      "version": 0,
+      "status": "draft",
+      "gate_recommendation": "pending",
+      "render_authorized": false,
+      "confirmation_mode": null
+    },
+    "M4": {
+      "version": 0,
+      "status": "draft",
+      "gate_recommendation": "pending",
+      "render_authorized": false,
+      "confirmation_mode": null
+    },
+    "M5": {
+      "version": 0,
+      "status": "draft",
+      "gate_recommendation": "pending",
+      "render_authorized": false,
+      "confirmation_mode": null
+    },
+    "M6": {
+      "version": 0,
+      "status": "draft",
+      "gate_recommendation": "pending",
+      "render_authorized": false,
+      "confirmation_mode": null
+    }
+  },
+  "updated_at": "2026-08-01T10:30:00+08:00"
+}

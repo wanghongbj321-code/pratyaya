@@ -22,6 +22,16 @@ from pathlib import Path
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+
+# v3.3.0 P2：注册表解析器随契约检查器一同提供，供结构化断言使用
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from scripts.contract_consistency.canvas_registry import (  # noqa: E402
+    by_id,
+    parse_canvas_registry,
+)
+
 SKILLS = REPO_ROOT / "skills"
 DISTILL = SKILLS / "hmw-distill"
 GATE = SKILLS / "hmw-gate"
@@ -175,7 +185,7 @@ class TestSkillRegistration:
             assert skill in plugin["skills"], f"plugin.json missing V2C VAC skill {skill}"
         for skill in EXPECTED_5W_SKILLS:
             assert skill in plugin["skills"], f"plugin.json missing 5W skill {skill}"
-        assert plugin["version"] == "3.2.0"
+        assert plugin["version"] == "3.3.0"
 
     def test_plugin_registers_persona_skills(self) -> None:
         plugin = json.loads(read(REPO_ROOT / ".codebuddy-plugin" / "plugin.json"))
@@ -554,18 +564,33 @@ class TestJourneyAgentContract:
     def test_agent_contains_journey_phase_and_routing(self) -> None:
         agent = read(REPO_ROOT / "agents" / "pratyaya.md")
         for phrase in (
-            "## Phase Journey：用户旅程工作流",
             "用户提到 \"用户旅程\" / \"Journey\" / \"User Journey\" / \"旅程画布\" / \"当前旅程\"",
-            "不属于 MVL / GC / HMW / Persona",
+            "不属于 MVL / 黄金圈 / HMW / 用户画像语境",
             "直接进入 Phase Journey",
             "Persona 为独立画布",
         ):
             assert phrase in agent
+        # v3.3.0 P2：Journey 专属 Phase 章节已并入「标准画布管线」，
+        # 章节标题字面量断言由注册表结构化断言替代（Q3-B）。
+        journey = by_id(parse_canvas_registry(agent), "journey")
+        assert journey is not None, "画布注册表缺少 journey 条目"
+        assert journey.distill == "journey-distill"
+        assert journey.gate == "journey-gate"
+        assert "## 标准画布管线" in agent
 
     def test_agent_contains_journey_mandatory_instruction_card(self) -> None:
+        """v3.3.0 P3：Journey 强制执行指令已下沉到 JOURNEY-pipeline.md（§6.3 不删除只下沉）。
+
+        agent md 内联指令卡已移除，改为跨画布 3 条红线 + 引用标注；指令原文保留在
+        JOURNEY-pipeline.md，故改为「反内联 + 下沉原文」双层断言。
+        """
         agent = read(REPO_ROOT / "agents" / "pratyaya.md")
+        # 内联指令卡已移除
+        assert "### Journey 强制执行指令" not in agent
+        # 指令原文完整保留在 JOURNEY-pipeline.md
+        pipeline = read(JOURNEY_DISTILL / "references" / "JOURNEY-pipeline.md")
         for phrase in (
-            "### Journey 强制执行指令",
+            "不属于 MVL / GC / HMW / Persona",
             "不修改 MVL M2 的 `09-user-journey.md`",
             "不写 `state.modules.M2`",
             "主表忠实保留 5 行合并结构",
@@ -574,22 +599,35 @@ class TestJourneyAgentContract:
             "只有 `business_risk` 可 override",
             "`information_integrity` 不可 override",
         ):
-            assert phrase in agent
+            assert phrase in pipeline, f"JOURNEY-pipeline.md 缺强制指令：{phrase}"
 
     def test_agent_contains_journey_state_and_render_paths(self) -> None:
+        """v3.3.0 P2：Journey 的产物路径由画布注册表推导，不再硬编码在正文。
+
+        参数化后正文只保留 ``modules/{文件前缀}-{slug}-v{N}.md`` 这类模板，
+        具体值（JOURNEY / journey）的唯一事实源是注册表，故改为双层断言：
+        ① 注册表 journey 条目取值正确；② 标准管线仍声明了参数化路径模板。
+        """
         agent = read(REPO_ROOT / "agents" / "pratyaya.md")
-        for phrase in (
-            "state.journey",
-            "transcripts/journey-TXX-raw.md",
-            "modules/JOURNEY-{slug}-keypoints.md",
-            "modules/JOURNEY-{slug}-v{N}.md",
-            "modules/JOURNEY-{slug}-gaps.md",
-            "output/journey-canvas-{slug}.html",
-            "--type journey",
-            "--template skills/canvas-render/examples/user-journey-canvas.html",
+        journey = by_id(parse_canvas_registry(agent), "journey")
+        assert journey is not None, "画布注册表缺少 journey 条目"
+        assert journey.state_key == "journey.{slug}"
+        assert journey.file_prefix == "JOURNEY"
+        assert journey.output_prefix == "journey"
+        assert journey.audit_type == "journey"
+        assert (
+            journey.template
+            == "skills/canvas-render/examples/user-journey-canvas.html"
+        )
+        for pattern in (
+            "modules/{文件前缀}-{slug}-keypoints.md",
+            "modules/{文件前缀}-{slug}-v{N}.md",
+            "modules/{文件前缀}-{slug}-gaps.md",
+            "output/{输出前缀}-canvas-{slug}.html",
+            "state.{state_key}.gate_recommendation",
             "render-contract-journey.md",
         ):
-            assert phrase in agent
+            assert pattern in agent, f"标准管线缺参数化路径模板：{pattern}"
 
 
 class TestExplicitCanvasRoutingContract:
@@ -632,7 +670,7 @@ class TestExplicitCanvasRoutingContract:
 
     def test_plugin_json_version_and_entry_context(self) -> None:
         plugin = json.loads(read(REPO_ROOT / ".codebuddy-plugin" / "plugin.json"))
-        assert plugin["version"] == "3.2.0"
+        assert plugin["version"] == "3.3.0"
         # v3.0 入口语境：displayDescription 与 quickPrompts 已显式包含 V2C VAC，且不再宣称 MAAU 默认
         assert "V2C VAC" in plugin["displayDescription"]["zh"]
         assert "V2C" in plugin["displayDescription"]["en"]
@@ -830,3 +868,70 @@ class TestCrossReferenceConsistency:
         gate = read(GATE / "references" / "HMW-gate.md")
         for src in ("HMW-state", "HMW-quality", "HMW-idea", "HMW-coherence"):
             assert src in gate, f"Gate 缺来源 ID: {src}"
+
+
+# ---------------------------------------------------------------------------
+# v3.3.0 P3：薄控制面门禁 + pipeline 下沉契约（执行计划 §8.4 / §6.2）
+# ---------------------------------------------------------------------------
+
+# P3 门禁：agent md ≤ 400 行（方案 A；P2 为 900 防回涨，P3 顺延至 400）
+CURRENT_GATE = 400
+
+# distill SKILL → pipeline reference 映射（按目录清单显式声明，不按命名推断；
+# mvl-distill 双文件，maau-synthesize 非 *-distill 命名）
+DISTILL_PIPELINE_REFERENCES: dict[str, tuple[str, ...]] = {
+    "mvl-distill": ("references/M-pipeline.md", "references/global-pipeline.md"),
+    "maau-synthesize": ("references/MAAU-pipeline.md",),
+    "gc-distill": ("references/GC-pipeline.md",),
+    "hmw-distill": ("references/HMW-pipeline.md",),
+    "persona-distill": ("references/PERSONA-pipeline.md",),
+    "journey-distill": ("references/JOURNEY-pipeline.md",),
+    "v2c-vac-distill": ("references/V2C-VAC-pipeline.md",),
+    "5w-distill": ("references/5W-pipeline.md",),
+}
+
+PIPELINE_REQUIRED_SECTIONS = ("输入", "输出", "状态写入", "Gate", "渲染审计")
+
+
+class TestThinControlPlaneContract:
+    """v3.3.0 P3：主 Agent 薄控制面门禁（§8.4）。"""
+
+    def test_agent_is_thin_control_plane(self) -> None:
+        """主 Agent 必须是薄控制面：行数硬门禁，防回涨。"""
+        agent = read(REPO_ROOT / "agents" / "pratyaya.md")
+        n = len(agent.splitlines())
+        assert n <= CURRENT_GATE, (
+            f"agent md 已回涨至 {n} 行（门禁 {CURRENT_GATE}）；请把新增细节下沉到 skills/"
+        )
+
+    def test_agent_has_no_full_pipeline(self) -> None:
+        """反 D1 回归：agent md 不得复述完整 8 步执行细节（应引用 references）。"""
+        agent = read(REPO_ROOT / "agents" / "pratyaya.md")
+        assert agent.count("步骤 7：视觉模式选择与渲染") <= 1
+
+    def test_agent_retains_universal_governance_principles(self) -> None:
+        """通用治理原则不得下沉到 skill（否则 8 处重复 + 决策点不可见，§6.2 黑名单）。"""
+        agent = read(REPO_ROOT / "agents" / "pratyaya.md")
+        for principle in ("Gate 只输出建议", "人确认的是版本", "未讨论就明确标空"):
+            assert principle in agent, f"agent md 缺通用治理原则：{principle}"
+
+
+class TestPipelineReferenceContract:
+    """v3.3.0 P3：distill SKILL 必须引用 pipeline reference（§6.2）。"""
+
+    def test_each_distill_declares_pipeline_reference(self) -> None:
+        """每个 distill SKILL.md 必须引用对应 pipeline reference，否则下沉细节读不到。"""
+        for skill_name, refs in DISTILL_PIPELINE_REFERENCES.items():
+            skill_md = read(SKILLS / skill_name / "SKILL.md")
+            for ref in refs:
+                assert ref in skill_md, f"{skill_name}/SKILL.md 未声明 {ref}"
+
+    def test_pipeline_reference_has_required_sections(self) -> None:
+        """每个 pipeline reference 必须覆盖五类小节，否则执行细节不完整。"""
+        for skill_name, refs in DISTILL_PIPELINE_REFERENCES.items():
+            for ref in refs:
+                ref_text = read(SKILLS / skill_name / ref)
+                for section in PIPELINE_REQUIRED_SECTIONS:
+                    assert f"## {section}" in ref_text, (
+                        f"{skill_name}/{ref} 缺「{section}」小节"
+                    )
