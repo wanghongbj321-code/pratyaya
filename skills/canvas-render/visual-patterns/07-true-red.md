@@ -1,24 +1,24 @@
 ---
-id: bain-red-action
-zh_name: 贝恩红·行动洞察
-visual_system: Bain Red
+id: true-red
+zh_name: 正红
+visual_system: True Red
 layout: balanced
 formality: high
 density: medium
 best_for: 高管汇报、行动洞察、简洁有力的结论驱动
 ---
 
-# Bain Red — 行动洞察版
+# True Red — 正红版
 
 ## 色板 token
 
 | 用途 | Hex | CSS 变量建议 |
 |---|---|---|
-| 页面背景 | `#f9f9f9` | `--bain-light` |
+| 页面背景 | `#f9f9f9` | `--red-light` |
 | 纸张 / Canvas | `#ffffff` | `--paper` |
-| 主红 | `#cc0000` | `--bain-red` |
-| 深红 | `#8a0000` | `--bain-dark` |
-| 浅红 | `#fff0f0` | `--bain-pale` |
+| 主红 | `#cc0000` | `--true-red` |
+| 深红 | `#8a0000` | `--red-dark` |
+| 浅红 | `#fff0f0` | `--red-pale` |
 | 主文字 | `#111111` | `--ink` |
 | 辅助文字 | `#6a6a6a` | `--muted` |
 | 边框 | `#e5e5e5` | `--line` |

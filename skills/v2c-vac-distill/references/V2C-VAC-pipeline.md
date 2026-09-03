@@ -43,7 +43,7 @@
 - **步骤 2–4 分支**：提炼 / 补问 / 先看个样子；
 - **步骤 5 确认包展示**：5 条必展项 + 详情折叠；
 - **步骤 6 Gate + 用户决策**：见「Gate」；
-- **步骤 7 视觉模式与渲染**：扫描推荐 → 用户选定 → `canvas-render`；
+- **步骤 7 视觉模式与渲染**：扫描并列出全部候选（默认预选 10 黑灰）→ 用户确认/改选 → `canvas-render`；
 - **步骤 8 完成**：`output/v2c-vac-{slug}-canvas.html`；索引页 `output/v2c-vac-canvas.html`。
 
 **δ2**：pipeline 六阶段顺序 `scenario → capability → change → impact → value → attribution_review`。
@@ -59,5 +59,5 @@
 
 - 前置校验 `state.v2c_vac.{slug}.render_authorized=true`；
 - 审计命令参数化：`--type v2c-vac`、`--instance {slug}`、`--page-type v2c-vac-index`、`--source modules/V2C-VAC-{slug}-v{N}.md --state state.json`；
-- **δ4**：Python 静态审计 + Template Gate + 浏览器视觉验收**都通过**才置 `rendered`；
+- **δ4**：分级渲染验收（L1 静态审计含 Template Gate + L2 双视口 DOM 断言必做，L3 截图目检按需；定义见 `skills/canvas-render/SKILL.md`「分级渲染验收」）**通过**才置 `rendered`；
 - 示例模板按 agent「画布注册表」`示例模板` 列取；失败保持 `confirmed`。

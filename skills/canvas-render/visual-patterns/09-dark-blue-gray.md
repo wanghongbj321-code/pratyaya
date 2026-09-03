@@ -1,25 +1,25 @@
 ---
-id: roland-berger-dark-blue-gray
-zh_name: 罗兰贝格深蓝灰
-visual_system: Roland Berger Dark Blue-Gray
+id: dark-blue-gray
+zh_name: 深蓝灰
+visual_system: Dark Blue-Gray
 layout: balanced
 formality: high
 density: medium
-best_for: 欧洲机构风格、深蓝灰品牌识别、简洁商务汇报
+best_for: 欧洲机构风格、深蓝灰识别、简洁商务汇报
 ---
 
-# Roland Berger Dark Blue-Gray — 欧洲机构版
+# Dark Blue-Gray — 深蓝灰版
 
 ## 色板 token
 
 | 用途 | Hex | CSS 变量建议 |
 |---|---|---|
-| 页面背景 | `#eff0f1` | `--rb-light` |
+| 页面背景 | `#eff0f1` | `--dbg-light` |
 | 纸张 / Canvas | `#ffffff` | `--paper` |
-| Dark Blue（结构主色） | `#004775` | `--rb-dark-blue` |
-| Dark Grey（机构中性色） | `#8d9399` | `--rb-dark-grey` |
-| Turquoise（克制强调） | `#00aac9` | `--rb-turquoise` |
-| 浅蓝灰 | `#e8f6f8` | `--rb-pale` |
+| Dark Blue（结构主色） | `#004775` | `--dbg-blue` |
+| Dark Grey（机构中性色） | `#8d9399` | `--dbg-grey` |
+| Turquoise（克制强调） | `#00aac9` | `--dbg-turquoise` |
+| 浅蓝灰 | `#e8f6f8` | `--dbg-pale` |
 | 主文字 | `#1a1a1a` | `--ink` |
 | 辅助文字 | `#65747d` | `--muted` |
 | 蓝灰边框 | `#ced2d5` | `--line` |
@@ -27,12 +27,12 @@ best_for: 欧洲机构风格、深蓝灰品牌识别、简洁商务汇报
 | 成功背景 / 文字 | `#eef5f0` / `#315d46` | `--success-soft` / `--success-ink` |
 | 风险背景 / 文字 | `#e8f6f8` / `#004775` | `--risk-soft` / `--risk-ink` |
 
-`#004775` 是标题、section、规则线和结论的唯一结构主色；`#8d9399` 只作为机构中性色，`#00aac9` 只作单个连接或重点信号。三者在 Roland Berger 当前官网生产 CSS 中分别标为 `darkblue`、`darkgrey` 和 `turquoise`；不再使用无法证明为当前独占主色的 Orange。
+`#004775` 是标题、section、规则线和结论的唯一结构主色（饱和深蓝 + 中性灰辅助）；`#8d9399` 只作为机构中性色，`#00aac9` 只作单个连接或重点信号。三色共同构成"深蓝结构 + 蓝灰中性 + 青色强调"的双色体系。
 
 ## 字体
 
 - 主字体：`"Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif`。
-- 页面 Hero：`clamp(28px, 3.2vw, 44px)`，字重 700，行高 1.2，颜色 `--rb-dark-blue`。
+- 页面 Hero：`clamp(28px, 3.2vw, 44px)`，字重 700，行高 1.2，颜色 `--dbg-blue`。
 - Eyebrow：10px，字重 700，字距 `.2em`，Dark Blue。
 - Executive summary：16px，行高 1.6；标签 11px、字重 700、Dark Blue。
 - Section 标题：14px，字重 700。
@@ -81,7 +81,7 @@ best_for: 欧洲机构风格、深蓝灰品牌识别、简洁商务汇报
 ## 反例
 
 - 不把 Dark Grey 或 Turquoise 升级为第二结构主色。
-- 不混入 Orange、红、绿或彩色图表库默认配色。
+- 不混入红、绿、橙或彩色图表库默认配色。
 - 不使用复杂渐变、玻璃拟态、过度圆角或厚重阴影。
 - 不把所有普通数字升级为大号橙色指标。
 - 不复制旧模板中的标题、指标、结论、角色或脚注内容。

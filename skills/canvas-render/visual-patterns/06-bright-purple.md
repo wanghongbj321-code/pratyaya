@@ -1,14 +1,14 @@
 ---
-id: accenture-purple-institutional
-zh_name: 埃森哲紫·机构风
-visual_system: Accenture Purple
+id: bright-purple
+zh_name: 亮紫
+visual_system: Bright Purple
 layout: balanced
 formality: high
 density: medium-high
-best_for: 机构审阅、正式机构风格、紫色品牌识别
+best_for: 机构审阅、正式机构风格、亮紫色识别
 ---
 
-# Accenture Purple — 机构版
+# Bright Purple — 亮紫版
 
 ## 色板 token
 
@@ -16,11 +16,11 @@ best_for: 机构审阅、正式机构风格、紫色品牌识别
 |---|---|---|
 | 页面背景 | `#f2f2f2` | `--page-bg` |
 | 纸张 / Canvas | `#ffffff` | `--paper` |
-| Accenture Purple（结构主色） | `#a100ff` | `--ac-purple` |
-| 深紫 | `#460073` | `--ac-dark` |
-| 辅助紫 | `#7500c0` | `--ac-secondary` |
-| 浅紫 | `#f4e8ff` | `--ac-light` |
-| 斑马纹紫灰 | `#eee0ff` | `--ac-stripe` |
+| 亮紫（结构主色） | `#a100ff` | `--bright-purple` |
+| 深紫 | `#460073` | `--bright-dark` |
+| 辅助紫 | `#7500c0` | `--bright-secondary` |
+| 浅紫 | `#f4e8ff` | `--bright-light` |
+| 斑马纹紫灰 | `#eee0ff` | `--bright-stripe` |
 | 主文字 | `#1a1a1a` | `--ink` |
 | 辅助文字 | `#666666` | `--muted` |
 | 边框 | `#d0d0d0` | `--line` |
@@ -28,7 +28,7 @@ best_for: 机构审阅、正式机构风格、紫色品牌识别
 | 成功背景 / 文字 | `#edf5f0` / `#2d6247` | `--success-soft` / `--success-ink` |
 | 风险背景 / 文字 | `#f4e8ff` / `#460073` | `--risk-soft` / `--risk-ink` |
 
-`#a100ff` 是 brand bar、section、规则线和页脚的唯一结构主色；`#460073` 与 `#7500c0` 只承担深浅层级。三者来自 Accenture 当前官网生产样式，不再沿用无法成立的红灰品牌归因。
+`#a100ff` 是 brand bar、section、规则线和页脚的唯一结构主色（高饱和高亮紫，偏品红、电光感）；`#460073` 与 `#7500c0` 只承担深浅层级。
 
 ## 字体
 
@@ -63,7 +63,7 @@ best_for: 机构审阅、正式机构风格、紫色品牌识别
 - **Executive summary**：浅紫背景、5px 主紫左边框；左右可分为固定标签列与结论正文。
 - **Canvas**：白底、1px 灰边框、无圆角、无卡片间隙。
 - **Section**：相邻区块共享边框；标题为主紫实底白字；编号使用白色方形线框，不用圆点。
-- **表格**：浅紫表头、2px 主紫底线、偶数行 `--ac-stripe` 斑马纹。
+- **表格**：浅紫表头、2px 主紫底线、偶数行 `--bright-stripe` 斑马纹。
 - **工作流**：浅紫容器；白色节点、1px 灰边框、3px 主紫顶边；连接符用辅助紫线性箭头。
 - **数据指标**：26px 主紫数字，配 10px 灰色标签。
 - **机构型页脚**：主紫实底双栏；左栏与右栏用半透明白线分隔，适合责任、结论和下一步。

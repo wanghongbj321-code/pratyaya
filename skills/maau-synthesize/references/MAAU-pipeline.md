@@ -44,7 +44,7 @@
 7. 调用 `module-conclusion-gate` 的 MAAU 模式（`gate_reference=references/MAAU-gate.md`），输出 gate 报告，`gate_recommendation` 写 `state.maau.{slug}`；
 8. 展示 Gate 报告，等用户 **确认 vN / override / 补问**；
 9. 授权后调用 `canvas-render`（`canvas_type=mvl`、`page_type=global`、`generation_path=transcript-direct`、`instance_slug={slug}`），输出 `output/maau-global-canvas-{slug}.html`；
-10. 运行审计 + 浏览器验收通过后置 `rendered`：
+10. 运行分级渲染验收（L1 静态审计 + L2 双视口 DOM 断言必做，L3 截图目检按需；定义见 `skills/canvas-render/SKILL.md`「分级渲染验收」）通过后置 `rendered`：
     ```bash
     python3 skills/canvas-render/scripts/audit_canvas_html.py output/maau-global-canvas-{slug}.html \
       --source modules/MAAU-{slug}-v{N}.md \

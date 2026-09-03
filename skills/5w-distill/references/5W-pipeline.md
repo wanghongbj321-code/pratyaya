@@ -42,7 +42,7 @@
 - **步骤 2–4 分支**：提炼 / 补问 / 先看个样子；
 - **步骤 5 确认包展示**：5 条必展项 + 详情折叠；
 - **步骤 6 Gate + 用户决策**：见「Gate」；
-- **步骤 7 视觉模式与渲染**：扫描推荐 → 用户选定 → `canvas-render`；
+- **步骤 7 视觉模式与渲染**：扫描并列出全部候选（默认预选 10 黑灰）→ 用户确认/改选 → `canvas-render`；
 - **步骤 8 完成**：`output/5w-{slug}-canvas.html`；索引页 `output/5w-canvas.html`。
 
 **δ1**：丰田三层面追问框架（制造层 Why 1–2 / 检验层 Why 3–4 / 体系层 Why 5），五层锚点必须全在；层数弹性（少于 5 层）暂不支持。
@@ -60,7 +60,7 @@
 - 前置校验 `state.five_whys.{slug}.render_authorized=true`；
 - 审计命令参数化：`--type 5w`、`--instance {slug}`、`--page-type 5w-index`、`--source modules/5W-{slug}-v{N}.md --state state.json`；
 - **δ4**：审计**必须**显式传 `--template skills/canvas-render/examples/5w-canvas.html`；
-- 审计 + 三视图全过后置 `rendered`；失败保持 `confirmed`。
+- 分级渲染验收（L1 静态审计 + L2 双视口 DOM 断言必做，L3 截图目检按需；定义见 `skills/canvas-render/SKILL.md`「分级渲染验收」）全过后置 `rendered`；失败保持 `confirmed`。
 
 ## 强制执行指令
 

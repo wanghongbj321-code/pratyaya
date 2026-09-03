@@ -43,7 +43,7 @@
 - **步骤 2–4 分支**：提炼 → `GC-{slug}-v{N}.md`（`review_ready`）；补问 → `GC-{slug}-gaps.md`（`gaps_open`）；先看个样子 → 草稿 Canvas（水印，状态不变）；
 - **步骤 5 确认包展示**：5 条必展项前置 + 详情折叠；自动进步骤 6；
 - **步骤 6 Gate + 用户决策**：见「Gate」节；
-- **步骤 7 视觉模式与渲染**：扫描/推荐/用户选择后调用 `canvas-render`（`canvas_type=golden-circle`），参数见「渲染审计」；
+- **步骤 7 视觉模式与渲染**：扫描并列出全部候选（默认预选 10 黑灰），等用户确认/改选后调用 `canvas-render`（`canvas_type=golden-circle`），参数见「渲染审计」；
 - **步骤 8 完成**：`output/gc-{slug}-canvas.html`；索引页 `output/gc-canvas.html`。
 
 **δ2**：GC **不进全局 Canvas**，无 M1–M6 汇总路径、无 MAAU 实例。
@@ -59,4 +59,4 @@
 - 正式渲染前置校验 `state.golden_circle.{slug}.render_authorized=true`；
 - 审计命令参数化：`--type gc`（**必须显式传**）、`--instance {slug}`、`--source modules/GC-{slug}-v{N}.md --state state.json`，`--page-type golden-circle-index`；
 - 示例模板按 agent「画布注册表」的 `示例模板` 列取（渲染页 `canvas_type` 写 `golden-circle`）；
-- 审计 + 桌面 / 窄屏 / 打印三视图全过后才置 `rendered`；任一失败**保持 `confirmed`**，不提前置 `rendered`、不回退 `gaps_open`。
+- 分级渲染验收（L1 静态审计 + L2 双视口 DOM 断言必做，L3 截图目检按需；定义见 `skills/canvas-render/SKILL.md`「分级渲染验收」）全过后才置 `rendered`；任一失败**保持 `confirmed`**，不提前置 `rendered`、不回退 `gaps_open`。

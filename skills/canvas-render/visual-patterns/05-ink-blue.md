@@ -1,14 +1,14 @@
 ---
-id: mckinsey-blue-conclusion
-zh_name: 麦肯锡蓝·结论驱动
-visual_system: McKinsey Blue
+id: ink-blue
+zh_name: 墨蓝
+visual_system: Ink Blue
 layout: balanced
 formality: high
 density: medium
 best_for: 高管汇报、结论先行、数据驱动的 Storyline
 ---
 
-# McKinsey Blue — 结论驱动版
+# Ink Blue — 墨蓝版
 
 ## 色板 token
 
@@ -16,11 +16,11 @@ best_for: 高管汇报、结论先行、数据驱动的 Storyline
 |---|---|---|
 | 页面背景 | `#f4f7f8` | `--page-bg` |
 | 纸张 / Canvas | `#ffffff` | `--paper` |
-| 企业深蓝（结构主色） | `#051c2c` | `--mc-blue` |
-| Electric Blue（辅助） | `#2251ff` | `--mc-electric` |
-| Cyan（克制强调） | `#00a9f4` | `--mc-cyan` |
-| 浅蓝 | `#e8f2f7` | `--mc-light` |
-| 极浅蓝 | `#f4f7f8` | `--mc-pale` |
+| 墨蓝（结构主色） | `#051c2c` | `--ink-blue` |
+| Electric Blue（辅助） | `#2251ff` | `--ink-electric` |
+| Cyan（克制强调） | `#00a9f4` | `--ink-cyan` |
+| 浅蓝 | `#e8f2f7` | `--ink-light` |
+| 极浅蓝 | `#f4f7f8` | `--ink-pale` |
 | 主文字 | `#1a1a1a` | `--ink` |
 | 辅助文字 | `#5a6573` | `--muted` |
 | 边框 | `#d9e2ec` | `--line` |
@@ -28,12 +28,12 @@ best_for: 高管汇报、结论先行、数据驱动的 Storyline
 | 成功背景 / 文字 | `#edf6f1` / `#245c43` | `--success-soft` / `--success-ink` |
 | 风险背景 / 文字 | `#fff3e8` / `#8a4818` | `--risk-soft` / `--risk-ink` |
 
-`#051c2c` 是标题、section、规则线和结论的唯一结构主色；`#2251ff` 与 `#00a9f4` 只用于连接、次级提示和单个重点信号，不形成第二套主色。三者均来自 McKinsey 官方公开 Design System。
+`#051c2c` 是标题、section、规则线和结论的唯一结构主色（近墨的极深冷蓝）；`#2251ff` 与 `#00a9f4` 只用于连接、次级提示和单个重点信号，不形成第二套主色。
 
 ## 字体
 
 - 主字体：`Georgia, "Noto Serif SC", "Songti SC", serif`；只使用系统回退，不请求网络字体。
-- 页面 Hero：`clamp(28px, 3.2vw, 44px)`，字重 700，行高 1.2，颜色 `--mc-blue`。
+- 页面 Hero：`clamp(28px, 3.2vw, 44px)`，字重 700，行高 1.2，颜色 `--ink-blue`。
 - Executive summary：正文 16px，行高 1.6；标签 11px、字重 700、字距 `.12em`。
 - Canvas / section 标题：14px，字重 700，字距 `.04em`。
 - 小标题：12px，字重 700，字距 `.03em`，可使用短英文大写标签。
@@ -57,19 +57,19 @@ best_for: 高管汇报、结论先行、数据驱动的 Storyline
 
 ## 组件库
 
-- **Hero**：无大面积色块；标题直接使用主蓝，底部用 4px 主蓝规则线建立 Storyline 起点。
-  - **Pan-Mode Invariants（v2.3.5+）**：Hero 永远白纸底（无任何例外），主蓝 `#051c2c` 仅作 eyebrow / 标题色 / 6px 主蓝规则线 / 行动摘要 5px 左线 / pale 卡背景；禁止主色整片涂底。本模式 §Hero 已严格兑现 pan-mode Invariant #1，无需调整 Hero 实现。
-- **Executive summary**：极浅蓝背景、5px 主蓝左边框；必须先给结论，再由 Canvas 展开依据。
+- **Hero**：无大面积色块；标题直接使用墨蓝，底部用 4px 墨蓝规则线建立 Storyline 起点。
+  - **Pan-Mode Invariants（v2.3.5+）**：Hero 永远白纸底（无任何例外），墨蓝 `#051c2c` 仅作 eyebrow / 标题色 / 6px 墨蓝规则线 / 行动摘要 5px 左线 / pale 卡背景；禁止主色整片涂底。本模式 §Hero 已严格兑现 pan-mode Invariant #1，无需调整 Hero 实现。
+- **Executive summary**：极浅蓝背景、5px 墨蓝左边框；必须先给结论，再由 Canvas 展开依据。
 - **Canvas**：白色纸张、1px 蓝灰边框、宽松 28–32px 内边距。
-- **Section**：1px 蓝灰边框；标题为主蓝实底白字；编号为白底主蓝圆点。
+- **Section**：1px 蓝灰边框；标题为墨蓝实底白字；编号为白底墨蓝圆点。
 - **内容块**：14px 16px 内边距，块间使用细边框；避免装饰性圆角和阴影。
-- **表格**：浅蓝表头、主蓝文字、2px 主蓝底线；行间只保留轻量横线。
-- **工作流**：极浅蓝容器；白色节点、3px 主蓝顶边、轻阴影；天蓝箭头只负责顺序。
+- **表格**：浅蓝表头、墨蓝文字、2px 墨蓝底线；行间只保留轻量横线。
+- **工作流**：极浅蓝容器；白色节点、3px 墨蓝顶边、轻阴影；天蓝箭头只负责顺序。
 - **数据指标**：大号深蓝数字配小号大写标签；Cyan 只用于一个需要行动或风险关注的指标。
 - **脚注 / 证据**：10px 辅助文字、顶部细线；不得塞入无法追溯的来源。
-- **质量面板**：极浅蓝背景、1px 边框、主蓝标题；版本、确认、缺口、风险和 alignment 完整呈现。
-- **本地批注**：白底、蓝灰虚线边框，focus 使用主蓝细 outline；与正式事实有明确视觉分隔。
-- **页脚**：主蓝实底白字，使用“标签 + 结论”两级结构。
+- **质量面板**：极浅蓝背景、1px 边框、墨蓝标题；版本、确认、缺口、风险和 alignment 完整呈现。
+- **本地批注**：白底、蓝灰虚线边框，focus 使用墨蓝细 outline；与正式事实有明确视觉分隔。
+- **页脚**：墨蓝实底白字，使用“标签 + 结论”两级结构。
 - **打印**：页面背景改白，Hero 规则线缩至 2px，Canvas 去边框和阴影；隐藏编辑控件但保留质量、确认、风险、结论和批注内容。
 
 ## 适用场景
