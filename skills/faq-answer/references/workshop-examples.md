@@ -25,7 +25,7 @@ Agent：（步骤 2，调用 mvl-distill 生成 M1-v1.md 确认包）
 
 用户：确认 v1
 Agent：（Gate 全 PASS + 用户确认 → confirmation_mode=gate_pass / render_authorized=true / status=confirmed）
-      （步骤 7，扫描视觉模式 frontmatter，推荐 1–2 个候选并说明理由）
+      （步骤 7，扫描视觉模式 frontmatter，列出全部候选、默认预选 10 黑灰，等用户确认/改选）
 
 用户：选择 blue-professional-balanced
 Agent：（从本轮扫描结果保存 `skills/canvas-render/visual-patterns/01-blue-professional-balanced.md`，不根据 ID 拼接路径）
@@ -50,9 +50,9 @@ Agent：（生成 M5-v2.md，状态 review_ready）
      确认人：业务负责人张三
      确认时间：2026-07-30T20:00:00+08:00
 Agent：（写入 override_audit，confirmation_mode=override / render_authorized=true / status=confirmed）
-      （步骤 7，扫描视觉模式、推荐候选）
+      （步骤 7，扫描视觉模式 frontmatter，列出全部候选、默认预选 10 黑灰，等用户确认/改选）
 
-用户：选择 03-mckinsey
+用户：选择 03-signal-balanced
 Agent：（生成 output/module-5-canvas.html，顶部显示"已确认 · 带保留意见"，quality-caveat 列出两项 override 详情；状态 → rendered）
       （Phase 2 全局汇总时，M5 出现在"带保留意见的结论"分组中，并检查下游 M6 是否依赖被 override 的假设）
 ```

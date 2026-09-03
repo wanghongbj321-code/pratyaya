@@ -153,8 +153,8 @@ best_for: 内部方案、管理层均衡总览
 1. 扫描候选路径。
 2. 读取全部候选的 frontmatter。
 3. 校验目录数量、序号、ID、文件名和 7 个字段。
-4. 基于 `visual_system / layout / formality / density / best_for` 推荐 1–2 个候选。
-5. 用户选定后，主 Agent 向 `canvas-render` 传递完整仓库相对路径。
+4. 列出**全部 10 个候选**（NN 序号 + `zh_name` + 色系 + 适用场景），**默认预选 `10-black-gray-professional`（黑灰专业）**；不得只报默认项不列候选，不得由 Agent 隐式选定而不告知。
+5. **每次渲染均需用户确认**：用户可一键接受默认预选或改选其余 9 个候选；用户未表态前不得采用默认项开始渲染。用户确认或改选后，主 Agent 向 `canvas-render` 传递完整仓库相对路径。
 6. `canvas-render` 读取该文件的 6 节正文，并按其中 token 实现 HTML。
 7. HTML 的业务内容、DOM 和状态仍分别服从确认包与 `render-contract.md`。
 
@@ -210,7 +210,7 @@ visual-patterns/blue-professional-balanced.md
 
 ## 默认模式
 
-`10-black-gray-professional`（zh_name: 黑灰专业）是 pratyaya 的**默认配色方案**。在模式选择阶段，若无明确的画布类型或内容特征指向其他模式，Agent 应优先推荐此模式。使用场景包括：
+`10-black-gray-professional`（zh_name: 黑灰专业）是 pratyaya 的**默认配色方案**。模式选择环节必须**默认预选此模式**（维持既有基线），但**每次渲染都须将全部 10 个候选（NN 序号 + `zh_name` + 色系 + 适用场景）一并列出供用户确认**——默认预选只用于"用户可一键接受"，不得替代用户确认、不得只报默认项不列候选（见「Agent 读取流程」第 4-5 步）。使用场景包括：
 
 - 需正式打印的管理层报告
 - 学术场景输出
@@ -228,14 +228,14 @@ visual-patterns/blue-professional-balanced.md
 1. **Hero 永远白纸底**（无大面积主色 / 渐变作为 hero 背景）。例外：03 / 04 Signal 使用灰棕纸张主题底（Signal 视觉标识）；05 / 09 使用品牌色 1px 极细底线（视觉差异保留）。
 2. **Hero 标题色 = 本模式主色 token**（不放品牌色块作背景；不放 `--brand-pale`）。
 3. **Hero eyebrow = 10px / 700 / `.2em` 字距 / 主色 token / 大写**（统一字号字距；不与 h1 同色块）。
-4. **Hero 规则线粗细统一**：默认 4px 主色实线。例外：05 McKinsey 6px（咨询结论的厚重感）、09 Roland Berger 1px（极致克制）。
+4. **Hero 规则线粗细统一**：默认 4px 主色实线。例外：05 Ink Blue 6px（结论厚重感）、09 Dark Blue-Gray 1px（极致克制）。
 5. **行动摘要位置 = hero 与 canvas 之间**（嵌 header 内合理，保留 DOM 一级模块顺序 canvas-header → ... 不变）。
 6. **行动摘要配色公式**：`<本模式 pale 色>` 背景 + `5px <本模式主色>` 左边框 + 黑文字 + 主色实底白字 action tag（位于 hero 与第一个 section 之间）。
 7. **Section 标题标识统一公式**：`<主色 token> 文字 + 3px 主色左线 + 大写 + 透明背景`（不整片染色；不依赖位置）。
 8. **Section / Card 卡背景永不变色**：永远白纸底（或本模式专属纸张底如 Signal 灰棕），仅头部 3px 左线作信号；不使用品牌色作为 section 背景填充。
 9. **表格三段式统一**：`pale 色表头 + 主色文字 + 2px 主色底线`；正文保持黑色 / 主文字色，避免整表染色。
 10. **页脚主色实底白字**：唯一允许"整片染主色"的位置。footer 视觉权重控制 ≤ 5–7% 页面面积（按模式语气）；页脚内部 `<footer-tag>` 用深色 token（`--dark`）提供二级对比。
-11. **禁用视觉滥用**：禁用 `box-shadow`、禁用复杂 `linear-gradient`（品牌视觉标识除外，如 06 Accenture top bar）、禁用 "圆润胶囊" 按钮（Bain Red §反例 第 2 条）。
+11. **禁用视觉滥用**：禁用 `box-shadow`、禁用复杂 `linear-gradient`（模式专属视觉标识除外，如 06 Bright Purple top bar）、禁用 "圆润胶囊" 按钮（True Red §反例 第 2 条）。
 12. **质量判定仅靠字重 + 下划线 + 灰度**：不引入彩色 PASS 绿 / FAIL 红（10 模式统一）；失败判定用 `<del> 或 underline wavy <主色>`。
 13. **SVG / emoji 不作信号**：状态图标、判定、风险等级只通过字重 / 下划线 / 灰度区分。
 
@@ -244,8 +244,8 @@ visual-patterns/blue-professional-balanced.md
 | 模式 | 例外维度 | 例外值 | 理由 |
 |---|---|---|---|
 | 03 Signal Balanced / 04 Signal Flow | Hero 底色 | 灰棕纸张 `#d9d6cf` | Signal 视觉标识（机构档案感）；非"主色整片染色" |
-| 05 McKinsey Blue Conclusion | Hero 规则线粗细 | 6px | 咨询结论的厚重感 |
-| 09 Roland Berger Dark Blue Gray | Hero 规则线粗细 | 1px | 极致克制（视觉哲学即克制） |
+| 05 Ink Blue | Hero 规则线粗细 | 6px | 结论厚重感 |
+| 09 Dark Blue-Gray | Hero 规则线粗细 | 1px | 极致克制（视觉哲学即克制） |
 | 10 Black Gray Professional | 全维度 | 全部不变量 | 锚定基准模式，本身即正确答案 |
 
 ### 反例（违反任一即视为该模式实现不正确）

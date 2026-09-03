@@ -133,13 +133,13 @@ body {
 </style>
 <style>
   /* ============================================================
-     HMW 一等公民画布示例 · Bain Red · 行动洞察 视觉系统 override
+     HMW 一等公民画布示例 · True Red · 正红 视觉系统 override
      (v2.3.5 落地，见 internal/pratyaya-internal/docs/debugs/HMW画布贝恩红模式Hero配色修复方案-2026-0808.md §6.2)
      ============================================================
      设计原则（Pan-Mode Invariants v2.3.5 §14.5）：
      1. Hero 永远白纸底（本文件 inline override 后生效）
      2. 主色 #cc0000 仅作 eyebrow / 标题色 / 4px 底线 / 行动摘要 5px 左线 / pale 卡背景
-     3. 禁止 hero 整片铺红（违反 07-bain-red-action.md §反例 第 1 条）
+     3. 禁止 hero 整片铺红（违反 07-true-red.md §反例 第 1 条）
      4. CSS 变量 shim：覆盖 shared/canvas-theme.css 的 --brand-pale / --title-color / --accent 等
      ============================================================ */
   [data-theme="base"] {
@@ -158,7 +158,7 @@ body {
 
   /* HMW 签名布局：顶部 4 字段陈述通栏 + 底部 2×4 想法格 */
 
-  /* Hero override：白纸底 + 卡片化（Bain Red 修正） */
+  /* Hero override：白纸底 + 卡片化（True Red 修正） */
   .canvas-head {
     border: var(--border-w) solid var(--line);
     border-radius: var(--radius);
@@ -279,7 +279,7 @@ body {
   @media(max-width:720px){ .q-grid{ grid-template-columns:1fr; } .idea-grid{ grid-template-columns:1fr; } }
 </style>
 </head>
-<body data-theme="base" data-canvas="hmw" data-page-type="hmw" data-visual-mode="bain-red-action" data-version="1">
+<body data-theme="base" data-canvas="hmw" data-page-type="hmw" data-visual-mode="true-red" data-version="1">
 <div class="wrap">
   <header class="canvas-head" id="canvas-header">
     <div>
@@ -401,9 +401,9 @@ body {
   "page_type": "hmw",
   "version": "1",
   "visual_mode": {
-    "id": "bain-red-action",
-    "zh_name": "贝恩红·行动",
-    "visual_system": "Bain Red",
+    "id": "true-red",
+    "zh_name": "正红",
+    "visual_system": "True Red",
     "pan_mode_invariants_version": "v2.3.5"
   },
   "schema_version_target": "2.1",

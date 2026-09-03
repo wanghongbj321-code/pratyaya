@@ -80,7 +80,7 @@ flowchart LR
     B3 -.->|状态不变| Draft[("草稿态")]
     C -->|<b>用户决策</b><br/>确认 vN / override / 补问| D1["<b>授权</b><br/>render_authorized<br/>confirmation_mode"]
     D1 --> D2["<b>视觉模式+渲染</b><br/>Canvas<br/><i>HTML</i> 输出"]
-    D2 -->|Python 静态审计 + 浏览器视觉验收通过| E["<b>rendered</b>"]
+    D2 -->|分级渲染验收通过（L1+L2 必做，L3 按需，定义见 canvas-render SKILL.md）| E["<b>rendered</b>"]
 ```
 
 四个阶段都是**用户决策触发**，不自动串联。Gate 在第 3 阶段只输出建议；最终渲染授权由用户在主 Agent 决策后写入。
@@ -251,7 +251,7 @@ draft → gaps_open ↔ review_ready → confirmed → rendered
      | 仅 `business_risk` FAIL | 显式 override（理由 / 影响 / 确认人 / 时间） | `confirmation_mode=override` / `render_authorized=true` / `override_audit` 完整 |
      | 含 `information_integrity` FAIL | 仅补问或修订 | 不提供 override，保持 `review_ready` 或回 `gaps_open` |
 
-6. **步骤 7 视觉模式与渲染**：扫描 10 个模式 → 推荐 1-2 个（以 `zh_name` 展示）→ **等用户明确选择，不使用默认** → 传完整仓库相对路径 → 渲染 → 审计 → 桌面 / 窄屏 / 打印三视图验收 → `rendered`。
+6. **步骤 7 视觉模式与渲染**：扫描 10 个模式并**列出全部候选**（NN 序号 + `zh_name` + 色系 + 适用场景），**默认预选 `10-black-gray-professional`（黑灰专业）** → **每次渲染均等用户确认**（一键接受默认或改选，未表态不得采用默认）→ 传完整仓库相对路径 → 渲染 → 审计 → 分级渲染验收（定义与触发条件以 `skills/canvas-render/SKILL.md`「分级渲染验收」节为准，不复制其内容）→ `rendered`。**渲染成本护栏**：渲染 = 读 3 类依据（contract / examples / visual-patterns）→ 写 HTML → L1 审计 → L2 断言；审计器与验收脚本是裁判不是规格书，不读其源码推导规则；分级与降级见 canvas-render SKILL.md「分级渲染验收」。
    - 审计命令（参数化）：`python3 skills/canvas-render/scripts/audit_canvas_html.py output/{输出前缀}-canvas-{slug}.html --source modules/{文件前缀}-{slug}-v{N}.md --state state.json --type {audit_type} --instance {slug} [--template {示例模板}]`。
    - 渲染前置校验：`state.json.{state_key}.render_authorized=true`（如 Persona 为 `state.json.persona.{slug}.render_authorized=true`）。
    - 非 MVL 画布**必须显式传 `--type`**（默认 `mvl` 会误报 FAIL）；`--page-type` 索引页为 `{page_type}`。
@@ -273,7 +273,7 @@ draft → gaps_open ↔ review_ready → confirmed → rendered
 | **HMW** | δ1 三分支（落地 / 抽象 / 重构）必须全部产出 Idea，禁止只覆盖 1-2 个；δ2 不进全局 Canvas；δ3 永不进入 `state.modules.M2` |
 | **Persona** | δ1 独立单画布，不改造 MVL M2 的 `08-user-persona.md`；δ2 六宫格 6 区必须全有内容或显式标缺口；δ3 关键基本信息 `name` / `job_title` / `industry` 必须有值 |
 | **Journey** | δ1 动态阶段 × 5 行合并结构（行动 / 触点与系统 / 情绪 / 痛点 / 机会），不得改成七要素；δ2 最低 3 个有效阶段；δ3 质量鉴别外显但**不得成为第 6 行**；δ4 不写 `state.modules.M2` |
-| **V2C VAC** | δ1 `generation_path` ∈ {`pipeline`, `transcript-direct`}，`transcript-direct` 时 `pipeline_stage=null`；δ2 pipeline 六阶段 `scenario → capability → change → impact → value → attribution_review`；δ3 `V2C-AGxx` 只能作归因断点 / 来源 ID，**不得**作 override 的 `assessment_id`；δ4 Template Gate（`V2C-VAC-TPL-GATE-01..08`）**不可 override**，Python 静态审计 + Template Gate + 浏览器视觉验收都通过才置 `rendered` |
+| **V2C VAC** | δ1 `generation_path` ∈ {`pipeline`, `transcript-direct`}，`transcript-direct` 时 `pipeline_stage=null`；δ2 pipeline 六阶段 `scenario → capability → change → impact → value → attribution_review`；δ3 `V2C-AGxx` 只能作归因断点 / 来源 ID，**不得**作 override 的 `assessment_id`；δ4 Template Gate（`V2C-VAC-TPL-GATE-01..08`）**不可 override**，分级渲染验收（L1 静态审计含 Template Gate + L2 双视口 DOM 断言必做，L3 截图目检按需）通过才置 `rendered` |
 | **5W** | δ1 丰田三层面追问框架（制造层 Why 1-2 / 检验层 Why 3-4 / 体系层 Why 5），五层锚点必须全在；δ2 根因须过「因此」检验 + 对策四要素（对策 / 负责人 / 截止时间 / 验证方式）；δ3 `5W-GATE-01~04`（information_integrity）不可 override，`05~07`（business_risk）可；δ4 审计**必须**传 `--template skills/canvas-render/examples/5w-canvas.html` |
 
 ### 实例管理（v2.6 instance map，全文唯一一份）
@@ -298,9 +298,9 @@ draft → gaps_open ↔ review_ready → confirmed → rendered
 | "补问" / "还需要问什么" | 输出最少补问清单（步骤 3），标记 `gaps_open` |
 | "先看个样子" / "给我看个草稿" | 生成带永久水印的草稿 Canvas（步骤 4），不改变模块状态 |
 | **"确认 vN"** | 仅当用户已看到 Gate 报告时，"确认 vN"表示对当前版本作最终确认并授权渲染；Gate 未运行时先自动跑 Gate 再展示报告。不用"确认 vN"触发 Gate。 |
-| "确认，生成画布" | 先澄清并核对版本；Gate 通过后扫描视觉模式、推荐 1–2 个候选，用户选定后生成正式 Canvas（步骤 7） |
+| "确认，生成画布" | 先澄清并核对版本；Gate 通过后扫描视觉模式并**列出全部候选（默认预选 `10-black-gray-professional`），等用户确认/改选**，确认后生成正式 Canvas（步骤 7） |
 | "override" / "我接受这个风险" | 仅在 Gate 报告含 `business_risk` FAIL 时生效；要求用户填写：影响确认、override 理由、确认人、可选角色、确认时间；写入 `override_audit` 并将 `confirmation_mode=override`、`render_authorized=true`、状态 `confirmed`。`information_integrity` FAIL 不接受 override。 |
-| "换风格" / "换个模板" | 重新扫描视觉模式 frontmatter，校验后推荐 1–2 个候选并等待用户选择 |
+| "换风格" / "换个模板" | 重新扫描视觉模式 frontmatter，校验后**列出全部候选（默认预选 `10-black-gray-professional`）并等待用户确认/改选** |
 | "检查状态" / "进度" / "同步状态" | **当前 topic 全量**：报告 MVL M1-M6 + GC + HMW + Persona + Journey + V2C VAC + 5W 的版本、状态、`generation_path`（如适用）、`gate_recommendation`、`confirmation_mode` 和关键缺口；"同步状态"会重新读取当前 topic 的 `state.json` 并 patch group + project manifest |
 | "检查本组所有 topic" / "本组议题进度" | 读取 `workshop/{project_slug}/{group_id}/manifest.json`；缺失或陈旧则从当前 group 的 `*/state.json` 重建，输出当前 group 的 topic 汇总表，不读取其他 topic 产物作为当前 topic 输入 |
 | "检查所有组状态" / "跨组对比" | 读取 `workshop/{project_slug}/manifest.json`；缺失或陈旧则从 `*/{topic_slug}/state.json` 重建，输出 group × topic 状态汇总和 canvas_progress 横向对比，不读取其他 group / topic 产物作为当前 topic 输入 |
@@ -377,7 +377,7 @@ Gate 报告含 `information_integrity` FAIL 时，`override_eligible=false`；�
 
 ### 渲染校验失败
 
-Python 静态审计或浏览器视觉验收失败时，模块保持 `confirmed`，`confirmation_mode` 与 `gate_recommendation` 保持原值；修订同版本 HTML 后重跑全部校验，全部通过才改 `rendered`；若修订涉及业务内容，按"状态回退"升版并重新确认。
+分级渲染验收（L1 静态审计 / L2 DOM 断言 / L3 截图目检任一）失败时，模块保持 `confirmed`，`confirmation_mode` 与 `gate_recommendation` 保持原值；修订同版本 HTML 后重跑全部校验，全部通过才改 `rendered`；若修订涉及业务内容，按"状态回退"升版并重新确认。
 
 ### 多用户并行编辑
 

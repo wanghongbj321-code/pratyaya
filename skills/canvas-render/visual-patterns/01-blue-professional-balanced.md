@@ -107,7 +107,7 @@ best_for: 内部方案、管理层均衡总览
 
 ## 反例
 
-- 不与 Signal 灰棕色、McKinsey serif、Accenture 红灰或其他视觉系统混搭。
+- 不与 Signal 灰棕、Ink Blue serif、Bright Purple 高饱和或 True Red 高对比等其他视觉系统混搭。
 - 不把 flow 高密度模式的两列主网格强行套入本 balanced 模式。
 - 不省略窄屏表格横向滚动和三列转单列规则。
 - 不使用外部字体、CDN 图标、远程脚本、`fetch()` 或 iframe。

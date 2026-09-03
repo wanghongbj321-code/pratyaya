@@ -42,7 +42,7 @@
 - **步骤 2–4 分支**：提炼 → `HMW-{slug}-v{N}.md`（`review_ready`）；补问 → `HMW-{slug}-gaps.md`；先看个样子 → 草稿（水印）；
 - **步骤 5 确认包展示**：5 条必展项 + 详情折叠；
 - **步骤 6 Gate + 用户决策**（δ3 相关见「Gate」）；
-- **步骤 7 视觉模式与渲染**：扫描推荐 → 用户选定 → `canvas-render`；
+- **步骤 7 视觉模式与渲染**：扫描并列出全部候选（默认预选 10 黑灰）→ 用户确认/改选 → `canvas-render`；
 - **步骤 8 完成**：`output/hmw-{slug}-canvas.html`；索引页 `output/hmw-canvas.html`。
 
 **δ1**：三分支（落地 / 抽象 / 重构）必须全部产出 Idea，禁止只覆盖 1–2 个。
@@ -61,7 +61,7 @@
 - 前置校验 `state.hmw.{slug}.render_authorized=true`；
 - 审计命令参数化：`--type hmw`、`--instance {slug}`、`--page-type hmw-index`、`--source modules/HMW-{slug}-v{N}.md --state state.json`；
 - 示例模板按 agent「画布注册表」`示例模板` 列取；
-- 审计 + 三视图全过后置 `rendered`；失败保持 `confirmed`。
+- 分级渲染验收（L1 静态审计 + L2 双视口 DOM 断言必做，L3 截图目检按需；定义见 `skills/canvas-render/SKILL.md`「分级渲染验收」）全过后置 `rendered`；失败保持 `confirmed`。
 
 ## 强制执行指令
 
