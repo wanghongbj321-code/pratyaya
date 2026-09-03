@@ -3,6 +3,21 @@
 > 本文件记录 Pratyaya 专家的正式版本变更。
 > 完整 SemVer 与架构说明见 [`README.md`](./README.md) / [`DESIGN.md`](./DESIGN.md) / [docs/MVL-整体架构设计.md](./docs/MVL-整体架构设计.md)。
 
+## [v3.3.1] - 2026-09-03
+
+### 优化（PATCH）
+
+- **渲染成本预防（提示词补丁）**：`skills/canvas-render/SKILL.md` 新增"审计脚本是裁判，不是规格书"审计定位（§资源清单 + §Python 静态审计双落点）；§「精简浏览器视觉验收」改写为**分级渲染验收**三级体系（L1 Python 静态审计必做 / L2 DOM 双视口度量断言必做 / L3 截图目检按需），8 处画布输出句与 10 处 `references/*-pipeline.md` 成功句统一替换，主 Agent 提示词改薄引用 + 渲染成本护栏。
+- **L2 冒烟断言脚本**：新增 `skills/canvas-render/scripts/canvas-smoke.mjs`（canvas_type 参数化 + 断点期望表 + 滚动豁免清单 + 环境自检降级；exit 0=PASS / 1=FAIL / 2=DEGRADED），降低浏览器全量截图目检成本。
+- **渲染路径自报**：§渲染自检新增"路径自报"（读哪三类依据 / 跑哪几级验收 / 工具往返量级）与"模式与确认自报"，使低成本默认路径可复盘可核验。
+- **视觉模式选择确认（T1）**：模式选择环节必须列出全部 10 个候选并**默认预选 `10-black-gray-professional`（黑灰专业）**，每次渲染均需用户确认（可一键接受默认或改选），Agent 不得隐式选定。
+- **视觉模式公司名中性化（T2）**：`visual-patterns/` 05-09 五个模式去除咨询公司专名——`05-mckinsey-blue-conclusion`→`05-ink-blue`（墨蓝）、`06-accenture-purple-institutional`→`06-bright-purple`（亮紫）、`07-bain-red-action`→`07-true-red`（正红）、`08-bcg-green-matrix`→`08-teal-green`（青绿）、`09-roland-berger-dark-blue-gray`→`09-dark-blue-gray`（深蓝灰）；正文公司引用、色板 token 公司出处归因句与公司缩写 CSS 变量建议同步中性化；`examples/hmw-canvas.html` 示例同步。
+- **测试**：全量 pytest **469 passed**；hmw / 5W 模板审计与 L2 smoke 双视口 PASS。
+
+### 破坏性变更说明（按内部约定记录，SemVer 号位由发布流程定）
+
+- **T2 模式 id 改名属不向后兼容**：`visual-patterns/` 05-09 模式文件名与 frontmatter `id` 已变更，渲染产物 `data-visual-mode` / canvas-data JSON `visual_mode.{id,zh_name,visual_system}` 使用旧 id 的既有 HTML 需按新 id 重新渲染。`schemas/` 无 visual_mode id 枚举，非 schema 破坏；序号 01-10 与候选总数 10 不变。
+
 ## [v3.3.0] - 2026-09-02
 
 ### 新增功能（MINOR）
