@@ -3,6 +3,15 @@
 > 本文件记录 Pratyaya 专家的正式版本变更。
 > 完整 SemVer 与架构说明见 [`README.md`](./README.md) / [`DESIGN.md`](./DESIGN.md) / [docs/MVL-整体架构设计.md](./docs/MVL-整体架构设计.md)。
 
+## [v3.3.2] - 2026-09-03
+
+### 重构（PATCH）
+
+- **主 Agent 规则优先级体系（INV + P0-P6）**：`agents/pratyaya.md` 重构为"不变式优先"规则架构——顶部声明 **INV-01..13 不变式**（未指定画布不处理 / Key Points 仅草稿 / 只读已确认确认包 / Gate 只建议 / 人确认的是版本 / 升版重置 / `information_integrity` 不可 override / override 审计完整 / 视觉模式列全候选并需用户确认 / 验收失败保持 `confirmed` / 逐字稿不可信 / FAQ 只读 / 默认只读当前 topic）与 **P0-P6 优先级层**（安全>授权>状态机>注册表>pipeline>指令卡>表达），INV 恒高于 P0-P6；正文由 ~400 行收敛至 ~189 行，路由与治理规则以表格化、可校验形式沉淀。
+- **入口决策树（步骤 -1）**：改为结构化判定链（明确流程指令 → FAQ/状态解释 → 画布类型关键词路由 → 元数据完整 → state 存在 → 三元一致），未指定画布时追问、不进入默认画布。
+- **结构与下沉**：路径/资源解析、Phase 0 迁移、Phase 1-3 与下沉 pipeline 引用、画布注册表、标准管线骨架、状态机与升版、δ 差异、实例管理、指令卡、异常处理表统一收敛；渲染细节继续指向 canvas-render SKILL.md「分级渲染验收」与 references pipeline。
+- **测试**：全量 pytest **469 passed**（契约一致性 / 画布注册表 / 薄控制面门禁全绿，agent ≤ 400 行门禁保持）。
+
 ## [v3.3.1] - 2026-09-03
 
 ### 优化（PATCH）
