@@ -298,26 +298,22 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 非 MVL: {
 - V2C VAC 使用规定的 Scenario / Capability / Change / Business Impact / Value 主链、Attribution Gaps、Quality Check 与 Inferences；不得从逐字稿直接分析、补写或改写确认包未确认的业务结论。
 - 5W 使用规定的问题陈述、五层因果链（制造层 Why 1-2 / 检验层 Why 3-4 / 体系层 Why 5）、根本原因与"因此"检验、对策四要素、其他原因分支与判别记录；五层锚点必须全部存在（层数弹性暂不支持），每层内容或缺口标注必须来自确认包，不得从逐字稿直接补写。
 - Workflow 必须分别呈现 Agent 执行、人工操作 / 确认、人审 + Agent 执行三类节点。
-- 全局页先渲染无图正式形态，保留文字、完成条件和治理；仅用户要求有图时派生 `canvas-data.workflow` 并嵌入官方布局器最终 SVG。两形态与完成条件位置见 `references/two-phase-render.md`，有图版仍满足完整 §A1。
+- 全局页先渲染无图正式形态，保留文字、完成条件和治理；仅用户要求有图时派生 `canvas-data.workflow`，由 LLM 按 §A1 静态生成内联 SVG（视觉 token 由宿主 CSS 单点控制）。两形态与完成条件位置见 `references/two-phase-render.md`，有图版仍满足完整 §A1。
 - 内嵌 `<script type="application/json" id="canvas-data">`，内容包含同版本确认包 + 授权元数据（`render_authorized` / `confirmation_mode` / `override_audit`）。
 - 每个模块、结论、缺口和共享区域使用 `render-contract.md` 规定的稳定锚点。
 - 必须区分事实、决策、假设和建议；推断不得伪装成确认事实。
 - 不使用 `fetch()`、iframe、外部字体、外部脚本或外部网络资源。
 - 全局下钻只使用普通相对链接。
 
-## Workflow 流程图生成（v3.6.0）
+## Workflow 流程图生成（LLM 直出）
 
-按 `references/two-phase-render.md` 先交付无图正式画布，再询问用户是否需要流程图。文本布局图或临时 HTML 预览确认后正式提交；预览可提前调用工具，但不占用正式路径、不改 state。
+按 `references/two-phase-render.md` 先交付无图正式画布，再询问用户是否需要流程图。需要时先确认布局——文本轨道图或临时 HTML 预览（由 LLM 生成候选 SVG/HTML，明确标注用途，不占用正式路径、不改 state），用户确认布局后再正式提交。
 
-1. LLM 从同版本确认包生成 §A1.5 拓扑，禁止心算 SVG 坐标。
-2. 调用官方工具：
-   ```bash
-   python3 skills/canvas-render/scripts/workflow_layout/workflow_layout.py workflow_topo.json --fragment /tmp/workflow-attempt.svg
-   ```
-   `--fragment` 要求一个拓扑、全新目标文件；exit 0 才可读取结果。exit 1 为几何 FAIL，exit 2 为输入/参数错误；失败禁止读取旧 SVG。`--svg <out_dir>` 仍为几何目检预览，不是最终 SVG。
-3. 工具只输出 SVG 内部结构；本 Skill 负责 `#workflow-flow`、标题、横滚包装、HTML 图例与来自确认包的条件性 `#workflow-done`，不得重算片段坐标或补写业务内容。
-4. layout_override、preset 与 fork 溯源沿用，`canvas-data.workflow.layout` 记录 `layout_trace`，schema 不升级。仅表示层布局可调整，执行责任与业务分支变化回源包升版。
-5. 宿主样式参照示例与已确认模式，完整 HTML 继续过 L1/L2；模板或 SVG 结构变化触发 L3，包含打印目检。
+1. 渲染回合由 LLM 从同版本确认包 Workflow section 按 §A1 派生 `canvas-data.workflow` 拓扑（tracks/nodes/edges，§A1.5 schema 不变；不新增分析、不补写业务内容）。
+2. LLM 按 `render-contract.md` §A1 直接静态生成内联 SVG：轨道带 A/B/C… 或单轨 main；Start/End/任务/网关/事件符号与 actor 徽章、流程序号徽标；Sequence Flow 仅正交 `M/H/V`，禁止 `C/Q/S/A` 曲线；dashed 回流走 gutter。SVG 结构 class 复用母版（`bpmn-flow` / `bpmn-track` / `bpmn-node` / `bpmn-sequence` 等），视觉 token 由宿主 CSS 单点控制，不引入私有 class 或手写内联样式。
+3. 本 Skill 负责 `#workflow-flow` 外层容器、标题、横滚包装、HTML 图例与来自确认包的条件性 `#workflow-done`，不得重算或改写 SVG 内部几何与业务标签。
+4. 输入拓扑、视觉模式、版本与宿主模式未变时可复用已通过验收的 SVG；任何影响布局的修改均重新呈现确认。执行责任与业务分支变化回源包升版与 Gate。
+5. 完整 HTML 继续过 L1/L2；模板或 SVG 结构变化触发 L3（截图目检，按需触发），包含打印目检。
 
 ## Caveat 显式呈现
 

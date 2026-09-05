@@ -131,7 +131,7 @@ body {
 }
 
 
-  /* workflow_layout 0.2.0 final SVG: host owns visual tokens */
+  /* Workflow BPMN 内联 SVG；视觉 token 由宿主 CSS 单点控制 */
   .bpmn-flow .bpmn-event, .bpmn-flow .bpmn-task, .bpmn-flow .bpmn-gateway { fill:#fff; stroke:var(--ink); stroke-width:1.5; }
   .bpmn-flow .bpmn-sequence { fill:none; stroke:var(--ink); stroke-width:1.5; }
   .bpmn-flow .bpmn-reflow { stroke:#6B6B6B; stroke-dasharray:5 3; }
@@ -355,7 +355,7 @@ body {
     .bpmn-flow{ width:100%; min-width:0; }
   }
 
-  /* workflow_layout 0.2.0 final SVG: host owns visual tokens */
+  /* Workflow BPMN 内联 SVG；视觉 token 由宿主 CSS 单点控制 */
   .bpmn-flow .bpmn-event, .bpmn-flow .bpmn-task, .bpmn-flow .bpmn-gateway { fill:#fff; stroke:var(--ink); stroke-width:1.5; }
   .bpmn-flow .bpmn-sequence { fill:none; stroke:var(--ink); stroke-width:1.5; }
   .bpmn-flow .bpmn-reflow { stroke:#6B6B6B; stroke-dasharray:5 3; }
@@ -1029,11 +1029,7 @@ body {
         "label": "次日循环",
         "dashed": true
       }
-    ],
-    "layout": {
-      "engine": "workflow_layout",
-      "baseline_version": "0.2.0"
-    }
+    ]
   },
   "auth": {
     "gate_recommendation": "pending",
