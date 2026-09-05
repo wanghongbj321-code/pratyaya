@@ -51,6 +51,17 @@ const DEFAULT_VIEWPORTS = [
  * - signatures:  结构签名断言（存在且数量正确），在每个视口下都校验 DOM 数量
  */
 const CANVAS_TYPE_BREAKPOINTS = {
+  mvl: {
+    clipTargets: ["section", "article", ".maau-card", ".board", ".validation-box", ".governance-item"],
+    scrollable: [".bpmn-flow-wrap", ".maau-flow", "[data-scroll-x]", ".scroll-x"],
+    signatures: [
+      { name: "MVL Workflow 根锚点", selector: "#workflow-flow", count: 1 },
+      { name: "MVL Workflow SVG", selector: ".bpmn-flow", min: 1 },
+      { name: "MVL Workflow 轨道带", selector: ".bpmn-track", min: 1 },
+      { name: "MVL Workflow 图例", selector: ".bpmn-legend", count: 1 },
+      { name: "治理面板", selector: "#quality-panel", count: 1 },
+    ],
+  },
   "5w": {
     clipTargets: ["section", "article", ".card", ".why-row", "table", "th", "td", ".col"],
     scrollable: [".chain .why-link", ".workflow-flow", "[data-scroll-x]", ".scroll-x"],
@@ -197,8 +208,12 @@ async function measureViewport(page, viewport, cfg, withPrint) {
       if (Array.isArray(signatures)) {
         for (const s of signatures) {
           const actual = document.querySelectorAll(s.selector).length;
-          if (actual !== s.count) {
+          if (Number.isInteger(s.count) && actual !== s.count) {
             out.signatureFailures.push({ name: s.name, selector: s.selector, expected: s.count, actual });
+          } else if (Number.isInteger(s.min) && actual < s.min) {
+            out.signatureFailures.push({ name: s.name, selector: s.selector, expected: `>=${s.min}`, actual });
+          } else if (Number.isInteger(s.max) && actual > s.max) {
+            out.signatureFailures.push({ name: s.name, selector: s.selector, expected: `<=${s.max}`, actual });
           }
         }
       }

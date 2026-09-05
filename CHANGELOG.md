@@ -3,6 +3,32 @@
 > 本文件记录 Pratyaya 专家的正式版本变更。
 > 完整 SemVer 与架构说明见 [`README.md`](./README.md) / [`DESIGN.md`](./DESIGN.md) / [docs/MVL-整体架构设计.md](./docs/MVL-整体架构设计.md)。
 
+## [v3.4.1] - 2026-09-05
+
+### 修复（PATCH）
+
+- **全局页示例母版 Workflow 视觉精调**：`examples/mvl-canvas/maau-global-canvas.html` 去除深灰整卡（A2–A6/C1 改浅色单色卡片）、移除三条横向泳道背景带、actor 徽章改白底黑灰描边并整体内移避免压任务框边框、事件符号改用 ⏱/✉、图例补为 7 类带图形符号、补 `#workflow-done` 完成条件条样式；SVG 文字样式改为 CSS 单点 + 直接子代选择器（`>`）控制，防止通用后代规则覆盖嵌套徽章 / 序号样式。打印幅面落地 A3 横版（`@page size: A3 landscape` + 页面文案同步）。
+- **5W 画布示例标题精简**：`examples/5w-canvas.html` 标题去除中文"5W 五个为什么"前缀。
+
+### 兼容性与迁移边界
+
+- `plugin.json` `version` `3.4.0` → `3.4.1`（PATCH）；本轮仅示例母版与文案修订，不影响渲染契约、审计断言与 `state.schema.json` `schema_version`（仍 `"2.4"`）。
+
+## [v3.4.0] - 2026-09-05
+
+### 新增功能（MINOR）
+
+- **MVL/MAAU 全局页 Workflow 双轨 BPMN 可视化**：`render-contract.md` §A1 从旧三泳道（按节点类型）模型升级为 MVL 全局页通用的轨道带模型，Phase 2 全局汇总页与 MAAU transcript-direct 实例页共享同一契约；支持业务阶段轨道（A/B/C…）或单轨 `main`，并用 actor 徽标表达 `human / ai / system / hybrid / reviewer` 执行语义。
+- **扩展 BPMN 结构签名**：Workflow 派生拓扑新增 `workflow.tracks`、`nodes[].track`、`nodes[].actor` 与 `edges[].dashed`，合法节点类型扩展为 `start / end / gateway / agent_execution / human_operation / human_review / timer / message / data_store`；回流/反馈边使用 `bpmn-reflow` 虚线，完成条件可渲染为 `#workflow-done` 条。
+- **A3 全局页打印与示例母版升级**：MVL 全局页示例母版 `examples/mvl-canvas/maau-global-canvas.html` 改为 A3 横版、浅色单色轨道带 Workflow；M1-M6 模块详情页继续保持既有 A4 口径。
+- **审计与 L2 smoke 升级**：`audit_workflow_flow` 新增 tracks、actor、dashed reflow、扩展节点类型与 DOM/data 一致性断言；`canvas-smoke.mjs` 为 `mvl` 增加 Workflow 结构签名和滚动豁免，窄屏横向滚动限制在 `.bpmn-flow-wrap` 内。
+- **测试与 fixtures**：`tests/test_workflow_flow.py` 扩展到 18 条，覆盖 MAAU transcript-direct 三轨、Phase 2 单轨、actor/track/reflow 反向用例；新增 Phase 2 全局页 fixture，MAAU fixtures 与 demo 输出同步重渲染为新轨道带模型。
+
+### 兼容性与迁移边界
+
+- `state.schema.json` `schema_version` 保持 `"2.4"` 不变；本轮只扩展 HTML `canvas-data.workflow` 渲染/审计契约。
+- 已交付旧 `maau-global-canvas*.html` 不追溯重渲染；之后新渲染的 Phase 2 全局页与 MAAU transcript-direct 实例页按新 §A1 输出。
+
 ## [v3.3.2] - 2026-09-03
 
 ### 重构（PATCH）

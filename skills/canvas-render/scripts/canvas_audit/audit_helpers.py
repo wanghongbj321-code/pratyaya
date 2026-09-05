@@ -410,9 +410,42 @@ def audit_maau_transcript_direct(
 
 WORKFLOW_FLOW_NODE_TYPES = (
     "start", "end", "gateway", "agent_execution", "human_operation", "human_review",
+    "timer", "message", "data_store",
 )
 WORKFLOW_FLOW_REQUIRED_TYPES = ("agent_execution", "human_operation", "human_review")
+WORKFLOW_FLOW_TASK_TYPES = ("agent_execution", "human_operation", "human_review")
+WORKFLOW_FLOW_ACTORS = ("human", "ai", "system", "hybrid", "reviewer")
 WORKFLOW_FLOW_SOURCE_SECTIONS = ("Agent 执行节点", "人工操作/确认节点", "人审 + Agent 执行节点")
+
+
+def _html_attr(tag_source: str, attr_name: str) -> str | None:
+    match = re.search(rf'\b{re.escape(attr_name)}="([^"]*)"', tag_source)
+    return match.group(1) if match else None
+
+
+def _tag_with_class(class_name: str) -> str:
+    return rf'<g\b(?=[^>]*class="(?:[^"]*\s)?{re.escape(class_name)}(?:\s|")[^>]*")[^>]*>'
+
+
+def _workflow_node_tags(source: str) -> dict[str, str]:
+    tags: dict[str, str] = {}
+    for match in re.finditer(_tag_with_class("bpmn-node"), source):
+        tag = match.group(0)
+        node_id = _html_attr(tag, "data-node-id")
+        if node_id:
+            tags[node_id] = tag
+    return tags
+
+
+def _workflow_node_segment(source: str, node_id: str) -> str:
+    node_tag = _tag_with_class("bpmn-node")
+    match = re.search(
+        node_tag[:-1] + rf'(?=[^>]*data-node-id="{re.escape(node_id)}")[^>]*>'
+        + r'.*?(?=' + node_tag + r'|</svg>)',
+        source,
+        re.DOTALL,
+    )
+    return match.group(0) if match else ""
 
 
 def audit_workflow_flow(
@@ -423,12 +456,14 @@ def audit_workflow_flow(
 ) -> list[Finding]:
     """校验全局页 Workflow BPMN 流程图（#workflow-flow）契约。
 
-    断言（设计方案 §7.1 + v3.1.1 优化）：
+    断言（MVL/MAAU 全局画布 Workflow 双轨 BPMN 可视化执行计划-20260905）：
     - SVG 必须含 Start Event（data-node-type="start"）与 End Event（data-node-type="end"）；
     - Sequence Flow 禁止曲线命令（C/Q/S/A），只允许正交 M/H/V；
     - canvas-data.workflow.nodes 必须覆盖三类节点（agent_execution / human_operation / human_review）；
     - canvas-data.workflow.nodes 必须有 number 字段且唯一（节点编号徽标）；
     - SVG 中 bpmn-node 数量必须等于 canvas-data.workflow.nodes 数量；
+    - tracks 与 SVG bpmn-track 一致；任务类节点必须有合法 actor 与 SVG 徽标；
+    - dashed edge 必须有 bpmn-reflow 路径；
     - edges.from / to 必须引用存在的 node id；
     - 有 --source 时，确认包必须含三类节点章节（与派生来源一致）。
     """
@@ -464,14 +499,38 @@ def audit_workflow_flow(
         return findings
     nodes = workflow.get("nodes")
     edges = workflow.get("edges")
+    tracks = workflow.get("tracks")
     if not isinstance(nodes, list) or not nodes:
         findings.append(Finding("WORKFLOW_FLOW", "canvas-data.workflow.nodes must be a non-empty array"))
     if not isinstance(edges, list):
         findings.append(Finding("WORKFLOW_FLOW", "canvas-data.workflow.edges must be an array"))
+    if not isinstance(tracks, list) or not tracks:
+        findings.append(Finding("WORKFLOW_FLOW", "canvas-data.workflow.tracks must be a non-empty array"))
     if isinstance(nodes, list) and nodes:
         node_ids: set[str] = set()
         node_types: set[str] = set()
         numbers: list[str] = []
+        node_tags = _workflow_node_tags(source)
+        track_ids: set[str] = set()
+        if isinstance(tracks, list):
+            for track in tracks:
+                if not isinstance(track, dict):
+                    findings.append(Finding("WORKFLOW_FLOW", "canvas-data.workflow.tracks item must be an object"))
+                    continue
+                track_id = track.get("id")
+                if track_id:
+                    track_ids.add(str(track_id))
+        svg_track_ids = set(
+            re.findall(r'class="[^"]*\bbpmn-track\b"[^>]*\bdata-track="([^"]+)"', source)
+            + re.findall(r'\bdata-track="([^"]+)"[^>]*class="[^"]*\bbpmn-track\b"', source)
+        )
+        if track_ids and svg_track_ids != track_ids:
+            findings.append(
+                Finding(
+                    "WORKFLOW_FLOW",
+                    f"SVG bpmn-track ids {sorted(svg_track_ids)!r} != canvas-data.workflow.tracks ids {sorted(track_ids)!r}",
+                )
+            )
         for node in nodes:
             if not isinstance(node, dict):
                 findings.append(Finding("WORKFLOW_FLOW", "canvas-data.workflow.nodes item must be an object"))
@@ -479,6 +538,7 @@ def audit_workflow_flow(
             node_id = node.get("id")
             node_type = node.get("type")
             node_number = node.get("number")
+            node_track = node.get("track")
             numbers.append(str(node_number) if node_number is not None else "")
             if node_id:
                 node_ids.add(str(node_id))
@@ -491,6 +551,52 @@ def audit_workflow_flow(
                 )
             else:
                 node_types.add(str(node_type))
+            if node_track is None or str(node_track) == "":
+                findings.append(Finding("WORKFLOW_FLOW", f"node {node_id!r} 缺少 track 字段"))
+            elif track_ids and str(node_track) not in track_ids:
+                findings.append(
+                    Finding("WORKFLOW_FLOW", f"node {node_id!r} track={node_track!r} 不在 tracks 内")
+                )
+            node_id_str = str(node_id) if node_id is not None else ""
+            tag = node_tags.get(node_id_str, "")
+            if tag:
+                svg_node_type = _html_attr(tag, "data-node-type")
+                if svg_node_type != node_type:
+                    findings.append(
+                        Finding(
+                            "WORKFLOW_FLOW",
+                            f"SVG node {node_id_str!r} data-node-type={svg_node_type!r} != canvas-data type={node_type!r}",
+                        )
+                    )
+                svg_track = _html_attr(tag, "data-track")
+                if node_track is not None and svg_track != str(node_track):
+                    findings.append(
+                        Finding(
+                            "WORKFLOW_FLOW",
+                            f"SVG node {node_id_str!r} data-track={svg_track!r} != canvas-data track={node_track!r}",
+                        )
+                    )
+            if node_type in WORKFLOW_FLOW_TASK_TYPES:
+                actor = node.get("actor")
+                if actor not in WORKFLOW_FLOW_ACTORS:
+                    findings.append(
+                        Finding(
+                            "WORKFLOW_FLOW",
+                            f"node {node_id!r} actor={actor!r} must be one of {', '.join(WORKFLOW_FLOW_ACTORS)}",
+                        )
+                    )
+                else:
+                    segment = _workflow_node_segment(source, str(node_id))
+                    if not re.search(
+                        rf'<g\b(?=[^>]*class="[^"]*\bbpmn-actor\b")(?=[^>]*data-actor="{re.escape(str(actor))}")',
+                        segment,
+                    ):
+                        findings.append(
+                            Finding(
+                                "WORKFLOW_FLOW",
+                                f"SVG node {node_id!r} 缺少 actor 徽标 data-actor={actor!r}",
+                            )
+                        )
         if not all(numbers):
             findings.append(Finding("WORKFLOW_FLOW", "canvas-data.workflow.nodes 缺少 number 字段"))
         elif len(set(numbers)) != len(numbers):
@@ -500,7 +606,9 @@ def audit_workflow_flow(
                 findings.append(
                     Finding("WORKFLOW_FLOW", f"canvas-data.workflow.nodes 缺少三类节点之一: {required}")
                 )
-        svg_node_count = len(re.findall(r"class=\"[^\"]*\bbpmn-node\b", source))
+        svg_node_count = len(
+            re.findall(_tag_with_class("bpmn-node"), source)
+        )
         if svg_node_count != len(nodes):
             findings.append(
                 Finding(
@@ -519,6 +627,15 @@ def audit_workflow_flow(
                     findings.append(Finding("WORKFLOW_FLOW", f"edge.from={edge_from!r} 引用了不存在的 node id"))
                 if edge_to not in node_ids:
                     findings.append(Finding("WORKFLOW_FLOW", f"edge.to={edge_to!r} 引用了不存在的 node id"))
+            dashed_edges = [edge for edge in edges if isinstance(edge, dict) and edge.get("dashed") is True]
+            reflow_count = len(re.findall(r'class="[^"]*\bbpmn-sequence\b[^"]*\bbpmn-reflow\b', source))
+            if len(dashed_edges) > reflow_count:
+                findings.append(
+                    Finding(
+                        "WORKFLOW_FLOW",
+                        f"edges dashed 数量 {len(dashed_edges)} > SVG bpmn-reflow 数量 {reflow_count}",
+                    )
+                )
     if source_path is not None:
         try:
             package = source_path.read_text(encoding="utf-8")
