@@ -17,6 +17,7 @@ Thumbs.db
 *.tmp
 __pycache__/
 *.pyc
+.venv/
 
 # 临时文件
 tmp/
@@ -29,4 +30,3 @@ internal/
 
 # 本地 PR 说明文档（供团队在浏览器建 PR 时参考，不入库）
 PR-visual-enhancement.md
-
