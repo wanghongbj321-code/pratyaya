@@ -209,6 +209,6 @@ v{N}
 | 旧版归档 | `modules/maau/archive/MAAU-{slug}-v{N}.md.previous` |
 | 补问清单 | `modules/MAAU-{slug}-gaps.md` |
 | Gate 报告 | `modules/MAAU-{slug}-gate-report-v{N}.md` |
-| 实例输出 HTML | `output/maau-global-canvas-{slug}.html` |
+| 实例输出 HTML | `output/maau-global-canvas-{slug}--noflow-v{N}.html` |
 
 slug 必须为 kebab-case ASCII，且不得为 `default`。

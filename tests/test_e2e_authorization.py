@@ -124,7 +124,7 @@ E2E_CANVASES: dict[str, dict[str, str | None]] = {
 
 def _audit(rel_html: Path, rel_source: Path, rel_state: Path, spec: dict) -> subprocess.CompletedProcess[str]:
     cmd = [
-        PYTHON, str(AUDIT),
+        PYTHON, str(AUDIT), "--artifact-policy", "legacy",
         str(rel_html),
         "--source", str(rel_source),
         "--state", str(rel_state),

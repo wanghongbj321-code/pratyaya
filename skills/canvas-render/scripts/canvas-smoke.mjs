@@ -131,6 +131,8 @@ function parseArgs(argv) {
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--type") args.type = argv[++i];
+    else if (a === "--page-type") args.pageType = argv[++i];
+    else if (a === "--workflow-variant") args.variant = argv[++i];
     else if (a === "--chrome") args.chrome = argv[++i];
     else if (a === "--viewport") args.viewports = argv[++i].split(";").map((s) => s.split("x").map(Number));
     else if (a === "--json") args.json = true;
@@ -252,6 +254,10 @@ async function main() {
   }
 
   // 环境自检（降级不阻断交付）
+  if (args.type === "mvl" && (!["global", "module-detail"].includes(args.pageType) || (args.pageType === "global" && !["noflow", "workflow"].includes(args.variant)))) {
+    console.error("FAIL: mvl requires --page-type; global requires --workflow-variant noflow|workflow");
+    return 1;
+  }
   const puppeteerCorePath = findPuppeteerCore();
   const chromePath = findChrome(args.chrome);
   if (!puppeteerCorePath || !chromePath) {
@@ -269,7 +275,14 @@ async function main() {
     return 2;
   }
 
-  const cfg = CANVAS_TYPE_BREAKPOINTS[args.type] || {};
+  const cfg = structuredClone(CANVAS_TYPE_BREAKPOINTS[args.type] || {});
+  if (args.type === "mvl" && (args.pageType === "module-detail" || args.variant === "noflow")) {
+    cfg.signatures = cfg.signatures.filter(s => s.selector === "#quality-panel");
+    if (args.pageType === "global") {
+      cfg.signatures.push({name: "无图形态", selector: "#workflow-flow, .bpmn-flow, .bpmn-track, .bpmn-node, .bpmn-legend", count: 0});
+      for (const id of ["intent", "user", "agent-team", "workflow", "context", "validation"]) cfg.signatures.push({name: id, selector: `#${id}`, count: 1});
+    }
+  }
   const htmlAbs = path.resolve(args.html);
   if (!fs.existsSync(htmlAbs)) {
     console.error(`[canvas-smoke] FAIL — HTML 不存在: ${htmlAbs}`);
@@ -297,6 +310,8 @@ async function main() {
   try {
     const page = await browser.newPage();
     await page.goto(pathToFileURL(htmlAbs).href, { waitUntil: "networkidle0", timeout: 30000 });
+    const identity = await page.evaluate(() => ({pageType: document.body.dataset.pageType, topology: Object.prototype.hasOwnProperty.call(JSON.parse(document.querySelector("#canvas-data")?.textContent || "{}"), "workflow")}));
+    if (args.type === "mvl" && (identity.pageType !== args.pageType || (args.pageType === "global" && identity.topology !== (args.variant === "workflow")))) throw new Error("FAIL: page type or workflow topology does not match requested form");
     for (const vp of args.viewports) {
       results.push(await measureViewport(page, vp, cfg, args.print));
     }

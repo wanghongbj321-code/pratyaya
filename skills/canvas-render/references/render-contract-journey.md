@@ -5,7 +5,7 @@
 > **v2.3.2 PATCH**：将 5 行主表第 4 / 5 行文本重命名为「痛点 / 机会」，将 6b 节标题重命名为「痛点与机会」，将 6a 质量维度键 / 6b 锚点 / 5 行 DOM 子锚点 / stage data 字段统一为新字段体系（旧字段体系已退场）。
 > 字段映射说明见文末"v2.3.0 → v2.3.2 字段映射"表。
 
-数据源是 `modules/JOURNEY-{slug}-v{N}.md`（确认包，Markdown）；`canvas-render` 读取后按本契约把确认包内容映射到稳定 HTML 锚点。渲染层只做展示映射，不重新判断质量、不生成新结论、不补写确认包中不存在的业务判断。`{slug}` 必须等于 `state.json.journey.{slug}.slug`，正式输出为 `output/journey-canvas-{slug}.html`；`output/journey-canvas.html` 仅作为多 instance 索引页。
+数据源是 `modules/JOURNEY-{slug}-v{N}.md`（确认包，Markdown）；`canvas-render` 读取后按本契约把确认包内容映射到稳定 HTML 锚点。渲染层只做展示映射，不重新判断质量、不生成新结论、不补写确认包中不存在的业务判断。`{slug}` 必须等于 `state.json.journey.{slug}.slug`，正式输出为 `output/journey-canvas-{slug}--v{N}.html`；`output/journey-canvas.html` 仅作为多 instance 索引页。
 
 ## A. Journey Canvas 页面结构
 

@@ -2,7 +2,7 @@
 
 本契约定义 5W（Five Whys，根因分析）Canvas 页面的 HTML 结构。
 
-数据源是 `modules/5W-{slug}-v{N}.md`（确认包，Markdown）；LLM 读取后按本章的 section 映射表，把内容映射到 HTML 锚点。映射的字段名沿用确认包 Markdown 的 section 标题。`{slug}` 必须等于 `state.json.five_whys.{slug}.slug`，正式输出为 `output/5w-canvas-{slug}.html`；`output/5w-canvas.html` 仅作为多 instance 索引页。
+数据源是 `modules/5W-{slug}-v{N}.md`（确认包，Markdown）；LLM 读取后按本章的 section 映射表，把内容映射到 HTML 锚点。映射的字段名沿用确认包 Markdown 的 section 标题。`{slug}` 必须等于 `state.json.five_whys.{slug}.slug`，正式输出为 `output/5w-canvas-{slug}--v{N}.html`；`output/5w-canvas.html` 仅作为多 instance 索引页。
 
 ## A. 5W Canvas 页面结构
 
@@ -189,7 +189,7 @@ canvas-header
 ```bash
 # 5W 正式画布审计（含 Template Gate，需 --template）
 python3 skills/canvas-render/scripts/audit_canvas_html.py \
-  workshop/{project_slug}/{group_id}/{topic_slug}/output/5w-canvas-{slug}.html \
+  workshop/{project_slug}/{group_id}/{topic_slug}/output/5w-canvas-{slug}--v{N}.html \
   --source workshop/{project_slug}/{group_id}/{topic_slug}/modules/5W-{slug}-v{N}.md \
   --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json \
   --type 5w \

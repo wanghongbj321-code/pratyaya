@@ -27,7 +27,7 @@
 - `modules/V2C-VAC-{slug}-gaps.md`；
 - `modules/V2C-VAC-{slug}-v{N}.md`（确认包，业务事实源）；
 - `modules/V2C-VAC-{slug}-gate-report-v{N}.md`；
-- `output/v2c-vac-{slug}-canvas.html`；索引页 `output/v2c-vac-canvas.html`。
+- `output/v2c-vac-canvas-{slug}--v{N}.html`；索引页 `output/v2c-vac-canvas.html`。
 
 ## 状态写入
 
@@ -44,7 +44,7 @@
 - **步骤 5 确认包展示**：5 条必展项 + 详情折叠；
 - **步骤 6 Gate + 用户决策**：见「Gate」；
 - **步骤 7 视觉模式与渲染**：扫描并列出全部候选（默认预选 10 黑灰）→ 用户确认/改选 → `canvas-render`；
-- **步骤 8 完成**：`output/v2c-vac-{slug}-canvas.html`；索引页 `output/v2c-vac-canvas.html`。
+- **步骤 8 完成**：`output/v2c-vac-canvas-{slug}--v{N}.html`；索引页 `output/v2c-vac-canvas.html`。
 
 **δ2**：pipeline 六阶段顺序 `scenario → capability → change → impact → value → attribution_review`。
 **δ3**：`V2C-AGxx` 只能作归因断点 / 来源 ID，**不得**作 override 的 `assessment_id`。
@@ -60,4 +60,6 @@
 - 前置校验 `state.v2c_vac.{slug}.render_authorized=true`；
 - 审计命令参数化：`--type v2c-vac`、`--instance {slug}`、`--page-type v2c-vac-index`、`--source modules/V2C-VAC-{slug}-v{N}.md --state state.json`；
 - **δ4**：分级渲染验收（L1 静态审计含 Template Gate + L2 双视口 DOM 断言必做，L3 截图目检按需；定义见 `skills/canvas-render/SKILL.md`「分级渲染验收」）**通过**才置 `rendered`；
-- 示例模板按 agent「画布注册表」`示例模板` 列取；失败保持 `confirmed`。
+- 示例模板按 agent「画布注册表」`示例模板` 列取；首次失败保持 `confirmed`，同版本重渲染失败保持原 `rendered`、output_file 和成功文件。
+
+正式输出遵循 `skills/canvas-render/references/two-phase-render.md` 的机器后缀和候选提交规则：current 审计（默认），临时候选传 `--target-output <正式路径>`；成功才更新实际 output_file，索引读取该值。legacy 仅用于历史复查。索引 `--page-type` 参数只用于 `--index` 命令，详情审计不传 index page type。

@@ -2,7 +2,7 @@
 
 本契约定义 HMW（How Might We，问题重构）Canvas 页面的 HTML 结构。
 
-数据源是 `modules/HMW-{slug}-v{N}.md`（确认包，Markdown）；LLM 读取后按本章的 section 映射表，把内容映射到 HTML 锚点。映射的字段名沿用确认包 Markdown 的 section 标题。`{slug}` 必须等于 `state.json.hmw.{slug}.slug`，正式输出为 `output/hmw-canvas-{slug}.html`；`output/hmw-canvas.html` 仅作为多 instance 索引页。
+数据源是 `modules/HMW-{slug}-v{N}.md`（确认包，Markdown）；LLM 读取后按本章的 section 映射表，把内容映射到 HTML 锚点。映射的字段名沿用确认包 Markdown 的 section 标题。`{slug}` 必须等于 `state.json.hmw.{slug}.slug`，正式输出为 `output/hmw-canvas-{slug}--v{N}.html`；`output/hmw-canvas.html` 仅作为多 instance 索引页。
 
 ## A. HMW Canvas 页面结构
 

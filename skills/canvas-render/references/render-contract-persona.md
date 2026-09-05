@@ -1,6 +1,6 @@
 # Persona Canvas 渲染契约
 
-本契约定义 Persona Canvas HTML 的结构、锚点、数据映射与审计规则。LLM 读取 `PERSONA-{slug}-v{N}.md` 确认包后，按本契约将内容映射到 HTML 锚点。`{slug}` 必须等于 `state.json.persona.{slug}.slug`，正式输出为 `output/persona-canvas-{slug}.html`；`output/persona-canvas.html` 仅作为多 instance 索引页。
+本契约定义 Persona Canvas HTML 的结构、锚点、数据映射与审计规则。LLM 读取 `PERSONA-{slug}-v{N}.md` 确认包后，按本契约将内容映射到 HTML 锚点。`{slug}` 必须等于 `state.json.persona.{slug}.slug`，正式输出为 `output/persona-canvas-{slug}--v{N}.html`；`output/persona-canvas.html` 仅作为多 instance 索引页。
 
 ---
 
@@ -215,7 +215,7 @@ canvas-header
 ## 12. 交付前自检
 
 ```bash
-python skills/canvas-render/scripts/audit_canvas_html.py output/persona-canvas-{slug}.html \
+python skills/canvas-render/scripts/audit_canvas_html.py output/persona-canvas-{slug}--v{N}.html \
   --source modules/PERSONA-{slug}-v{N}.md \
   --state state.json \
   --type persona \

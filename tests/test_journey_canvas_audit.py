@@ -53,7 +53,7 @@ JOURNEY_STAGE_DATA_FIELDS_V232 = (
 
 
 def run_audit(html: Path, *extra: str) -> subprocess.CompletedProcess:
-    cmd = [PYTHON, str(AUDIT), str(html), "--type", "journey", "--template", str(TEMPLATE), *extra]
+    cmd = [PYTHON, str(AUDIT), "--artifact-policy", "legacy", str(html), "--type", "journey", "--template", str(TEMPLATE), *extra]
     return subprocess.run(cmd, capture_output=True, text=True)
 
 
@@ -430,7 +430,7 @@ class TestJourneyTemplateGate:
         )
         broken.write_text(text, encoding="utf-8")
         result = subprocess.run(
-            [PYTHON, str(AUDIT), str(TEMPLATE), "--type", "journey", "--template", str(broken)],
+            [PYTHON, str(AUDIT), "--artifact-policy", "legacy", str(TEMPLATE), "--type", "journey", "--template", str(broken)],
             capture_output=True,
             text=True,
         )
@@ -441,7 +441,7 @@ class TestJourneyTemplateGate:
         result = subprocess.run(
             [
                 PYTHON,
-                str(AUDIT),
+                str(AUDIT), "--artifact-policy", "legacy",
                 str(TEMPLATE),
                 "--type",
                 "journey",

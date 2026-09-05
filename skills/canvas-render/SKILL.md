@@ -18,7 +18,9 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 非 MVL: {
 
 `mvl` 下存在两条生成路径：
 - **Phase 2 全局汇总**：M1-M6 六模块 → `output/maau-global-canvas.html`（沿用现有 MVL 全局模式）。
-- **transcript-direct 一次性综合**：`generation_path=transcript-direct`，从 `modules/MAAU-{slug}-v{N}.md` 一次性六板块源包渲染，输出 `output/maau-global-canvas-{slug}.html`，授权读取 `state.maau.{slug}`。两条路径**互斥**，不混用。
+- **transcript-direct 一次性综合**：`generation_path=transcript-direct`，从 `modules/MAAU-{slug}-v{N}.md` 一次性六板块源包渲染，输出 `output/maau-global-canvas-{slug}--noflow-v{N}.html`，授权读取 `state.maau.{slug}`。两条路径**互斥**，不混用。
+
+正式渲染必须读取 [两阶段渲染与产物身份](references/two-phase-render.md)，遵循其中候选提交、失败保护、Phase 2 只读、命名及 current/legacy 边界。global 必传 `workflow_variant=noflow|workflow`，由本次请求决定，禁止由 HTML 缺图推断。
 
 执行前按需读取：
 
@@ -103,7 +105,7 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 非 MVL: {
 
 - 输入只能是全部 M1–M6 都已 `rendered`，且均指向最新确认版本。
 - 输出 `output/maau-global-canvas.html`。
-- 展示 Intent / User / Agent Team / Workflow / Context / Validation 六大板块；Workflow 板块派生轨道带 BPMN 流程图（`#workflow-flow`，契约见 `render-contract.md` §A1），与 MAAU transcript-direct 实例页共享同一 MVL 全局页 Workflow 契约。
+- 展示 Intent / User / Agent Team / Workflow / Context / Validation 六大板块；Workflow 板块先交付无图版；用户需要时另行生成轨道带 BPMN 流程图（`#workflow-flow`，契约见 `render-contract.md` §A1），与 MAAU transcript-direct 实例页共享同一 MVL 全局页 Workflow 契约。
 - 显示版本、确认人、时间、剩余 minor 缺口、风险、override caveat 与最后更新时间。
 - 保留结论 ID，并用普通相对链接下钻到模块详情 Canvas。
 - **全局 caveat 浮现**：扫描六模块 `confirmation_mode`，对 `override` 模块在全局页和管理层摘要中显式标注 caveat 与风险摘要。
@@ -111,17 +113,17 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 非 MVL: {
 ### MAAU transcript-direct 正式模式
 
 - 输入 `canvas_type=mvl` + `page_type=global` + `generation_path=transcript-direct`，数据源为 `modules/MAAU-{slug}-v{N}.md`，授权读取 `state.maau.{slug}`。
-- 输出 `output/maau-global-canvas-{slug}.html`；分级渲染验收（L1 静态审计 + L2 双视口 DOM 断言必做，L3 截图目检按需）通过后才算成功。
+- 输出 `output/maau-global-canvas-{slug}--noflow-v{N}.html`；分级渲染验收（L1 静态审计 + L2 双视口 DOM 断言必做，L3 截图目检按需）通过后才算成功。
 - HTML 必须写 `data-instance="{slug}"` 与 `canvas-data.instance`。
-- 展示 Intent / User / Agent Team / Workflow / Context / Validation 六大板块；Workflow 板块派生轨道带 BPMN 流程图（`#workflow-flow`，契约见 `render-contract.md` §A1），与 Phase 2 全局汇总页共享同一 MVL 全局页 Workflow 契约。
-- `canvas-data` 记录 `generation_path=transcript-direct`、`instance`、`source_file`、`auth`、`workflow`（派生拓扑 tracks/nodes/edges）；页面必须含 `[来源: transcript-direct]` 标头。
+- 展示 Intent / User / Agent Team / Workflow / Context / Validation 六大板块；Workflow 板块先交付无图版；用户需要时另行生成轨道带 BPMN 流程图（`#workflow-flow`，契约见 `render-contract.md` §A1），与 Phase 2 全局汇总页共享同一 MVL 全局页 Workflow 契约。
+- `canvas-data` 记录 `generation_path=transcript-direct`、`instance`、`source_file`、`auth`；仅有图版记录 `workflow`（派生拓扑 tracks/nodes/edges）；页面必须含 `[来源: transcript-direct]` 标头。
 - **不伪造 M1-M6 模块详情下钻**：transcript-direct 是单源一次性综合，无六模块详情页；无模块详情时不得生成虚假的下钻链接，只展示六板块或按 render-contract 规则处理。
 - 与 Phase 2 全局页（`output/maau-global-canvas.html`）互斥：同一 group 的 MAAU 输出只能二选一（transcript-direct 实例页或 M1-M6 Phase 2 全局页），不得同时作为正式输出。
 
 ### 模块详情模式
 
 - 模块 `confirmed` 或 `rendered` 且同版本用户授权后立即生成。
-- 输出 `output/module-N-canvas.html`；只有分级渲染验收（L1 静态审计 + L2 双视口 DOM 断言必做，L3 截图目检按需）都通过后才算成功，并将状态改为 `rendered`。
+- 输出 `output/module-{n}-canvas--v{N}.html`；只有分级渲染验收（L1 静态审计 + L2 双视口 DOM 断言必做，L3 截图目检按需）都通过后才算成功，并将状态改为 `rendered`。
 - 展示该模块在 `render-contract.md` 中规定的全部专属 section，不复刻全局六板块。
 - 显示版本、确认、缺口、风险、结论 ID、证据摘要和 caveat 状态。
 
@@ -136,7 +138,7 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 非 MVL: {
 ### 黄金圈正式模式
 
 - 输入 `canvas_type=golden-circle`，状态为 `confirmed` 或 `rendered`，且 `render_authorized=true`。
-- 输出 `output/gc-canvas-{slug}.html`；分级渲染验收（L1 静态审计 + L2 双视口 DOM 断言必做，L3 截图目检按需）通过后才算成功。
+- 输出 `output/gc-canvas-{slug}--v{N}.html`；分级渲染验收（L1 静态审计 + L2 双视口 DOM 断言必做，L3 截图目检按需）通过后才算成功。
 - 按 `render-contract-gc.md` 展示 WHY / HOW / WHAT 三层 + 跨层一致性。
 - **必须参照 `examples/goden-circle-canvas.html` 实现 `gc-diagram` 3 圈同心圆图示**（WHY / HOW / WHAT 环带标签 + pratyaya 黑灰配色），不得省略、不得用其他图形替代（`render-contract-gc.md` §C）。
 - 显示版本、确认、缺口、风险、结论 ID、证据摘要和 caveat 状态。
@@ -154,7 +156,7 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 非 MVL: {
 ### HMW 正式模式
 
 - 输入 `canvas_type=hmw`，状态为 `confirmed` 或 `rendered`，且 `render_authorized=true`。
-- 输出 `output/hmw-canvas-{slug}.html`；分级渲染验收（L1 静态审计 + L2 双视口 DOM 断言必做，L3 截图目检按需）通过后才算成功。
+- 输出 `output/hmw-canvas-{slug}--v{N}.html`；分级渲染验收（L1 静态审计 + L2 双视口 DOM 断言必做，L3 截图目检按需）通过后才算成功。
 - 按 `render-contract-hmw.md` 展示 HMW 陈述（situation / question / for / so_that）+ 质量鉴别 + 想法种子（8 固定格）+ 想法↔HMW 对应。
 - 显示版本、确认、缺口、风险、结论 ID、证据摘要和 caveat 状态。
 - **不触发全局 Canvas**，不扫描跨模块 caveat。HMW 是单画布。
@@ -170,7 +172,7 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 非 MVL: {
 ### Persona 正式模式
 
 - 输入 `canvas_type=persona`，状态为 `confirmed` 或 `rendered`，且 `state.persona.{slug}.render_authorized=true`。
-- 输出 `output/persona-canvas-{slug}.html`；分级渲染验收（L1 静态审计 + L2 双视口 DOM 断言必做，L3 截图目检按需）通过后才算成功。
+- 输出 `output/persona-canvas-{slug}--v{N}.html`；分级渲染验收（L1 静态审计 + L2 双视口 DOM 断言必做，L3 截图目检按需）通过后才算成功。
 - 按 `render-contract-persona.md` 展示 9 基本信息 + 6 宫格 + 4 质量鉴别维度 + 治理面板。
 - 显示版本、确认、缺口、风险、结论 ID、证据摘要和 caveat 状态。
 - **不触发全局 Canvas**，不扫描跨模块 caveat。Persona 是单画布。
@@ -186,7 +188,7 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 非 MVL: {
 ### Journey 正式模式
 
 - 输入 `canvas_type=journey`，状态为 `confirmed` 或 `rendered`，且 `state.journey.{slug}.render_authorized=true`。
-- 输出 `output/journey-canvas-{slug}.html`；分级渲染验收（L1 静态审计 + L2 双视口 DOM 断言必做，L3 截图目检按需）通过后才算成功。
+- 输出 `output/journey-canvas-{slug}--v{N}.html`；分级渲染验收（L1 静态审计 + L2 双视口 DOM 断言必做，L3 截图目检按需）通过后才算成功。
 - 按 `render-contract-journey.md` 展示动态阶段 × 5 行合并结构 + 痛点与机会 + 正式画布外显质量鉴别。
 - 阶段数量由 `JOURNEY-{slug}-v{N}.md` 第 6 节表格行动态生成，不固定 7 个槽位；每阶段必须保留 `action / touchpoint_system / emotion / pain_point / opportunity` 五个字段。
 - 显示版本、确认、缺口、风险、结论 ID、证据摘要和 caveat 状态。
@@ -205,7 +207,7 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 非 MVL: {
 
 - 输入 `canvas_type=v2c-vac`，状态为 `confirmed` 或 `rendered`，且 `state.v2c_vac.{slug}.render_authorized=true`。
 - 数据源只能是 `modules/V2C-VAC-{slug}-v{N}.md`，不得从逐字稿、会议材料、Key Points 或 pipeline 阶段草稿直接生成正式 HTML。
-- 输出 `output/v2c-vac-canvas-{slug}.html`；分级渲染验收（L1 静态审计含 Template Gate + L2 双视口 DOM 断言必做，L3 截图目检按需）通过后才算成功。
+- 输出 `output/v2c-vac-canvas-{slug}--v{N}.html`；分级渲染验收（L1 静态审计含 Template Gate + L2 双视口 DOM 断言必做，L3 截图目检按需）通过后才算成功。
 - 按 `render-contract-v2c-vac.md` 展示一句话归因假设、主链摘要、Attribution Chain 五层、Attribution Gaps、Attribution Quality Check、推断表与治理面板。
 - 一张 V2C VAC 只展示一个 Primary Change 和一条 Business Impact Chain；多个 Capability 可汇聚到 Primary Change，多个 Other Observed Changes 可记录但默认不连入主链。
 - KPI / Measure 只能作为测量证据附着在 Change / Impact / Value 节点旁，不得渲染成因果节点。
@@ -226,7 +228,7 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 非 MVL: {
 
 - 输入 `canvas_type=5w`，状态为 `confirmed` 或 `rendered`，且 `state.five_whys.{slug}.render_authorized=true`。
 - 数据源只能是 `modules/5W-{slug}-v{N}.md`，不得从逐字稿、会议材料或 Key Points 直接生成正式 HTML。
-- 输出 `output/5w-canvas-{slug}.html`；分级渲染验收（L1 静态审计含 Template Gate + L2 双视口 DOM 断言必做，L3 截图目检按需）通过后才算成功。
+- 输出 `output/5w-canvas-{slug}--v{N}.html`；分级渲染验收（L1 静态审计含 Template Gate + L2 双视口 DOM 断言必做，L3 截图目检按需）通过后才算成功。
 - 按 `render-contract-5w.md` 展示问题陈述、五层因果链（三层面：制造层 Why 1-2 → 检验层 Why 3-4 → 体系层 Why 5）、根本原因与"因此"检验、对策四要素、其他原因分支、判别记录与治理面板。
 - 五层锚点 `5w-why-1` ~ `5w-why-5` 必须全部存在（层数弹性暂不支持）；每层必须展示内容或显式缺口标注。
 - 布局沿用 A3 横版：1-5 张卡片横向并排、三层面标注、页脚三条红线（事实优先 / 系统而非个人 / 验证行动）。
@@ -296,27 +298,26 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 非 MVL: {
 - V2C VAC 使用规定的 Scenario / Capability / Change / Business Impact / Value 主链、Attribution Gaps、Quality Check 与 Inferences；不得从逐字稿直接分析、补写或改写确认包未确认的业务结论。
 - 5W 使用规定的问题陈述、五层因果链（制造层 Why 1-2 / 检验层 Why 3-4 / 体系层 Why 5）、根本原因与"因此"检验、对策四要素、其他原因分支与判别记录；五层锚点必须全部存在（层数弹性暂不支持），每层内容或缺口标注必须来自确认包，不得从逐字稿直接补写。
 - Workflow 必须分别呈现 Agent 执行、人工操作 / 确认、人审 + Agent 执行三类节点。
-- 全局页（Phase 2 汇总页与 MAAU transcript-direct 实例页）的 Workflow 板块必须派生轨道带 BPMN 流程图（`#workflow-flow`，锚点契约与派生规则见 `render-contract.md` §A1）：渲染时先从确认包 Workflow section 产出语义拓扑 `canvas-data.workflow`，SVG 几何由**官方几何展开工具** `scripts/workflow_layout/`（见「Workflow 流程图生成」）确定性生成、并由渲染回合按 §A1 派生规则装配为内联 SVG，或由 LLM 按 §A1 派生规则直接静态生成内联 SVG（Start / Task / Exclusive Gateway / End / Sequence Flow，可选 Timer / Message / Data Store / Reflow），三类任务节点通过 `actor` 徽标区分执行者，轨道带表达业务阶段（A/B/C… 或单轨 `main`）；连接线必须正交（横 / 竖 / 肘型，禁止曲线）；所有节点（含 Start / End）左上角显示流程序号徽标。窄屏保留横向滚动。`canvas-data` 顶层 `workflow` 对象内嵌派生拓扑（`tracks` / `nodes` / `edges`，`nodes[].number` 为主链阅读序，`nodes[].actor` 为 `human / ai / system / hybrid / reviewer`），供静态审计一致性校验。
+- 全局页先渲染无图正式形态，保留文字、完成条件和治理；仅用户要求有图时派生 `canvas-data.workflow` 并嵌入官方布局器最终 SVG。两形态与完成条件位置见 `references/two-phase-render.md`，有图版仍满足完整 §A1。
 - 内嵌 `<script type="application/json" id="canvas-data">`，内容包含同版本确认包 + 授权元数据（`render_authorized` / `confirmation_mode` / `override_audit`）。
 - 每个模块、结论、缺口和共享区域使用 `render-contract.md` 规定的稳定锚点。
 - 必须区分事实、决策、假设和建议；推断不得伪装成确认事实。
 - 不使用 `fetch()`、iframe、外部字体、外部脚本或外部网络资源。
 - 全局下钻只使用普通相对链接。
 
-## Workflow 流程图生成（确定性几何展开，3.5.0+）
+## Workflow 流程图生成（v3.6.0）
 
-全局页（Phase 2 汇总页与 MAAU transcript-direct 实例页）的 `#workflow-flow` 几何生成遵循"语义 / 布局分离"：
+按 `references/two-phase-render.md` 先交付无图正式画布，再询问用户是否需要流程图。文本布局图或临时 HTML 预览确认后正式提交；预览可提前调用工具，但不占用正式路径、不改 state。
 
-1. **语义层（LLM）**：从确认包 Workflow section 产出 `workflow` 拓扑 JSON（`tracks` / `nodes[{id,number,type,actor?,track,label}]` / `edges[{from,to,label?,dashed?}]`，§A1.5 完整 schema）。LLM **不得心算任何 SVG 坐标或手写 workflow 图**。
-2. **几何层（官方工具）**：`skills/canvas-render/scripts/workflow_layout/workflow_layout.py` 将上述 JSON 确定性展开为内联 SVG 几何，范式对齐示例母版（轨道分行堆叠 + 轨内横流 + 跨轨 / 回流走 gutter，无泳道色块）：
+1. LLM 从同版本确认包生成 §A1.5 拓扑，禁止心算 SVG 坐标。
+2. 调用官方工具：
    ```bash
-   python3 skills/canvas-render/scripts/workflow_layout/workflow_layout.py \
-     <workflow_topo.json> --svg <out_dir>
+   python3 skills/canvas-render/scripts/workflow_layout/workflow_layout.py workflow_topo.json --fragment /tmp/workflow-attempt.svg
    ```
-   运行即输出**几何自检报告**（节点不重叠 / 边正交 `M/H/V` / 不穿节点 / 端点落边界中点 / dashed 走 gutter / 边全集不丢）+ **布局报告（坐标表）**。自检问题数 = 0 才可进入正式产物；自检只对布局器生成产物有效。CLI exit code：`0` = 自检通过 / `1` = 几何自检 FAIL（不产 `--svg` 产物，禁止进入装配）/ `2` = 输入或参数不合法。
-3. **几何层产物边界**：布局器输出为**节点几何 + 连线路径 + 几何自检报告 + 坐标表**；`--svg` 仅生成**目检预览页**（不含 `#workflow-flow` / `bpmn-node` / actor 徽章等 §A1 DOM），**不是**可直接嵌入的最终片段。最终 `#workflow-flow` 的 §A1 DOM（actor 徽章 / 序号徽标 / note / 轨道标签 / 图例等母版视觉 token）由渲染回合按本工作流与母版模板把布局器几何**装配**为内联 SVG（或后续「受控几何注入器」承接），装配产物必须继续满足 §A1 DOM/元素映射与 L1 静态审计 / L2 DOM 断言（见「Python 静态审计」「分级渲染验收」）。
-4. **配置与溯源（可选）**：`layout_override`（渲染输入侧参数，可配置项与边界见 `scripts/workflow_layout/layout_override.schema.md`，支持 `--preset compact|roomy`）可调间距/卡宽预算/轨道基线等，**不进 `canvas-data`**；`canvas-data.workflow.layout: {engine, baseline_version, fork_id?}` 为可选溯源字段（记录生成该 SVG 的布局器版本 / 分叉，不改 schema_version，audit 对未知可选字段宽容）。
-5. 几何展开工具是"裁判 + 生成器"，**不承担任何业务内容渲染**（AGENTS.md 规则 3 边界）。L2 布局分叉（显式触发、拷贝协议、`layout_meta.json` 的 `derived_from`、自检门）见 `scripts/workflow_layout/fork_guide.md`；正式产物在 `canvas-data.workflow.layout` 写入溯源（`layout_trace(fork_id?)`，不改 schema_version）。
+   `--fragment` 要求一个拓扑、全新目标文件；exit 0 才可读取结果。exit 1 为几何 FAIL，exit 2 为输入/参数错误；失败禁止读取旧 SVG。`--svg <out_dir>` 仍为几何目检预览，不是最终 SVG。
+3. 工具只输出 SVG 内部结构；本 Skill 负责 `#workflow-flow`、标题、横滚包装、HTML 图例与来自确认包的条件性 `#workflow-done`，不得重算片段坐标或补写业务内容。
+4. layout_override、preset 与 fork 溯源沿用，`canvas-data.workflow.layout` 记录 `layout_trace`，schema 不升级。仅表示层布局可调整，执行责任与业务分支变化回源包升版。
+5. 宿主样式参照示例与已确认模式，完整 HTML 继续过 L1/L2；模板或 SVG 结构变化触发 L3，包含打印目检。
 
 ## Caveat 显式呈现
 
@@ -349,7 +350,7 @@ HTML 写出后先运行静态审计。以下命令以专家包根目录为当前
 
 ```bash
 python3 skills/canvas-render/scripts/audit_canvas_html.py \
-  workshop/{project_slug}/{group_id}/{topic_slug}/output/module-N-canvas.html \
+  workshop/{project_slug}/{group_id}/{topic_slug}/output/module-{n}-canvas--v{N}.html \
   --source workshop/{project_slug}/{group_id}/{topic_slug}/modules/Mx-v{N}.md \
   --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json
 ```
@@ -358,7 +359,7 @@ GC 正式画布审计：
 
 ```bash
 python3 skills/canvas-render/scripts/audit_canvas_html.py \
-  workshop/{project_slug}/{group_id}/{topic_slug}/output/gc-canvas-{slug}.html \
+  workshop/{project_slug}/{group_id}/{topic_slug}/output/gc-canvas-{slug}--v{N}.html \
   --source workshop/{project_slug}/{group_id}/{topic_slug}/modules/GC-{slug}-v{N}.md \
   --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json \
   --type gc \
@@ -369,7 +370,7 @@ HMW 正式画布审计：
 
 ```bash
 python3 skills/canvas-render/scripts/audit_canvas_html.py \
-  workshop/{project_slug}/{group_id}/{topic_slug}/output/hmw-canvas-{slug}.html \
+  workshop/{project_slug}/{group_id}/{topic_slug}/output/hmw-canvas-{slug}--v{N}.html \
   --source workshop/{project_slug}/{group_id}/{topic_slug}/modules/HMW-{slug}-v{N}.md \
   --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json \
   --type hmw \
@@ -381,7 +382,7 @@ Persona 正式画布审计：
 
 ```bash
 python3 skills/canvas-render/scripts/audit_canvas_html.py \
-  workshop/{project_slug}/{group_id}/{topic_slug}/output/persona-canvas-{slug}.html \
+  workshop/{project_slug}/{group_id}/{topic_slug}/output/persona-canvas-{slug}--v{N}.html \
   --source workshop/{project_slug}/{group_id}/{topic_slug}/modules/PERSONA-{slug}-v{N}.md \
   --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json \
   --type persona \
@@ -393,7 +394,7 @@ Journey 正式画布审计：
 
 ```bash
 python3 skills/canvas-render/scripts/audit_canvas_html.py \
-  workshop/{project_slug}/{group_id}/{topic_slug}/output/journey-canvas-{slug}.html \
+  workshop/{project_slug}/{group_id}/{topic_slug}/output/journey-canvas-{slug}--v{N}.html \
   --source workshop/{project_slug}/{group_id}/{topic_slug}/modules/JOURNEY-{slug}-v{N}.md \
   --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json \
   --type journey \
@@ -405,7 +406,7 @@ V2C VAC 正式画布审计：
 
 ```bash
 python3 skills/canvas-render/scripts/audit_canvas_html.py \
-  workshop/{project_slug}/{group_id}/{topic_slug}/output/v2c-vac-canvas-{slug}.html \
+  workshop/{project_slug}/{group_id}/{topic_slug}/output/v2c-vac-canvas-{slug}--v{N}.html \
   --source workshop/{project_slug}/{group_id}/{topic_slug}/modules/V2C-VAC-{slug}-v{N}.md \
   --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json \
   --type v2c-vac \
@@ -417,7 +418,7 @@ python3 skills/canvas-render/scripts/audit_canvas_html.py \
 
 ```bash
 python3 skills/canvas-render/scripts/audit_canvas_html.py \
-  workshop/{project_slug}/{group_id}/{topic_slug}/output/5w-canvas-{slug}.html \
+  workshop/{project_slug}/{group_id}/{topic_slug}/output/5w-canvas-{slug}--v{N}.html \
   --source workshop/{project_slug}/{group_id}/{topic_slug}/modules/5W-{slug}-v{N}.md \
   --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json \
   --type 5w \
@@ -425,17 +426,20 @@ python3 skills/canvas-render/scripts/audit_canvas_html.py \
   --template skills/canvas-render/examples/5w-canvas.html
 ```
 
-全局页不绑定单一确认包，运行 `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/{topic_slug}/output/maau-global-canvas.html`。MAAU transcript-direct 实例页审计：
+新正式审计默认 `--artifact-policy current`。global 必传 `--workflow-variant noflow|workflow`；审计临时候选加 `--target-output <正式目标路径>`；历史只读复查显式传 `--artifact-policy legacy`，不得用于新交付。L2 使用 `--type mvl --page-type global --workflow-variant noflow|workflow`；模块详情使用 `--page-type module-detail`。
+
+全局页不绑定单一确认包，运行 `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/{topic_slug}/output/maau-global-canvas.html --workflow-variant noflow`。MAAU transcript-direct 实例页审计：
 
 ```bash
 python3 skills/canvas-render/scripts/audit_canvas_html.py \
-  workshop/{project_slug}/{group_id}/{topic_slug}/output/maau-global-canvas-{slug}.html \
+  workshop/{project_slug}/{group_id}/{topic_slug}/output/maau-global-canvas-{slug}--noflow-v{N}.html \
   --source workshop/{project_slug}/{group_id}/{topic_slug}/modules/MAAU-{slug}-v{N}.md \
   --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json \
   --type mvl \
   --page-type global \
   --instance {slug} \
-  --generation-path transcript-direct
+  --generation-path transcript-direct \
+  --workflow-variant noflow
 ```
 
 草稿页没有正式授权元数据，只传 HTML；仍须满足适用的结构、离线和草稿标记检查。
@@ -459,7 +463,7 @@ python3 skills/canvas-render/scripts/audit_canvas_html.py \
 - **L2 DOM 度量断言**（每次必做，headless 双视口 1440×900 与 390×844；`canvas-smoke.mjs` 可用时执行，不可用降级见「L3 触发条件」）：
   ① 无横向溢出（`documentElement.scrollWidth <= innerWidth`）；
   ② **文本裁切按容器类型分类断言**：无内部滚动意图的文本容器（卡片正文、表格单元格等）`scrollHeight <= clientHeight + 2`；**设计预期内滚动的容器（高密度表格、workflow 单流横滚区等）豁免**，只断言其滚动区不溢出父容器——统一 `scrollHeight <= clientHeight` 会对 Journey 表格 / workflow 横滚区误报；
-  ③ **结构签名断言（示例比对的机器可断言部分上收 L2）**：该 `canvas_type` 的签名布局存在且数量正确——MVL 全局页 Workflow（`#workflow-flow` / `.bpmn-flow` / `.bpmn-track` / `.bpmn-legend`）；5W 五卡并排（`.why-row` ×5，桌面）与对策四列 → 断点折叠；GC 三圈层数；govern / quality 面板存在。断点期望按 canvas_type 配置表驱动，**脚本不硬编码 5W 选择器**；
+  ③ **结构签名断言（示例比对的机器可断言部分上收 L2）**：该 `canvas_type` 的签名布局存在且数量正确——MVL 全局有图页 Workflow（`#workflow-flow` / `.bpmn-flow` / `.bpmn-track` / `.bpmn-legend`）；无图页拒绝上述结构并检查六板块；模块详情独立配置；5W 五卡并排（`.why-row` ×5，桌面）与对策四列 → 断点折叠；GC 三圈层数；govern / quality 面板存在。断点期望按 canvas_type 配置表驱动，**脚本不硬编码 5W 选择器**；
   ④ 打印仿真（可选）：`emulateMediaType('print')` 下断言无打印专属溢出。
   PASS 即视为视觉布局达标。
 - **L3 截图目检**（按需触发，仅当）：L1/L2 任一 FAIL、CSS/模板结构有变更、该 `canvas_type` 无示例参照、用户明确要求看效果、或执行者对间距失衡 / 视觉层级存疑时，才打开浏览器截图人工核对（含示例比对观感、模式视觉）。**打印视图不单独必做，显式并入 L3 检查**——原"桌面/窄屏/打印三视图"的打印维度不得静默消失。
@@ -479,13 +483,13 @@ python3 skills/canvas-render/scripts/audit_canvas_html.py \
 5. **模式与确认自报**：记录所选模式 `id`（NN-`{id}`）与用户确认动作（用户确认语或改选记录），与产物 `data-visual-mode` / `canvas-data.visual_mode` JSON 对齐，可追溯（T1，2026-09-03）。
 6. **Caveat 视觉 PASS**（仅 override）：L1/L2/L3 各覆盖级别下均明确显示保留意见与风险详情。
 
-任一阶段失败时阻断交付，列出失败项、证据和修订建议。模块状态保持 `confirmed`；不得提前标记为 `rendered`。
+任一阶段失败时阻断交付，列出失败项、证据和修订建议。首次渲染失败保持 `confirmed`；同版本重渲染失败保持原 `rendered` 和成功文件；不得提前提交失败候选。
 
 ## 渲染失败时状态保持规则
 
 分级渲染验收（L1 静态审计 / L2 DOM 断言 / L3 截图目检任一）失败时：
 
-- 模块状态**保持 `confirmed`**（不得回退到 `gaps_open` 或 `review_ready`，业务授权与 HTML 校验是两层问题）；
+- 首次渲染失败时模块状态**保持 `confirmed`**；已有成功产物后的同版本失败保持 `rendered`、原 `output_file` 与成功文件（不得回退到 `gaps_open` 或 `review_ready`，业务授权与 HTML 校验是两层问题）；
 - `confirmation_mode` 保持原值（`gate_pass` 或 `override`），不修改；
 - `gate_recommendation` 不修改（仍是 Gate 的原始建议）；
 - 修订同一版本 HTML 后重新执行全部校验；只有全部通过才把状态改为 `rendered`；

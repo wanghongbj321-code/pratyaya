@@ -2,7 +2,7 @@
 
 本契约定义黄金圈（Golden Circle）Canvas 页面的 HTML 结构。
 
-数据源是 `modules/GC-{slug}-v{N}.md`（确认包，Markdown）；LLM 读取后按本章的 section 映射表，把内容映射到 HTML 锚点。映射的字段名沿用确认包 Markdown 的 section 标题。`{slug}` 必须等于 `state.json.golden_circle.{slug}.slug`，正式输出为 `output/gc-canvas-{slug}.html`；`output/gc-canvas.html` 仅作为多 instance 索引页。
+数据源是 `modules/GC-{slug}-v{N}.md`（确认包，Markdown）；LLM 读取后按本章的 section 映射表，把内容映射到 HTML 锚点。映射的字段名沿用确认包 Markdown 的 section 标题。`{slug}` 必须等于 `state.json.golden_circle.{slug}.slug`，正式输出为 `output/gc-canvas-{slug}--v{N}.html`；`output/gc-canvas.html` 仅作为多 instance 索引页。
 
 ## A. 黄金圈 Canvas 页面结构
 

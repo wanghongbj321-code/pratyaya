@@ -19,7 +19,7 @@
 - `modules/Mx-keypoints.md` —— Key Points 概览（草稿源，不进入正式渲染）；
 - `modules/Mx-gaps.md` —— 补问清单（`gaps_open`）；
 - `modules/Mx-v{N}.md` —— 确认包（业务事实源）；
-- `output/module-N-canvas.html` —— 正式模块页（HTML 只是同版本展示物）。
+- `output/module-{n}-canvas--v{N}.html` —— 正式模块页（HTML 只是同版本展示物）。
 
 ## 状态写入
 
@@ -127,13 +127,13 @@
 5. 确认/改选后保存**完整仓库相对路径**（如 `skills/canvas-render/visual-patterns/01-blue-professional-balanced.md`），不得由 `id` 拼接；
 6. 调用 `canvas-render` 时传递：`Mx-v{N}.md`（唯一事实源）+ `state.json` 同模块授权元数据 + 同版本 Gate 判定 + 用户选定模式的完整路径；
 7. `canvas-render` 读取模式正文色板/字体/网格/组件/适用场景/反例，不读取旧 HTML 获取视觉 token；
-8. 生成 `output/module-N-canvas.html`，先跑 `audit_canvas_html.py`（正式模块页同时传入确认包与 `state.json`），Python PASS 后完成分级渲染验收（L1 静态审计 + L2 双视口 DOM 断言必做，L3 截图目检按需；定义见 `skills/canvas-render/SKILL.md`「分级渲染验收」）；全部通过才把状态改为 `rendered`。
+8. 生成 `output/module-{n}-canvas--v{N}.html`，先跑 `audit_canvas_html.py`（正式模块页同时传入确认包与 `state.json`），Python PASS 后完成分级渲染验收（L1 静态审计 + L2 双视口 DOM 断言必做，L3 截图目检按需；定义见 `skills/canvas-render/SKILL.md`「分级渲染验收」）；全部通过才把状态改为 `rendered`。
 
 **数据源**：HTML 只读 `Mx-v{N}.md` 确认包；LLM 提取 `canvas_fields` 按 `render-contract.md` 映射到稳定锚点；`canvas-data` 内嵌同版本授权元数据。
 
 **自检步骤**：`audit_canvas_html.py` 对照 `render-contract.md` 检查 DOM/稳定锚点顺序、字段映射、版本、授权元数据、离线约束、打印规则与 caveat 结构；脚本直接读契约映射表，不用第二份锚点清单。`confirmation_mode=override` 时必须额外确认 caveat 状态标识与风险详情在分级渲染验收覆盖的各级别（L1 结构 / L2 DOM 断言 / L3 截图目检）下可见。
 
-**状态时序**：HTML 写出 ≠ 渲染完成。分级渲染验收（L1 静态审计 / L2 DOM 断言 / L3 截图目检任一）失败时**保持 `confirmed`**，`confirmation_mode` / `gate_recommendation` 保持原值；不得提前写 `rendered`，不得回退 `gaps_open`。修订同版本 HTML 后重跑全部校验；涉及业务内容则按"状态回退"升版重新确认。
+**状态时序**：HTML 写出 ≠ 渲染完成。分级渲染验收（L1 静态审计 / L2 DOM 断言 / L3 截图目检任一）首次失败时**保持 `confirmed`**，已有成功产物的同版本失败保持 `rendered`、原 output_file 和文件，`confirmation_mode` / `gate_recommendation` 保持原值；不得提前写 `rendered`，不得回退 `gaps_open`。修订同版本 HTML 后重跑全部校验；涉及业务内容则按"状态回退"升版重新确认。
 
 **Caveat 渲染**：`confirmation_mode=override` 时，模块详情页顶部显示"已确认 · 带保留意见"；`quality-caveat` 显示 Gate 建议、最终渲染授权、override 项数量、高风险项数量、每项的影响/理由/确认人/时间/补救措施；打印版保留。`gate_pass` 不显示 override 提示。
 

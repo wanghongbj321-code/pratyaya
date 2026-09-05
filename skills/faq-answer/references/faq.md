@@ -218,7 +218,7 @@
 | 字段 | 内容 |
 |---|---|
 | 问题 | HTML 产物在哪里？ |
-| 短答 | 工作坊产物位于 `workshop/{project_slug}/{group_id}/{topic_slug}/output/`。MVL 模块页通常是 `module-N-canvas.html`，全局页是 `maau-global-canvas.html`；非 MVL 一等公民 instance 页是 `gc-canvas-{slug}.html`、`hmw-canvas-{slug}.html`、`persona-canvas-{slug}.html`、`journey-canvas-{slug}.html`，不带 slug 的 `*-canvas.html` 是同类画布索引页。 |
+| 短答 | 工作坊产物位于 `workshop/{project_slug}/{group_id}/{topic_slug}/output/`。MVL 模块页通常是 `module-N-canvas.html`，全局页是 `maau-global-canvas.html`；非 MVL 一等公民 instance 页是 `gc-canvas-{slug}--v{N}.html`、`hmw-canvas-{slug}--v{N}.html`、`persona-canvas-{slug}--v{N}.html`、`journey-canvas-{slug}--v{N}.html`，不带 slug 的 `*-canvas.html` 是同类画布索引页。 |
 | 依据 | `README.md`、`docs/user-guide.md`、`DEVELOPMENT.md` |
 | 下一步 | 可以问：`项目 xxx，组 yyy，议题 zzz，当前画布 HTML 在哪里？` |
 | 边界 | 只有通过授权和审计的正式 HTML 才应作为交付物使用。 |

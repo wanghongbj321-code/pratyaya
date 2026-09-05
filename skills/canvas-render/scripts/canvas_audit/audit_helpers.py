@@ -899,7 +899,7 @@ def audit_index_page(
     state_path: Path | None,
     canvas_type: str,
 ) -> list[Finding]:
-    """Audit a non-MVL canvas instance index page."""
+    """Audit a non-MVL canvas instance index page; links follow actual output_file."""
     findings: list[Finding] = []
     if canvas_type not in INSTANCE_STATE_KEYS:
         findings.append(Finding("INDEX", "--index is only supported for gc/hmw/persona/journey/v2c-vac/5w"))
@@ -957,7 +957,9 @@ def audit_index_page(
         if slug not in html.text:
             findings.append(Finding("INDEX", f"missing slug text: {slug}"))
         output_prefix = "gc" if canvas_type == "gc" else canvas_type
-        expected_href = f"{output_prefix}-canvas-{slug}.html"
+        record = instances[slug]
+        output_file = record.get("output_file") if isinstance(record, dict) else None
+        expected_href = Path(output_file).name if output_file else f"{output_prefix}-canvas-{slug}.html"
         if expected_href not in source:
             findings.append(Finding("INDEX_LINK", f"missing link href: {expected_href}"))
 

@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import re
 
 # 归档目录名：模块产物旧版归档到 `modules/{canvas_id}/archive/`。
 ARCHIVE_DIR_NAME = "archive"
@@ -95,9 +96,28 @@ def gate_report_file(topic: str | Path, file_prefix: str, slug: str, version: in
     return Path(topic) / "modules" / f"{file_prefix}-{slug}-gate-report-v{version}.md"
 
 
-def html_file(topic: str | Path, output_prefix: str, slug: str) -> Path:
-    """`output/{输出前缀}-canvas-{slug}.html`。"""
-    return Path(topic) / "output" / f"{output_prefix}-canvas-{slug}.html"
+def html_file(topic: str | Path, output_prefix: str, slug: str, *, version: int | None = None, workflow_variant: str | None = None) -> Path:
+    """Versioned instance path; version=None is historical compatibility only.
+
+    Current delivery must pass version, or read an already committed output_file.
+    """
+    if version is None:
+        if workflow_variant is not None:
+            raise ValueError("workflow variant requires version")
+        return Path(topic) / "output" / f"{output_prefix}-canvas-{slug}.html"
+    if not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", slug):
+        raise ValueError("invalid slug")
+    if isinstance(version, bool) or not isinstance(version, int) or version < 1:
+        raise ValueError("version must be a positive integer")
+    if output_prefix == "maau-global":
+        if workflow_variant not in ("noflow", "workflow"):
+            raise ValueError("MAAU requires workflow_variant")
+        suffix = f"--{workflow_variant}-v{version}"
+    else:
+        if workflow_variant is not None:
+            raise ValueError("workflow variant only applies to MAAU")
+        suffix = f"--v{version}"
+    return Path(topic) / "output" / f"{output_prefix}-canvas-{slug}{suffix}.html"
 
 
 def index_file(topic: str | Path, output_prefix: str) -> Path:

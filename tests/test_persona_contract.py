@@ -16,7 +16,7 @@ AGENT = REPO_ROOT / "agents" / "pratyaya.md"
 
 def test_persona_template_passes_its_own_template_gate() -> None:
     result = subprocess.run(
-        [sys.executable, str(AUDIT), str(TEMPLATE), "--type", "persona", "--template", str(TEMPLATE)],
+        [sys.executable, str(AUDIT), "--artifact-policy", "legacy", str(TEMPLATE), "--type", "persona", "--template", str(TEMPLATE)],
         capture_output=True,
         text=True,
     )

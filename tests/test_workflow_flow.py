@@ -28,7 +28,7 @@ PHASE2_HTML = MVL_FIXTURES / "maau-global-canvas-phase2-demo.html"
 def run_audit(html: Path) -> subprocess.CompletedProcess:
     return subprocess.run(
         [
-            PYTHON, str(AUDIT), str(html),
+            PYTHON, str(AUDIT), "--artifact-policy", "legacy", str(html),
             "--type", "mvl",
             "--page-type", "global",
         ],

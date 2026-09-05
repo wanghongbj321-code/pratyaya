@@ -5,7 +5,7 @@
 - **全局 Canvas 页面**：六板块汇总视图（`maau-global-canvas.html`）
 - **模块详情 Canvas 页面**：M1-M6 各自专属结构（`module-N-canvas.html`）
 
-**MAAU transcript-direct 分支**（`generation_path=transcript-direct`）：一次性六板块源包 `modules/MAAU-{slug}-v{N}.md` 渲染为 `output/maau-global-canvas-{slug}.html`。结构与全局 Canvas 页面一致（六大板块 + 共享头部/质量面板/批注/内嵌数据），但**不做 M1-M6 模块详情下钻**：transcript-direct 是单源一次性综合，无六模块详情页。与 Phase 2 全局页（`output/maau-global-canvas.html`）互斥。
+**MAAU transcript-direct 分支**（`generation_path=transcript-direct`）：一次性六板块源包 `modules/MAAU-{slug}-v{N}.md` 渲染为 `output/maau-global-canvas-{slug}--noflow-v{N}.html`。结构与全局 Canvas 页面一致（六大板块 + 共享头部/质量面板/批注/内嵌数据），但**不做 M1-M6 模块详情下钻**：transcript-direct 是单源一次性综合，无六模块详情页。与 Phase 2 全局页（`output/maau-global-canvas.html`）互斥。
 
 两者共享头部、质量面板、本地批注区和内嵌数据区。区别在于 `<main>` 内部结构：全局页面用固定的六大板块，模块详情页面用该模块的专属 section。
 
@@ -61,7 +61,7 @@
 
 ### A1. Workflow BPMN 流程图（`#workflow-flow`）
 
-Workflow 板块在 `.maau-fields` 文本框之下必须包含一张**派生只读**的 BPMN 可视化流程图（`id="workflow-flow"`，全局页稳定锚点）。该契约适用于 MVL Phase 2 全局汇总页（`maau-global-canvas.html`）与 MAAU transcript-direct 实例页（`maau-global-canvas-{slug}.html`）。流程图是展示层派生视图：渲染时先从确认包（`MAAU-{slug}-v{N}.md` / `Mx-v{N}.md`）Workflow section 产出语义拓扑（`canvas-data.workflow`，见 A1.5），SVG 几何可由**官方几何展开工具** `skills/canvas-render/scripts/workflow_layout/` 确定性生成（工具只产出节点几何 / 连线路径 / 自检报告 / 坐标表，`#workflow-flow` 的 DOM 由渲染按本 §A1 派生规则装配，工具 `--svg` 输出仅为目检预览），也可由 LLM 按以下规则直接静态生成内联 SVG——两条路径产物须满足同一 DOM / 元素 / 审计契约，且均不得新增分析、不得补写业务内容。
+全局页两形态见 [两阶段渲染与产物身份](two-phase-render.md)。noflow 无 `#workflow-flow` 和 `canvas-data.workflow`；workflow 必须完整呈现以下契约。形态来自请求与显式 CLI，不从内容缺失推断。官方布局器 `--fragment` 生成最终 SVG 内部结构，canvas-render 负责外层 HTML、图例与完成条件，不手写几何。此规则适用于 Phase 2 与 transcript-direct。
 
 #### A1.1 DOM 结构
 
@@ -92,10 +92,10 @@ Workflow 板块在 `.maau-fields` 文本框之下必须包含一张**派生只�
 </div>
 ```
 
-- `#workflow-flow` 必须唯一；空数据时显示"未讨论"占位，结构与锚点仍存在。
+- 有图版 `#workflow-flow` 必须唯一；无图版禁止出现。请求有图但拓扑/图形缺失必须 FAIL，不能降级无图。
 - 现有 `#workflow-*` 文本框锚点保持不变（文本框是本地批注载体，流程图是派生只读视图）。
 - SVG 必须使用内联样式与系统字体，禁止外链资源（沿用离线约束）。
-- `#workflow-done` 是条件锚点：`completion_condition` 有内容时渲染，空内容时不占位，不加入 `GLOBAL_MAIN_IDS`。
+- `#workflow-done` 无图版位于 Workflow 文本区之后，有图版位于外层容器内、SVG 外，全页唯一。它是条件锚点：`completion_condition` 有内容时渲染，空内容时不占位，不加入 `GLOBAL_MAIN_IDS`。
 
 #### A1.2 BPMN 子集与元素映射
 
@@ -178,7 +178,7 @@ Workflow 板块在 `.maau-fields` 文本框之下必须包含一张**派生只�
 
 派生与溯源补充（3.5.0+，不改变上述断言语义）：
 
-- `#workflow-flow` 的 SVG 几何可由**官方几何展开工具** `skills/canvas-render/scripts/workflow_layout/workflow_layout.py` 确定性生成（语义拓扑见 `canvas-data.workflow`；工具输出几何 + 自检 + 坐标表，`--svg` 仅供目检预览，**不构成** §A1 DOM），`#workflow-flow` 的 DOM 由渲染按本 §A1 派生规则把几何装配为内联 SVG，或由渲染按本 §A1 派生规则静态生成；两条路径产物均须满足 A1.1–A1.5 全部契约，审计断言不变。
+- `#workflow-flow` 的 SVG 内部结构统一来自官方布局器 `--fragment`；外层 HTML 由 Skill 装配。两形态及目标身份按 two-phase-render.md 验证；有图版 A1.1–A1.5 全部适用。
 - 几何展开工具的**正式输入必须是完整新 schema**：`tracks` 非空、`nodes[].track` 必填且属于 `tracks[].id`、任务类节点 `actor` 必填合法；缺 `tracks` / `actor` 的旧数据仅作回归/鲁棒性测试输入。
 - 可选溯源字段（不改 `schema_version`，audit 对未知可选字段宽容）：`canvas-data.workflow.layout = { "engine": "workflow_layout", "baseline_version": "…", "fork_id": "…" }`，记录生成该 SVG 的布局器版本 / 分叉，供人工复核与重渲染过期判断。
 

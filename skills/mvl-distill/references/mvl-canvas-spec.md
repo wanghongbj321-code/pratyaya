@@ -66,7 +66,7 @@ MVL Canvas 是六次工作坊已确认结论的完整展示层。正式页面只
 
 ## 模块详情 Canvas（每个模块独立产物）
 
-每个模块确认后，**必须立即生成**该模块的详情 Canvas HTML（`output/module-N-canvas.html`）。这是独立可查看的产物，不是全局 Canvas 的子板块，也不是等全局汇总时才出。
+每个模块确认后，**必须立即生成**该模块的详情 Canvas HTML（`output/module-{n}-canvas--v{N}.html`）。这是独立可查看的产物，不是全局 Canvas 的子板块，也不是等全局汇总时才出。
 
 模块详情 Canvas 展示该次日程的**全部讨论产出**，包括：
 
