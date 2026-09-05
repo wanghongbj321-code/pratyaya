@@ -118,8 +118,8 @@ MAAU 是 MVL 全局画布的一次性综合路径（`generation_path=transcript-
 3. **步骤 2-4 分支**：提炼生成 `modules/{文件前缀}-{slug}-v{N}.md` 并置 `review_ready`；补问生成 `modules/{文件前缀}-{slug}-gaps.md` 并置 `gaps_open`；草稿 Canvas 只读 Key Points、带永久水印且状态不变。
 4. **步骤 5-6 确认包 + Gate**：展示一句话结论 / 对齐摘要 / 阻塞项 / 缺口速览 / 待确认版本，自动调用 `{gate}` 产出 gate report，主 Agent 只写 `state.{state_key}.gate_recommendation` 并等待用户决策；遵守 INV-04 / INV-07 / INV-08。
 5. **用户决策矩阵**：全 PASS + 确认 vN → `confirmation_mode=gate_pass` / `render_authorized=true`；仅 `business_risk` FAIL + 完整 override → `confirmation_mode=override` / `render_authorized=true` / `override_audit` 完整；含 `information_integrity` FAIL → 仅补问或修订。
-6. **步骤 7 渲染**：扫描 10 个视觉模式并列全部候选，等用户确认后传完整路径，渲染、审计、分级验收；审计命令为 `python3 skills/canvas-render/scripts/audit_canvas_html.py output/{输出前缀}-canvas-{slug}.html --source modules/{文件前缀}-{slug}-v{N}.md --state state.json --type {audit_type} --instance {slug} [--template {示例模板}]`；非 MVL 必须显式传 `--type` 和 `--page-type {page_type}`；Journey 契约见 `render-contract-journey.md`；遵守 INV-03 / INV-09 / INV-10。
-7. **步骤 8 完成**：输出 `output/{输出前缀}-canvas-{slug}.html` 与索引页 `output/{输出前缀}-canvas.html`，全部验收通过才置 `rendered`。
+6. **步骤 7 渲染**：扫描 10 个视觉模式并列全部候选，等用户确认后传完整路径，渲染、审计、分级验收；审计命令为 `python3 skills/canvas-render/scripts/audit_canvas_html.py output/{输出前缀}-canvas-{slug}--v{N}.html --source modules/{文件前缀}-{slug}-v{N}.md --state state.json --type {audit_type} --instance {slug} [--template {示例模板}]`；非 MVL 详情必须显式传 `--type`，索引才传 `--index --page-type {page_type}`；Journey 契约见 `render-contract-journey.md`；遵守 INV-03 / INV-09 / INV-10。
+7. **步骤 8 完成**：输出 `output/{输出前缀}-canvas-{slug}--v{N}.html` 与索引页 `output/{输出前缀}-canvas.html`，全部验收通过才置 `rendered`。
 
 ### 状态机与升版
 
@@ -186,3 +186,9 @@ draft → gaps_open ↔ review_ready → confirmed → rendered
 | 多用户并发转写 | 否，但强制升版 | 后到转写作为 N+1 轮 | 覆盖旧确认包 |
 
 时间紧迫时可先交“80 分讨论草稿”，但必须标明未确认、未验证和关键缺口；不生成正式管理层 Canvas；不把推断写成结论；给出正式 Gate 所需最少补问。
+
+## v3.6.0 正式交付编排
+
+正式渲染必须执行 `skills/canvas-render/references/two-phase-render.md`。所有实例/模块输出用 `--vN` 机器后缀；MAAU 用 `--noflow-vN` / `--workflow-vN`。先无图成功交付，再通过指令卡询问“是否需要 Workflow 流程图？”。用户需要时确认布局；预览不改 state，布局器 `--fragment` 只生成 SVG，页面通过 canvas-render。
+
+L1 使用 current（默认）与临时候选 `--target-output`，global 的 L1/L2 均必传预期形态。成功才替换同身份文件并更新 output_file；重试失败保持原 rendered、指针与文件，首次失败保持 confirmed。Phase 2 只读模块，以两份固定聚合路径交付，不写模块 output_file。读取实际 output_file 生成索引与下钻，不硬编码文件名；legacy 只用于历史复查。

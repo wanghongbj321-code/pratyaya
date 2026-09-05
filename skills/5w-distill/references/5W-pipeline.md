@@ -27,7 +27,7 @@
 - `modules/5W-{slug}-gaps.md`；
 - `modules/5W-{slug}-v{N}.md`（确认包，业务事实源）；
 - `modules/5W-{slug}-gate-report-v{N}.md`；
-- `output/5w-{slug}-canvas.html`；索引页 `output/5w-canvas.html`。
+- `output/5w-canvas-{slug}--v{N}.html`；索引页 `output/5w-canvas.html`。
 
 ## 状态写入
 
@@ -43,7 +43,7 @@
 - **步骤 5 确认包展示**：5 条必展项 + 详情折叠；
 - **步骤 6 Gate + 用户决策**：见「Gate」；
 - **步骤 7 视觉模式与渲染**：扫描并列出全部候选（默认预选 10 黑灰）→ 用户确认/改选 → `canvas-render`；
-- **步骤 8 完成**：`output/5w-{slug}-canvas.html`；索引页 `output/5w-canvas.html`。
+- **步骤 8 完成**：`output/5w-canvas-{slug}--v{N}.html`；索引页 `output/5w-canvas.html`。
 
 **δ1**：丰田三层面追问框架（制造层 Why 1–2 / 检验层 Why 3–4 / 体系层 Why 5），五层锚点必须全在；层数弹性（少于 5 层）暂不支持。
 **δ2**：每个 Why 必须附证据或显式标缺口；根因须过「因此」检验 + 对策四要素（对策 / 负责人 / 截止时间 / 验证方式）。
@@ -60,7 +60,7 @@
 - 前置校验 `state.five_whys.{slug}.render_authorized=true`；
 - 审计命令参数化：`--type 5w`、`--instance {slug}`、`--page-type 5w-index`、`--source modules/5W-{slug}-v{N}.md --state state.json`；
 - **δ4**：审计**必须**显式传 `--template skills/canvas-render/examples/5w-canvas.html`；
-- 分级渲染验收（L1 静态审计 + L2 双视口 DOM 断言必做，L3 截图目检按需；定义见 `skills/canvas-render/SKILL.md`「分级渲染验收」）全过后置 `rendered`；失败保持 `confirmed`。
+- 分级渲染验收（L1 静态审计 + L2 双视口 DOM 断言必做，L3 截图目检按需；定义见 `skills/canvas-render/SKILL.md`「分级渲染验收」）全过后置 `rendered`；首次失败保持 `confirmed`，同版本重渲染失败保持原 `rendered`、output_file 和成功文件。
 
 ## 强制执行指令
 
@@ -75,3 +75,5 @@
 7. 只有 `business_risk` 可 override（`assessment_id` 为 `5W-GATE-05/06/07`）；`information_integrity`（`5W-GATE-01/02/03/04`）不可 override。
 8. 模板结构与顺序是契约，Gate 报告里 `5W-TPL-GATE-XX` 失败不能由 Agent 自行豁免；正式交付必须传 `--template skills/canvas-render/examples/5w-canvas.html`。
 ```
+
+正式输出遵循 `skills/canvas-render/references/two-phase-render.md` 的机器后缀和候选提交规则：current 审计（默认），临时候选传 `--target-output <正式路径>`；成功才更新实际 output_file，索引读取该值。legacy 仅用于历史复查。索引 `--page-type` 参数只用于 `--index` 命令，详情审计不传 index page type。

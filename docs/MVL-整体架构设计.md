@@ -256,7 +256,7 @@ flowchart LR
 | **触发**   | `render_authorized=true` + `confirmation_mode ∈ {gate_pass, override}` + override 时审计完整 |
 | **执行者** | 主 Agent 步骤 7 询问 →`canvas-render` 渲染                     |
 | **输入**   | `Mx-v{N}.md` + `state.json` 授权元数据 + 同版本 Gate 判定 + 用户选定视觉模式的完整仓库相对路径 |
-| **输出**   | `output/module-N-canvas.html`（`confirmation_mode=override` 时显示 caveat 标识） |
+| **输出**   | `output/module-{n}-canvas--v{N}.html`（`confirmation_mode=override` 时显示 caveat 标识） |
 | **状态**   | 校验通过 → `rendered`；校验失败 → 保持 `confirmed`，`confirmation_mode` 不变 |
 
 **视觉模式选择流程**（用户驱动，LLM 仅推荐）：
@@ -530,7 +530,7 @@ flowchart TB
 
     subgraph OUTPUT["最终产物（按项目）"]
         direction TB
-        MC["output/module-N-canvas.html<br/>(模块 Canvas)"]
+        MC["output/module-{n}-canvas--v{N}.html<br/>(模块 Canvas)"]
         GC["output/maau-global-canvas.html<br/>(全局 Canvas)"]
         FR["output/mvl-final-report.html<br/>(管理层报告)"]
     end

@@ -4,7 +4,7 @@
 
 V2C VAC 的思路来源于王鸿的 V2C FDE 工作方法论。Canvas 展示的是 Value-to-Capability 主线在具体业务观察场景中的价值归因假设，不是价值证明页。
 
-正式输出为 `output/v2c-vac-canvas-{slug}.html`；索引页为 `output/v2c-vac-canvas.html`，`page_type = v2c-vac-index`。
+正式输出为 `output/v2c-vac-canvas-{slug}--v{N}.html`；索引页为 `output/v2c-vac-canvas.html`，`page_type = v2c-vac-index`。
 
 ## 1. 页面结构
 
@@ -138,7 +138,7 @@ V2C VAC 必须外显 `F / H / ? / E`：
 - `data-page-type="v2c-vac"`
 - `canvas-data.canvas_type = "v2c-vac"`
 - `canvas-data.page_type = "v2c-vac"`
-- 输出：`output/v2c-vac-canvas-{slug}.html`
+- 输出：`output/v2c-vac-canvas-{slug}--v{N}.html`
 - 示例模板：`skills/canvas-render/examples/v2c-value-attribution-canvas.html`
 
 ### 4.2 索引页
@@ -149,7 +149,7 @@ V2C VAC 必须外显 `F / H / ? / E`：
 - `canvas-data.page_type = "v2c-vac-index"`
 - 输出：`output/v2c-vac-canvas.html`
 - 输入为 `state.v2c_vac` 的全部 instance map，不读取转写，不重新渲染详情页。
-- 按 slug 字典序列出每个 instance 的 slug、version、status、gate_recommendation、updated_at 与详情页链接 `output/v2c-vac-canvas-{slug}.html`。
+- 按 slug 字典序列出每个 instance 的 slug、version、status、gate_recommendation、updated_at 与详情页链接 `output/v2c-vac-canvas-{slug}--v{N}.html`。
 
 ## 5. 一级模块顺序（Template Gate）
 
@@ -239,7 +239,7 @@ canvas-header
 
 ```bash
 python3 skills/canvas-render/scripts/audit_canvas_html.py \
-  workshop/{project_slug}/{group_id}/{topic_slug}/output/v2c-vac-canvas-{slug}.html \
+  workshop/{project_slug}/{group_id}/{topic_slug}/output/v2c-vac-canvas-{slug}--v{N}.html \
   --source workshop/{project_slug}/{group_id}/{topic_slug}/modules/V2C-VAC-{slug}-v{N}.md \
   --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json \
   --type v2c-vac \

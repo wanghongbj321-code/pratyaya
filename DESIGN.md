@@ -38,7 +38,7 @@
 - **分析层**（mvl-distill / gc-distill / hmw-distill / persona-distill / journey-distill / v2c-vac-distill / 5w-distill / maau-synthesize【默认综合提炼】） — Key Points 概览（MVL：`Mx-keypoints.md`；非 MVL：`{GC|HMW|PERSONA|JOURNEY|V2C-VAC|5W}-{slug}-keypoints.md`）+ 确认包（MVL：`Mx-v{N}.md`；非 MVL：`{GC|HMW|PERSONA|JOURNEY|V2C-VAC|5W}-{slug}-v{N}.md`；MAAU：`MAAU-{slug}-v{N}.md`）+ 缺口 + 推断
 - **治理层**（module-conclusion-gate / gc-gate / hmw-gate / persona-gate / journey-gate / v2c-vac-gate / 5w-gate） — LLM Gate 评估（输出 `gate_recommendation` + `override_eligible` 建议，**不**写最终授权）+ 用户决策（主 Agent 写入 `render_authorized` + `confirmation_mode` + `override_audit`）；MAAU 路径使用 `module-conclusion-gate` 的 `references/MAAU-gate.md`（`MAAU-GATE-*` 独立 ID 空间）
 - **规则判定层**（`skills/_engine/`，v3.3.0 新增） — 主 Agent 为**薄控制面**（只做意图识别 + 路由 + 治理不变式），确定性规则由引擎强制：5 态机合法跃迁、Gate 三态汇总、升版重置、授权 if-then、`override_audit` 完整性、确认包文件名 / 版本 / instance 一致性。引擎只做规则判定，不渲染、不做语义判定、不替人拍板（`authorization.grant()` 强制携带用户确认证据）。依赖方向单向：`canvas_registry`（零副作用）← `canvas_audit` ← `audit_canvas_html.py`。
-- **展示层**（canvas-render） — 模块 Canvas / 黄金圈 Canvas / HMW Canvas / Persona Canvas / Journey Canvas / V2C VAC Canvas / 5W Canvas + 全局 Canvas + MAAU transcript-direct 实例页（`maau-global-canvas-{slug}.html`，只读 MAAU 源包）+ 管理层报告
+- **展示层**（canvas-render） — 模块 Canvas / 黄金圈 Canvas / HMW Canvas / Persona Canvas / Journey Canvas / V2C VAC Canvas / 5W Canvas + 全局 Canvas + MAAU transcript-direct 实例页（`maau-global-canvas-{slug}--noflow-v{N}.html`，只读 MAAU 源包）+ 管理层报告
 - **支持问答层**（faq-answer） — 使用说明、当前 group 状态解释、Gate / override / 渲染异常说明与下一步建议；只读，不写业务产物
 
 ## 5. 数据源与视觉模式
@@ -85,7 +85,7 @@
 9. **跨模块 caveat 浮现**：`rendered` 模块若 `confirmation_mode=override`，下游模块若依赖被 override 的假设/未验证项，必须显式标注或回退重审；不在全局页静默修正
 10. **跨组 / 跨 topic 禁读**：同项目不同 group、同 group 不同 topic 的 `state.json` 与产物禁止互相引用；主 Agent 一次只对一个 topic 工作。只有 group 级 / 项目级状态汇总可读取 `manifest.json` 或 enumerate 各 group / topic state，且不得把其他 group 或 topic 产物作为当前 topic 输入。
 11. **非 MVL instance map**：GC / HMW / Persona / Journey / V2C VAC / 5W 的正式状态、授权与渲染路径必须绑定 `slug`；新建 slug 必须为 kebab-case 且不得为 `default`。legacy `default` 只可由 v2.6 迁移产生，并需用户确认后继续使用或重命名。
-12. **MAAU 互斥**：MAAU 一次性综合（`generation_path=transcript-direct`，源包 `modules/MAAU-{slug}-v{N}.md`，实例页 `output/maau-global-canvas-{slug}.html`）与 M1-M6 Phase 2 全局汇总互斥——同一 group 的 MAAU 输出只能二选一，不得把 transcript-direct 实例混入 M1-M6 Phase 2 汇总。展示层只读 MAAU 源包（`modules/MAAU-{slug}-v{N}.md`），不得直接读转写渲染；不伪造 M1-M6 模块详情下钻。**MAAU 一次性综合为默认路径，互斥语义不受默认/备选语境影响（保持不变）。**
+12. **MAAU 互斥**：MAAU 一次性综合（`generation_path=transcript-direct`，源包 `modules/MAAU-{slug}-v{N}.md`，实例页 `output/maau-global-canvas-{slug}--noflow-v{N}.html`）与 M1-M6 Phase 2 全局汇总互斥——同一 group 的 MAAU 输出只能二选一，不得把 transcript-direct 实例混入 M1-M6 Phase 2 汇总。展示层只读 MAAU 源包（`modules/MAAU-{slug}-v{N}.md`），不得直接读转写渲染；不伪造 M1-M6 模块详情下钻。**MAAU 一次性综合为默认路径，互斥语义不受默认/备选语境影响（保持不变）。**
 
 ## 8. 为什么保留 HTML 草稿
 
@@ -127,7 +127,7 @@ stateDiagram-v2
 ### 已实现
 
 - 单专家调度十七个 Skill（`mvl-distill` / `gc-distill` / `hmw-distill` / `persona-distill` / `journey-distill` / `v2c-vac-distill` / `5w-distill` / `maau-synthesize` / `module-conclusion-gate` / `gc-gate` / `hmw-gate` / `persona-gate` / `journey-gate` / `v2c-vac-gate` / `5w-gate` / `faq-answer` / `canvas-render`）
-- **MAAU 一次性综合路径**：`maau-synthesize` 把一次性逐字稿综合为 MVL 全局画布六板块源包（`MAAU-{slug}-v{N}.md`），走 `MAAU-GATE-01~09` 独立闸门 ID 空间，渲染为 `maau-global-canvas-{slug}.html`；与 M1-M6 Phase 2 全局汇总互斥
+- **MAAU 一次性综合路径**：`maau-synthesize` 把一次性逐字稿综合为 MVL 全局画布六板块源包（`MAAU-{slug}-v{N}.md`），走 `MAAU-GATE-01~09` 独立闸门 ID 空间，渲染为 `maau-global-canvas-{slug}--noflow-v{N}.html`；与 M1-M6 Phase 2 全局汇总互斥
 - **FAQ Q/A 支持能力**：`faq-answer` 解释使用、当前 group 状态、Gate / override / 渲染异常与下一步；不进入画布状态机，不新增 `state.faq`，不新增渲染契约
 - **五状态画布生命周期**（`draft → gaps_open ↔ review_ready → confirmed → rendered`），七类画布共用
 - 模块和全局质量策略（MVL）与单画布质量策略（黄金圈 / HMW / Persona / Journey / V2C VAC / 5W）
@@ -210,7 +210,7 @@ Gate 只输出 `gate_recommendation` 与 `override_eligible`，最终 `render_au
 正式交付命令：
 
 ```bash
-python3 skills/canvas-render/scripts/audit_canvas_html.py output/journey-canvas-{slug}.html \
+python3 skills/canvas-render/scripts/audit_canvas_html.py output/journey-canvas-{slug}--v{N}.html \
   --source modules/JOURNEY-{slug}-v{N}.md \
   --state state.json \
   --type journey \
@@ -259,7 +259,7 @@ python3 skills/canvas-render/scripts/audit_canvas_html.py output/journey-canvas-
 正式交付命令：
 
 ```bash
-python3 skills/canvas-render/scripts/audit_canvas_html.py output/5w-canvas-{slug}.html \
+python3 skills/canvas-render/scripts/audit_canvas_html.py output/5w-canvas-{slug}--v{N}.html \
   --source modules/5W-{slug}-v{N}.md \
   --state state.json \
   --type 5w \

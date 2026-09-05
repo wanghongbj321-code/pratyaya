@@ -25,7 +25,7 @@ cp skills/canvas-render/scripts/workflow_layout/VERSION            <topic>/.layo
 {
   "fork_id": "group-x-haier-price-fork-01",
   "derived_from": {
-    "baseline_version": "0.1.0",
+    "baseline_version": "0.2.0",
     "baseline_sha": "<基线 workflow_layout.py 的 git sha>"
   },
   "layout_model": "track-inner-flow",
@@ -45,7 +45,7 @@ cp skills/canvas-render/scripts/workflow_layout/VERSION            <topic>/.layo
 1. **几何自检 0 问题**：`python3 <topic>/.layout/workflow_layout.py <topo.json>` 输出「自检问题: 0」；
 2. **L1 静态审计**与 **L2 DOM 断言**按常规跑（分叉不豁免）；
 3. **溯源记录**：产物 HTML 的 `canvas-data.workflow.layout` 写入
-   `{"engine": "workflow_layout", "baseline_version": "<0.1.0>", "fork_id": "<fork_id>"}`
+   `{"engine": "workflow_layout", "baseline_version": "<0.2.0>", "fork_id": "<fork_id>"}`
    （用模块函数 `workflow_layout.layout_trace(fork_id)` 生成）；
 4. 渲染自检报告记录分叉与通过结果。
 
@@ -65,3 +65,5 @@ cd tmp/fork-demo/.layout
 python3 workflow_layout.py ../../../../tests/fixtures/workflow_layout/workflow_hotel_revenue_new.json --version
 ```
 若副本能加载并自检 0 问题，即证明"分叉 + 自检门"链路可用。
+
+最终 SVG 使用 `--fragment <全新目标.svg>`，单输入、exit 0 才可嵌入；旧 `--svg` 保留目检预览。分叉也必须通过 fragment 结构/转义及宿主 L1/L2/L3 回归。

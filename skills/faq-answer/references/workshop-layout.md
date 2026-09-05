@@ -64,20 +64,20 @@ workshop/{project_slug}/
         └── output/
             ├── module-1-canvas.html
             ├── maau-global-canvas.html          # Phase 2 全局页 或 MAAU 实例索引页（二选一，不混用）
-            ├── maau-global-canvas-{slug}.html   # MAAU transcript-direct 实例输出
+            ├── maau-global-canvas-{slug}--noflow-v{N}.html   # MAAU transcript-direct 实例输出
             ├── mvl-final-report.html
             ├── gc-canvas.html           # 黄金圈索引页
-            ├── gc-canvas-{slug}.html    # 黄金圈 instance 输出
+            ├── gc-canvas-{slug}--v{N}.html    # 黄金圈 instance 输出
             ├── hmw-canvas.html          # HMW 索引页
-            ├── hmw-canvas-{slug}.html   # HMW instance 输出
+            ├── hmw-canvas-{slug}--v{N}.html   # HMW instance 输出
             ├── persona-canvas.html      # Persona 索引页
-            ├── persona-canvas-{slug}.html # Persona instance 输出
+            ├── persona-canvas-{slug}--v{N}.html # Persona instance 输出
             ├── journey-canvas.html      # Journey 索引页
-            ├── journey-canvas-{slug}.html # Journey instance 输出
+            ├── journey-canvas-{slug}--v{N}.html # Journey instance 输出
             ├── v2c-vac-canvas.html      # V2C VAC 索引页
-            ├── v2c-vac-canvas-{slug}.html # V2C VAC instance 输出
+            ├── v2c-vac-canvas-{slug}--v{N}.html # V2C VAC instance 输出
             ├── 5w-canvas.html           # 5W 索引页
-            └── 5w-canvas-{slug}.html    # 5W instance 输出
+            └── 5w-canvas-{slug}--v{N}.html    # 5W instance 输出
 ```
 
 **文件语义**：
@@ -101,9 +101,9 @@ workshop/{project_slug}/
 - `modules/MAAU-{slug}-v{N}.md`：MAAU 六板块源包（transcript-direct，**唯一事实源**）。
 - `modules/V2C-VAC-{slug}-v{N}.md`：V2C VAC 确认包（pipeline 或 transcript-direct 收敛后的**唯一事实源**）。
 - `modules/5W-{slug}-v{N}.md`：5W 确认包（**唯一事实源**）。
-- `output/maau-global-canvas-{slug}.html`：MAAU transcript-direct 实例 Canvas。
-- `output/v2c-vac-canvas-{slug}.html`：V2C VAC instance Canvas。
-- `output/module-N-canvas.html`：MVL 模块 Canvas。
+- `output/maau-global-canvas-{slug}--noflow-v{N}.html`：MAAU transcript-direct 实例 Canvas。
+- `output/v2c-vac-canvas-{slug}--v{N}.html`：V2C VAC instance Canvas。
+- `output/module-{n}-canvas--v{N}.html`：MVL 模块 Canvas。
 - `output/{gc|hmw|persona|journey|v2c-vac|5w}-canvas.html`：非 MVL instance 索引页。
 - `output/{gc|hmw|persona|journey|v2c-vac|5w}-canvas-{slug}.html`：非 MVL instance Canvas。
 

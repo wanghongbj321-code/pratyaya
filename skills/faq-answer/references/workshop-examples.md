@@ -30,7 +30,7 @@ Agent：（Gate 全 PASS + 用户确认 → confirmation_mode=gate_pass / render
 用户：选择 blue-professional-balanced
 Agent：（从本轮扫描结果保存 `skills/canvas-render/visual-patterns/01-blue-professional-balanced.md`，不根据 ID 拼接路径）
       （把完整路径 + state.json 授权元数据传给 canvas-render）
-      （生成 output/module-1-canvas.html，状态 → rendered）
+      （生成 output/module-1-canvas--v{N}.html，状态 → rendered）
 ```
 
 ### 示例 2：M5 business_risk override 流程
@@ -53,7 +53,7 @@ Agent：（写入 override_audit，confirmation_mode=override / render_authorize
       （步骤 7，扫描视觉模式 frontmatter，列出全部候选、默认预选 10 黑灰，等用户确认/改选）
 
 用户：选择 03-signal-balanced
-Agent：（生成 output/module-5-canvas.html，顶部显示"已确认 · 带保留意见"，quality-caveat 列出两项 override 详情；状态 → rendered）
+Agent：（生成 output/module-5-canvas--v{N}.html，顶部显示"已确认 · 带保留意见"，quality-caveat 列出两项 override 详情；状态 → rendered）
       （Phase 2 全局汇总时，M5 出现在"带保留意见的结论"分组中，并检查下游 M6 是否依赖被 override 的假设）
 ```
 

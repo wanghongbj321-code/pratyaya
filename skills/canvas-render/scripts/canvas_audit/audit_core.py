@@ -44,6 +44,7 @@ from .audit_models import (
     SHARED_IDS, V2C_VAC_ANCHORS, V2C_VAC_CONTRACT, V2C_VAC_MAIN_IDS, V2C_VAC_TPL_GOVERN_IDS,
     Finding, JsonDict,
 )
+from .artifact_identity import audit_artifact_identity, audit_workflow_variant
 from .audit_helpers import (
     audit_5w_content_mapping, audit_5w_override, audit_hmw_content_mapping, audit_index_page,
     audit_maau_transcript_direct,
@@ -70,6 +71,9 @@ def audit(
     index: bool = False,
     page_type_arg: str | None = None,
     generation_path_arg: str | None = None,
+    workflow_variant: str | None = None,
+    artifact_policy: str = "current",
+    target_output: Path | None = None,
 ) -> list[Finding]:
     """对照 render-contract / state.json / 确认包，审计单个 Canvas HTML 文件。"""
     is_gc = canvas_type == "gc"
@@ -122,7 +126,7 @@ def audit(
         return [Finding("HTML_READ", str(exc))]
 
     if index:
-        return audit_index_page(html, source, state_path, canvas_type)
+        return audit_artifact_identity(target_output or html_path, html, canvas_type, instance_slug, workflow_variant, artifact_policy, index=True) + audit_index_page(html, source, state_path, canvas_type)
 
     counts = Counter(html.ids)
     duplicates = sorted(element_id for element_id, count in counts.items() if count > 1)
@@ -168,6 +172,7 @@ def audit(
                 Finding("INSTANCE", f"body data-instance={body_instance!r} must match --instance {instance_slug!r}")
             )
 
+    findings.extend(audit_artifact_identity(target_output or html_path, html, canvas_type, instance_slug, workflow_variant, artifact_policy))
     required: list[str] = list(SHARED_IDS)
     if is_gc or is_hmw or is_journey or is_persona or is_v2c_vac or is_5w:
         if is_gc:
@@ -188,7 +193,7 @@ def audit(
     elif page_type == "module-detail":
         required.extend(MODULE_MAIN_IDS)
     elif page_type == "global":
-        required.extend(GLOBAL_MAIN_IDS)
+        required.extend(i for i in GLOBAL_MAIN_IDS if i != "workflow-flow" or workflow_variant != "noflow" or artifact_policy == "legacy")
     missing = [element_id for element_id in required if counts[element_id] == 0]
     if missing:
         findings.append(Finding("MISSING_ID", f"missing required ids: {', '.join(missing)}"))
@@ -268,6 +273,8 @@ def audit(
             findings.append(Finding("CANVAS_DATA", str(exc)))
 
     if canvas_data is not None:
+        if artifact_policy == "current" and canvas_data.get("generation_path") == "transcript-direct" and canvas_type == "mvl" and not instance_slug:
+            findings.append(Finding("ARTIFACT_IDENTITY", "transcript-direct requires --instance; cannot use Phase 2 exemption"))
         data_version = normalize_version(canvas_data.get("version"))
         if body_version and data_version != body_version:
             findings.append(
@@ -341,7 +348,9 @@ def audit(
         if is_5w:
             findings.extend(audit_5w_override(canvas_data))
         if page_type == "global":
-            findings.extend(audit_workflow_flow(source, html, canvas_data, source_path))
+            findings.extend(audit_workflow_variant(source, canvas_data, workflow_variant, artifact_policy))
+            if artifact_policy == "legacy" or workflow_variant != "noflow":
+                findings.extend(audit_workflow_flow(source, html, canvas_data, source_path))
 
     if "iframe" in html.tags:
         findings.append(Finding("OFFLINE", "iframe is forbidden"))
@@ -638,6 +647,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         default=None,
         help="MVL 全局页生成路径（MAAU 一次性综合须传 transcript-direct）",
     )
+    parser.add_argument("--workflow-variant", choices=("noflow", "workflow"), help="Expected global form from render request; mandatory for current global pages")
+    parser.add_argument("--artifact-policy", choices=("current", "legacy"), default="current", help="legacy is read-only historical inspection, never new delivery")
+    parser.add_argument("--target-output", type=Path, help="Intended formal path when auditing a temporary candidate")
     return parser.parse_args(argv)
 
 def main(argv: list[str] | None = None) -> int:
@@ -684,6 +696,7 @@ def main(argv: list[str] | None = None) -> int:
     findings = audit(
         html_arg, contract_arg, state_arg, source_arg, canvas_type, instance_slug,
         index, page_type_arg, generation_path_arg,
+        args.workflow_variant, args.artifact_policy, args.target_output,
     )
     template_findings: list[Finding] = []
 

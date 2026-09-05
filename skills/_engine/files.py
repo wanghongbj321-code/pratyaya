@@ -32,8 +32,8 @@ def gate_report_exists(topic: str | Path, file_prefix: str, slug: str, version: 
     return paths.gate_report_file(topic, file_prefix, slug, version).exists()
 
 
-def html_exists(topic: str | Path, output_prefix: str, slug: str) -> bool:
-    return paths.html_file(topic, output_prefix, slug).exists()
+def html_exists(topic: str | Path, output_prefix: str, slug: str, **identity) -> bool:
+    return paths.html_file(topic, output_prefix, slug, **identity).exists()
 
 
 def index_exists(topic: str | Path, output_prefix: str) -> bool:
@@ -54,14 +54,14 @@ def list_confirm_versions(topic: str | Path, file_prefix: str, slug: str) -> lis
     return sorted(versions)
 
 
-def html_stale_marker(topic: str | Path, output_prefix: str, slug: str) -> Path:
+def html_stale_marker(topic: str | Path, output_prefix: str, slug: str, **identity) -> Path:
     """旧 HTML 过期标记文件路径：`{html}.stale`。"""
-    return paths.html_file(topic, output_prefix, slug).with_suffix(".html.stale")
+    return paths.html_file(topic, output_prefix, slug, **identity).with_suffix(".html.stale")
 
 
-def mark_html_stale(topic: str | Path, output_prefix: str, slug: str, *, stale_version: int) -> Path:
+def mark_html_stale(topic: str | Path, output_prefix: str, slug: str, *, stale_version: int, **identity) -> Path:
     """写 sidecar 标记文件，标记旧 HTML 过期（不修改 HTML 内容）。"""
-    marker = html_stale_marker(topic, output_prefix, slug)
+    marker = html_stale_marker(topic, output_prefix, slug, **identity)
     marker.parent.mkdir(parents=True, exist_ok=True)
     marker.write_text(
         json.dumps({"stale": True, "version": stale_version}, ensure_ascii=False) + "\n",
@@ -70,11 +70,11 @@ def mark_html_stale(topic: str | Path, output_prefix: str, slug: str, *, stale_v
     return marker
 
 
-def is_html_stale(topic: str | Path, output_prefix: str, slug: str) -> bool:
-    return html_stale_marker(topic, output_prefix, slug).exists()
+def is_html_stale(topic: str | Path, output_prefix: str, slug: str, **identity) -> bool:
+    return html_stale_marker(topic, output_prefix, slug, **identity).exists()
 
 
-def clear_html_stale(topic: str | Path, output_prefix: str, slug: str) -> None:
-    marker = html_stale_marker(topic, output_prefix, slug)
+def clear_html_stale(topic: str | Path, output_prefix: str, slug: str, **identity) -> None:
+    marker = html_stale_marker(topic, output_prefix, slug, **identity)
     if marker.exists():
         marker.unlink()

@@ -11,7 +11,7 @@
 
 | 画布 | 结构 | 流程 |
 |---|---|---|
-| MAAU 综合（transcript-direct） | MVL 全局画布六板块（Intent/User/Agent Team/Workflow/Context/Validation） | 显式选择 MAAU → 逐字稿 → 一次性综合 → `MAAU-{slug}-v{N}.md` 源包 → Gate → 渲染 `maau-global-canvas-{slug}.html`；`maau.{slug}` instance map |
+| MAAU 综合（transcript-direct） | MVL 全局画布六板块（Intent/User/Agent Team/Workflow/Context/Validation） | 显式选择 MAAU → 逐字稿 → 一次性综合 → `MAAU-{slug}-v{N}.md` 源包 → Gate → 渲染 `maau-global-canvas-{slug}--noflow-v{N}.html`；`maau.{slug}` instance map |
 | MVL（M1-M6） | M1-M6 六模块 | 显式选择 MVL 六模块管线 → 转写 → Key Points → 确认包 → Gate → 渲染 |
 | 黄金圈 | WHY/HOW/WHAT 三层 | 同上四阶段管线；`golden_circle.{slug}` instance map |
 | HMW | 陈述四字段 + 质量鉴别 + 想法种子 | 同上四阶段管线；`hmw.{slug}` instance map |

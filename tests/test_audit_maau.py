@@ -37,7 +37,7 @@ SLUG = "retail-demo"
 
 def run_audit(html: Path, *extra: str) -> subprocess.CompletedProcess:
     cmd = [
-        PYTHON, str(AUDIT), str(html),
+        PYTHON, str(AUDIT), "--artifact-policy", "legacy", str(html),
         "--type", "mvl",
         "--page-type", "global",
         "--generation-path", "transcript-direct",

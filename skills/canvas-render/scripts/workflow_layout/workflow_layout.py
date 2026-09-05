@@ -1,27 +1,11 @@
 # -*- coding: utf-8 -*-
-"""
-workflow_layout —— Workflow 确定性布局器（0.1.0，几何层定位）
-================================================================
-定位（实施审查收敛，2026-09-05）：**几何层**——输入 §A1.5 完整 schema 拓扑，
-输出节点几何（坐标 / 尺寸）+ 连线路径 + 几何自检报告 + 布局报告（坐标表）；
-`--svg` 仅生成**目检预览页**（非 §A1 最终 DOM）。最终 `#workflow-flow` 的
-§A1 DOM（actor 徽章 / 序号徽标 / note / 轨道标签 / 图例等母版视觉 token）
-由渲染回合按 SKILL.md 母版模板装配，或由后续「受控几何注入器（B）」承接。
-范式锚定（设计 §3.2，Q2 已确认）：轨道分行堆叠、轨内横流（蛇形折返多行）、
-跨轨与 dashed 回流统一走左侧 gutter 走廊；右 gutter 分流 / 线-线避让 /
-多入汇合槽位为 L0 演进项（当前能力边界见 layout_override.schema.md）。
-约束（Q3 已确认）：仅几何降级——节点 / 边全集必须全部渲染（L1 契约不破）。
-L1：`layout_override` 为渲染输入侧可选配置（白名单键），只调节几何常量，
-不改变节点 / 边集合、轨道结构与任何审计契约。
-CLI exit code：0 = 几何自检通过 / 1 = 几何自检 FAIL（不写 --svg 产物）/ 2 = 输入或参数不合法。
-零第三方依赖；不修改输入数据。
-
-CLI：
-    python3 workflow_layout.py <topo.json> [more.json]
-        [--override override.json | --override-json '{...}'] [--preset compact|roomy]
-        [--svg out_dir] [--version]
+"""Workflow 0.2.0: deterministic geometry and final SVG internals.
+--svg retains geometric HTML preview; --fragment output.svg emits final SVG.
+HTML wrappers, legend and completion conditions belong to canvas-render.
+Exit 0: geometry PASS; 1: geometry FAIL; 2: invalid input/arguments.
 """
 import json
+import math
 import os
 import sys
 
@@ -300,7 +284,7 @@ class Layout:
         xs1 = max(it.x + it.w for it in self.items.values())
         ys0 = min(it.y for it in self.items.values())
         ys1 = max(it.y + it.h for it in self.items.values())
-        return xs0 - gw, ys0 - 60, xs1 + gw, ys1 + 40
+        return xs0 - gw - 12, ys0 - 60, xs1 + gw, ys1 + 40
 
     def page_w(self):
         x0, _y0, x1, _y1 = self.bounds()
@@ -393,12 +377,19 @@ def resolve_override(override_json=None, preset=None):
         if preset not in COMPACT_PRESETS:
             raise ValueError(f"未知 preset: {preset}（可选 {sorted(COMPACT_PRESETS)}）")
         merged.update(COMPACT_PRESETS[preset])
-    if override_json:
+    if override_json is not None:
+        if not isinstance(override_json, dict):
+            raise ValueError("layout_override must be an object")
         merged.update(override_json)
     unknown = [k for k in merged if k not in LAYOUT_OVERRIDE_KEYS]
     if unknown:
         print("警告：忽略未知 layout_override 键:", unknown)
         merged = {k: v for k, v in merged.items() if k in LAYOUT_OVERRIDE_KEYS}
+    for key, value in merged.items():
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value <= 0:
+            raise ValueError(f"layout_override {key} must be positive and finite")
+        if key == "max_per_row" and int(value) != value:
+            raise ValueError("max_per_row must be an integer")
     return merged or None
 
 
@@ -450,6 +441,90 @@ def svg_preview(L, data, title=""):
     return "".join(out)
 
 
+def validate_fragment(data):
+    """Final SVG needs the labels and reading numbers of §A1.5."""
+    if not isinstance(data, dict) or not isinstance(data.get("nodes"), list):
+        return ["fragment requires nodes"]
+    errors, numbers = [], []
+    for node in data["nodes"]:
+        if not isinstance(node, dict):
+            continue
+        if not isinstance(node.get("label"), str) or not node.get("label"):
+            errors.append("fragment node requires nonempty label")
+        number = node.get("number")
+        if not isinstance(number, (str, int)) or isinstance(number, bool) or not str(number):
+            errors.append("fragment node requires number")
+        numbers.append(str(number))
+        if "note" in node and not isinstance(node["note"], str):
+            errors.append("fragment note must be text")
+    if len(numbers) != len(set(numbers)):
+        errors.append("fragment node numbers must be unique")
+    return errors
+
+
+def svg_fragment(L, data):
+    """Emit only SVG; every coordinate comes from the checked layout."""
+    errors = validate(data) + validate_fragment(data) + L.selfcheck()
+    if errors:
+        raise ValueError("; ".join(errors))
+    x0, y0, x1, y1 = L.bounds()
+    out = [f'<svg xmlns="http://www.w3.org/2000/svg" class="bpmn-flow" role="img" aria-label="Workflow BPMN 流程图" viewBox="{x0:g} {y0:g} {x1-x0:g} {y1-y0:g}">']
+    out.append('<defs>')
+    for marker in ("flow-arrow", "flow-arrow-dash"):
+        out.append(f'<marker id="{marker}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path class="bpmn-arrow" d="M0 0 L10 5 L0 10 Z"/></marker>')
+    out.append('</defs>')
+    for tid in L.tracks:
+        ty = L.track_y0.get(tid, y0 + 40)
+        out.append(f'<g class="bpmn-track" data-track="{_esc(tid)}"><text class="bpmn-track-label" x="{L.cfg["margin_x"]:g}" y="{ty-24:g}">{_esc(L.track_labels.get(tid, tid))}</text></g>')
+    for e in data["edges"]:
+        pts = L.paths[(e["from"], e["to"])]
+        d = f'M{pts[0][0]:g} {pts[0][1]:g}'
+        for a, b in zip(pts, pts[1:]):
+            d += f' H{b[0]:g}' if a[1] == b[1] else f' V{b[1]:g}'
+        dashed = e.get("dashed") is True
+        cls = "bpmn-sequence bpmn-reflow" if dashed else "bpmn-sequence"
+        marker = "flow-arrow-dash" if dashed else "flow-arrow"
+        out.append(f'<path class="{cls}" data-from="{_esc(e["from"])}" data-to="{_esc(e["to"])}" d="{d}" marker-end="url(#{marker})"><title>{_esc(e.get("label", ""))}</title></path>')
+        if e.get("label"):
+            a, b = max(zip(pts, pts[1:]), key=lambda ab: abs(ab[0][0]-ab[1][0])+abs(ab[0][1]-ab[1][1]))
+            out.append(f'<text class="bpmn-flow-label" x="{(a[0]+b[0])/2:g}" y="{(a[1]+b[1])/2-5:g}" text-anchor="middle">{_esc(e["label"])}</text>')
+    for node in data["nodes"]:
+        it = L.items[node["id"]]
+        x, y, w, h, cx, cy = it.x, it.y, it.w, it.h, it.cx, it.cy
+        out.append(f'<g class="bpmn-node" data-node-type="{it.type}" data-node-id="{_esc(it.id)}" data-track="{_esc(it.track)}">')
+        out.append(f'<title>{_esc(node["label"] + (" — " + node["note"] if node.get("note") else ""))}</title>')
+        if it.type in EVENT_TYPES:
+            out.append(f'<circle class="bpmn-event" cx="{cx:g}" cy="{cy:g}" r="{w/2:g}"/>')
+            if it.type == "end":
+                out.append(f'<circle class="bpmn-event" cx="{cx:g}" cy="{cy:g}" r="{w/2-4:g}"/>')
+            if it.type in {"timer", "message"}:
+                symbol = "◷" if it.type == "timer" else "✉"
+                out.append(f'<text class="bpmn-symbol" x="{cx:g}" y="{y+14:g}" text-anchor="middle">{symbol}</text>')
+        elif it.type == "data_store":
+            out.append(f'<rect class="bpmn-task" x="{x:g}" y="{y+8:g}" width="{w:g}" height="{h-16:g}"/>')
+            out.append(f'<ellipse class="bpmn-task" cx="{cx:g}" cy="{y+h-8:g}" rx="{w/2:g}" ry="8"/>')
+            out.append(f'<ellipse class="bpmn-task" cx="{cx:g}" cy="{y+8:g}" rx="{w/2:g}" ry="8"/>')
+        elif it.type == "gateway":
+            out.append(f'<polygon class="bpmn-gateway" points="{cx:g},{y:g} {x+w:g},{cy:g} {cx:g},{y+h:g} {x:g},{cy:g}"/>')
+        else:
+            out.append(f'<rect class="bpmn-task" x="{x:g}" y="{y:g}" width="{w:g}" height="{h:g}" rx="6"/>')
+        out.append(f'<g class="bpmn-number"><rect x="{x:g}" y="{y:g}" width="24" height="14" rx="3"/><text x="{x+12:g}" y="{y+10:g}" text-anchor="middle">{_esc(str(node["number"]))}</text></g>')
+        if it.type in TASK_TYPES:
+            actor = node["actor"]
+            actor_label = {"human":"人", "ai":"AI", "system":"系统", "hybrid":"人+AI", "reviewer":"审核"}[actor]
+            out.append(f'<g class="bpmn-actor" data-actor="{actor}"><rect x="{x+w-50:g}" y="{y:g}" width="48" height="14" rx="3"/><text x="{x+w-26:g}" y="{y+10:g}" text-anchor="middle">{actor_label}</text></g>')
+        # Full label stays accessible in title; visible wrapping fits each shape.
+        width = w * (.60 if it.type in EVENT_TYPES or it.type == "gateway" else .90)
+        lines = wrap_lines(node["label"], width, max_lines=2)
+        for i, line in enumerate(lines):
+            out.append(f'<text class="bpmn-label" x="{cx:g}" y="{cy+2+i*11:g}" text-anchor="middle">{_esc(line)}</text>')
+        if node.get("note"):
+            out.append(f'<text class="note" x="{cx:g}" y="{y+h-3:g}" text-anchor="middle">{_esc(wrap_lines(node["note"], w-12, max_lines=1)[0])}</text>')
+        out.append('</g>')
+    out.append('</svg>')
+    return "\n".join(out)
+
+
 def layout_trace(fork_id=None):
     """产物溯源字段（写进 `canvas-data.workflow.layout`，可选；不改 schema_version）。
     engine / baseline_version 标识生成该 SVG 的布局器版本；fork_id 仅在 L2 分叉产物存在。"""
@@ -462,18 +537,22 @@ def layout_trace(fork_id=None):
 def _parse(argv):
     """CLI 解析（P1-1 修复）：--flag 的取值从 positional 输入中摘除，
     避免 `--override <file.json>` 被误收为拓扑输入。"""
-    opts = {"override": None, "override_json": None, "preset": None, "svg": None}
+    opts = {"override": None, "override_json": None, "preset": None, "svg": None, "fragment": None}
     files = []
-    valued = {"--override", "--override-json", "--preset", "--svg"}
+    valued = {"--override", "--override-json", "--preset", "--svg", "--fragment"}
     i = 0
     while i < len(argv):
         a = argv[i]
+        if a in valued and (i + 1 >= len(argv) or argv[i + 1].startswith("--")):
+            raise ValueError(f"missing value for {a}")
         if a in valued and i + 1 < len(argv):
             opts[a[2:].replace("-", "_")] = argv[i + 1]
             i += 2
             continue
         if a.endswith(".json") and not a.startswith("--"):
             files.append(a)
+        else:
+            raise ValueError(f"unknown argument: {a}")
         i += 1
     return opts, files
 
@@ -482,11 +561,17 @@ def main(argv):
     if "--version" in argv:
         print("workflow_layout", __version__)
         return
-    opts, files = _parse(argv)
+    try:
+        opts, files = _parse(argv)
+        if opts["fragment"] and len(files) != 1:
+            raise ValueError("--fragment requires exactly one topology input")
+    except ValueError as exc:
+        print("错误:", exc)
+        sys.exit(2)
     if not files:
         print("用法: workflow_layout.py <topo.json> [more.json] "
-              "[--override file.json|--override-json '{...}'] [--preset compact|roomy] [--svg out_dir]")
-        return
+              "[--override file.json|--override-json '{...}'] [--preset compact|roomy] [--svg out_dir] [--fragment new.svg]")
+        sys.exit(2)
     try:
         override_json = None
         if opts["override"]:
@@ -512,15 +597,25 @@ def main(argv):
             print(f"错误: 无法读取/解析 {fn}: {exc}")
             exit_code = max(exit_code, 2)
             continue
-        errs = validate(data)
+        try:
+            errs = validate(data)
+            if opts["fragment"]:
+                errs.extend(validate_fragment(data))
+        except (TypeError, ValueError, KeyError) as exc:
+            errs = [f"invalid topology: {exc}"]
         if errs:
             print(f"\n== {os.path.basename(fn)} == 输入不合法（{len(errs)} 项）：")
             for e in errs:
                 print("  -", e)
             exit_code = max(exit_code, 2)
             continue
-        L = layout_of(data, override)
-        probs = L.selfcheck()
+        try:
+            L = layout_of(data, override)
+            probs = L.selfcheck()
+        except (TypeError, ValueError, KeyError) as exc:
+            print("错误:", exc)
+            exit_code = max(exit_code, 2)
+            continue
         print(f"\n== {os.path.basename(fn)} ==")
         print(f"nodes={len(L.items)} edges={len(L.edges)} tracks={L.tracks} page_w≈{L.page_w():.0f}")
         # 布局报告：坐标表（§3.1，P2-3）
@@ -540,6 +635,15 @@ def main(argv):
             exit_code = max(exit_code, 1)
             print("  → 自检 FAIL：禁止进入装配，不写 --svg 产物")
             continue
+        if opts["fragment"]:
+            try:
+                fragment = svg_fragment(L, data)
+                with open(opts["fragment"], "x", encoding="utf-8") as out:
+                    out.write(fragment)
+                print("fragment ->", opts["fragment"])
+            except (OSError, ValueError) as exc:
+                print("错误:", exc)
+                exit_code = max(exit_code, 2)
         if opts["svg"]:
             outd = opts["svg"]
             os.makedirs(outd, exist_ok=True)

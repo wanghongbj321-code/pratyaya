@@ -347,7 +347,7 @@ def check_v2c_vac_render_contract_sync(ctx: CheckContext) -> list[Finding]:
             )
         )
     for token in (
-        "output/v2c-vac-canvas-{slug}.html",
+        "output/v2c-vac-canvas-{slug}--v{N}.html",
         "output/v2c-vac-canvas.html",
         "v2c-vac-index",
         "skills/canvas-render/examples/v2c-value-attribution-canvas.html",

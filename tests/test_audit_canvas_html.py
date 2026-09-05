@@ -46,7 +46,7 @@ def formal_html() -> Path:
 
 
 def run_audit(html: Path, *extra: str) -> subprocess.CompletedProcess:
-    cmd = [PYTHON, str(AUDIT), str(html), "--type", "hmw", "--template", str(TEMPLATE), *extra]
+    cmd = [PYTHON, str(AUDIT), "--artifact-policy", "legacy", str(html), "--type", "hmw", "--template", str(TEMPLATE), *extra]
     return subprocess.run(cmd, capture_output=True, text=True)
 
 
@@ -104,7 +104,7 @@ class TestDraftAndOffline:
         text = text.replace('id="hmw-coherence-map"', 'id="hmw-coherence-map-x"')
         broken.write_text(text, encoding="utf-8")
         cmd = [
-            PYTHON, str(AUDIT), str(tmp_path / "x.html"), "--type", "hmw",
+            PYTHON, str(AUDIT), "--artifact-policy", "legacy", str(tmp_path / "x.html"), "--type", "hmw",
             "--template", str(broken),
         ]
         # 模板缺锚点 → 模板自审计阶段应 FAIL
@@ -232,7 +232,7 @@ class TestRegressions:
     def test_9_mvl_default_type_still_works(self) -> None:
         """默认 --type mvl 不影响（用 state schema 测试间接确认脚本可加载）。"""
         result = subprocess.run(
-            [PYTHON, str(AUDIT), "--help"], capture_output=True, text=True
+            [PYTHON, str(AUDIT), "--artifact-policy", "legacy", "--help"], capture_output=True, text=True
         )
         assert result.returncode == 0
         assert "--type {mvl,gc,hmw,persona,journey}" in result.stdout or "mvl" in result.stdout
@@ -240,7 +240,7 @@ class TestRegressions:
     def test_9b_hmw_without_template_on_formal_fails(self) -> None:
         """HMW 正式交付缺 --template 应 FAIL（HMW-TPL-GATE-00）。"""
         result = subprocess.run(
-            [PYTHON, str(AUDIT), str(TEMPLATE), "--type", "hmw",
+            [PYTHON, str(AUDIT), "--artifact-policy", "legacy", str(TEMPLATE), "--type", "hmw",
              "--source", str(PACKAGE), "--state", str(STATE), "--instance", "default"],
             capture_output=True, text=True,
         )

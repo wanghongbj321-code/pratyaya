@@ -18,7 +18,7 @@
 
 ## 3. HTML 渲染（Python 静态审计 + 浏览器视觉验收）
 
-正式交付分为两个阶段，任一阶段失败都保持画布 `confirmed`，不得提前标记为 `rendered`。
+正式交付分为两个阶段，首次渲染任一阶段失败保持画布 `confirmed`；已有成功产物的重渲染失败保持 `rendered`、原 `output_file` 和文件，全部验收成功才提交。
 
 ### 3.1 Python 静态审计
 
@@ -26,7 +26,7 @@
 
 ```bash
 python3 skills/canvas-render/scripts/audit_canvas_html.py \
-  workshop/{project_slug}/{group_id}/{topic_slug}/output/module-N-canvas.html \
+  workshop/{project_slug}/{group_id}/{topic_slug}/output/module-{n}-canvas--v{N}.html \
   --source workshop/{project_slug}/{group_id}/{topic_slug}/modules/Mx-v{N}.md \
   --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json
 ```
@@ -35,7 +35,7 @@ python3 skills/canvas-render/scripts/audit_canvas_html.py \
 
 ```bash
 python3 skills/canvas-render/scripts/audit_canvas_html.py \
-  workshop/{project_slug}/{group_id}/{topic_slug}/output/hmw-canvas-{slug}.html \
+  workshop/{project_slug}/{group_id}/{topic_slug}/output/hmw-canvas-{slug}--v{N}.html \
   --source workshop/{project_slug}/{group_id}/{topic_slug}/modules/HMW-{slug}-v{N}.md \
   --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json \
   --type hmw \
@@ -43,7 +43,7 @@ python3 skills/canvas-render/scripts/audit_canvas_html.py \
   --template skills/canvas-render/examples/hmw-canvas.html
 
 python3 skills/canvas-render/scripts/audit_canvas_html.py \
-  workshop/{project_slug}/{group_id}/{topic_slug}/output/persona-canvas-{slug}.html \
+  workshop/{project_slug}/{group_id}/{topic_slug}/output/persona-canvas-{slug}--v{N}.html \
   --source workshop/{project_slug}/{group_id}/{topic_slug}/modules/PERSONA-{slug}-v{N}.md \
   --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json \
   --type persona \
@@ -51,7 +51,7 @@ python3 skills/canvas-render/scripts/audit_canvas_html.py \
   --template skills/canvas-render/examples/user-persona-canvas.html
 
 python3 skills/canvas-render/scripts/audit_canvas_html.py \
-  workshop/{project_slug}/{group_id}/{topic_slug}/output/v2c-vac-canvas-{slug}.html \
+  workshop/{project_slug}/{group_id}/{topic_slug}/output/v2c-vac-canvas-{slug}--v{N}.html \
   --source workshop/{project_slug}/{group_id}/{topic_slug}/modules/V2C-VAC-{slug}-v{N}.md \
   --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json \
   --type v2c-vac \
@@ -59,7 +59,7 @@ python3 skills/canvas-render/scripts/audit_canvas_html.py \
   --template skills/canvas-render/examples/v2c-value-attribution-canvas.html
 
 python3 skills/canvas-render/scripts/audit_canvas_html.py \
-  workshop/{project_slug}/{group_id}/{topic_slug}/output/5w-canvas-{slug}.html \
+  workshop/{project_slug}/{group_id}/{topic_slug}/output/5w-canvas-{slug}--v{N}.html \
   --source workshop/{project_slug}/{group_id}/{topic_slug}/modules/5W-{slug}-v{N}.md \
   --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json \
   --type 5w \
@@ -71,7 +71,7 @@ python3 skills/canvas-render/scripts/audit_canvas_html.py \
 
 ```bash
 python3 skills/canvas-render/scripts/audit_canvas_html.py \
-  workshop/{project_slug}/{group_id}/{topic_slug}/output/maau-global-canvas-{slug}.html \
+  workshop/{project_slug}/{group_id}/{topic_slug}/output/maau-global-canvas-{slug}--noflow-v{N}.html \
   --source workshop/{project_slug}/{group_id}/{topic_slug}/modules/MAAU-{slug}-v{N}.md \
   --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json \
   --type mvl \
@@ -107,7 +107,7 @@ Python PASS 后再检查：
 
 ### 3.3 MAAU 综合路径调试（常见阻断场景）
 
-MAAU 一次性综合（`generation_path=transcript-direct`）从逐字稿直接生成 MVL 全局画布六板块源包 `modules/MAAU-{slug}-v{N}.md`，再经 Gate + 授权渲染为 `output/maau-global-canvas-{slug}.html`。常见阻断与处置：
+MAAU 一次性综合（`generation_path=transcript-direct`）从逐字稿直接生成 MVL 全局画布六板块源包 `modules/MAAU-{slug}-v{N}.md`，再经 Gate + 授权渲染为 `output/maau-global-canvas-{slug}--noflow-v{N}.html`。常见阻断与处置：
 
 | 场景 | 现象 | 处置 |
 |---|---|---|
@@ -166,14 +166,14 @@ Canvas 视觉系统由 `skills/canvas-render/visual-patterns/` 下的 Markdown �
 
 | 画布 | 路径 | Key Points | 提炼 | Gate | 渲染 |
 |---|---|---|---|---|---|
-| MAAU（transcript-direct） | **默认** | 逐字稿存档 `maau-{slug}-raw.md` | `MAAU-{slug}-v{N}.md`（六板块源包） | `MAAU-{slug}-gate-report-v{N}.md` | `maau-global-canvas-{slug}.html` / 可选索引 |
+| MAAU（transcript-direct） | **默认** | 逐字稿存档 `maau-{slug}-raw.md` | `MAAU-{slug}-v{N}.md`（六板块源包） | `MAAU-{slug}-gate-report-v{N}.md` | `maau-global-canvas-{slug}--noflow-v{N}.html` / 可选索引 |
 | MVL（M1-M6） | **备选**（显式声明启用） | `Mx-keypoints.md` | `Mx-v{N}.md` | `Mx-gate.md` | `module-N-canvas.html` / 全局 |
-| 黄金圈 | — | `GC-{slug}-keypoints.md` | `GC-{slug}-v{N}.md` | `GC-{slug}-gate-report-v{N}.md` | `gc-canvas-{slug}.html` / `gc-canvas.html` 索引 |
-| HMW | — | `HMW-{slug}-keypoints.md` | `HMW-{slug}-v{N}.md` | `HMW-{slug}-gate-report-v{N}.md` | `hmw-canvas-{slug}.html` / `hmw-canvas.html` 索引 |
-| Persona | — | `PERSONA-{slug}-keypoints.md` | `PERSONA-{slug}-v{N}.md` | `PERSONA-{slug}-gate-report-v{N}.md` | `persona-canvas-{slug}.html` / `persona-canvas.html` 索引 |
-| Journey | — | `JOURNEY-{slug}-keypoints.md` | `JOURNEY-{slug}-v{N}.md` | `JOURNEY-{slug}-gate-report-v{N}.md` | `journey-canvas-{slug}.html` / `journey-canvas.html` 索引 |
-| V2C VAC | `pipeline` / `transcript-direct` | `V2C-VAC-{slug}-keypoints.md` + 可选 `V2C-VAC-{slug}-stage-{stage}.md` | `V2C-VAC-{slug}-v{N}.md` | `V2C-VAC-{slug}-gate-report-v{N}.md` | `v2c-vac-canvas-{slug}.html` / `v2c-vac-canvas.html` 索引 |
-| 5W | — | `5W-{slug}-keypoints.md` | `5W-{slug}-v{N}.md` | `5W-{slug}-gate-report-v{N}.md` | `5w-canvas-{slug}.html` / `5w-canvas.html` 索引 |
+| 黄金圈 | — | `GC-{slug}-keypoints.md` | `GC-{slug}-v{N}.md` | `GC-{slug}-gate-report-v{N}.md` | `gc-canvas-{slug}--v{N}.html` / `gc-canvas.html` 索引 |
+| HMW | — | `HMW-{slug}-keypoints.md` | `HMW-{slug}-v{N}.md` | `HMW-{slug}-gate-report-v{N}.md` | `hmw-canvas-{slug}--v{N}.html` / `hmw-canvas.html` 索引 |
+| Persona | — | `PERSONA-{slug}-keypoints.md` | `PERSONA-{slug}-v{N}.md` | `PERSONA-{slug}-gate-report-v{N}.md` | `persona-canvas-{slug}--v{N}.html` / `persona-canvas.html` 索引 |
+| Journey | — | `JOURNEY-{slug}-keypoints.md` | `JOURNEY-{slug}-v{N}.md` | `JOURNEY-{slug}-gate-report-v{N}.md` | `journey-canvas-{slug}--v{N}.html` / `journey-canvas.html` 索引 |
+| V2C VAC | `pipeline` / `transcript-direct` | `V2C-VAC-{slug}-keypoints.md` + 可选 `V2C-VAC-{slug}-stage-{stage}.md` | `V2C-VAC-{slug}-v{N}.md` | `V2C-VAC-{slug}-gate-report-v{N}.md` | `v2c-vac-canvas-{slug}--v{N}.html` / `v2c-vac-canvas.html` 索引 |
+| 5W | — | `5W-{slug}-keypoints.md` | `5W-{slug}-v{N}.md` | `5W-{slug}-gate-report-v{N}.md` | `5w-canvas-{slug}--v{N}.html` / `5w-canvas.html` 索引 |
 
 ```text
 Key Points → 提炼（确认包 v{N}.md）→ Gate（判定报告）→ 渲染（HTML）
@@ -242,7 +242,7 @@ python scripts/check_contract_consistency.py
 
 # 3. 渲染前 audit 必填检查
 python skills/canvas-render/scripts/audit_canvas_html.py \
-  workshop/{project_slug}/{group_id}/{topic_slug}/output/journey-canvas-{slug}.html \
+  workshop/{project_slug}/{group_id}/{topic_slug}/output/journey-canvas-{slug}--v{N}.html \
   --source workshop/{project_slug}/{group_id}/{topic_slug}/modules/JOURNEY-{slug}-v{N}.md \
   --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json \
   --type journey \
@@ -269,14 +269,14 @@ python skills/canvas-render/scripts/audit_canvas_html.py \
 | `python3 scripts/register_expert.py <expert-dir> --session-id <sid>` | 在 WorkBuddy 工具目录注册或重新注册专家 |
 | `find skills/canvas-render/visual-patterns -maxdepth 1 -type f -name '[0-9][0-9]-*.md' \| sort` | 列出视觉模式候选 |
 | `rg -n '^id:|^visual_system:|^layout:|^formality:|^density:|^best_for:' skills/canvas-render/visual-patterns/*.md` | 复核选择元数据 |
-| `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/{topic_slug}/output/module-N-canvas.html --source workshop/{project_slug}/{group_id}/{topic_slug}/modules/Mx-vN.md --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json` | 审计正式模块 Canvas HTML |
-| `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/{topic_slug}/output/gc-canvas-{slug}.html --source workshop/{project_slug}/{group_id}/{topic_slug}/modules/GC-{slug}-vN.md --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json --type gc --instance {slug}` | 审计黄金圈 Canvas HTML |
-| `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/{topic_slug}/output/hmw-canvas-{slug}.html --source workshop/{project_slug}/{group_id}/{topic_slug}/modules/HMW-{slug}-vN.md --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json --type hmw --instance {slug} --template skills/canvas-render/examples/hmw-canvas.html` | 审计 HMW Canvas HTML（双 Gate：内容/授权 + Template） |
-| `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/{topic_slug}/output/persona-canvas-{slug}.html --source workshop/{project_slug}/{group_id}/{topic_slug}/modules/PERSONA-{slug}-vN.md --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json --type persona --instance {slug} --template skills/canvas-render/examples/user-persona-canvas.html` | 审计 Persona Canvas HTML（双 Gate：内容/授权 + Template） |
-| `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/{topic_slug}/output/journey-canvas-{slug}.html --source workshop/{project_slug}/{group_id}/{topic_slug}/modules/JOURNEY-{slug}-vN.md --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json --type journey --instance {slug} --template skills/canvas-render/examples/user-journey-canvas.html` | 审计 Journey Canvas HTML（动态阶段 + 双 Gate） |
-| `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/{topic_slug}/output/v2c-vac-canvas-{slug}.html --source workshop/{project_slug}/{group_id}/{topic_slug}/modules/V2C-VAC-{slug}-vN.md --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json --type v2c-vac --instance {slug} --template skills/canvas-render/examples/v2c-value-attribution-canvas.html` | 审计 V2C VAC HTML（归因链 + V2C-VAC Template Gate） |
-| `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/{topic_slug}/output/5w-canvas-{slug}.html --source workshop/{project_slug}/{group_id}/{topic_slug}/modules/5W-{slug}-vN.md --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json --type 5w --instance {slug} --template skills/canvas-render/examples/5w-canvas.html` | 审计 5W Canvas HTML（五层因果链 + 5W Template Gate） |
-| `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/{topic_slug}/output/maau-global-canvas-{slug}.html --source workshop/{project_slug}/{group_id}/{topic_slug}/modules/MAAU-{slug}-vN.md --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json --type mvl --page-type global --instance {slug} --generation-path transcript-direct` | 审计 MAAU transcript-direct 实例页 HTML（`MAAU_GENERATION` / `[来源: transcript-direct]` / `MAAU-GATE-*` override） |
+| `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/{topic_slug}/output/module-{n}-canvas--v{N}.html --source workshop/{project_slug}/{group_id}/{topic_slug}/modules/Mx-vN.md --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json` | 审计正式模块 Canvas HTML |
+| `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/{topic_slug}/output/gc-canvas-{slug}--v{N}.html --source workshop/{project_slug}/{group_id}/{topic_slug}/modules/GC-{slug}-vN.md --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json --type gc --instance {slug}` | 审计黄金圈 Canvas HTML |
+| `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/{topic_slug}/output/hmw-canvas-{slug}--v{N}.html --source workshop/{project_slug}/{group_id}/{topic_slug}/modules/HMW-{slug}-vN.md --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json --type hmw --instance {slug} --template skills/canvas-render/examples/hmw-canvas.html` | 审计 HMW Canvas HTML（双 Gate：内容/授权 + Template） |
+| `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/{topic_slug}/output/persona-canvas-{slug}--v{N}.html --source workshop/{project_slug}/{group_id}/{topic_slug}/modules/PERSONA-{slug}-vN.md --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json --type persona --instance {slug} --template skills/canvas-render/examples/user-persona-canvas.html` | 审计 Persona Canvas HTML（双 Gate：内容/授权 + Template） |
+| `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/{topic_slug}/output/journey-canvas-{slug}--v{N}.html --source workshop/{project_slug}/{group_id}/{topic_slug}/modules/JOURNEY-{slug}-vN.md --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json --type journey --instance {slug} --template skills/canvas-render/examples/user-journey-canvas.html` | 审计 Journey Canvas HTML（动态阶段 + 双 Gate） |
+| `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/{topic_slug}/output/v2c-vac-canvas-{slug}--v{N}.html --source workshop/{project_slug}/{group_id}/{topic_slug}/modules/V2C-VAC-{slug}-vN.md --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json --type v2c-vac --instance {slug} --template skills/canvas-render/examples/v2c-value-attribution-canvas.html` | 审计 V2C VAC HTML（归因链 + V2C-VAC Template Gate） |
+| `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/{topic_slug}/output/5w-canvas-{slug}--v{N}.html --source workshop/{project_slug}/{group_id}/{topic_slug}/modules/5W-{slug}-vN.md --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json --type 5w --instance {slug} --template skills/canvas-render/examples/5w-canvas.html` | 审计 5W Canvas HTML（五层因果链 + 5W Template Gate） |
+| `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/{topic_slug}/output/maau-global-canvas-{slug}--noflow-v{N}.html --source workshop/{project_slug}/{group_id}/{topic_slug}/modules/MAAU-{slug}-vN.md --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json --type mvl --page-type global --instance {slug} --generation-path transcript-direct` | 审计 MAAU transcript-direct 实例页 HTML（`MAAU_GENERATION` / `[来源: transcript-direct]` / `MAAU-GATE-*` override） |
 | `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/{topic_slug}/output/persona-canvas.html --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json --type persona --index` | 审计 Persona instance 索引页 |
 | `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/{topic_slug}/output/v2c-vac-canvas.html --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json --type v2c-vac --index --page-type v2c-vac-index` | 审计 V2C VAC instance 索引页 |
 | `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/{topic_slug}/output/5w-canvas.html --state workshop/{project_slug}/{group_id}/{topic_slug}/state.json --type 5w --index --page-type 5w-index` | 审计 5W instance 索引页 |

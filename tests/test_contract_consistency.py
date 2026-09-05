@@ -398,7 +398,7 @@ class TestMaauRenderContract:
     def test_render_contract_and_skill_contain_maau_source_and_generation_path(self) -> None:
         contract = read(MVL_CONTRACT)
         skill = read(SKILLS / "canvas-render" / "SKILL.md")
-        for token in ("MAAU-{slug}-v{N}.md", "transcript-direct", "state.maau.{slug}", "maau-global-canvas-{slug}.html"):
+        for token in ("MAAU-{slug}-v{N}.md", "transcript-direct", "state.maau.{slug}", "maau-global-canvas-{slug}--noflow-v{N}.html"):
             assert token in contract, f"render-contract.md 缺 {token}"
             assert token in skill, f"canvas-render/SKILL.md 缺 {token}"
 
@@ -440,7 +440,7 @@ class TestJourneyRenderContract:
         assert "render-contract-journey.md" in skill
         assert "modules/JOURNEY-{slug}-v{N}.md" in skill
         assert "modules/JOURNEY-{slug}-keypoints.md" in skill
-        assert "output/journey-canvas-{slug}.html" in skill
+        assert "output/journey-canvas-{slug}--v{N}.html" in skill
         assert "skills/canvas-render/examples/user-journey-canvas.html" in skill
 
     def test_journey_render_contract_exists_and_defines_dynamic_stages(self) -> None:
@@ -622,7 +622,7 @@ class TestJourneyAgentContract:
             "modules/{文件前缀}-{slug}-keypoints.md",
             "modules/{文件前缀}-{slug}-v{N}.md",
             "modules/{文件前缀}-{slug}-gaps.md",
-            "output/{输出前缀}-canvas-{slug}.html",
+            "output/{输出前缀}-canvas-{slug}--v{N}.html",
             "state.{state_key}.gate_recommendation",
             "render-contract-journey.md",
         ):

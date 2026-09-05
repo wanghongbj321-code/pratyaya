@@ -104,7 +104,7 @@
 2. **HOW**：原则 / 差异化 / 方法
 3. **WHAT**：产品 / 服务 / 证据
 
-主 Agent 引导三层讨论 → 提炼 `GC-{slug}-v{N}.md` → Gate → 确认 → 生成 `gc-canvas-{slug}.html`。同一 group 可有多个黄金圈 instance；`gc-canvas.html` 是索引页。
+主 Agent 引导三层讨论 → 提炼 `GC-{slug}-v{N}.md` → Gate → 确认 → 生成 `gc-canvas-{slug}--v{N}.html`。同一 group 可有多个黄金圈 instance；`gc-canvas.html` 是索引页。
 
 ### 4.3 HMW（多 instance 画布）
 
@@ -115,11 +115,11 @@
 3. **想法种子**：三分支（落地 / 抽象 / 重构）各产出想法，填 8 固定想法格
 4. **想法↔HMW 对应**：每条想法回应问句、对应质量维度、一致性判断
 
-主 Agent 引导讨论 → 提炼 `HMW-{slug}-v{N}.md` → Gate → 确认 → 生成 `hmw-canvas-{slug}.html`。HMW 正式渲染走**双 Gate**（内容/授权 + 结构 Template Gate），结构问题不能自行豁免（详见 [DEVELOPMENT.md §3.1](../DEVELOPMENT.md#31-python-静态审计)）。`hmw-canvas.html` 是索引页。
+主 Agent 引导讨论 → 提炼 `HMW-{slug}-v{N}.md` → Gate → 确认 → 生成 `hmw-canvas-{slug}--v{N}.html`。HMW 正式渲染走**双 Gate**（内容/授权 + 结构 Template Gate），结构问题不能自行豁免（详见 [DEVELOPMENT.md §3.1](../DEVELOPMENT.md#31-python-静态审计)）。`hmw-canvas.html` 是索引页。
 
 ### 4.4 用户画像（多 instance 画布）
 
-用户画像固定覆盖 9 基本信息、6 宫格和 4 项质量鉴别。主 Agent 引导讨论 → 提炼 `PERSONA-{slug}-v{N}.md` → Persona Gate → 用户确认或合规 override → 生成 `persona-canvas-{slug}.html`。正式渲染同样经过内容/授权与 Template 双 Gate；只有 `PERSONA-GATE-03/04` 的业务风险可以显式 override。`persona-canvas.html` 是索引页。
+用户画像固定覆盖 9 基本信息、6 宫格和 4 项质量鉴别。主 Agent 引导讨论 → 提炼 `PERSONA-{slug}-v{N}.md` → Persona Gate → 用户确认或合规 override → 生成 `persona-canvas-{slug}--v{N}.html`。正式渲染同样经过内容/授权与 Template 双 Gate；只有 `PERSONA-GATE-03/04` 的业务风险可以显式 override。`persona-canvas.html` 是索引页。
 
 ### 4.5 用户旅程（多 instance 画布）
 
@@ -130,7 +130,7 @@
 3. **痛点与机会**：痛点、机会与情绪低点形成的痛点与机会摘要（v2.3.2 起）。
 4. **质量鉴别**：用户视角 / 到达业务结果 / 痛点与机会可见 / 未预设方案，正式画布外显，但不进入主表成为第 6 行。
 
-主 Agent 引导讨论 → 提炼 `JOURNEY-{slug}-v{N}.md` → Journey Gate → 确认 / override → 生成 `journey-canvas-{slug}.html`。Journey 正式渲染走**双 Gate**（内容/授权 + 动态阶段 Template Gate），结构问题不能自行豁免。`journey-canvas.html` 是索引页。
+主 Agent 引导讨论 → 提炼 `JOURNEY-{slug}-v{N}.md` → Journey Gate → 确认 / override → 生成 `journey-canvas-{slug}--v{N}.html`。Journey 正式渲染走**双 Gate**（内容/授权 + 动态阶段 Template Gate），结构问题不能自行豁免。`journey-canvas.html` 是索引页。
 
 非 MVL 画布开始时请提供 instance slug，例如 `decision-maker` / `frontline-operator`。slug 必须是小写英文、数字和连字符组成的 kebab-case；新建时不能使用 `default`。
 
@@ -143,13 +143,13 @@ MAAU 一次性综合适合把**明确指定给 MAAU 的一次性逐字稿**（�
 1. 提供逐字稿（文本或文件路径），并指定 `project_slug` / `group_id` 与一个 instance `slug`（kebab-case，如 `retail-demo` / `power-market`）。
 2. 主 Agent 调用 `maau-synthesize` 综合为六板块源包：**Intent** / **User** / **Agent Team** / **Workflow** / **Context** / **Validation**，产出 `modules/MAAU-{slug}-v{N}.md`。
 3. 运行 MAAU Gate（`MAAU-GATE-01~09`）并展示报告，等你在"确认 vN / override / 补问"中选择。
-4. 授权后渲染为 `output/maau-global-canvas-{slug}.html`（含 `[来源: transcript-direct]` 标头）。
+4. 授权后渲染为 `output/maau-global-canvas-{slug}--noflow-v{N}.html`（含 `[来源: transcript-direct]` 标头）。
 
 **关键点**：
 
 - **slug**：每个 MAAU 综合是一个独立实例，同一 group 可并列多个（`maau.{slug}`）。slug 必须为小写英文、数字和连字符组成的 kebab-case；**新建时不能使用 `default`**。
 - **Gate / override**：`MAAU-GATE-*` 中 `information_integrity` 类 FAIL **不接受 override**，必须补问或升版；`business_risk` 类可 override（填写理由、确认人、时间）。
-- **多实例输出**：每个 slug 生成一个实例页 `maau-global-canvas-{slug}.html`；可选生成索引页 `maau-global-canvas.html` 汇总全部实例。
+- **多实例输出**：每个 slug 生成一个实例页 `maau-global-canvas-{slug}--noflow-v{N}.html`；可选生成索引页 `maau-global-canvas.html` 汇总全部实例。
 - **互斥**：MAAU 一次性综合与 M1-M6 Phase 2 全局汇总互斥——同一 group 的 MAAU 输出只能二选一，不把逐字稿综合实例混入六模块汇总。
 
 ### 4.7 V2C VAC 价值归因画布（多 instance 画布）
@@ -188,7 +188,7 @@ V2C VAC Gate 使用 `V2C-GATE-01..12`。只有 `business_risk` 类 Gate FAIL 可
 | 对策四要素 | 对策 / 负责人 / 截止日期 / 验证方式，缺一不可 |
 | 其他原因分支 | 非主链原因单独记录，不强行并入五层链 |
 
-每个 instance 对应一个问题（`instance_slug`，kebab-case，拒绝 `default`）。产物：`5W-{slug}-keypoints.md`（6 节 Key Points）→ `5W-{slug}-v{N}.md`（17 节确认包，唯一事实源）→ `5W-{slug}-gate-report-v{N}.md` → `5w-canvas-{slug}.html`（A3 横版，1-5 卡片横向并排 + 三层面标注）。
+每个 instance 对应一个问题（`instance_slug`，kebab-case，拒绝 `default`）。产物：`5W-{slug}-keypoints.md`（6 节 Key Points）→ `5W-{slug}-v{N}.md`（17 节确认包，唯一事实源）→ `5W-{slug}-gate-report-v{N}.md` → `5w-canvas-{slug}--v{N}.html`（A3 横版，1-5 卡片横向并排 + 三层面标注）。
 
 5W Gate 使用 `5W-GATE-01..07`：`5W-GATE-01~04`（事实陈述 / 五层有内容 / 证据 / 无个人归因）为 `information_integrity`，不可 override；`5W-GATE-05~07`（"因此"检验 / 根因可行动 + 对策四要素 / 预防性回应）为 `business_risk`，可由用户显式 override（`assessment_id` 必须为 `5W-GATE-*`）。
 

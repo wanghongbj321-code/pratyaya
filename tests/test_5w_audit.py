@@ -40,7 +40,7 @@ def write_source_and_state(tmp_path: Path) -> tuple[Path, Path]:
 
 
 def run_5w_audit(html: Path, *extra: str) -> subprocess.CompletedProcess[str]:
-    cmd = [PYTHON, str(AUDIT), str(html), "--type", "5w", *extra]
+    cmd = [PYTHON, str(AUDIT), "--artifact-policy", "legacy", str(html), "--type", "5w", *extra]
     return subprocess.run(cmd, capture_output=True, text=True)
 
 

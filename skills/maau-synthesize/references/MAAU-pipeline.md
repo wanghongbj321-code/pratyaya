@@ -17,7 +17,7 @@
 
 - `modules/MAAU-{slug}-v{N}.md`（六板块源包，唯一事实源）；
 - `modules/MAAU-{slug}-gate-report-v{N}.md`（Gate 报告）；
-- `output/maau-global-canvas-{slug}.html`（全局画布）。
+- `output/maau-global-canvas-{slug}--noflow-v{N}.html`（全局画布）。
 
 ## 状态写入
 
@@ -30,7 +30,7 @@
 | 情况 | 走哪条路径 |
 |---|---|
 | 已有 M1–M6 全部 `rendered`，用户要汇总模块 | Phase 2（`skills/mvl-distill/references/global-pipeline.md`） |
-| 用户提供新逐字稿并明确要求 MAAU 一次性综合 | Phase 3（逐字稿 → `MAAU-{slug}-v{N}.md` → `maau-global-canvas-{slug}.html`） |
+| 用户提供新逐字稿并明确要求 MAAU 一次性综合 | Phase 3（逐字稿 → `MAAU-{slug}-v{N}.md` → `maau-global-canvas-{slug}--noflow-v{N}.html`） |
 | 两者同时成立 | **必须让用户选择**，不得自动混用；说明两条路径互斥；可说明基于新逐字稿走 Phase 3 会新建实例，用户也可改选基于既有 M1–M6 走 Phase 2 |
 
 ## 流程
@@ -43,17 +43,21 @@
 6. 状态按缺口进入 `gaps_open` 或 `review_ready`；
 7. 调用 `module-conclusion-gate` 的 MAAU 模式（`gate_reference=references/MAAU-gate.md`），输出 gate 报告，`gate_recommendation` 写 `state.maau.{slug}`；
 8. 展示 Gate 报告，等用户 **确认 vN / override / 补问**；
-9. 授权后调用 `canvas-render`（`canvas_type=mvl`、`page_type=global`、`generation_path=transcript-direct`、`instance_slug={slug}`），输出 `output/maau-global-canvas-{slug}.html`；
+9. 授权后调用 `canvas-render`（`canvas_type=mvl`、`page_type=global`、`generation_path=transcript-direct`、`instance_slug={slug}`），输出 `output/maau-global-canvas-{slug}--noflow-v{N}.html`；
 10. 运行分级渲染验收（L1 静态审计 + L2 双视口 DOM 断言必做，L3 截图目检按需；定义见 `skills/canvas-render/SKILL.md`「分级渲染验收」）通过后置 `rendered`：
     ```bash
-    python3 skills/canvas-render/scripts/audit_canvas_html.py output/maau-global-canvas-{slug}.html \
+    python3 skills/canvas-render/scripts/audit_canvas_html.py output/maau-global-canvas-{slug}--noflow-v{N}.html \
       --source modules/MAAU-{slug}-v{N}.md \
       --state state.json \
       --type mvl \
       --page-type global \
       --instance {slug} \
-      --generation-path transcript-direct
+      --generation-path transcript-direct \
+      --workflow-variant noflow
     ```
+
+11. 无图验收成功后先提交并交付，询问用户是否需要 Workflow 图；需要则按 `skills/canvas-render/references/two-phase-render.md` 确认布局、生成 SVG、有图候选与完整验收，提交 `output/maau-global-canvas-{slug}--workflow-v{N}.html`，L1/L2 均传 `--workflow-variant workflow`。
+12. 两次提交都先复核当前版本授权。已有成功产物时失败/取消保持 `rendered`、原 `output_file` 与文件；成功才更新最近路径。临时候选审计传 `--target-output`，不在正式路径试写。
 
 ## 关键约束
 
@@ -69,4 +73,4 @@
 
 ## 渲染审计
 
-- 只渲染实例自身 `maau-global-canvas-{slug}.html`；审计命令参数见上；渲染契约 / 锚点映射以 `render-contract.md` 与 `mvl-canvas-spec.md` 为准。
+- 两形态仅渲染实例自身 `maau-global-canvas-{slug}--noflow-v{N}.html`；审计命令参数见上；渲染契约 / 锚点映射以 `render-contract.md` 与 `mvl-canvas-spec.md` 为准。

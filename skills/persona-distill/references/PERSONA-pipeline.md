@@ -27,7 +27,7 @@
 - `modules/PERSONA-{slug}-gaps.md`；
 - `modules/PERSONA-{slug}-v{N}.md`（确认包，业务事实源）；
 - `modules/PERSONA-{slug}-gate-report-v{N}.md`；
-- `output/persona-{slug}-canvas.html`；索引页 `output/persona-canvas.html`。
+- `output/persona-canvas-{slug}--v{N}.html`；索引页 `output/persona-canvas.html`。
 
 ## 状态写入
 
@@ -43,7 +43,7 @@
 - **步骤 5 确认包展示**：5 条必展项 + 详情折叠；
 - **步骤 6 Gate + 用户决策**：见「Gate」；
 - **步骤 7 视觉模式与渲染**：扫描并列出全部候选（默认预选 10 黑灰）→ 用户确认/改选 → `canvas-render`；
-- **步骤 8 完成**：`output/persona-{slug}-canvas.html`；索引页 `output/persona-canvas.html`。
+- **步骤 8 完成**：`output/persona-canvas-{slug}--v{N}.html`；索引页 `output/persona-canvas.html`。
 
 **δ1**：Persona 是**独立单画布**，不改造 MVL M2 的 `08-user-persona.md`。
 **δ2**：六宫格 6 区必须全有内容或显式标缺口。
@@ -60,7 +60,7 @@
 - 前置校验 `state.persona.{slug}.render_authorized=true`（渲染前置校验示例，`state.json.persona.{slug}.render_authorized=true`）；
 - 审计命令参数化：`--type persona`、`--instance {slug}`、`--page-type persona-index`、`--source modules/PERSONA-{slug}-v{N}.md --state state.json`；
 - 示例模板按 agent「画布注册表」`示例模板` 列取；
-- 分级渲染验收（L1 静态审计 + L2 双视口 DOM 断言必做，L3 截图目检按需；定义见 `skills/canvas-render/SKILL.md`「分级渲染验收」）全过后置 `rendered`；失败保持 `confirmed`。
+- 分级渲染验收（L1 静态审计 + L2 双视口 DOM 断言必做，L3 截图目检按需；定义见 `skills/canvas-render/SKILL.md`「分级渲染验收」）全过后置 `rendered`；首次失败保持 `confirmed`，同版本重渲染失败保持原 `rendered`、output_file 和成功文件。
 
 ## 强制执行指令
 
@@ -73,3 +73,5 @@
 5. Gate 只给建议；`render_authorized` 只能由用户显式授权（gate_pass 或 override）。
 6. Persona 是独立单画布，不生成全局汇总，不改造 MVL M2 的 `08-user-persona.md`。
 ```
+
+正式输出遵循 `skills/canvas-render/references/two-phase-render.md` 的机器后缀和候选提交规则：current 审计（默认），临时候选传 `--target-output <正式路径>`；成功才更新实际 output_file，索引读取该值。legacy 仅用于历史复查。索引 `--page-type` 参数只用于 `--index` 命令，详情审计不传 index page type。
