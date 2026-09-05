@@ -3,6 +3,21 @@
 > 本文件记录 Pratyaya 专家的正式版本变更。
 > 完整 SemVer 与架构说明见 [`README.md`](./README.md) / [`DESIGN.md`](./DESIGN.md) / [docs/MVL-整体架构设计.md](./docs/MVL-整体架构设计.md)。
 
+## [v3.6.1] - 2026-09-06
+
+### 修复（PATCH）
+
+- **Workflow 流程图回退为 LLM 直出（移除布局器）**：经用户实测，python 确定性布局器（`workflow_layout`，v3.5.0–v3.6.0）产出的 Workflow 可视化布局效果不可接受，本版起 workflow 形态 SVG 由 LLM 从确认包按 `render-contract.md` §A1 直接静态生成（轨道带 / actor 徽章 / 序号徽标 / 正交 `M/H/V` 连线禁曲线 / dashed 回流走 gutter，SVG class 复用母版、视觉 token 由宿主 CSS 单点控制）；两阶段渲染、noflow/workflow 形态判定、`--v{N}` / `--noflow-v{N}` / `--workflow-v{N}` 版本化命名与身份审计（`--artifact-policy current|legacy` / `--target-output`）全部保留。
+- **删除布局器代码资产**：`skills/canvas-render/scripts/workflow_layout/` 整目录（`workflow_layout.py`、VERSION 0.2.0、`fork_guide.md`、`layout_override.schema.md` / `layout_override.example.json`）、`tests/test_workflow_layout.py`、`tests/fixtures/workflow_layout/`（3 个 fixture）及 `tests/test_two_phase_render.py` 内 2 项 fragment 测试；`canvas-data.workflow.layout` 溯源字段与 `layout_trace` 不再产生。
+- **AGENTS.md 规则 3 恢复 v3.4.1 原文**：禁止新增或使用渲染脚本，渲染统一通过 canvas-render Skill；删除"几何展开工具为官方资产"条款与 workflow_layout CLI（`--fragment` / `--svg`）说明。若未来确需自动化渲染入口，先按规则 2 提出设计变更，经用户确认后再实现。
+- **SKILL / render-contract / two-phase-render / agent 同步改写**：SKILL「Workflow 流程图生成」小节改 LLM 静态生成；render-contract §A1 头与 A1.5 删除布局器生成 / 溯源字段说明，保留完整 schema 拓扑约束（tracks 非空 / track 归属 / 任务类 actor 合法 / edges 引用存在）；two-phase-render §2.1 / §4 / §5 布局器步骤与直出边界改写为 LLM 生成与验收；agent 编排节同步。示例母版 `examples/mvl-canvas/maau-global-canvas.html` 注释与 `canvas-data.workflow.layout` 溯源字段清除（SVG 结构保留为 LLM 版面母版）。
+- 既有历史产物无损：已交付 HTML 若带 `canvas-data.workflow.layout` 字段，audit 对未知可选字段宽容、不追溯不改写。L1 `audit_workflow_flow`（结构 / 正交断言）与 L2 `canvas-smoke.mjs` 维持 LLM 时代静态把关；L3 截图目检按需触发（模板 / SVG 结构变化时必做）。布局效果靠 L1/L2 + 目检人工把关，无自动几何自检（明确取舍）。
+
+### 兼容性与迁移边界
+
+- `plugin.json` `version` `3.6.0` → `3.6.1`（PATCH）；`state.schema.json` `schema_version` 保持 `"2.4"`，`canvas-data.workflow` 业务拓扑 schema 不变。
+- v3.6.0 曾合入 main（PR #31）但未 tag/Release，本版为其功能回退；对外发布版本为 v3.6.1。回退不影响两阶段渲染能力与文件身份规则；历史文件不追溯改名或重渲染。
+
 ## [v3.6.0] - 2026-09-05
 
 ### 新增功能（MINOR）
