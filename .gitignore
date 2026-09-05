@@ -17,6 +17,7 @@ Thumbs.db
 *.tmp
 __pycache__/
 *.pyc
+*.egg-info/
 .venv/
 
 # 临时文件
