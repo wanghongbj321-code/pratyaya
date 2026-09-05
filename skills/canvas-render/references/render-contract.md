@@ -61,25 +61,41 @@
 
 ### A1. Workflow BPMN 流程图（`#workflow-flow`）
 
-Workflow 板块在 `.maau-fields` 文本框之下必须包含一张**派生只读**的 BPMN 可视化流程图（`id="workflow-flow"`，全局页稳定锚点）。流程图是展示层派生视图：渲染时由 LLM 从确认包（`MAAU-{slug}-v{N}.md` / `Mx-v{N}.md`）Workflow section 按以下规则静态生成内联 SVG，不新增分析、不补写业务内容。
+Workflow 板块在 `.maau-fields` 文本框之下必须包含一张**派生只读**的 BPMN 可视化流程图（`id="workflow-flow"`，全局页稳定锚点）。该契约适用于 MVL Phase 2 全局汇总页（`maau-global-canvas.html`）与 MAAU transcript-direct 实例页（`maau-global-canvas-{slug}.html`）。流程图是展示层派生视图：渲染时由 LLM 从确认包（`MAAU-{slug}-v{N}.md` / `Mx-v{N}.md`）Workflow section 按以下规则静态生成内联 SVG，不新增分析、不补写业务内容。
 
 #### A1.1 DOM 结构
 
 ```html
 <div class="maau-flow" id="workflow-flow" aria-label="Workflow BPMN 流程图">
-  <svg class="bpmn-flow" role="img" aria-label="Workflow BPMN 流程图" viewBox="...">
-    <defs><marker id="flow-arrow" ...>...</marker></defs>
-    <!-- 泳道（桌面）/ 节点 / 顺序流，全部内联 SVG -->
-  </svg>
-  <div class="bpmn-legend" aria-label="BPMN 图例">
-    <!-- 三类节点符号图例：齿轮 = Agent 执行；小人头 = 人工操作/确认；组合 = 人审 + Agent 执行；菱形 = 关键规则分支 -->
+  <div class="maau-flow-head">
+    <span class="maau-flow-title">流程可视化（BPMN 2.0 风格）</span>
+    <span class="maau-flow-meta">Workflow Flow · v{N}</span>
   </div>
+  <div class="bpmn-flow-wrap">
+    <svg class="bpmn-flow" role="img" aria-label="Workflow BPMN 流程图" viewBox="...">
+      <defs>
+        <marker id="flow-arrow" ...>...</marker>
+        <marker id="flow-arrow-dash" ...>...</marker>
+      </defs>
+      <g class="bpmn-track" data-track="A">...</g>
+      <g class="bpmn-node" data-node-type="agent_execution" data-node-id="w1" data-track="A">
+        <rect class="bpmn-task" .../>
+        <g class="bpmn-actor" data-actor="ai">...</g>
+        <g class="bpmn-number">...</g>
+      </g>
+      <path class="bpmn-sequence" d="M...H...V..." marker-end="url(#flow-arrow)"/>
+      <path class="bpmn-sequence bpmn-reflow" d="M...H...V..." marker-end="url(#flow-arrow-dash)"/>
+    </svg>
+  </div>
+  <div class="bpmn-legend" aria-label="BPMN 图例">...</div>
+  <div class="workflow-done" id="workflow-done">...</div>
 </div>
 ```
 
 - `#workflow-flow` 必须唯一；空数据时显示"未讨论"占位，结构与锚点仍存在。
 - 现有 `#workflow-*` 文本框锚点保持不变（文本框是本地批注载体，流程图是派生只读视图）。
 - SVG 必须使用内联样式与系统字体，禁止外链资源（沿用离线约束）。
+- `#workflow-done` 是条件锚点：`completion_condition` 有内容时渲染，空内容时不占位，不加入 `GLOBAL_MAIN_IDS`。
 
 #### A1.2 BPMN 子集与元素映射
 
@@ -87,31 +103,41 @@ Workflow 板块在 `.maau-fields` 文本框之下必须包含一张**派生只�
 |---|---|---|---|
 | Start Event | 单线空心圆 | `trigger` | `data-node-type="start"` |
 | Task | 圆角矩形 | `steps` 中的步骤 | `data-node-type="agent_execution"` / `"human_operation"` / `"human_review"` |
-| Exclusive Gateway | 菱形 | `rules` 中的分支（升级/停止/回退） | `data-node-type="gateway"` |
-| End Event | 粗线实心圆 | `completion_condition` | `data-node-type="end"` |
-| Sequence Flow | 实线箭头，可带条件标签 | 步骤间流向；Gateway 流出线标注条件 | `<path>` + `marker-end="url(#flow-arrow)"` |
+| Exclusive Gateway | 菱形 | `rules` 中的分支（升级/停止/回退/如果→否则） | `data-node-type="gateway"` |
+| Timer Event | 空心圆 + 时间符号 | 文本明确出现每日 / 定时 / 周期 | `data-node-type="timer"` |
+| Message Event | 空心圆 + 消息符号 | 文本明确出现消息 / 推送 / 通知 | `data-node-type="message"` |
+| Data Store | 圆柱 | 文本明确出现入库 / 知识库 / 经验库 / 存储，且有回流语义 | `data-node-type="data_store"` |
+| End Event | 双线空心圆 | `completion_condition` | `data-node-type="end"` |
+| Sequence Flow | 实线箭头，可带条件标签 | 步骤间流向；Gateway 流出线标注条件 | `<path class="bpmn-sequence">` + `marker-end="url(#flow-arrow)"` |
+| Reflow / Feedback Flow | 虚线箭头 | 明确的回流 / 反馈 / 循环 | `<path class="bpmn-sequence bpmn-reflow">` + `marker-end="url(#flow-arrow-dash)"` |
 
-三类节点任务类型符号（必须呈现，供图例与审计识别）：
-- **Agent 执行** → Service Task（右上角齿轮图标）；
-- **人工操作/确认** → User Task（右上角小人头图标）；
-- **人审 + Agent 执行** → 组合节点（User Task + Service Task 串联，或置于泳道交界）。
+三类任务节点必须呈现 actor 徽标（右上角小方片）：
+- **Agent 执行** → `type="agent_execution"`，`actor="ai"` 或 `actor="system"`；
+- **人工操作/确认** → `type="human_operation"`，`actor="human"`；
+- **人审 + Agent 执行** → `type="human_review"`，`actor="hybrid"` 或 `actor="reviewer"`。
 
-每个 SVG 节点必须是 `<g class="bpmn-node" data-node-type="{type}" data-node-id="{id}" ...>`，且 `data-node-type` 与 `canvas-data.workflow.nodes[].type` 一致。所有节点（含 Start / End 事件）**左上角显示流程序号徽标**（白底黑色小字号，`01` 起按 Start → End 拓扑序递增），徽标数字与 `canvas-data.workflow.nodes[].number` 一致。任务类型**不使用** BPMN Task Marker 图标，由泳道（桌面三泳道）/ 节点在流程中的位置区分；图例（`.bpmn-legend`）只列 Start / Task / Gateway / End 四类图形符号。
+`actor` 使用稳定英文机器值：`human / ai / system / hybrid / reviewer`；显示文案固定映射为 `人 / AI / 系统 / 人+AI / 审核`。BPMN Manual Task 本轮不新增独立 `type`，映射为 `human_operation + actor="human"`。
+
+每个 SVG 节点必须是 `<g class="bpmn-node" data-node-type="{type}" data-node-id="{id}" data-track="{track}">`，且 `data-node-type`、`data-track` 与 `canvas-data.workflow.nodes[]` 一致。所有节点（含 Start / End 事件）**左上角显示流程序号徽标**，徽标数字与 `canvas-data.workflow.nodes[].number` 一致。
 
 #### A1.3 派生规则
 
 1. **主干链**：`steps` 列表顺序 → 默认线性 Sequence Flow 链。
-2. **起止**：`trigger` → Start Event 置于链首；`completion_condition` → End Event 置于链尾。
-3. **分支**：`rules` 含分支语义（升级/停止/回退/如果→否则）时，在对应位置插入 Exclusive Gateway（菱形），流出线标注条件标签。
-4. **节点归类**：每个步骤按内容归入三类节点之一 → 桌面版入对应泳道（Lane），窄屏版打节点角标，并应用对应 Task 图标。
-5. **无法确定性推断的拓扑**：保守线性连接，不确定的分支信息进入缺口表承载，不编造分支。
-6. **缺类/缺字段**：按既有规则显示"未讨论"，不得补写。
-7. **连接线正交**：Sequence Flow 只使用横线 / 竖线 / 肘型折线（SVG 路径命令仅 `M` / `H` / `V`），禁止曲线 / 斜线命令（`C` / `Q` / `S` / `A`）；连接线端点必须落在节点边框的中点（左 / 右 / 上 / 下边缘中心），不得接到节点边角或顶部任意位置。
+2. **轨道判定**：扫描 steps/三类节点文本中的阶段前缀或标题（如 `A1…A6` / `B1…B3` / `C1…C3`、"流水线 / 对话层 / 学习闭环"等语义）分组为业务阶段轨道带；无法解析阶段 → 固定单轨 `main`，不硬造多轨。
+3. **起止**：`trigger` → Start；`completion_condition` → End。
+4. **节点归类**：每个步骤按内容归入三类节点（与确认包三类节点章节一一对应），决定 `type` 与 `actor`；无法确定 `ai` 还是 `system` 时，Agent 执行节点优先 `ai`。
+5. **可选事件/存储派生**：文本明确含"每日/定时/周期"→ `timer`；"消息/推送/通知"→ `message`；"入库/知识库/经验库/存储"且有回流语义 → `data_store`。语义不明确时不派生，宁可单轨直链。
+6. **分支**：`rules` 含分支语义（升级/停止/回退/如果→否则/低置信升级）→ 对应位置插 Exclusive Gateway，流出线标注条件；无法确定性推断的拓扑 → 保守线性连接，不确定分支信息进缺口表承载，不编造。
+7. **回流 / 闭环虚线**：文本明确表达"回流 / 次日循环 / 定期重复 / 反哺"且目标节点可定位时，画正交虚线回流；不确定就不画。
+8. **缺类/缺字段**：按既有规则显示"未讨论"，不得补写；`completion_condition` 有内容才渲染 `#workflow-done` 清单。
+9. **连接线正交**：Sequence Flow 只使用横线 / 竖线 / 肘型折线（SVG 路径命令仅 `M` / `H` / `V`），禁止曲线 / 斜线命令（`C` / `Q` / `S` / `A`）。
 
-#### A1.4 泳道（桌面）与响应式
+#### A1.4 轨道带与响应式
 
-- 桌面：Pool = MAAU 工作流；三个水平 Lane = Agent 执行 / 人工操作确认 / 人审 + Agent 执行；跨泳道箭头表达人机交接。
-- 窄屏（390px）：退化为单流（泳道转为节点角标/图标），置于横向滚动容器（`overflow-x: auto`）。
+- 桌面：Pool = MVL/MAAU 全局 Workflow；轨道带 = 业务阶段（A/B/C... 或单轨 `main`），节点自左向右排列，跨轨道箭头表达人机交接或反馈闭环。
+- 单轨：固定写 `tracks=[{"id":"main","label":"Workflow 主链"}]`，节点 `track="main"`。
+- 窄屏（390px）：保留横向滚动容器（`.bpmn-flow-wrap { overflow-x:auto; }`），不把轨道语义改写成新的数据结构。
+- MVL 全局页打印幅面为 A3 横版；M1-M6 模块详情页保持既有幅面，本节不适用。
 
 #### A1.5 `canvas-data` 拓扑数据
 
@@ -119,27 +145,35 @@ Workflow 板块在 `.maau-fields` 文本框之下必须包含一张**派生只�
 
 ```json
 "workflow": {
+  "tracks": [
+    { "id": "main", "label": "Workflow 主链" }
+  ],
   "nodes": [
-    { "id": "w0", "number": "01", "type": "start", "label": "触发条件（trigger）" },
-    { "id": "w1", "number": "02", "type": "agent_execution", "label": "..." },
-    { "id": "w2", "number": "03", "type": "gateway", "label": "关键规则分支" },
-    { "id": "w3", "number": "04", "type": "human_operation", "label": "..." },
-    { "id": "w4", "number": "05", "type": "human_review", "label": "..." },
-    { "id": "w5", "number": "06", "type": "end", "label": "完成条件（completion_condition）" }
+    { "id": "w0", "number": "01", "type": "start", "track": "main", "label": "触发条件（trigger）" },
+    { "id": "w1", "number": "02", "type": "agent_execution", "track": "main", "actor": "ai", "label": "..." },
+    { "id": "w2", "number": "03", "type": "gateway", "track": "main", "label": "关键规则分支" },
+    { "id": "w3", "number": "04", "type": "human_operation", "track": "main", "actor": "human", "label": "..." },
+    { "id": "w4", "number": "05", "type": "human_review", "track": "main", "actor": "hybrid", "label": "..." },
+    { "id": "w5", "number": "06", "type": "end", "track": "main", "label": "完成条件（completion_condition）" }
   ],
   "edges": [
     { "from": "w0", "to": "w1" },
-    { "from": "w2", "to": "w3", "label": "条件标签" }
+    { "from": "w2", "to": "w3", "label": "条件标签" },
+    { "from": "w4", "to": "w1", "dashed": true, "label": "反馈回流" }
   ]
 }
 ```
 
 约束：
-- `nodes[].type ∈ {start, end, gateway, agent_execution, human_operation, human_review}`；
+- `tracks` 必须为非空数组；多阶段时写 A/B/C 等业务阶段，单轨固定写 `main`；
+- `nodes[].track` 必填且必须引用 `tracks[].id`；
+- `nodes[].type ∈ {start, end, gateway, agent_execution, human_operation, human_review, timer, message, data_store}`；
 - `nodes` 必须覆盖 `agent_execution / human_operation / human_review` 三类（与确认包三类节点一一对应）；
-- `nodes[].number` 必填且唯一（流程序号，`01` 起按拓扑序，与左上角徽标一致）；
+- 任务类节点必须有 `nodes[].actor ∈ {human, ai, system, hybrid, reviewer}`；
+- `nodes[].number` 必填且唯一，`01` 起按 Start→End 主链阅读序递增；回流 / 反馈边不参与重新排序；
 - `edges[].from / to` 必须引用存在的 node id；
-- SVG 中 `bpmn-node` 数量必须等于 `nodes` 数量；`data-node-type` 与 `nodes[].type` 一致；
+- `edges[].dashed=true` 必须对应 SVG 中一条 `bpmn-reflow` 路径；
+- SVG 中 `bpmn-node` 数量必须等于 `nodes` 数量；`data-node-type`、`data-track` 与 `nodes` 一致；
 - Sequence Flow 只允许正交折线（`M` / `H` / `V`），禁止曲线命令（`C` / `Q` / `S` / `A`）。
 
 ## B. 模块详情 Canvas 页面结构

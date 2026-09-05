@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MVL Phase 2 Global Canvas · Workflow</title>
+<style>
+:root{--ink:#000;--muted:#6b6b6b;--line:#000;--paper:#fff;--pale:#f5f5f5;--font:"Helvetica Neue",Arial,"Microsoft YaHei","PingFang SC",sans-serif}
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:var(--ink);font-family:var(--font);line-height:1.55}
+@page{size:A3 landscape;margin:8mm}
+.wrap{max-width:1400px;margin:0 auto;padding:24px}
+.maau-header{border-bottom:2px solid #000;padding-bottom:12px;margin-bottom:16px}
+.maau-header h1{margin:0;font-size:26px}
+main{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.board{min-width:0;border:1.6px solid #000;border-radius:8px;padding:12px;background:#fff}
+#workflow{grid-column:1/-1}
+.maau-flow{margin-top:12px;padding-top:10px;border-top:1px dashed #000}
+.maau-flow-head{display:flex;justify-content:space-between;gap:10px;margin-bottom:8px;font-size:11px;font-weight:800}
+.maau-flow-meta{color:var(--muted)}
+.bpmn-flow-wrap{max-width:100%;overflow-x:auto;border:1px solid #000;border-radius:6px;background:#fff}
+.bpmn-flow{display:block;width:100%;min-width:920px;height:auto}
+.bpmn-flow text{font-family:var(--font);font-size:11px;fill:#000}
+.bpmn-track-label{font-size:11px;font-weight:800;fill:var(--muted)}
+.bpmn-task{fill:#fff;stroke:#000;stroke-width:1.6}
+.bpmn-actor rect{fill:#000}
+.bpmn-actor text{fill:#fff;font-size:8px;font-weight:800}
+.bpmn-number rect{fill:#fff;stroke:#000;stroke-width:.8}
+.bpmn-number text{fill:#000;font-size:8px;font-weight:800}
+.bpmn-legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:8px;font-size:10.5px}
+.bpmn-legend-item{display:inline-flex;align-items:center;gap:5px}
+.bpmn-legend-symbol{width:18px;height:18px}
+.workflow-done{margin-top:8px;border:1px solid #000;border-radius:6px;background:#f5f5f5;padding:8px 10px;font-size:12px}
+.maau-governance,.local-notes{margin-top:12px;border:1px solid #000;border-radius:8px;padding:10px;font-size:12px}
+@media(max-width:980px){main{grid-template-columns:1fr}}
+@media print{.wrap{max-width:none;padding:0}.bpmn-flow-wrap{overflow:visible}.bpmn-flow{width:100%;min-width:0}}
+</style>
+</head>
+<body data-theme="base" data-mode="formal" data-canvas="mvl" data-page-type="global" data-version="1">
+<div class="wrap">
+  <header class="maau-header" id="canvas-header">
+    <h1>MVL Phase 2 全局画布</h1>
+  </header>
+  <main>
+    <section class="board" id="intent"><h2>Intent</h2><div id="intent-goal">提升客服高频问题处理效率</div></section>
+    <section class="board" id="user"><h2>User</h2><div id="user-users">客服主管与一线客服</div></section>
+    <section class="board" id="agent-team"><h2>Agent Team</h2><div id="agent-team-roles">客服 Agent + 人工复核</div></section>
+    <section class="board" id="workflow">
+      <h2>Workflow</h2>
+      <div id="workflow-steps">接收问题 → 生成答复 → 人工复核 → 发送结果</div>
+      <div id="workflow-automation">Agent 识别意图并生成答复</div>
+      <div id="workflow-human-checkpoints">客服复核低置信回复</div>
+      <div id="workflow-human-agent-nodes">人工确认后 Agent 发送答复并记录结果</div>
+      <div id="workflow-rules">低置信度进入人工复核；通过后发送</div>
+      <div class="maau-flow" id="workflow-flow" aria-label="Workflow BPMN 流程图">
+        <div class="maau-flow-head">
+          <span class="maau-flow-title">流程可视化（BPMN 2.0 风格）</span>
+          <span class="maau-flow-meta">Workflow Flow · v1</span>
+        </div>
+        <div class="bpmn-flow-wrap">
+          <svg class="bpmn-flow" role="img" aria-label="Workflow BPMN 流程图" viewBox="0 0 920 180">
+            <defs>
+              <marker id="flow-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+                <path d="M0,0 L10,5 L0,10 z" fill="#000"/>
+              </marker>
+            </defs>
+            <g class="bpmn-track" data-track="main">
+              <rect class="bpmn-track-bg" x="36" y="32" width="848" height="104" fill="#fafafa" stroke="#000" stroke-width="1"/>
+              <text class="bpmn-track-label" x="52" y="56">Workflow 主链</text>
+            </g>
+            <g class="bpmn-flow-path">
+              <path class="bpmn-sequence" d="M96 92 H146" fill="none" stroke="#000" stroke-width="1.5" marker-end="url(#flow-arrow)"/>
+              <path class="bpmn-sequence" d="M266 92 H316" fill="none" stroke="#000" stroke-width="1.5" marker-end="url(#flow-arrow)"/>
+              <path class="bpmn-sequence" d="M436 92 H486" fill="none" stroke="#000" stroke-width="1.5" marker-end="url(#flow-arrow)"/>
+              <path class="bpmn-sequence" d="M606 92 H656" fill="none" stroke="#000" stroke-width="1.5" marker-end="url(#flow-arrow)"/>
+              <path class="bpmn-sequence" d="M776 92 H824" fill="none" stroke="#000" stroke-width="1.5" marker-end="url(#flow-arrow)"/>
+            </g>
+            <g class="bpmn-node" data-node-type="start" data-node-id="w0" data-track="main">
+              <circle cx="72" cy="92" r="24" fill="#fff" stroke="#000" stroke-width="1.6"/>
+              <g class="bpmn-number"><rect x="63.5" y="48" width="17" height="13" rx="3"/><text x="72" y="58" text-anchor="middle">01</text></g>
+              <text x="72" y="96" text-anchor="middle">触发</text>
+            </g>
+            <g class="bpmn-node" data-node-type="agent_execution" data-node-id="w1" data-track="main">
+              <rect class="bpmn-task" x="146" y="64" width="120" height="56" rx="8"/>
+              <g class="bpmn-actor" data-actor="ai"><rect x="238" y="69" width="22" height="16" rx="3"/><text x="249" y="81" text-anchor="middle">AI</text></g>
+              <g class="bpmn-number"><rect x="152" y="70" width="17" height="13" rx="3"/><text x="160.5" y="80" text-anchor="middle">02</text></g>
+              <text x="206" y="96" text-anchor="middle">生成答复</text>
+            </g>
+            <g class="bpmn-node" data-node-type="gateway" data-node-id="w2" data-track="main">
+              <polygon points="376,62 406,92 376,122 346,92" fill="#fff" stroke="#000" stroke-width="1.6"/>
+              <g class="bpmn-number"><rect x="367.5" y="42" width="17" height="13" rx="3"/><text x="376" y="52" text-anchor="middle">03</text></g>
+              <text x="376" y="96" text-anchor="middle">低置信?</text>
+            </g>
+            <g class="bpmn-node" data-node-type="human_operation" data-node-id="w3" data-track="main">
+              <rect class="bpmn-task" x="486" y="64" width="120" height="56" rx="8"/>
+              <g class="bpmn-actor" data-actor="human"><rect x="578" y="69" width="22" height="16" rx="3"/><text x="589" y="81" text-anchor="middle">人</text></g>
+              <g class="bpmn-number"><rect x="492" y="70" width="17" height="13" rx="3"/><text x="500.5" y="80" text-anchor="middle">04</text></g>
+              <text x="546" y="96" text-anchor="middle">人工复核</text>
+            </g>
+            <g class="bpmn-node" data-node-type="human_review" data-node-id="w4" data-track="main">
+              <rect class="bpmn-task" x="656" y="64" width="120" height="56" rx="8"/>
+              <g class="bpmn-actor" data-actor="hybrid"><rect x="744" y="69" width="28" height="16" rx="3"/><text x="758" y="81" text-anchor="middle">人+AI</text></g>
+              <g class="bpmn-number"><rect x="662" y="70" width="17" height="13" rx="3"/><text x="670.5" y="80" text-anchor="middle">05</text></g>
+              <text x="716" y="96" text-anchor="middle">发送记录</text>
+            </g>
+            <g class="bpmn-node" data-node-type="end" data-node-id="w5" data-track="main">
+              <circle cx="848" cy="92" r="24" fill="#fff" stroke="#000" stroke-width="3.2"/>
+              <g class="bpmn-number"><rect x="839.5" y="48" width="17" height="13" rx="3"/><text x="848" y="58" text-anchor="middle">06</text></g>
+              <text x="848" y="96" text-anchor="middle">完成</text>
+            </g>
+          </svg>
+        </div>
+        <div class="bpmn-legend" aria-label="BPMN 图例">
+          <span class="bpmn-legend-item"><svg class="bpmn-legend-symbol" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="7" fill="#fff" stroke="#000" stroke-width="1.4"/></svg>Start / End 事件</span>
+          <span class="bpmn-legend-item"><svg class="bpmn-legend-symbol" viewBox="0 0 18 18" aria-hidden="true"><rect x="1" y="4" width="16" height="10" rx="2" fill="#fff" stroke="#000" stroke-width="1.4"/></svg>Task 任务</span>
+          <span class="bpmn-legend-item">AI / 人 / 人+AI actor 徽标</span>
+          <span class="bpmn-legend-item"><svg class="bpmn-legend-symbol" viewBox="0 0 18 18" aria-hidden="true"><polygon points="9,1 17,9 9,17 1,9" fill="#fff" stroke="#000" stroke-width="1.4"/></svg>Gateway 网关</span>
+        </div>
+        <div class="workflow-done" id="workflow-done">完成条件：答复发送并记录处理结果</div>
+      </div>
+    </section>
+    <section class="board" id="context"><h2>Context</h2><div id="context-knowledge">FAQ 知识库与历史工单</div></section>
+    <section class="board" id="validation"><h2>Validation</h2><div id="validation-executable">可在高频咨询中跑通</div></section>
+  </main>
+  <aside class="maau-governance" id="quality-panel" aria-label="质量与治理">
+    <div id="quality-version">v1</div>
+    <div id="quality-approval">gate_pass</div>
+    <div id="quality-gaps">无</div>
+    <div id="quality-risks">无</div>
+    <div id="quality-caveat" hidden>无</div>
+    <section id="alignment-section">对齐摘要</section>
+  </aside>
+  <section class="local-notes" id="local-notes" contenteditable="true" aria-label="本地批注"></section>
+</div>
+<script type="application/json" id="canvas-data">
+{
+  "canvas_type": "mvl",
+  "page_type": "global",
+  "generation_path": "m1-m6",
+  "source_file": "modules/M1-v1.md",
+  "version": "1",
+  "sections": {
+    "intent": { "goal": "提升客服高频问题处理效率" },
+    "user": { "users": "客服主管与一线客服" },
+    "agent-team": { "roles": "客服 Agent + 人工复核" },
+    "workflow": { "steps": "接收问题 → 生成答复 → 人工复核 → 发送结果", "automation": "Agent 识别意图并生成答复", "human_checkpoints": "客服复核低置信回复", "human_agent_nodes": "人工确认后 Agent 发送答复并记录结果", "rules": "低置信度进入人工复核；通过后发送" },
+    "context": { "knowledge": "FAQ 知识库与历史工单" },
+    "validation": { "executable": "可在高频咨询中跑通" }
+  },
+  "workflow": {
+    "tracks": [
+      { "id": "main", "label": "Workflow 主链" }
+    ],
+    "nodes": [
+      { "id": "w0", "number": "01", "type": "start", "track": "main", "label": "接收问题" },
+      { "id": "w1", "number": "02", "type": "agent_execution", "track": "main", "actor": "ai", "label": "生成答复" },
+      { "id": "w2", "number": "03", "type": "gateway", "track": "main", "label": "低置信?" },
+      { "id": "w3", "number": "04", "type": "human_operation", "track": "main", "actor": "human", "label": "人工复核" },
+      { "id": "w4", "number": "05", "type": "human_review", "track": "main", "actor": "hybrid", "label": "发送并记录" },
+      { "id": "w5", "number": "06", "type": "end", "track": "main", "label": "完成" }
+    ],
+    "edges": [
+      { "from": "w0", "to": "w1" },
+      { "from": "w1", "to": "w2" },
+      { "from": "w2", "to": "w3", "label": "低置信" },
+      { "from": "w3", "to": "w4" },
+      { "from": "w4", "to": "w5" }
+    ]
+  },
+  "auth": {
+    "gate_recommendation": "pass",
+    "render_authorized": true,
+    "confirmation_mode": "gate_pass",
+    "override_audit": null
+  }
+}
+</script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 {
   "name": "pratyaya",
-  "version": "3.3.2",
+  "version": "3.4.0",
   "description": "pratyaya: AI-native multi-canvas workshop platform — explicit canvas routing for MAAU one-shot synthesis, MVL M1-M6 pipeline, Golden Circle, HMW (How Might We), User Persona, User Journey, V2C Value Attribution Canvas and 5W (Five Whys) root-cause analysis. Distills traceable conclusions; blocks incomplete modules; obtains versioned human confirmation; renders Canvas HTML.",
   "agents": [
     "./agents/pratyaya.md"
