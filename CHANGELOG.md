@@ -3,6 +3,26 @@
 > 本文件记录 Pratyaya 专家的正式版本变更。
 > 完整 SemVer 与架构说明见 [`README.md`](./README.md) / [`DESIGN.md`](./DESIGN.md) / [docs/MVL-整体架构设计.md](./docs/MVL-整体架构设计.md)。
 
+## [v3.5.0] - 2026-09-05
+
+### 新增功能（MINOR）
+
+- **Workflow 确定性布局器（语义 / 布局分离）**：新增官方几何展开资产 `skills/canvas-render/scripts/workflow_layout/workflow_layout.py`——LLM 只产 `canvas-data.workflow` 语义拓扑，布局器确定性生成内联 SVG 几何（轨道分行堆叠 + 轨内横流蛇形折返 + 跨轨 / 回流走行间空隙与 gutter，范式对齐示例母版，无泳道色块）；自带几何自检（节点不重叠 / 边正交 / 不穿节点 / 端点中点 / 边全集不丢），自检 0 问题才可交付；`VERSION` 版本化 + `layout_trace(fork_id?)` 溯源（写 `canvas-data.workflow.layout`，不改 schema_version）。
+- **布局回归基线**：`tests/fixtures/workflow_layout/` 物化真实拓扑样本（hotel-revenue 新 / 旧 schema、suozhang 三轨含 gateway/timer/message/data_store 与 dashed 回流）；`tests/test_workflow_layout.py` 覆盖几何自检 / 边全集 / 宽度预算 / 确定性 / 旧 schema 回归（8 项通过）。
+- **L1 布局配置层**：`layout_override`（渲染输入侧参数，不进 `canvas-data`）可调间距 / 卡宽预算 / 轨道基线 / gutter / 每行容量，支持 `--preset compact|roomy`；配置说明与可配 / 不可配对照清单见 `layout_override.schema.md`。
+- **L2 布局分叉层**：显式触发 + 拷贝协议 + `layout_meta.json`（`derived_from: {baseline_version, baseline_sha}`）+ 自检验收门 + 漂移治理，见 `fork_guide.md`。
+- **AGENTS.md 规则 3 边界修订**：禁止"内容渲染"脚本；`workflow_layout` 作为确定性几何展开官方资产可在 Skill 流程内执行（不承担业务内容渲染）；其他自动化渲染 / 注入入口仍须先按规则 2 提设计变更。
+- **SKILL / render-contract 同步**：SKILL.md 新增「Workflow 流程图生成（确定性几何展开，3.5.0+）」小节；render-contract §A1 明确"布局器生成 / LLM 静态生成"两路径须满足同一 DOM / 元素 / 审计契约，§A1.5 增加可选 `workflow.layout` 溯源字段说明。
+
+### 修复（PATCH）
+
+- `tests/test_contract_consistency.py` 版本硬编码同步（3.4.1 → 3.5.0）。
+
+### 兼容性与迁移边界
+
+- `plugin.json` `version` `3.4.1` → `3.5.0`（MINOR）；`state.schema.json` `schema_version` 保持 `"2.4"`，`canvas-data.workflow.layout` / `layout_override` 均不改 schema_version。
+- 布局器为增量能力：新渲染可按 §A1 两路径生成，**不追溯重渲染**已交付画布；编排侧"受控几何注入（B）"留待后续版本启用（本版为 CLI 生成路径）。
+
 ## [v3.4.1] - 2026-09-05
 
 ### 修复（PATCH）
