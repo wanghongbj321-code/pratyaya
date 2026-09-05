@@ -3,6 +3,17 @@
 > 本文件记录 Pratyaya 专家的正式版本变更。
 > 完整 SemVer 与架构说明见 [`README.md`](./README.md) / [`DESIGN.md`](./DESIGN.md) / [docs/MVL-整体架构设计.md](./docs/MVL-整体架构设计.md)。
 
+## [v3.4.1] - 2026-09-05
+
+### 修复（PATCH）
+
+- **全局页示例母版 Workflow 视觉精调**：`examples/mvl-canvas/maau-global-canvas.html` 去除深灰整卡（A2–A6/C1 改浅色单色卡片）、移除三条横向泳道背景带、actor 徽章改白底黑灰描边并整体内移避免压任务框边框、事件符号改用 ⏱/✉、图例补为 7 类带图形符号、补 `#workflow-done` 完成条件条样式；SVG 文字样式改为 CSS 单点 + 直接子代选择器（`>`）控制，防止通用后代规则覆盖嵌套徽章 / 序号样式。打印幅面落地 A3 横版（`@page size: A3 landscape` + 页面文案同步）。
+- **5W 画布示例标题精简**：`examples/5w-canvas.html` 标题去除中文"5W 五个为什么"前缀。
+
+### 兼容性与迁移边界
+
+- `plugin.json` `version` `3.4.0` → `3.4.1`（PATCH）；本轮仅示例母版与文案修订，不影响渲染契约、审计断言与 `state.schema.json` `schema_version`（仍 `"2.4"`）。
+
 ## [v3.4.0] - 2026-09-05
 
 ### 新增功能（MINOR）
