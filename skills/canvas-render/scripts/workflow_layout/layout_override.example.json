@@ -1,0 +1,7 @@
+{
+  "card_w_max": 240,
+  "row_h": 90,
+  "track_gap": 50,
+  "margin_x": 56,
+  "max_per_row": 5
+}

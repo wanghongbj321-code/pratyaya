@@ -1,0 +1,32 @@
+{
+  "_meta": {
+    "derived_from": "workbuddy/tasks/workshop/haier-investment-mvl/group-3/maau-canvas-creation/output/maau-global-canvas-hotel-revenue.html#canvas-data.workflow",
+    "layout_model": "track-inner-flow",
+    "note": "单轨 main（含 gateway 分支 + 多入汇合），v3.4 轨道带 schema"
+  },
+  "tracks": [
+    { "id": "main", "label": "Workflow 主链（每晚定价建议闭环）" }
+  ],
+  "nodes": [
+    { "id": "w0", "number": "01", "type": "start", "track": "main", "label": "触发：每晚自动触发（闭店后调度）" },
+    { "id": "w1", "number": "02", "type": "agent_execution", "track": "main", "actor": "ai", "label": "① 抓取竞对 OTA 价格与本地事件日历" },
+    { "id": "w2", "number": "03", "type": "agent_execution", "track": "main", "actor": "ai", "label": "② 需求预测（历史订单/房价 · 节假日天气）" },
+    { "id": "w3", "number": "04", "type": "agent_execution", "track": "main", "actor": "ai", "label": "③ 生成“建议价 + 理由 + 风险”推送收益经理" },
+    { "id": "w4", "number": "05", "type": "human_operation", "track": "main", "actor": "human", "label": "④ 收益经理确认（常规建议）" },
+    { "id": "w5", "number": "06", "type": "gateway", "track": "main", "label": "关键规则分支：变动 >10% 或长住客保价？" },
+    { "id": "w6", "number": "07", "type": "human_operation", "track": "main", "actor": "human", "label": "⑤ 店长一键采纳 → 推送 OTA（常规建议）" },
+    { "id": "w7", "number": "08", "type": "human_review", "track": "main", "actor": "hybrid", "label": "人工审核后 Agent 执行推送（超阈值 / 长住客保价）" },
+    { "id": "w8", "number": "09", "type": "end", "track": "main", "label": "⑥ 完成：建议价经确认/审核后推送 OTA" }
+  ],
+  "edges": [
+    { "from": "w0", "to": "w1" },
+    { "from": "w1", "to": "w2" },
+    { "from": "w2", "to": "w3" },
+    { "from": "w3", "to": "w4" },
+    { "from": "w4", "to": "w5" },
+    { "from": "w5", "to": "w6", "label": "否 · 常规建议" },
+    { "from": "w5", "to": "w7", "label": "是 · 超阈值/长住客保价" },
+    { "from": "w6", "to": "w8" },
+    { "from": "w7", "to": "w8" }
+  ]
+}
