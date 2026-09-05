@@ -48,3 +48,10 @@ python3 .../workflow_layout.py <topo.json> --preset compact
 - 视觉 token 中由 CSS/母版固定的部分（actor 徽章样式、序号徽标、事件符号、图例结构）。
 
 **需要 L2 分叉（超出配置能力）才处理的情形**（显式触发 + 探针自检 + 溯源）：母版形态之外的整图结构级改造（如新增第三类边、特殊折返模式）。
+
+## 能力边界（基线 0.1.0；L2 分叉与 L0 演进的参考基线）
+
+- **形态覆盖**：轨道 ≤3、节点 ≤ ~20、轨道内蛇形折返多行横流、gateway 分支 / 多入汇合 / timer / message / data_store / 单轨 `main` 均支持；跨轨边与 dashed 回流边均渲染。
+- **路由走廊（当前简化，审查记录项）**：跨轨边与 **dashed 回流一律走左侧 gutter 走廊**（宽 `gutter_w`）；母版的双侧 gutter（右 gutter / 竖排 label）、多入汇合槽位错位、线-线避让为 **L0 演进项**，当前不覆盖。形态超界时先 L1 调参（`compact` / `row_h` / `track_gap` / `max_per_row`），仍不可表达再按 L2 分叉并记录 `layout_meta.changed`。
+- **输出契约（几何层定位）**：产物 = 节点坐标 / 连线路径（正交 `M/H/V`、dashed 标虚 + 走 gutter）/ 几何自检报告（重叠 / 正交 / 穿节点 / 端点落边界中点 / dashed 走 gutter / track 归属 / 边全集不丢）/ 坐标表；`--svg` 为**目检预览页，非 §A1 最终 DOM**（actor 徽章 / 序号徽标 / note / 轨道标签 / 图例等 DOM 由渲染回合装配或后续注入器承接）。
+- **仅几何降级（Q3）**：节点 / 边全集一个不少；文本折行上限 ≤3 行（超出以省略号截断）；超页宽（`max_page_w`）仅报告并提示 preset，不主动截断节点。

@@ -37,6 +37,7 @@ cp skills/canvas-render/scripts/workflow_layout/VERSION            <topic>/.layo
 
 - **只允许几何 / 形态级小范围修改**；不得改变节点 / 边全集（Q3 几何降级）、不得改写业务 label / actor / track 语义；
 - 不得削弱布局器输出契约（轨道分行堆叠 / 正交 / 不穿节点 / gutter 绕行 / 无泳道色块对齐母版）；
+- 当前基线能力边界（单左 gutter、无右 gutter / 线-线避让 / 汇合槽位）见 `layout_override.schema.md`「能力边界」；分叉扩出边界（如新增右 gutter 分流）必须写入 `layout_meta.changed` 并经自检 + L1/L2 验收；
 - 复用的 `selfcheck()` 几何断言必须保留且为唯一可信出口。
 
 ## 验收门（L2 产物必须全部通过）

@@ -17,6 +17,7 @@
 ### 修复（PATCH）
 
 - `tests/test_contract_consistency.py` 版本硬编码同步（3.4.1 → 3.5.0）。
+- **布局器实施审查修复**（审查报告：`internal/…/全局画布Workflow确定性布局器设计方案-20260905-实施审查报告-ds-v4-flash.md`）：CLI `--override <file.json>` 取值不再被误收为拓扑输入（文档示范用法可正常 exit 0）；几何自检 FAIL → exit `1`（不产 `--svg`，禁止进入装配）、输入不合法 → exit `2`（自检门禁可编程化）；新增 `validate()` 正式输入契约校验（tracks 非空 / track 归属 / 任务类 actor 合法 / type 合法 / edges 引用存在且无重复同向边）；`selfcheck()` 补端点落边界中点、dashed 走 gutter、track 归属、边全集断言，dashed 回流一律强制走 gutter 通道；CLI 输出布局报告坐标表（§3.1）；文本折行 ≤3 行省略号截断（防溢出卡片 / 事件圆）；`--svg` 预览渲染轨道标签；SKILL / render-contract 措辞收敛"布局器 = 几何层，`#workflow-flow` DOM 由渲染回合按 §A1 装配"；`schema.md` / `fork_guide.md` 声明能力边界（单左 gutter、右 gutter / 线-线避让为 L0 演进项）。测试新增 8 项审查修复回归。
 
 ### 兼容性与迁移边界
 

@@ -296,7 +296,7 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 非 MVL: {
 - V2C VAC 使用规定的 Scenario / Capability / Change / Business Impact / Value 主链、Attribution Gaps、Quality Check 与 Inferences；不得从逐字稿直接分析、补写或改写确认包未确认的业务结论。
 - 5W 使用规定的问题陈述、五层因果链（制造层 Why 1-2 / 检验层 Why 3-4 / 体系层 Why 5）、根本原因与"因此"检验、对策四要素、其他原因分支与判别记录；五层锚点必须全部存在（层数弹性暂不支持），每层内容或缺口标注必须来自确认包，不得从逐字稿直接补写。
 - Workflow 必须分别呈现 Agent 执行、人工操作 / 确认、人审 + Agent 执行三类节点。
-- 全局页（Phase 2 汇总页与 MAAU transcript-direct 实例页）的 Workflow 板块必须派生轨道带 BPMN 流程图（`#workflow-flow`，锚点契约与派生规则见 `render-contract.md` §A1）：渲染时先从确认包 Workflow section 产出语义拓扑 `canvas-data.workflow`，SVG 几何由**官方几何展开工具** `scripts/workflow_layout/`（见「Workflow 流程图生成」）确定性生成，或按 §A1 派生规则静态生成内联 SVG（Start / Task / Exclusive Gateway / End / Sequence Flow，可选 Timer / Message / Data Store / Reflow），三类任务节点通过 `actor` 徽标区分执行者，轨道带表达业务阶段（A/B/C… 或单轨 `main`）；连接线必须正交（横 / 竖 / 肘型，禁止曲线）；所有节点（含 Start / End）左上角显示流程序号徽标。窄屏保留横向滚动。`canvas-data` 顶层 `workflow` 对象内嵌派生拓扑（`tracks` / `nodes` / `edges`，`nodes[].number` 为主链阅读序，`nodes[].actor` 为 `human / ai / system / hybrid / reviewer`），供静态审计一致性校验。
+- 全局页（Phase 2 汇总页与 MAAU transcript-direct 实例页）的 Workflow 板块必须派生轨道带 BPMN 流程图（`#workflow-flow`，锚点契约与派生规则见 `render-contract.md` §A1）：渲染时先从确认包 Workflow section 产出语义拓扑 `canvas-data.workflow`，SVG 几何由**官方几何展开工具** `scripts/workflow_layout/`（见「Workflow 流程图生成」）确定性生成、并由渲染回合按 §A1 派生规则装配为内联 SVG，或由 LLM 按 §A1 派生规则直接静态生成内联 SVG（Start / Task / Exclusive Gateway / End / Sequence Flow，可选 Timer / Message / Data Store / Reflow），三类任务节点通过 `actor` 徽标区分执行者，轨道带表达业务阶段（A/B/C… 或单轨 `main`）；连接线必须正交（横 / 竖 / 肘型，禁止曲线）；所有节点（含 Start / End）左上角显示流程序号徽标。窄屏保留横向滚动。`canvas-data` 顶层 `workflow` 对象内嵌派生拓扑（`tracks` / `nodes` / `edges`，`nodes[].number` 为主链阅读序，`nodes[].actor` 为 `human / ai / system / hybrid / reviewer`），供静态审计一致性校验。
 - 内嵌 `<script type="application/json" id="canvas-data">`，内容包含同版本确认包 + 授权元数据（`render_authorized` / `confirmation_mode` / `override_audit`）。
 - 每个模块、结论、缺口和共享区域使用 `render-contract.md` 规定的稳定锚点。
 - 必须区分事实、决策、假设和建议；推断不得伪装成确认事实。
@@ -313,8 +313,8 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 非 MVL: {
    python3 skills/canvas-render/scripts/workflow_layout/workflow_layout.py \
      <workflow_topo.json> --svg <out_dir>
    ```
-   运行即输出**几何自检报告**（节点不重叠 / 边正交 `M/H/V` / 不穿节点 / 端点中点 / 边全集不丢）。自检问题数 = 0 才可进入正式产物；自检只对布局器生成产物有效。
-3. **产物形态不变**：布局器输出仍是单文件内联静态 SVG 的 HTML 片段，必须继续满足 §A1 DOM/元素映射与 L1 静态审计 / L2 DOM 断言（见「Python 静态审计」「分级渲染验收」）。
+   运行即输出**几何自检报告**（节点不重叠 / 边正交 `M/H/V` / 不穿节点 / 端点落边界中点 / dashed 走 gutter / 边全集不丢）+ **布局报告（坐标表）**。自检问题数 = 0 才可进入正式产物；自检只对布局器生成产物有效。CLI exit code：`0` = 自检通过 / `1` = 几何自检 FAIL（不产 `--svg` 产物，禁止进入装配）/ `2` = 输入或参数不合法。
+3. **几何层产物边界**：布局器输出为**节点几何 + 连线路径 + 几何自检报告 + 坐标表**；`--svg` 仅生成**目检预览页**（不含 `#workflow-flow` / `bpmn-node` / actor 徽章等 §A1 DOM），**不是**可直接嵌入的最终片段。最终 `#workflow-flow` 的 §A1 DOM（actor 徽章 / 序号徽标 / note / 轨道标签 / 图例等母版视觉 token）由渲染回合按本工作流与母版模板把布局器几何**装配**为内联 SVG（或后续「受控几何注入器」承接），装配产物必须继续满足 §A1 DOM/元素映射与 L1 静态审计 / L2 DOM 断言（见「Python 静态审计」「分级渲染验收」）。
 4. **配置与溯源（可选）**：`layout_override`（渲染输入侧参数，可配置项与边界见 `scripts/workflow_layout/layout_override.schema.md`，支持 `--preset compact|roomy`）可调间距/卡宽预算/轨道基线等，**不进 `canvas-data`**；`canvas-data.workflow.layout: {engine, baseline_version, fork_id?}` 为可选溯源字段（记录生成该 SVG 的布局器版本 / 分叉，不改 schema_version，audit 对未知可选字段宽容）。
 5. 几何展开工具是"裁判 + 生成器"，**不承担任何业务内容渲染**（AGENTS.md 规则 3 边界）。L2 布局分叉（显式触发、拷贝协议、`layout_meta.json` 的 `derived_from`、自检门）见 `scripts/workflow_layout/fork_guide.md`；正式产物在 `canvas-data.workflow.layout` 写入溯源（`layout_trace(fork_id?)`，不改 schema_version）。
 
