@@ -61,7 +61,7 @@
 
 ### A1. Workflow BPMN 流程图（`#workflow-flow`）
 
-全局页两形态见 [两阶段渲染与产物身份](two-phase-render.md)。noflow 无 `#workflow-flow` 和 `canvas-data.workflow`；workflow 必须完整呈现以下契约。形态来自请求与显式 CLI，不从内容缺失推断。官方布局器 `--fragment` 生成最终 SVG 内部结构，canvas-render 负责外层 HTML、图例与完成条件，不手写几何。此规则适用于 Phase 2 与 transcript-direct。
+全局页两形态见 [两阶段渲染与产物身份](two-phase-render.md)。noflow 无 `#workflow-flow` 和 `canvas-data.workflow`；workflow 必须完整呈现以下契约。形态来自请求与显式 CLI，不从内容缺失推断。渲染回合由 LLM 从确认包按 §A1 静态生成内联 SVG，不新增分析、不补写业务内容；canvas-render 负责外层 HTML、图例与完成条件。此规则适用于 Phase 2 与 transcript-direct。
 
 #### A1.1 DOM 结构
 
@@ -176,11 +176,10 @@
 - SVG 中 `bpmn-node` 数量必须等于 `nodes` 数量；`data-node-type`、`data-track` 与 `nodes` 一致；
 - Sequence Flow 只允许正交折线（`M` / `H` / `V`），禁止曲线命令（`C` / `Q` / `S` / `A`）。
 
-派生与溯源补充（3.5.0+，不改变上述断言语义）：
+派生约束补充（LLM 直出，不改变上述断言语义）：
 
-- `#workflow-flow` 的 SVG 内部结构统一来自官方布局器 `--fragment`；外层 HTML 由 Skill 装配。两形态及目标身份按 two-phase-render.md 验证；有图版 A1.1–A1.5 全部适用。
-- 几何展开工具的**正式输入必须是完整新 schema**：`tracks` 非空、`nodes[].track` 必填且属于 `tracks[].id`、任务类节点 `actor` 必填合法；缺 `tracks` / `actor` 的旧数据仅作回归/鲁棒性测试输入。
-- 可选溯源字段（不改 `schema_version`，audit 对未知可选字段宽容）：`canvas-data.workflow.layout = { "engine": "workflow_layout", "baseline_version": "…", "fork_id": "…" }`，记录生成该 SVG 的布局器版本 / 分叉，供人工复核与重渲染过期判断。
+- 渲染回合由 LLM 从确认包按 §A1 静态生成内联 SVG；外层 HTML 由 Skill 装配。两形态及目标身份按 two-phase-render.md 验证；有图版 A1.1–A1.5 全部适用。
+- LLM 派生的 `workflow` 拓扑必须是完整新 schema：`tracks` 非空、`nodes[].track` 必填且属于 `tracks[].id`、任务类节点 `actor` 必填合法、`edges[].from/to` 引用存在。
 
 ## B. 模块详情 Canvas 页面结构
 

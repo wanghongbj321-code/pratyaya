@@ -349,6 +349,18 @@ python skills/canvas-render/scripts/audit_canvas_html.py \
 
 任一条件不满足时，本检查器应保持在"开发辅助"形态，作为改写前/后的差异分析工具使用，而非拦截 PR。
 
+## 9. 测试环境（pytest）
+
+`tests/` 的单元测试（schema / 契约 / 双 Gate 审计）依赖 `pytest` 与 `jsonschema`。依赖与 pytest 配置由根目录 [`pyproject.toml`](./pyproject.toml) 声明（`[project.optional-dependencies] test`；`[tool.pytest.ini_options] testpaths = ["tests"]`）。首次搭建与复现：
+
+```bash
+python3 -m venv .venv
+.venv/bin/pip install -e ".[test]"
+.venv/bin/pytest -q
+```
+
+> `pyproject.toml` 中的 `pratyaya-dev` 仅用于本地测试环境声明，本仓库是可编辑安装的专家包而非可分发的 Python 发行包（仓库内脚本均经 `sys.path` 直接引用）；专家包版本权威为 `.codebuddy-plugin/plugin.json`，pyproject 内 `version = "0.0.0"` 为占位、不作为版本源。
+
 ---
 
 **版本**：以 `.codebuddy-plugin/plugin.json` 为权威

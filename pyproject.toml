@@ -1,0 +1,32 @@
+# pyproject.toml
+#
+# pratyaya 是 WorkBuddy 专家包，不是可分发的 Python 库。本文件仅用于两件事：
+#   1. 声明测试环境依赖（pytest + jsonschema），保证 `pip install -e ".[test]"` 可复现；
+#   2. 配置 pytest（testpaths）。
+# 不参与打包发布；专家包版本权威是 .codebuddy-plugin/plugin.json，此处 version 为占位
+# （0.0.0），不得作为版本源，升版只改 plugin.json + CHANGELOG.md。
+
+[project]
+name = "pratyaya-dev"
+version = "0.0.0"
+description = "Pratyaya Canvas Expert 专家包的本地测试环境声明（pytest + jsonschema），非发行包"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.optional-dependencies]
+test = [
+    "pytest>=8",
+    "jsonschema>=4",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+# 显式无包：仓库内脚本（tests/、skills/*/scripts/）均通过 sys.path 直接引用，
+# 不做 editable 导入安装。
+[tool.setuptools]
+packages = []
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

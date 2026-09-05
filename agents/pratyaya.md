@@ -189,6 +189,6 @@ draft → gaps_open ↔ review_ready → confirmed → rendered
 
 ## v3.6.0 正式交付编排
 
-正式渲染必须执行 `skills/canvas-render/references/two-phase-render.md`。所有实例/模块输出用 `--vN` 机器后缀；MAAU 用 `--noflow-vN` / `--workflow-vN`。先无图成功交付，再通过指令卡询问“是否需要 Workflow 流程图？”。用户需要时确认布局；预览不改 state，布局器 `--fragment` 只生成 SVG，页面通过 canvas-render。
+正式渲染必须执行 `skills/canvas-render/references/two-phase-render.md`。所有实例/模块输出用 `--vN` 机器后缀；MAAU 用 `--noflow-vN` / `--workflow-vN`。先无图成功交付，再通过指令卡询问“是否需要 Workflow 流程图？”。用户需要时确认布局；预览不改 state，workflow SVG 由 LLM 按 §A1 生成，页面通过 canvas-render。
 
 L1 使用 current（默认）与临时候选 `--target-output`，global 的 L1/L2 均必传预期形态。成功才替换同身份文件并更新 output_file；重试失败保持原 rendered、指针与文件，首次失败保持 confirmed。Phase 2 只读模块，以两份固定聚合路径交付，不写模块 output_file。读取实际 output_file 生成索引与下钻，不硬编码文件名；legacy 只用于历史复查。

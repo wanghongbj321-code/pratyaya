@@ -6,7 +6,6 @@ from pathlib import Path
 import re
 import subprocess
 import sys
-import xml.etree.ElementTree as ET
 
 import pytest
 
@@ -14,7 +13,6 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "skills/canvas-render/scripts"))
 from canvas_audit.audit_core import audit
 from canvas_audit.audit_helpers import parse_html
-from workflow_layout import workflow_layout as wl
 
 MAAU = ROOT / "tests/fixtures/maau/maau-global-canvas-retail-demo.html"
 SOURCE = ROOT / "tests/fixtures/maau/MAAU-retail-demo-v1.md"
@@ -79,47 +77,6 @@ def test_noflow_example_and_downgrade(tmp_path):
 ])
 def test_workflow_omissions_fail(tmp_path, mutation):
     assert check(tmp_path, mutation(MAAU.read_text()))
-
-
-@pytest.mark.parametrize("file", ["workflow_hotel_revenue_new.json", "workflow_suozhang_three_track.json"])
-def test_final_fragment_preserves_topology_and_host_contract(tmp_path, file):
-    data = json.loads((ROOT / "tests/fixtures/workflow_layout" / file).read_text())
-    svg = wl.svg_fragment(wl.layout_of(data), data)
-    xml = ET.fromstring(svg)
-    ns = {"s": "http://www.w3.org/2000/svg"}
-    nodes = xml.findall('.//s:g[@class="bpmn-node"]', ns)
-    assert {n.attrib["data-node-id"] for n in nodes} == {n["id"] for n in data["nodes"]}
-    paths = [p for p in xml.findall('.//s:path', ns) if 'bpmn-sequence' in p.attrib.get('class', '')]
-    assert {(p.attrib['data-from'], p.attrib['data-to']) for p in paths} == {(e['from'], e['to']) for e in data['edges']}
-    assert all(not re.search('[LCQSA]', p.attrib['d']) for p in paths)
-    assert '<div' not in svg and 'workflow-done' not in svg and '<style' not in svg
-    host = (EXAMPLES / "maau-global-canvas.html").read_text()
-    host = re.sub(r'<svg[^>]*class="bpmn-flow".*?</svg>', lambda _: svg, host, count=1, flags=re.S)
-    host = change_data(host, lambda d: d.update(workflow=data))
-    p = tmp_path / "host.html"
-    p.write_text(host)
-    assert not audit(p, workflow_variant="workflow", target_output=Path("maau-global-canvas--workflow.html"))
-
-
-def test_fragment_escaping_and_failures(tmp_path):
-    data = json.loads((ROOT / "tests/fixtures/workflow_layout/workflow_hotel_revenue_new.json").read_text())
-    data['nodes'][0]['label'] = '中文 < & " ' * 20
-    svg = wl.svg_fragment(wl.layout_of(data), data)
-    assert data['nodes'][0]['label'] in ''.join(ET.fromstring(svg).itertext())
-    topo, out = tmp_path / 'input.json', tmp_path / 'output.svg'
-    topo.write_text(json.dumps(data))
-    cmd = [sys.executable, wl.__file__, str(topo), '--fragment', str(out)]
-    assert subprocess.run(cmd, capture_output=True).returncode == 0
-    original = out.read_bytes()
-    assert subprocess.run(cmd, capture_output=True).returncode == 2
-    assert out.read_bytes() == original
-    out.unlink()
-    assert subprocess.run(cmd + ['--override-json', '{"row_h":10}'], capture_output=True).returncode == 1
-    assert not out.exists()
-    data['nodes'][0].pop('number')
-    topo.write_text(json.dumps(data))
-    assert subprocess.run(cmd, capture_output=True).returncode == 2
-    assert not out.exists()
 
 
 def test_current_all_canvas_e2e_targets():
