@@ -1,0 +1,52 @@
+{
+  "_meta": {
+    "derived_from": "examples/mvl-canvas/maau-global-canvas.html#canvas-data.workflow",
+    "layout_model": "track-inner-flow",
+    "note": "真实三轨母版样本：A 数据采集与自动化流水线 / B 人机协作对话层 / C 学习闭环；含 gateway 分支、timer/message/data_store 扩展元素与 3 条 dashed 回流边"
+  },
+  "tracks": [
+    { "id": "A", "label": "数据采集与自动化流水线" },
+    { "id": "B", "label": "人机协作对话层" },
+    { "id": "C", "label": "学习闭环" }
+  ],
+  "nodes": [
+    { "id": "S1_TIMER_START", "number": "01", "type": "start", "track": "A", "label": "每日 0:00 后定时开始" },
+    { "id": "A1", "number": "02", "type": "human_operation", "track": "A", "actor": "human", "label": "A1（前置）· 业代网点通录单" },
+    { "id": "A2", "number": "03", "type": "agent_execution", "track": "A", "actor": "system", "label": "A2 · 网点通归集" },
+    { "id": "A3", "number": "04", "type": "agent_execution", "track": "A", "actor": "system", "label": "A3 · 入湖仓" },
+    { "id": "A4", "number": "05", "type": "agent_execution", "track": "A", "actor": "system", "label": "A4 · 生成数据包" },
+    { "id": "A5", "number": "06", "type": "agent_execution", "track": "A", "actor": "ai", "label": "A5 · 经验库+人货场分析" },
+    { "id": "G_GATEWAY", "number": "07", "type": "gateway", "track": "A", "label": "低置信/异常？" },
+    { "id": "TIMER_740", "number": "08", "type": "timer", "track": "A", "label": "7:40 早会前就绪" },
+    { "id": "A6", "number": "09", "type": "agent_execution", "track": "A", "actor": "system", "label": "A6 · 下发数据包（含建议）" },
+    { "id": "MSG_KPI", "number": "10", "type": "message", "track": "A", "label": "考核项下发消息事件" },
+    { "id": "B1", "number": "11", "type": "human_review", "track": "B", "actor": "hybrid", "label": "B1 · 早会前对话" },
+    { "id": "B2", "number": "12", "type": "human_review", "track": "B", "actor": "hybrid", "label": "B2 · 早会中对话" },
+    { "id": "B3", "number": "13", "type": "human_review", "track": "B", "actor": "hybrid", "label": "B3 · 早会后对话" },
+    { "id": "END_EVENT", "number": "14", "type": "end", "track": "B", "label": "本轮结束：作业指导形成并执行" },
+    { "id": "C1", "number": "15", "type": "agent_execution", "track": "C", "actor": "ai", "label": "C1 · 定期提炼经验" },
+    { "id": "C2", "number": "16", "type": "human_review", "track": "C", "actor": "reviewer", "label": "C2 · 人工审核 → 入库" },
+    { "id": "EXPERIENCE_STORE", "number": "17", "type": "data_store", "track": "C", "label": "经验库 Experience Base" }
+  ],
+  "edges": [
+    { "from": "S1_TIMER_START", "to": "A2" },
+    { "from": "A1", "to": "A2" },
+    { "from": "A2", "to": "A3" },
+    { "from": "A3", "to": "A4" },
+    { "from": "A4", "to": "A5" },
+    { "from": "A5", "to": "G_GATEWAY" },
+    { "from": "G_GATEWAY", "to": "TIMER_740", "label": "否" },
+    { "from": "G_GATEWAY", "to": "B1", "label": "是 · 人工核对" },
+    { "from": "TIMER_740", "to": "A6" },
+    { "from": "A6", "to": "MSG_KPI" },
+    { "from": "MSG_KPI", "to": "B1" },
+    { "from": "B1", "to": "B2" },
+    { "from": "B2", "to": "B3" },
+    { "from": "B3", "to": "END_EVENT" },
+    { "from": "B3", "to": "C1", "label": "对话/调整/结果反馈", "dashed": true },
+    { "from": "C1", "to": "C2" },
+    { "from": "C2", "to": "EXPERIENCE_STORE" },
+    { "from": "EXPERIENCE_STORE", "to": "A5", "label": "经验反哺", "dashed": true },
+    { "from": "END_EVENT", "to": "S1_TIMER_START", "label": "次日循环", "dashed": true }
+  ]
+}

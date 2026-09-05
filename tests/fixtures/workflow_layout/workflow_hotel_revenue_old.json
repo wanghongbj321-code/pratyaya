@@ -1,0 +1,29 @@
+{
+  "_meta": {
+    "derived_from": "workbuddy/tasks/workshop/haier-investment-mvl/group-3/maau-canvas-creation/output/maau-global-canvas-hotel-revenue-old.html#canvas-data.workflow",
+    "layout_model": "track-inner-flow",
+    "note": "无 track 旧 schema 回归样本（正式链路不消费，仅鲁棒性测试）"
+  },
+  "nodes": [
+    { "id": "w0", "number": "01", "type": "start", "label": "每晚自动触发（闭店后调度）" },
+    { "id": "w1", "number": "02", "type": "agent_execution", "label": "抓取竞对 OTA 价格与本地事件日历（①）" },
+    { "id": "w2", "number": "03", "type": "agent_execution", "label": "结合历史订单/房价、节假日天气跑需求预测（②）" },
+    { "id": "w3", "number": "04", "type": "agent_execution", "label": "整理建议价+理由+风险推送收益经理（③）" },
+    { "id": "w4", "number": "05", "type": "gateway", "label": "价格变动 >10% 或长住客保价？（关键规则）" },
+    { "id": "w5", "number": "06", "type": "human_operation", "label": "收益经理确认常规建议（④）" },
+    { "id": "w6", "number": "07", "type": "human_operation", "label": "店长一键采纳 → 推送 OTA（⑤）" },
+    { "id": "w7", "number": "08", "type": "human_review", "label": "人工审核后 Agent 执行推送（超阈值/保价）" },
+    { "id": "w8", "number": "09", "type": "end", "label": "建议价经确认/审核后推送 OTA，闭环完成（⑥）" }
+  ],
+  "edges": [
+    { "from": "w0", "to": "w1" },
+    { "from": "w1", "to": "w2" },
+    { "from": "w2", "to": "w3" },
+    { "from": "w3", "to": "w4" },
+    { "from": "w4", "to": "w5", "label": "常规建议" },
+    { "from": "w5", "to": "w6" },
+    { "from": "w6", "to": "w8" },
+    { "from": "w4", "to": "w7", "label": "超阈值 / 保价" },
+    { "from": "w7", "to": "w8" }
+  ]
+}
