@@ -3,6 +3,23 @@
 > 本文件记录 Pratyaya 专家的正式版本变更。
 > 完整 SemVer 与架构说明见 [`README.md`](./README.md) / [`DESIGN.md`](./DESIGN.md) / [docs/MVL-整体架构设计.md](./docs/MVL-整体架构设计.md)。
 
+## [v3.6.0] - 2026-09-05
+
+### 新增功能（MINOR）
+
+- **MAAU 画布两阶段渲染**：transcript-direct 实例页与 MVL Phase 2 汇总页改为"无图先交付、Workflow 图按需生成"的两阶段独立正式渲染。第一阶段从确认包渲染无图正式画布（六板块完整，无 `#workflow-flow` 与 `canvas-data.workflow`），L1/L2 必传 `--workflow-variant noflow` 验收通过即提交交付，再询问是否需要流程图；需要时确认布局后由官方布局器生成最终 SVG，canvas-render 从同版本确认包装配有图候选并完成独立验收（`--workflow-variant workflow`）。运行时契约见 `skills/canvas-render/references/two-phase-render.md`。失败保护：首次渲染失败保持 `confirmed`；已有成功产物后的同版本失败保持 `rendered`、原 `output_file` 与成功文件；第二阶段失败不执行 `rendered → confirmed`。
+- **布局器 `--fragment` SVG 片段直出（VERSION 0.2.0）**：`workflow_layout` 新增 `--fragment <全新目标.svg>`，输出可直接嵌入 `#workflow-flow` 的最终 `<svg class="bpmn-flow">`——含轨道、节点、事件、网关、序号与 actor 徽章、正交边/回流边与箭头 marker，文本与属性转义并折行；`--svg` 保留目检预览语义。CLI exit 0/1/2（自检通过 / 几何 FAIL / 输入或参数非法），失败不覆盖既有文件。AGENTS.md 规则 3 与 render-contract / SKILL 同步："布局器产 §A1 SVG 内部结构；HTML 外层、图例、完成条件由 canvas-render 负责"。
+- **两形态示例**：新增 `examples/mvl-canvas/maau-global-canvas-noflow.html`（六板块 + 完成条件条，无 Workflow 图签名）；有图母版 `maau-global-canvas.html` 维护为 `--fragment` 嵌入宿主；noflow 示例不含残留 `bpmn-*` 死 CSS。
+- **输出文件版本化与身份审计**：正式画布文件使用机器后缀 `--v{N}`（MAAU 为 `--noflow-v{N}` / `--workflow-v{N}`），与合法 kebab-case slug 无歧义、与历史无版本文件名隔离；审计 CLI 新增 `--workflow-variant`、`--artifact-policy current|legacy`、`--target-output`（临时候选按目标正式路径校验身份）；新增 `canvas_audit/artifact_identity.py` 承载文件身份与形态判定（noflow 拒绝拓扑与 BPMN DOM 残留，workflow 要求 SVG 完整结构）；索引/下钻读取实际 `output_file`。Phase 2 以固定聚合两路径（`maau-global-canvas.html` / `maau-global-canvas--workflow.html`）交付并只读模块状态；历史文件不追溯改名，只读复查走 `--artifact-policy legacy`。
+- **引擎版本化路径工具**：`skills/_engine/paths.html_file(version=, workflow_variant=)` 与 files stale sidecar 支持逐份版本化标记；state 不新增字段、不升 schema，`rendered → rendered` 自环与升版行为有集成验证。
+- **测试**：新增 `tests/test_two_phase_render.py`（current 身份、反降级、fragment 拓扑保持与转义、失败产物规则、嵌入宿主审计、versioned sidecar、state 自环与升版、索引 output_file）；全量 pytest 512 passed。
+
+### 兼容性与迁移边界
+
+- `plugin.json` `version` `3.5.1` → `3.6.0`（MINOR）；`state.schema.json` `schema_version` 保持 `"2.4"`，`canvas-data.workflow` 业务拓扑 schema 不变。
+- 输出文件命名切换为版本化 `--v{N}` 后缀，**历史文件不追溯改名**；新正式渲染固定 `--artifact-policy current`，历史复查显式 legacy 且不得用于新交付；升版不清理旧版本文件，同版本同形态成功重渲染才可替换。
+- 实施分支 `codex/maau-two-phase-render-v3-6-0`；设计文档与实施核验（§12 落点收敛）见 `internal/…/design/MAAU画布两阶段渲染与Workflow流程图生成优化设计方案-20260905.md`。
+
 ## [v3.5.1] - 2026-09-05
 
 ### 修复（PATCH）
