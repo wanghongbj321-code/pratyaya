@@ -1,4 +1,4 @@
-# Pratyaya Canvas Expert
+# Pratyaya Coach
 
 > 品牌：pratyaya
 > 版本：以 `.codebuddy-plugin/plugin.json` `version` 字段为权威

@@ -9,7 +9,7 @@
 [project]
 name = "pratyaya-dev"
 version = "0.0.0"
-description = "Pratyaya Canvas Expert 专家包的本地测试环境声明（pytest + jsonschema），非发行包"
+description = "Pratyaya Coach 专家包的本地测试环境声明（pytest + jsonschema），非发行包"
 requires-python = ">=3.10"
 dependencies = []
 

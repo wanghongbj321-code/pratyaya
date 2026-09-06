@@ -1,4 +1,4 @@
-# Pratyaya Canvas Expert — MVL 专题整体功能架构设计
+# Pratyaya Coach — MVL 专题整体功能架构设计
 
 > 版本：以 `.codebuddy-plugin/plugin.json` `version` 字段为权威
 > 编写时间：2026-07-30（2026-08-07 补充多画布定位澄清）
@@ -13,7 +13,7 @@
 
 本文档回答四个核心问题：
 
-1. **是什么** — Pratyaya Canvas Expert 的 MVL 专题定位与设计取向（§1）
+1. **是什么** — Pratyaya Coach 的 MVL 专题定位与设计取向（§1）
 2. **怎么跑** — 端到端的数据流、组件协作、状态机（§2–§5）
 3. **怎么管** — 关键不变量、引用层级、扩展边界（§6–§7）
 4. **怎么改** — 二次开发、版本升级、风险控制（§8）
@@ -31,7 +31,7 @@
 
 ### 1.1 一句话定位
 
-> **Pratyaya Canvas Expert 的 MVL 专题 = 面向 3 天 MVL（Minimum Verifiable Loop）工作坊的分步沉淀协作应用。**
+> **Pratyaya Coach 的 MVL 专题 = 面向 3 天 MVL（Minimum Verifiable Loop）工作坊的分步沉淀协作应用。**
 
 来源：2026-07-28 MVL 产品审查（§1.3）。
 

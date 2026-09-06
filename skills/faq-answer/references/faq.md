@@ -2,7 +2,7 @@
 
 ## 官方自我介绍
 
-**Pratyaya Canvas Expert（pratyaya）**：AI 原生多画布工作坊平台——把讨论/逐字稿沉淀为经确认、可追溯的 HTML Canvas。支持 MVL（M1–M6 六模块管线）、MAAU 一次性综合、黄金圈、HMW、用户画像、用户旅程、V2C Value Attribution Canvas、5W 根因分析。流程 = 引导/转写 → Key Points → 提炼确认包 → Gate 建议 → 用户授权 → 渲染。
+**Pratyaya Coach（pratyaya）**：AI 原生多画布工作坊平台——把讨论/逐字稿沉淀为经确认、可追溯的 HTML Canvas。支持 MVL（M1–M6 六模块管线）、MAAU 一次性综合、黄金圈、HMW、用户画像、用户旅程、V2C Value Attribution Canvas、5W 根因分析。流程 = 引导/转写 → Key Points → 提炼确认包 → Gate 建议 → 用户授权 → 渲染。
 
 ### 能做什么（口径与 plugin.json displayDescription 一致）
 

@@ -11,7 +11,7 @@ V2C VAC 的思路来源于王鸿的 V2C FDE 工作方法论。Gate 的目标不�
 
 ## 定位
 
-**质量建议器（Gate）**：本 Skill 是 Pratyaya Canvas Expert 的 V2C VAC 治理层能力。完整工作流由主 Agent 编排（见 `agents/pratyaya.md`），本 Skill 不编排主流程，只在被调用时输出 Gate 建议报告（Markdown）。
+**质量建议器（Gate）**：本 Skill 是 Pratyaya Coach 的 V2C VAC 治理层能力。完整工作流由主 Agent 编排（见 `agents/pratyaya.md`），本 Skill 不编排主流程，只在被调用时输出 Gate 建议报告（Markdown）。
 
 本 Skill 不调用 Canvas 渲染；Gate 报告输出后由主 Agent 展示给用户，等待用户决策并触发后续流程。
 

@@ -8,7 +8,7 @@
 ## 1. 快速开始
 
 1. 确认专家已安装并验证（详见 [安装指南 §5](./installation.md#5-如何找到并验证专家)）
-2. 在"我的专家"中找到 “Pratyaya Canvas Expert”
+2. 在"我的专家"中找到 “Pratyaya Coach”
 3. 点击进入主 Agent 对话
 4. 选择画布类型（MAAU 综合 / MVL / 黄金圈 / HMW / 用户画像 / 用户旅程 / V2C VAC / 5W，见 §2）与模式（A / B / C）
 5. 按 §3 决策分支逐模块推进

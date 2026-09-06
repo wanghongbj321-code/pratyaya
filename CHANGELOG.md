@@ -3,6 +3,17 @@
 > 本文件记录 Pratyaya 专家的正式版本变更。
 > 完整 SemVer 与架构说明见 [`README.md`](./README.md) / [`DESIGN.md`](./DESIGN.md) / [docs/MVL-整体架构设计.md](./docs/MVL-整体架构设计.md)。
 
+## [v3.6.3] - 2026-09-06
+
+### 修复（PATCH）
+
+- **专家展示名缩短**：专家标题与会话名称由「Pratyaya Canvas Expert」改为「Pratyaya Coach」（22 → 14 字符），满足平台名称长度限制；品牌标识 `pratyaya`、画布能力与使用方式不变。
+
+### 兼容性与升级注意
+
+- 专家标识 `pratyaya`（name/agentName）、目录与文件命名不变，无需任何迁移；README/docs/FAQ/各 Skill 中的名称引用已同步统一。
+- 展示名由市场快照与会话缓存承载：升级后新会话生效；市场卡片若仍缓存旧名，重装或刷新快照后显示新名。
+
 ## [v3.6.2] - 2026-09-06
 
 ### 修复（PATCH）
