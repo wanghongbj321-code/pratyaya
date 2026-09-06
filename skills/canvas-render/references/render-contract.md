@@ -181,6 +181,19 @@
 - 渲染回合由 LLM 从确认包按 §A1 静态生成内联 SVG；外层 HTML 由 Skill 装配。两形态及目标身份按 two-phase-render.md 验证；有图版 A1.1–A1.5 全部适用。
 - LLM 派生的 `workflow` 拓扑必须是完整新 schema：`tracks` 非空、`nodes[].track` 必填且属于 `tracks[].id`、任务类节点 `actor` 必填合法、`edges[].from/to` 引用存在。
 
+### A2. 示例文件结构索引（装配加速，v3.6.1 快照）
+
+workflow 形态装配时，从示例 `examples/mvl-canvas/maau-global-canvas.html` 提取宿主片段应**按锚点模式单次定位**，禁止逐段盲探。行号为 v3.6.1 快照参考值（示例文件演进后以右侧锚点模式为准）：
+
+| 片段 | 行号（v3.6.1） | 定位锚点（唯一模式） | 用途 |
+|---|---|---|---|
+| 页面主题 CSS style 块 | L7–143 | 第 1 个 `<style>` … 第 1 个 `</style>` | 宿主视觉 token 基底 |
+| BPMN 流程图 CSS style 块 | L144–367 | 第 2 个 `<style>` … 第 2 个 `</style>`（`.maau-flow{` L291、`.bpmn-flow{` L303） | workflow 装配整块复用 |
+| `#workflow-flow` DOM（SVG + 图例 + 完成条件） | L467–642 | `<div class="maau-flow" id="workflow-flow"` 起至其闭合 `</div>`（`workflow-done` L635–641） | §A1.1 DOM 结构参照 |
+| `canvas-data` JSON script 块 | L751–1040 | `<script type="application/json" id="canvas-data">` … 其后首个 `</script>` | §A1.5 拓扑与身份字段参照 |
+
+workflow 装配所需 class 清单（宿主 CSS 必须覆盖，来源为 L144–367 style 块）：`.maau-flow` / `.maau-flow-head` / `.maau-flow-title` / `.maau-flow-meta` / `.bpmn-flow-wrap` / `.bpmn-flow` / `.bpmn-track` / `.bpmn-track-label` / `.bpmn-node` / `.bpmn-task` / `.bpmn-event` / `.bpmn-gateway` / `.bpmn-actor` / `.bpmn-number` / `.bpmn-sequence` / `.bpmn-reflow` / `.bpmn-arrow` / `.bpmn-flow-label` / `.bpmn-legend` / `.bpmn-legend-item` / `.bpmn-legend-symbol` / `.workflow-done`。装配脚本目标：按本表一次提取全部片段，工具往返 ≤1 次。
+
 ## B. 模块详情 Canvas 页面结构
 
 每个模块详情页面**不使用六板块结构**。它只展示该模块的专属 section，不留空白板块。

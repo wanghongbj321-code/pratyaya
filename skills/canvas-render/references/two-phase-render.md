@@ -11,9 +11,9 @@
     ↓
 第一阶段：canvas-render 从确认包生成无图候选 HTML
     ↓
-L1（预期 noflow）+ L2 双视口 + 按条件触发 L3
-    ↓ 全部通过
-提交无图正式文件 → 交付 → 询问是否需要 Workflow 图
+L1（预期 noflow，必跑）+ L2/L3（仅用户明确要求时运行）
+    ↓ 通过
+提交无图正式文件 → 交付（附视觉反馈提示话术，见 §3.4）→ 询问是否需要 Workflow 图
     ├─ 不需要：结束
     └─ 需要：重新核对当前版本与授权
           ↓
@@ -25,9 +25,9 @@ L1（预期 noflow）+ L2 双视口 + 按条件触发 L3
           ↓
        canvas-render 从同版本确认包生成有图候选 HTML，装配 SVG
           ↓
-       L1（预期 workflow）+ L2 双视口 + 按条件触发 L3
-          ↓ 全部通过
-       提交有图正式文件 → 交付两份链接
+       L1（预期 workflow，必跑）+ L2/L3（仅用户明确要求时运行）
+          ↓ 通过
+       提交有图正式文件 → 交付两份链接（附视觉反馈提示话术，见 §3.4）
 ```
 
 两阶段是独立正式渲染动作，各自从确认包取数、各自验收。布局请求、版本及预期输出身份是本次操作上下文，不增加 state 字段。视觉模式沿用用户本次已确认选择；用户改选时重新确认，宿主页面仍使用该模式的 token。
@@ -78,9 +78,9 @@ Phase 2 继续只读汇总六个最新 `rendered` 模块，执行跨模块一致
 
 ### 3.2 形态判定
 
-新正式 global 渲染的 L1、L2 命令均要求传入 `--workflow-variant noflow|workflow`，其值来自本次渲染请求。**不得通过待检 HTML 中是否有拓扑或 SVG 推断预期形态**，也不新增形态 state 字段。L1 与 L2 缺少预期参数时阻断新正式 global 交付。
+新正式 global 渲染的 L1 命令必须传入 `--workflow-variant noflow|workflow`，其值来自本次渲染请求。**不得通过待检 HTML 中是否有拓扑或 SVG 推断预期形态**，也不新增形态 state 字段。L1 缺少预期参数时阻断新正式 global 交付；L2/L3 仅用户明确要求时运行，运行时必须与 L1 使用同一预期形态参数。
 
-L1 核对目标文件身份与请求一致，L2 使用同一请求参数。模块详情和其他画布不适用 global 形态参数，仍使用各自签名配置。
+L1 核对目标文件身份与请求一致；L2/L3（按用户要求运行时）使用同一请求参数。模块详情和其他画布不适用 global 形态参数，仍使用各自签名配置。
 
 | 预期形态 | 拓扑 | Workflow DOM | 结果 |
 |---|---|---|---|
@@ -92,6 +92,42 @@ L1 核对目标文件身份与请求一致，L2 使用同一请求参数。模�
 
 有图版同时缺失拓扑和 SVG 仍 FAIL。无图版不豁免六板块、文字内容、授权、caveat、离线、版本及治理面板检查。两形态均不得以删除失败结构换取降级通过。
 
+### 3.3 L1/L2 命令模板（一次传对全部参数）
+
+新正式 global 渲染按形态取用下表命令，禁止分两次试跑补参数（L1 必跑；L2/L3 仅用户明确要求时运行，运行时同用本模板一次传齐）：
+
+```bash
+# L1 静态审计（MAAU transcript-direct；候选阶段加 --target-output <正式目标路径>）
+python3 skills/canvas-render/scripts/audit_canvas_html.py <候选或正式HTML> \
+  --source modules/MAAU-{slug}-v{N}.md --state state.json \
+  --type mvl --page-type global --instance {slug} \
+  --generation-path transcript-direct --workflow-variant noflow|workflow
+
+# L2 DOM 度量断言（仅用户明确要求时运行；与 L1 同一预期形态，一次传齐）
+node skills/canvas-render/scripts/canvas-smoke.mjs <候选或正式HTML> \
+  --type mvl --page-type global --workflow-variant noflow|workflow
+```
+
+参数要点：`--workflow-variant` 各层必须同值且与请求形态一致；模块详情页用 `--page-type module-detail`（无需 variant）；其他画布不传形态参数。noflow 形态 L2（如运行）会自动收紧为"无流程图结构 + 六板块存在"签名，无需额外参数。
+
+### 3.4 分级验收语义（v3.6.2 起：L1 必跑，L2/L3 仅用户明确要求）
+
+验收分级调整为：
+
+| 层级 | 默认 | 内容 | 触发条件 |
+|---|---|---|---|
+| L1 静态审计 | **必跑** | 治理完整性（授权/版本/六板块/caveat/离线）+ **结构签名静态断言**（v3.6.2 新增：workflow 形态的 `quality-panel` 存在、`bpmn-legend` 恰好 1 个、`bpmn-flow` SVG 存在） | 每次正式渲染，无条件 |
+| L2 DOM 度量断言 | 可选 | 双视口溢出/裁切/折叠断言（浏览器级） | **仅用户明确要求**（如严格验收、多端/移动端交付、打印适配检查） |
+| L3 截图目检 | 可选 | AI 目检布局（压线/重叠） | 同 L2：**仅用户明确要求**；不得作为 L1 失败的兜底执行路径 |
+
+决策依据（2026-09-06 归因实验 + 用户拍板）：L2 的 23s 中约 90% 是 `require("puppeteer-core")` 模块加载税（macOS 实测 20–22s，系统 Node 亦 11s，疑似 Gatekeeper 对 node_modules 大量小文件的每次扫描），真实断言仅 0.03s；而视觉质量的最终裁决者是用户（其工作流本身即精确视觉反馈迭代），移动端/打印检查仅在用户明确要求（如多端交付）时才有价值。结构签名的价值不放弃——下沉为 L1 静态断言（零依赖、<0.5s）。**未经用户明确要求，L2/L3 不允许执行**：执行者不得因 L1 FAIL、CSS/模板结构变更、无示例参照或自身观感存疑自行触发（L1 FAIL 时修订同版本 HTML 后重跑 L1）。
+
+**交付话术模板（正式交付时固定附一句）**：
+
+> 画布视觉如需调整（间距、颜色、布局、字号等），直接告诉我，我马上调；如需移动端/打印溢出等严格验收，可要求我跑一次 L2/L3。
+
+L2 脚本与降级路径保留不动；`audit_l2` / `audit_l3` trace stage 枚举保留（§7），用户要求执行时照常落盘。
+
 ## 4. Workflow SVG 由 LLM 按 §A1 生成（v3.6.1 起）
 
 ### 4.1 生成边界
@@ -100,11 +136,11 @@ workflow 形态的 SVG 由渲染回合的 LLM 从同版本确认包按 §A1.1–
 
 **不输出** HTML `#workflow-flow` 外容器、标题、横滚包装、HTML 图例和 `#workflow-done`。这些由 canvas-render 按契约生成，完成条件直接来自确认包，不从 End 标签推断。渲染回合可以装配外层 HTML，但不得重写 SVG 内部几何或业务标签。
 
-SVG 不携带页面级 CSS；结构 class 复用母版（`bpmn-flow` / `bpmn-track` / `bpmn-node` / `bpmn-sequence` 等），视觉 token 由宿主 CSS 单点提供。SVG 内部结构符合 §A1 不等于完整页面已验收；必须嵌入宿主后执行 L1/L2 及所需 L3。
+SVG 不携带页面级 CSS；结构 class 复用母版（`bpmn-flow` / `bpmn-track` / `bpmn-node` / `bpmn-sequence` 等），视觉 token 由宿主 CSS 单点提供。SVG 内部结构符合 §A1 不等于完整页面已验收；必须嵌入宿主后执行 L1（及用户明确要求的 L2/L3）验收。
 
 ### 4.2 几何与质量把关
 
-无自动几何自检（v3.5.0–v3.6.0 布局器已回退删除）：几何与视觉效果靠 L1 结构断言（正交 `M/H/V` 禁 `C/Q/S/A`、节点/track/actor/dashed 一致性）+ L2 溢出/滚动区断言 + L3 截图目检（按需触发，见 §5）人工兜底。LLM 生成的 SVG 须复用母版 class 体系与已确认视觉 token，控制坐标漂移。
+无自动几何自检（v3.5.0–v3.6.0 布局器已回退删除）：几何与视觉靠 L1 结构断言（正交 `M/H/V` 禁 `C/Q/S/A`、节点/track/actor/dashed 一致性、结构签名静态断言）+ 用户视觉反馈兜底；浏览器级 L2 溢出断言与 L3 截图目检仅用户明确要求时运行（默认不执行，见 §3.4）。LLM 生成的 SVG 须复用母版 class 体系与已确认视觉 token，控制坐标漂移。
 
 ### 4.3 AGENTS.md 规则 3 边界
 
@@ -167,3 +203,24 @@ Phase 2 两份文件的交付由 §2.4 规定，不写入任一模块 `output_fi
 
 
 版本化文件工具：`skills._engine.paths.html_file(..., version=N)`；MAAU 的 output_prefix 为 `maau-global` 且需 workflow_variant。files 的存在性/过期 sidecar 工具传入同样的 version/variant；升版时两形态逐份标记。省略 version 只兼容历史路径；当前索引和下钻优先读实际 output_file。
+
+## 7. 渲染计时插桩（render-trace.jsonl）
+
+为支持渲染性能复盘（各阶段耗时归因），验收脚本与装配脚本按以下约定写 trace。trace 是**派生性能数据**：不参与审计校验、不写 state、不进索引，写入失败静默忽略，绝不让插桩反噬渲染主流程。
+
+- **文件位置**：被检 HTML 同目录（正式产物即 `output/.render-trace.jsonl`；候选阶段在被检候选文件所在临时目录）。
+- **记录 schema**（JSONL，每行一条）：`{"stage", "tool", "html", "exit_code", "status", "started_at", "ended_at", "duration_ms", ...meta}`；时间 ISO 8601。
+- **stage 枚举与写入者**：
+
+| stage | 写入者 | 说明 |
+|---|---|---|
+| `host_read` | 装配脚本（LLM 渲染回合编写） | 读取宿主/确认包/示例片段 |
+| `svg_generate` | 装配脚本（LLM 渲染回合编写） | §A1 SVG 生成（LLM 侧仅记生成起止，推理耗时以轮次自报近似） |
+| `assembly` | 装配脚本 | 候选 HTML 写盘 |
+| `audit_l1` | `audit_canvas_html.py`（自动） | L1 静态审计 |
+| `audit_l2` | `canvas-smoke.mjs`（自动） | L2 DOM 断言 |
+| `audit_l3` | 截图脚本（按需） | L3 目检 |
+| `commit` | 装配脚本/提交步骤 | 正式文件替换 + state 更新 |
+
+- **装配脚本最小插桩**：渲染回合编写的装配脚本至少写 `assembly` 与 `commit` 两条（各 3 行代码量级），`host_read` / `svg_generate` 可选。
+- LLM 推理轮次耗时不可自动测量：由渲染路径自报的"工具往返量级"近似补充，不写入 trace。
