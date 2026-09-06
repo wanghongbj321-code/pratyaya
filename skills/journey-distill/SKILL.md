@@ -13,7 +13,7 @@ description: 把 User Journey（用户旅程）工作坊讨论产物提炼为 Ma
 
 ## 定位
 
-**分步提炼流程**：本 skill 是 Pratyaya Canvas Expert 的“Journey 提炼与确认包生成”能力。完整的 Journey 工作流由主 agent 编排（见 `agents/pratyaya.md`），本 skill 不编排主流程，只在被调用时执行以下两个独立 Stage：
+**分步提炼流程**：本 skill 是 Pratyaya Coach 的“Journey 提炼与确认包生成”能力。完整的 Journey 工作流由主 agent 编排（见 `agents/pratyaya.md`），本 skill 不编排主流程，只在被调用时执行以下两个独立 Stage：
 
 - **Stage 1：Key Points 抽取** — 输入转写，输出 `modules/JOURNEY-{slug}-keypoints.md`（讨论地图，30 秒浏览）。
 - **Stage 2：原子提炼** — 输入转写 + Key Points + Journey 框架，输出 `modules/JOURNEY-{slug}-v{N}.md`（确认包，唯一事实源）。

@@ -11,7 +11,7 @@ description: 把 V2C Value Attribution Canvas（VAC，价值归因画布）工�
 
 ## 定位
 
-本 Skill 是 Pratyaya Canvas Expert 的 V2C VAC 分析层提炼能力。完整工作流由主 Agent 编排（见 `agents/pratyaya.md`），本 Skill 不编排主流程，只在被调用时执行以下独立动作：
+本 Skill 是 Pratyaya Coach 的 V2C VAC 分析层提炼能力。完整工作流由主 Agent 编排（见 `agents/pratyaya.md`），本 Skill 不编排主流程，只在被调用时执行以下独立动作：
 
 - **Stage 1：Key Points 抽取** — 输入逐字稿 / 会议材料，输出 `modules/V2C-VAC-{slug}-keypoints.md`。
 - **Stage 2：pipeline 阶段提炼** — 输入当前阶段材料 + Key Points + 框架，输出 `modules/V2C-VAC-{slug}-stage-*.md`。

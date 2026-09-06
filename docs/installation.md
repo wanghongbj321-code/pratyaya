@@ -7,7 +7,7 @@
 
 ## 1. 概述
 
-**Pratyaya Canvas Expert**（专家标识 `pratyaya`）是多画布工作坊专家包，专为 WorkBuddy 平台设计，支持多类画布：
+**Pratyaya Coach**（专家标识 `pratyaya`）是多画布工作坊专家包，专为 WorkBuddy 平台设计，支持多类画布：
 
 | 画布 | 定位 | 结构 |
 |---|---|---|
@@ -45,7 +45,7 @@ V2C 系列画布的思路来源于王鸿的 Value-to-Capability FDE 工作方法
 将以下代码块**完整复制**到 WorkBuddy 的"专家导入"入口（一键粘贴即可完成注册与安装）：
 
 ```text
-请帮我安装本地的多画布工作坊专家（Pratyaya Canvas Expert），仓库路径为 ./pratyaya/。
+请帮我安装本地的多画布工作坊专家（Pratyaya Coach），仓库路径为 ./pratyaya/。
 该专家包由本仓库的 .codebuddy-plugin/plugin.json 描述。
 请按 plugin.json 的字段读取专业名称、描述、快速指令集和标签。
 专家包内的 agents/pratyaya.md 是主 Agent 入口。
@@ -64,7 +64,7 @@ WorkBuddy 完成专家注册后必须重启，才能完整加载 agent、skill�
 
 1. 关闭 WorkBuddy
 2. 重新打开 WorkBuddy
-3. 进入"我的专家"页面，验证 “Pratyaya Canvas Expert” 已出现
+3. 进入"我的专家"页面，验证 “Pratyaya Coach” 已出现
 
 不重启可能导致：专家已安装但 Agent 加载失败、Skill 路径不识别、avatar 缺失等异常。
 
