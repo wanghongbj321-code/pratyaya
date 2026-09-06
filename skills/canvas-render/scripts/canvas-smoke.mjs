@@ -241,6 +241,38 @@ async function measureViewport(page, viewport, cfg, withPrint) {
 }
 
 /* ------------------------------------------------------------------ *
+ * 2.5 渲染计时插桩：向被检 HTML 同目录 .render-trace.jsonl 追加 L2 记录
+ *     trace 为派生性能数据：写入失败静默忽略，绝不影响 L2 结果与退出码。
+ * ------------------------------------------------------------------ */
+function appendRenderTrace(startedAt, exitCode) {
+  try {
+    const args = parseArgs(process.argv.slice(2));
+    if (!args.html) return;
+    const htmlAbs = path.resolve(args.html);
+    const record = {
+      stage: "audit_l2",
+      tool: "canvas-smoke.mjs",
+      html: htmlAbs,
+      exit_code: exitCode,
+      status: exitCode === 0 ? "PASS" : exitCode === 2 ? "DEGRADED" : "FAIL",
+      type: args.type || null,
+      page_type: args.pageType || null,
+      workflow_variant: args.variant || null,
+      started_at: new Date(startedAt).toISOString(),
+      ended_at: new Date().toISOString(),
+      duration_ms: Date.now() - startedAt,
+    };
+    fs.appendFileSync(
+      path.join(path.dirname(htmlAbs), ".render-trace.jsonl"),
+      JSON.stringify(record) + "\n",
+      "utf-8",
+    );
+  } catch {
+    /* 插桩不得反噬 L2 主流程 */
+  }
+}
+
+/* ------------------------------------------------------------------ *
  * 3. main
  * ------------------------------------------------------------------ */
 async function main() {
@@ -351,4 +383,9 @@ async function main() {
   return failed.length === 0 ? 0 : 1;
 }
 
-main().then((code) => process.exit(code));
+const _t0 = Date.now();
+main()
+  .then((code) => {
+    appendRenderTrace(_t0, code);
+    process.exit(code);
+  });

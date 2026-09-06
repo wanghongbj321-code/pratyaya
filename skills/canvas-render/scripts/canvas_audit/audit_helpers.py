@@ -493,6 +493,16 @@ def audit_workflow_flow(
                 )
             )
             break
+    # 结构签名静态断言（v3.6.2 自 L2 下沉；替代浏览器级检查的零依赖等价物）
+    if "quality-panel" not in html.ids:
+        findings.append(Finding("WORKFLOW_FLOW", "Workflow 形态缺少治理面板（id=quality-panel）"))
+    legend_count = len(re.findall(r'class="[^"]*\bbpmn-legend\b(?![-\w])[^"]*"', source))
+    if legend_count != 1:
+        findings.append(
+            Finding("WORKFLOW_FLOW", f"bpmn-legend 应恰好 1 个，实际 {legend_count} 个")
+        )
+    if not re.search(r'class="[^"]*\bbpmn-flow\b(?![-\w])[^"]*"', source):
+        findings.append(Finding("WORKFLOW_FLOW", "Workflow 形态缺少 BPMN SVG（class=bpmn-flow）"))
     workflow = canvas_data.get("workflow")
     if not isinstance(workflow, dict):
         findings.append(Finding("WORKFLOW_FLOW", "canvas-data.workflow must be an object"))
