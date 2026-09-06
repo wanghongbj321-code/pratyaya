@@ -266,3 +266,15 @@
 | 依据 | `DEVELOPMENT.md`、`agents/pratyaya.md`、`skills/canvas-render/visual-patterns/README.md` |
 | 下一步 | 说：`请重新扫描视觉模式候选并让我选择。` |
 | 边界 | FAQ 只解释处理方式；正式渲染仍由 `canvas-render` Skill 完成。 |
+
+## 画布来源与版权
+
+### MAAU / V2C VAC 画布的来源与版权是什么？
+
+| 字段 | 内容 |
+|---|---|
+| 问题 | MAAU / V2C VAC 画布的来源与版权是什么？ |
+| 短答 | MAAU 画布思想源于北京大学汇丰商学院未来实验室导师檀林老师的工作坊教学实践；V2C 系列画布思路来源于王鸿的 Value-to-Capability FDE 工作方法论——V2C VAC 聚焦在具体业务观察场景中，审查 AI-enabled Capability 可能如何贡献于 Observable Change、Business Impact 与 Value。初版由王鸿、陈嘉杰共同开发。pratyaya 专家包按 MIT 协议开源，画布方法与版权归属分别归于上述来源方。 |
+| 依据 | `README.md`「版权声明」 |
+| 下一步 | 需要标注出处时可以说：`请把 MAAU / V2C VAC 的方法来源一并写入交付说明。` |
+| 边界 | 上述版权归属不影响你对本工作坊产出内容的使用（产出内容的版权归产生它的用户所有）；FAQ 只转述官方版权声明，不扩大或改写口径。 |
