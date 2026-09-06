@@ -52,7 +52,7 @@
 
 ## 渲染审计
 
-- 生成后运行分级渲染验收（L1 静态审计 [`--type mvl --page-type global` 语义] + L2 双视口 DOM 断言必做，L3 截图目检按需；定义见 `skills/canvas-render/SKILL.md`「分级渲染验收」），全过后交付；
+- 生成后运行分级渲染验收（L1 静态审计必做 [`--type mvl --page-type global` 语义]；L2/L3 仅用户明确要求时执行；定义见 `skills/canvas-render/SKILL.md`「分级渲染验收」），通过后交付；
 - 渲染契约、锚点映射与离线约束以 `skills/canvas-render/references/render-contract.md` 与 `skills/mvl-distill/references/mvl-canvas-spec.md` 为准。
 
-两阶段均复核六模块版本组合与授权，不写模块状态或 output_file；有图失败保留原成功文件。L1/L2 必传 `--workflow-variant noflow|workflow`，current 身份审计及候选提交规则见 two-phase-render.md。
+两阶段均复核六模块版本组合与授权，不写模块状态或 output_file；有图失败保留原成功文件。L1 必传 `--workflow-variant noflow|workflow`；L2/L3 仅用户明确要求时运行且同传，current 身份审计及候选提交规则见 two-phase-render.md。

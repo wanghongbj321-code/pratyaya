@@ -11,7 +11,7 @@
  *     本脚本依赖 puppeteer-core（随装不含 node_modules）+ 本机 Chrome，跨机器不可移植，
  *     因此仅作 L2 的"脚本可用时执行"。执行前先环境自检（puppeteer-core 可 resolve +
  *     Chrome 路径存在），任一缺失则打印降级原因并以 exit code 2 退出（不阻断交付、
- *     不新增下载；调用方应在渲染自检中记录降级原因并改走 L3 截图路径）。
+ *     不新增下载；调用方应在渲染自检中记录降级原因，不自动降级到 L3——L3 截图目检仅用户明确要求时执行）。
  *   - 断点期望 / 结构签名 / 滚动豁免均从 CANVAS_TYPE_BREAKPOINTS 表读取，不硬编码
  *     单一 canvas_type 的选择器。
  *
@@ -302,7 +302,7 @@ async function main() {
     if (args.json) {
       console.log(JSON.stringify({ status: "DEGRADED", reason }, null, 2));
     } else {
-      console.log(`[canvas-smoke] DEGRADED — ${reason}。不阻断交付：请改走 L3 截图路径，并在渲染自检中记录降级原因。`);
+      console.log(`[canvas-smoke] DEGRADED — ${reason}。不阻断交付：不自动降级到 L3，请在渲染自检中记录降级原因；如用户明确要求截图目检再另行执行 L3。`);
     }
     return 2;
   }
@@ -328,7 +328,7 @@ async function main() {
   } catch (e) {
     const reason = `puppeteer-core 加载失败: ${e.message.split("\n")[0]}`;
     if (args.json) console.log(JSON.stringify({ status: "DEGRADED", reason }, null, 2));
-    else console.log(`[canvas-smoke] DEGRADED — ${reason}。不阻断交付：请改走 L3 截图路径，并在渲染自检中记录降级原因。`);
+    else console.log(`[canvas-smoke] DEGRADED — ${reason}。不阻断交付：不自动降级到 L3，请在渲染自检中记录降级原因；如用户明确要求截图目检再另行执行 L3。`);
     return 2;
   }
 

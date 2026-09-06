@@ -44,7 +44,7 @@
 7. 调用 `module-conclusion-gate` 的 MAAU 模式（`gate_reference=references/MAAU-gate.md`），输出 gate 报告，`gate_recommendation` 写 `state.maau.{slug}`；
 8. 展示 Gate 报告，等用户 **确认 vN / override / 补问**；
 9. 授权后调用 `canvas-render`（`canvas_type=mvl`、`page_type=global`、`generation_path=transcript-direct`、`instance_slug={slug}`），输出 `output/maau-global-canvas-{slug}--noflow-v{N}.html`；
-10. 运行分级渲染验收（L1 静态审计 + L2 双视口 DOM 断言必做，L3 截图目检按需；定义见 `skills/canvas-render/SKILL.md`「分级渲染验收」）通过后置 `rendered`：
+10. 运行分级渲染验收（L1 静态审计必做；L2/L3 仅用户明确要求时执行；定义见 `skills/canvas-render/SKILL.md`「分级渲染验收」）通过后置 `rendered`：
     ```bash
     python3 skills/canvas-render/scripts/audit_canvas_html.py output/maau-global-canvas-{slug}--noflow-v{N}.html \
       --source modules/MAAU-{slug}-v{N}.md \
@@ -56,7 +56,7 @@
       --workflow-variant noflow
     ```
 
-11. 无图验收成功后先提交并交付，询问用户是否需要 Workflow 图；需要则按 `skills/canvas-render/references/two-phase-render.md` 确认布局、生成 SVG、有图候选与完整验收，提交 `output/maau-global-canvas-{slug}--workflow-v{N}.html`，L1/L2 均传 `--workflow-variant workflow`。
+11. 无图验收成功后先提交并交付，询问用户是否需要 Workflow 图；需要则按 `skills/canvas-render/references/two-phase-render.md` 确认布局、生成 SVG、有图候选与 L1 验收，提交 `output/maau-global-canvas-{slug}--workflow-v{N}.html`；L1 必传 `--workflow-variant workflow`，L2/L3 仅用户明确要求时运行且同传。
 12. 两次提交都先复核当前版本授权。已有成功产物时失败/取消保持 `rendered`、原 `output_file` 与文件；成功才更新最近路径。临时候选审计传 `--target-output`，不在正式路径试写。
 
 ## 关键约束

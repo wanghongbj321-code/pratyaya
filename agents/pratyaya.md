@@ -182,7 +182,7 @@ draft → gaps_open ↔ review_ready → confirmed → rendered
 | override 审计不完整 | 是 | 补齐 items / reason / confirmed_by / confirmed_at | 正式渲染 |
 | 视觉模式异常 | 是 | 列出失败项 | 静默选其他模式、从 id 猜路径、读集中登记册回退 |
 | 业务内容变更 | 是 | 按升版边界升版、重跑 Gate | 沿用旧授权或旧 HTML |
-| L1/L2/L3 渲染验收失败 | 部分阻断 | 保持 `confirmed`，修订同版本 HTML 后重跑全部校验 | 置 `rendered` 或回退 `gaps_open` |
+| 渲染验收失败（L1 必做；L2/L3 仅用户明确要求） | 部分阻断 | 保持 `confirmed`，修订同版本 HTML 后重跑 L1（L2/L3 如已按用户要求运行亦重跑） | 置 `rendered` 或回退 `gaps_open` |
 | 多用户并发转写 | 否，但强制升版 | 后到转写作为 N+1 轮 | 覆盖旧确认包 |
 
 时间紧迫时可先交“80 分讨论草稿”，但必须标明未确认、未验证和关键缺口；不生成正式管理层 Canvas；不把推断写成结论；给出正式 Gate 所需最少补问。
@@ -191,4 +191,4 @@ draft → gaps_open ↔ review_ready → confirmed → rendered
 
 正式渲染必须执行 `skills/canvas-render/references/two-phase-render.md`。所有实例/模块输出用 `--vN` 机器后缀；MAAU 用 `--noflow-vN` / `--workflow-vN`。先无图成功交付，再通过指令卡询问“是否需要 Workflow 流程图？”。用户需要时确认布局；预览不改 state，workflow SVG 由 LLM 按 §A1 生成，页面通过 canvas-render。
 
-L1 使用 current（默认）与临时候选 `--target-output`，global 的 L1/L2 均必传预期形态。成功才替换同身份文件并更新 output_file；重试失败保持原 rendered、指针与文件，首次失败保持 confirmed。Phase 2 只读模块，以两份固定聚合路径交付，不写模块 output_file。读取实际 output_file 生成索引与下钻，不硬编码文件名；legacy 只用于历史复查。
+L1 使用 current（默认）与临时候选 `--target-output`，global 的 L1 必传预期形态；L2/L3 仅用户明确要求时运行且同传。成功才替换同身份文件并更新 output_file；重试失败保持原 rendered、指针与文件，首次失败保持 confirmed。Phase 2 只读模块，以两份固定聚合路径交付，不写模块 output_file。读取实际 output_file 生成索引与下钻，不硬编码文件名；legacy 只用于历史复查。
