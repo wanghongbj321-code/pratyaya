@@ -59,6 +59,6 @@
 - 正式渲染前置校验 `state.golden_circle.{slug}.render_authorized=true`；
 - 审计命令参数化：`--type gc`（**必须显式传**）、`--instance {slug}`、`--source modules/GC-{slug}-v{N}.md --state state.json`，`--page-type golden-circle-index`；
 - 示例模板按 agent「画布注册表」的 `示例模板` 列取（渲染页 `canvas_type` 写 `golden-circle`）；
-- 分级渲染验收（L1 静态审计 + L2 双视口 DOM 断言必做，L3 截图目检按需；定义见 `skills/canvas-render/SKILL.md`「分级渲染验收」）全过后才置 `rendered`；首次失败保持 `confirmed`；已有本版本成功产物后的失败保持原 `rendered`、output_file 和文件，不回退状态。
+- 分级渲染验收（L1 静态审计必做；L2/L3 仅用户明确要求时执行；定义见 `skills/canvas-render/SKILL.md`「分级渲染验收」）全过后才置 `rendered`；首次失败保持 `confirmed`；已有本版本成功产物后的失败保持原 `rendered`、output_file 和文件，不回退状态。
 
 正式输出遵循 `skills/canvas-render/references/two-phase-render.md` 的机器后缀和候选提交规则：current 审计（默认），临时候选传 `--target-output <正式路径>`；成功才更新实际 output_file，索引读取该值。legacy 仅用于历史复查。索引 `--page-type` 参数只用于 `--index` 命令，详情审计不传 index page type。

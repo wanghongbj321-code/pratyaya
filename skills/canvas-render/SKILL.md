@@ -113,7 +113,7 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 非 MVL: {
 ### MAAU transcript-direct 正式模式
 
 - 输入 `canvas_type=mvl` + `page_type=global` + `generation_path=transcript-direct`，数据源为 `modules/MAAU-{slug}-v{N}.md`，授权读取 `state.maau.{slug}`。
-- 输出 `output/maau-global-canvas-{slug}--noflow-v{N}.html`；分级渲染验收（L1 静态审计 + L2 双视口 DOM 断言必做，L3 截图目检按需）通过后才算成功。
+- 输出 `output/maau-global-canvas-{slug}--noflow-v{N}.html`；分级渲染验收（L1 静态审计必做；L2/L3 仅用户明确要求时执行）通过后才算成功。
 - HTML 必须写 `data-instance="{slug}"` 与 `canvas-data.instance`。
 - 展示 Intent / User / Agent Team / Workflow / Context / Validation 六大板块；Workflow 板块先交付无图版；用户需要时另行生成轨道带 BPMN 流程图（`#workflow-flow`，契约见 `render-contract.md` §A1），与 Phase 2 全局汇总页共享同一 MVL 全局页 Workflow 契约。
 - `canvas-data` 记录 `generation_path=transcript-direct`、`instance`、`source_file`、`auth`；仅有图版记录 `workflow`（派生拓扑 tracks/nodes/edges）；页面必须含 `[来源: transcript-direct]` 标头。
@@ -123,7 +123,7 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 非 MVL: {
 ### 模块详情模式
 
 - 模块 `confirmed` 或 `rendered` 且同版本用户授权后立即生成。
-- 输出 `output/module-{n}-canvas--v{N}.html`；只有分级渲染验收（L1 静态审计 + L2 双视口 DOM 断言必做，L3 截图目检按需）都通过后才算成功，并将状态改为 `rendered`。
+- 输出 `output/module-{n}-canvas--v{N}.html`；只有分级渲染验收（L1 静态审计必做；L2/L3 仅用户明确要求时执行）都通过后才算成功，并将状态改为 `rendered`。
 - 展示该模块在 `render-contract.md` 中规定的全部专属 section，不复刻全局六板块。
 - 显示版本、确认、缺口、风险、结论 ID、证据摘要和 caveat 状态。
 
@@ -138,7 +138,7 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 非 MVL: {
 ### 黄金圈正式模式
 
 - 输入 `canvas_type=golden-circle`，状态为 `confirmed` 或 `rendered`，且 `render_authorized=true`。
-- 输出 `output/gc-canvas-{slug}--v{N}.html`；分级渲染验收（L1 静态审计 + L2 双视口 DOM 断言必做，L3 截图目检按需）通过后才算成功。
+- 输出 `output/gc-canvas-{slug}--v{N}.html`；分级渲染验收（L1 静态审计必做；L2/L3 仅用户明确要求时执行）通过后才算成功。
 - 按 `render-contract-gc.md` 展示 WHY / HOW / WHAT 三层 + 跨层一致性。
 - **必须参照 `examples/goden-circle-canvas.html` 实现 `gc-diagram` 3 圈同心圆图示**（WHY / HOW / WHAT 环带标签 + pratyaya 黑灰配色），不得省略、不得用其他图形替代（`render-contract-gc.md` §C）。
 - 显示版本、确认、缺口、风险、结论 ID、证据摘要和 caveat 状态。
@@ -156,7 +156,7 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 非 MVL: {
 ### HMW 正式模式
 
 - 输入 `canvas_type=hmw`，状态为 `confirmed` 或 `rendered`，且 `render_authorized=true`。
-- 输出 `output/hmw-canvas-{slug}--v{N}.html`；分级渲染验收（L1 静态审计 + L2 双视口 DOM 断言必做，L3 截图目检按需）通过后才算成功。
+- 输出 `output/hmw-canvas-{slug}--v{N}.html`；分级渲染验收（L1 静态审计必做；L2/L3 仅用户明确要求时执行）通过后才算成功。
 - 按 `render-contract-hmw.md` 展示 HMW 陈述（situation / question / for / so_that）+ 质量鉴别 + 想法种子（8 固定格）+ 想法↔HMW 对应。
 - 显示版本、确认、缺口、风险、结论 ID、证据摘要和 caveat 状态。
 - **不触发全局 Canvas**，不扫描跨模块 caveat。HMW 是单画布。
@@ -172,7 +172,7 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 非 MVL: {
 ### Persona 正式模式
 
 - 输入 `canvas_type=persona`，状态为 `confirmed` 或 `rendered`，且 `state.persona.{slug}.render_authorized=true`。
-- 输出 `output/persona-canvas-{slug}--v{N}.html`；分级渲染验收（L1 静态审计 + L2 双视口 DOM 断言必做，L3 截图目检按需）通过后才算成功。
+- 输出 `output/persona-canvas-{slug}--v{N}.html`；分级渲染验收（L1 静态审计必做；L2/L3 仅用户明确要求时执行）通过后才算成功。
 - 按 `render-contract-persona.md` 展示 9 基本信息 + 6 宫格 + 4 质量鉴别维度 + 治理面板。
 - 显示版本、确认、缺口、风险、结论 ID、证据摘要和 caveat 状态。
 - **不触发全局 Canvas**，不扫描跨模块 caveat。Persona 是单画布。
@@ -188,7 +188,7 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 非 MVL: {
 ### Journey 正式模式
 
 - 输入 `canvas_type=journey`，状态为 `confirmed` 或 `rendered`，且 `state.journey.{slug}.render_authorized=true`。
-- 输出 `output/journey-canvas-{slug}--v{N}.html`；分级渲染验收（L1 静态审计 + L2 双视口 DOM 断言必做，L3 截图目检按需）通过后才算成功。
+- 输出 `output/journey-canvas-{slug}--v{N}.html`；分级渲染验收（L1 静态审计必做；L2/L3 仅用户明确要求时执行）通过后才算成功。
 - 按 `render-contract-journey.md` 展示动态阶段 × 5 行合并结构 + 痛点与机会 + 正式画布外显质量鉴别。
 - 阶段数量由 `JOURNEY-{slug}-v{N}.md` 第 6 节表格行动态生成，不固定 7 个槽位；每阶段必须保留 `action / touchpoint_system / emotion / pain_point / opportunity` 五个字段。
 - 显示版本、确认、缺口、风险、结论 ID、证据摘要和 caveat 状态。
@@ -207,7 +207,7 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 非 MVL: {
 
 - 输入 `canvas_type=v2c-vac`，状态为 `confirmed` 或 `rendered`，且 `state.v2c_vac.{slug}.render_authorized=true`。
 - 数据源只能是 `modules/V2C-VAC-{slug}-v{N}.md`，不得从逐字稿、会议材料、Key Points 或 pipeline 阶段草稿直接生成正式 HTML。
-- 输出 `output/v2c-vac-canvas-{slug}--v{N}.html`；分级渲染验收（L1 静态审计含 Template Gate + L2 双视口 DOM 断言必做，L3 截图目检按需）通过后才算成功。
+- 输出 `output/v2c-vac-canvas-{slug}--v{N}.html`；分级渲染验收（L1 静态审计必做含 Template Gate；L2/L3 仅用户明确要求时执行）通过后才算成功。
 - 按 `render-contract-v2c-vac.md` 展示一句话归因假设、主链摘要、Attribution Chain 五层、Attribution Gaps、Attribution Quality Check、推断表与治理面板。
 - 一张 V2C VAC 只展示一个 Primary Change 和一条 Business Impact Chain；多个 Capability 可汇聚到 Primary Change，多个 Other Observed Changes 可记录但默认不连入主链。
 - KPI / Measure 只能作为测量证据附着在 Change / Impact / Value 节点旁，不得渲染成因果节点。
@@ -228,7 +228,7 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 非 MVL: {
 
 - 输入 `canvas_type=5w`，状态为 `confirmed` 或 `rendered`，且 `state.five_whys.{slug}.render_authorized=true`。
 - 数据源只能是 `modules/5W-{slug}-v{N}.md`，不得从逐字稿、会议材料或 Key Points 直接生成正式 HTML。
-- 输出 `output/5w-canvas-{slug}--v{N}.html`；分级渲染验收（L1 静态审计含 Template Gate + L2 双视口 DOM 断言必做，L3 截图目检按需）通过后才算成功。
+- 输出 `output/5w-canvas-{slug}--v{N}.html`；分级渲染验收（L1 静态审计必做含 Template Gate；L2/L3 仅用户明确要求时执行）通过后才算成功。
 - 按 `render-contract-5w.md` 展示问题陈述、五层因果链（三层面：制造层 Why 1-2 → 检验层 Why 3-4 → 体系层 Why 5）、根本原因与"因此"检验、对策四要素、其他原因分支、判别记录与治理面板。
 - 五层锚点 `5w-why-1` ~ `5w-why-5` 必须全部存在（层数弹性暂不支持）；每层必须展示内容或显式缺口标注。
 - 布局沿用 A3 横版：1-5 张卡片横向并排、三层面标注、页脚三条红线（事实优先 / 系统而非个人 / 验证行动）。
@@ -286,7 +286,7 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 非 MVL: {
 
 2. **参照**：示例是最终画布的**版面与签名视觉事实源**——整体布局、签名图示（如 GC 三同心圆、V2C VAC 归因链箭头、5W 五张卡片横向并排）、治理面板 / 质量面板位置、pratyaya 黑灰配色与交互骨架均须与示例一致；业务内容仍按对应 render-contract 映射到稳定锚点。HMW 正式输出必须按 `examples/hmw-canvas.html` 的版面与签名布局生成，并同时通过内容/授权审计和 Template Gate（`HMW-TPL-GATE-XX`，见 `scripts/audit_canvas_html.py --template`）。V2C VAC 正式输出必须按 `examples/v2c-value-attribution-canvas.html` 的 A3 landscape、黑灰视觉、归因链箭头和治理结构生成，并通过 `V2C-VAC-TPL-GATE-XX`。5W 正式输出必须按 `examples/5w-canvas.html` 的 A3 横版、黑灰单配色、1-5 卡片横向并排与三层面标注生成，并通过 `5W-TPL-GATE-XX`（正式交付必须传 `--template`，触发 `5W-TPL-GATE-00`）。
 
-3. **未找到示例**：不阻断渲染，但必须在交付说明中显式标注"该画布类型暂无示例参照"，并触发 L3 截图目检（见「分级渲染验收」），在 L3 时按 render-contract 自行核对版面；同时提示需要补建对应示例（建议命名 `{canvas_type}-canvas.html`）。
+3. **未找到示例**：不阻断渲染，但必须在交付说明中显式标注"该画布类型暂无示例参照"，并提示需要补建对应示例（建议命名 `{canvas_type}-canvas.html`）。不得因此自行触发 L3（见「分级渲染验收」）；若用户明确要求核对版面，可执行 L3 按 render-contract 自行核对。
 
 4. **职责划分（不冲突）**：示例参照解决"长什么样"（版面与签名视觉），render-contract 解决"锚点与数据映射"，visual-patterns 解决"视觉模式 token"；示例不提供视觉模式 token / 候选。
 
@@ -313,7 +313,7 @@ description: 把已通过用户授权的确认包（MVL: Mx-v{N}.md / 非 MVL: {
 2. LLM 按 `render-contract.md` §A1 直接静态生成内联 SVG：轨道带 A/B/C… 或单轨 main；Start/End/任务/网关/事件符号与 actor 徽章、流程序号徽标；Sequence Flow 仅正交 `M/H/V`，禁止 `C/Q/S/A` 曲线；dashed 回流走 gutter。SVG 结构 class 复用母版（`bpmn-flow` / `bpmn-track` / `bpmn-node` / `bpmn-sequence` 等），视觉 token 由宿主 CSS 单点控制，不引入私有 class 或手写内联样式。
 3. 本 Skill 负责 `#workflow-flow` 外层容器、标题、横滚包装、HTML 图例与来自确认包的条件性 `#workflow-done`，不得重算或改写 SVG 内部几何与业务标签。
 4. 输入拓扑、视觉模式、版本与宿主模式未变时可复用已通过验收的 SVG；任何影响布局的修改均重新呈现确认。执行责任与业务分支变化回源包升版与 Gate。
-5. 完整 HTML 继续过 L1/L2；模板或 SVG 结构变化触发 L3（截图目检，按需触发），包含打印目检。
+5. 完整 HTML 继续过 L1（必跑）；L2/L3 仅用户明确要求时执行——模板或 SVG 结构变化不自动触发 L3，截图目检（含打印目检）只在用户要求时进行。
 
 ## Caveat 显式呈现
 
@@ -422,7 +422,7 @@ python3 skills/canvas-render/scripts/audit_canvas_html.py \
   --template skills/canvas-render/examples/5w-canvas.html
 ```
 
-新正式审计默认 `--artifact-policy current`。global 必传 `--workflow-variant noflow|workflow`；审计临时候选加 `--target-output <正式目标路径>`；历史只读复查显式传 `--artifact-policy legacy`，不得用于新交付。L2 使用 `--type mvl --page-type global --workflow-variant noflow|workflow`；模块详情使用 `--page-type module-detail`。
+新正式审计默认 `--artifact-policy current`。global 必传 `--workflow-variant noflow|workflow`；审计临时候选加 `--target-output <正式目标路径>`；历史只读复查显式传 `--artifact-policy legacy`，不得用于新交付。L2（如经用户明确要求执行）使用 `--type mvl --page-type global --workflow-variant noflow|workflow`；模块详情使用 `--page-type module-detail`。
 
 全局页不绑定单一确认包，运行 `python3 skills/canvas-render/scripts/audit_canvas_html.py workshop/{project_slug}/{group_id}/{topic_slug}/output/maau-global-canvas.html --workflow-variant noflow`。MAAU transcript-direct 实例页审计：
 
@@ -453,31 +453,31 @@ python3 skills/canvas-render/scripts/audit_canvas_html.py \
 
 ## 分级渲染验收
 
-正式交付前按三级验收，**L1、L2 必做，L3 按需**，不默认做全量人工截图目检：
+正式交付前按分级验收：**L1 静态审计每次必做；L2 DOM 度量断言与 L3 截图目检未经用户明确要求不执行**（默认不执行，不做全量人工截图目检）：
 
-- **L1 Python 静态审计**（每次必做）：命令见上节；锚点 / JSON / 授权 / Template Gate / Workflow SVG 契约（正交线、节点数、三类节点、`from/to` 引用）全部由其覆盖。
-- **L2 DOM 度量断言**（每次必做，headless 双视口 1440×900 与 390×844；`canvas-smoke.mjs` 可用时执行，不可用降级见「L3 触发条件」）：
+- **L1 Python 静态审计**（每次必做，无条件）：命令见上节；锚点 / JSON / 授权 / Template Gate / Workflow SVG 契约（正交线、节点数、三类节点、`from/to` 引用）全部由其覆盖。workflow 形态的结构签名静态断言（`quality-panel` 存在、`bpmn-legend` 恰好 1 个、`bpmn-flow` SVG 存在）在 L1 内完成（v3.6.2 起自 L2 下沉，零依赖等价物）。
+- **L2 DOM 度量断言**（可选增强——**仅用户明确要求时执行**，默认不执行；headless 双视口 1440×900 与 390×844；`canvas-smoke.mjs` 可用时执行，不可用时记录降级原因，**不得自动降级到 L3**）：
   ① 无横向溢出（`documentElement.scrollWidth <= innerWidth`）；
   ② **文本裁切按容器类型分类断言**：无内部滚动意图的文本容器（卡片正文、表格单元格等）`scrollHeight <= clientHeight + 2`；**设计预期内滚动的容器（高密度表格、workflow 单流横滚区等）豁免**，只断言其滚动区不溢出父容器——统一 `scrollHeight <= clientHeight` 会对 Journey 表格 / workflow 横滚区误报；
-  ③ **结构签名断言（示例比对的机器可断言部分上收 L2）**：该 `canvas_type` 的签名布局存在且数量正确——MVL 全局有图页 Workflow（`#workflow-flow` / `.bpmn-flow` / `.bpmn-track` / `.bpmn-legend`）；无图页拒绝上述结构并检查六板块；模块详情独立配置；5W 五卡并排（`.why-row` ×5，桌面）与对策四列 → 断点折叠；GC 三圈层数；govern / quality 面板存在。断点期望按 canvas_type 配置表驱动，**脚本不硬编码 5W 选择器**；
-  ④ 打印仿真（可选）：`emulateMediaType('print')` 下断言无打印专属溢出。
+  ③ **结构签名断言（真实布局浏览器级复核）**：按 canvas_type 配置表在真实布局下复核签名存在与数量；无图页拒绝上述结构并检查六板块；断点折叠期望按 canvas_type 配置表驱动，**脚本不硬编码选择器**；
+  ④ 打印仿真（`--print`）：`emulateMediaType('print')` 下断言无打印专属溢出。
   PASS 即视为视觉布局达标。
-- **L3 截图目检**（按需触发，仅当）：L1/L2 任一 FAIL、CSS/模板结构有变更、该 `canvas_type` 无示例参照、用户明确要求看效果、或执行者对间距失衡 / 视觉层级存疑时，才打开浏览器截图人工核对（含示例比对观感、模式视觉）。**打印视图不单独必做，显式并入 L3 检查**——原"桌面/窄屏/打印三视图"的打印维度不得静默消失。
+- **L3 截图目检**（可选增强——**仅用户明确要求时执行**，默认不执行）：L1 FAIL、CSS/模板结构变更、无示例参照或执行者观感存疑均**不得自行触发**——L1 FAIL 时修订同版本 HTML 后重跑 L1。用户明确要求时打开浏览器截图人工核对（含示例比对观感、模式视觉）；**打印视图并入 L3 检查**——原"桌面/窄屏/打印三视图"的打印维度不得静默消失。
 
 > 浏览器目检不重复检查锚点、JSON、授权字段和离线字符串——这些由 L1 负责。
-> L2 不能替代 L1（结构契约），L1 不能替代 L2（真实布局溢出/裁切），按上述条件选择 L3。
-> **L2 局限声明**：度量断言覆盖溢出 / 裁切 / 结构签名，不覆盖间距失衡、视觉层级与模式混搭观感——由 L3 触发条件兜底。
+> L2/L3 仅用户明确要求时执行；L1 覆盖结构契约与结构签名，不覆盖真实布局溢出/裁切、间距失衡与视觉层级——这些由用户视觉反馈兜底，多端/打印风险经用户要求的 L2/L3 复核。
+> **L2/L3 局限声明**：L2 覆盖溢出 / 裁切 / 结构签名，L3 覆盖间距失衡、视觉层级与模式混搭观感；两者均非默认验收步骤。
 
 ## 渲染自检
 
 正式交付前确认分级渲染验收结果并做**渲染路径自报**：
 
 1. **L1 PASS**：保存命令及 PASS 输出；L1 覆盖数据源/版本、授权、DOM/锚点顺序、共享结构、离线安全、草稿标记与 caveat 结构。
-2. **L2 PASS**：保存 `canvas-smoke.mjs` 双视口 DOM 度量断言结果（溢出 / 裁切 / 结构签名）；L2 不可用时记录降级原因并改走 L3 截图路径。
-3. **L3（按需）**：按触发条件（L1/L2 FAIL、结构变更、无示例、用户要求、观感存疑）记录触发原因与截图目检结果；未触发则记"未触发"。
-4. **渲染路径自报**：自报读了哪三类依据（contract / examples / visual-patterns）、跑了哪几级验收（L1 / L2 / L3）、工具往返量级；偏离默认路径（源码通读、全量截图目检、L2 降级）时记录原因。
+2. **L2（可选增强——仅用户明确要求时执行）**：如执行，保存 `canvas-smoke.mjs` 双视口 DOM 度量断言结果（溢出 / 裁切 / 结构签名）；默认未执行记「未执行（用户未要求）」。L2 不可用时记录降级原因，不自动改走 L3。
+3. **L3（可选增强——仅用户明确要求时执行）**：如执行，记录截图目检结果；默认未执行记「未执行（用户未要求）」。不得以 L1 FAIL、结构变更、无示例或观感存疑自行触发。
+4. **渲染路径自报**：自报读了哪三类依据（contract / examples / visual-patterns）、跑了哪几级验收（L1 必跑；L2/L3 是否经用户明确要求执行）、工具往返量级；偏离默认路径（源码通读、未经用户要求执行 L2/L3）时记录原因。
 5. **模式与确认自报**：记录所选模式 `id`（NN-`{id}`）与用户确认动作（用户确认语或改选记录），与产物 `data-visual-mode` / `canvas-data.visual_mode` JSON 对齐，可追溯（T1，2026-09-03）。
-6. **Caveat 视觉 PASS**（仅 override）：L1/L2/L3 各覆盖级别下均明确显示保留意见与风险详情。
+6. **Caveat 视觉 PASS**（仅 override）：L1 覆盖级别下必查；L2/L3 若经用户明确要求运行亦须覆盖。
 
 任一阶段失败时阻断交付，列出失败项、证据和修订建议。首次渲染失败保持 `confirmed`；同版本重渲染失败保持原 `rendered` 和成功文件；不得提前提交失败候选。
 

@@ -54,5 +54,41 @@ __all__ = [
 ]
 
 
+def _append_render_trace(started_at, exit_code: int) -> None:
+    """向被检 HTML 同目录的 .render-trace.jsonl 追加一条 L1 审计计时记录。
+
+    trace 为派生性能数据：写入失败静默忽略，绝不影响审计结果与退出码。
+    """
+    try:  # 插桩不得反噬审计主流程
+        import datetime
+        import json
+
+        ended_at = datetime.datetime.now().astimezone()
+        argv = sys.argv[1:]
+        html_path = argv[0] if argv and not argv[0].startswith("--") else None
+        if not html_path:
+            return
+        trace_path = Path(html_path).resolve().parent / ".render-trace.jsonl"
+        record = {
+            "stage": "audit_l1",
+            "tool": "audit_canvas_html.py",
+            "html": str(Path(html_path).resolve()),
+            "exit_code": exit_code,
+            "status": "PASS" if exit_code == 0 else "FAIL",
+            "started_at": started_at.isoformat(),
+            "ended_at": ended_at.isoformat(),
+            "duration_ms": int((ended_at - started_at).total_seconds() * 1000),
+        }
+        with trace_path.open("a", encoding="utf-8") as fh:
+            fh.write(json.dumps(record, ensure_ascii=False) + "\n")
+    except Exception:
+        pass
+
+
 if __name__ == "__main__":
-    sys.exit(main())
+    import datetime
+
+    _t0 = datetime.datetime.now().astimezone()
+    _code = main()
+    _append_render_trace(_t0, _code)
+    sys.exit(_code)

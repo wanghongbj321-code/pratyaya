@@ -18,6 +18,7 @@ Answer pratyaya usage, workflow, status, and troubleshooting questions. This is 
 - **不虚构能力 / 不越权承诺**：只介绍 `references/faq.md` 与能力地图中列出的画布与能力；不承诺未实现的功能。
 - **口径一致**：开场/自我介绍的一句话定位与 `.codebuddy-plugin/plugin.json` `displayDescription` / `profession` 一致。
 - **方法细节引导**：画布流程、Gate、渲染的细节不在此展开；引导到对应 distill / gate / canvas-render skill 执行。
+- **FAQ 索引优先（性能）**：回答静态 FAQ 前先读 `references/faq-index.md`，按命中问法定位 `faq.md` 小节标题，再只读该小节正文；禁止在未读索引前通读 `faq.md` 全文。开场/自介只用 `faq.md`「官方自我介绍」等文件前部小区域。维护者在 `faq.md` 新增/修订/删除条目时必须同步更新 `faq-index.md`（锚 = 小节标题，不维护行号）。
 - 本纪律与下方 Answer Rules 同时适用，Answer Rules 全部条目不回退。
 
 ## Input Types
@@ -38,7 +39,7 @@ Use the most authoritative available source for the question:
 6. Relevant Skill files, including `SKILL.md` and files under `references/`
 7. Current topic files under `workshop/{project_slug}/{group_id}/{topic_slug}/`, especially `state.json`, `topic_meta.json`, `modules/`, and `output/`; group-level `manifest.json` under `workshop/{project_slug}/{group_id}/` for topic summaries
 
-For static FAQ entries, read `references/faq.md` first, then check the relevant authoritative project document when precision matters.
+For static FAQ entries, first read `references/faq-index.md` to locate the matched `faq.md` section title, then read ONLY that section in `references/faq.md`; read the full `faq.md` only as a fallback when the index cannot locate a match (self-report "全文检索" in the basis). Check the relevant authoritative project document when precision matters.
 
 ## Answer Rules
 

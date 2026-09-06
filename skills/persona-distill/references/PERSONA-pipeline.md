@@ -60,7 +60,7 @@
 - 前置校验 `state.persona.{slug}.render_authorized=true`（渲染前置校验示例，`state.json.persona.{slug}.render_authorized=true`）；
 - 审计命令参数化：`--type persona`、`--instance {slug}`、`--page-type persona-index`、`--source modules/PERSONA-{slug}-v{N}.md --state state.json`；
 - 示例模板按 agent「画布注册表」`示例模板` 列取；
-- 分级渲染验收（L1 静态审计 + L2 双视口 DOM 断言必做，L3 截图目检按需；定义见 `skills/canvas-render/SKILL.md`「分级渲染验收」）全过后置 `rendered`；首次失败保持 `confirmed`，同版本重渲染失败保持原 `rendered`、output_file 和成功文件。
+- 分级渲染验收（L1 静态审计必做；L2/L3 仅用户明确要求时执行；定义见 `skills/canvas-render/SKILL.md`「分级渲染验收」）全过后置 `rendered`；首次失败保持 `confirmed`，同版本重渲染失败保持原 `rendered`、output_file 和成功文件。
 
 ## 强制执行指令
 

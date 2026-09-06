@@ -31,3 +31,6 @@ internal/
 
 # 本地 PR 说明文档（供团队在浏览器建 PR 时参考，不入库）
 PR-visual-enhancement.md
+
+# 渲染性能派生数据（two-phase-render §7 trace；不参与审计、不入库，随临时文件清理）
+.render-trace.jsonl
