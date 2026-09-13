@@ -54,7 +54,7 @@ def load_hmw_template_profile(contract_path: Path) -> dict[str, list[str]]:
     stable_anchors: list[str] = []
 
     order_match = re.search(
-        r"### 一级模块必需性与 DOM 相对顺序（强制）\s*```text\s*(.*?)```",
+        r">?\s*### 一级模块必需性与 DOM 相对顺序（强制）\s*```text\s*(.*?)```",
         text,
         re.DOTALL,
     )
@@ -83,7 +83,7 @@ def load_journey_template_profile(contract_path: Path) -> dict[str, list[str]]:
     stable_anchors: list[str] = []
 
     order_match = re.search(
-        r"### 一级模块必需性与 DOM 相对顺序（强制）\s*```text\s*(.*?)```",
+        r">?\s*### 一级模块必需性与 DOM 相对顺序（强制）\s*```text\s*(.*?)```",
         text,
         re.DOTALL,
     )
@@ -147,7 +147,7 @@ def load_5w_template_profile(contract_path: Path) -> dict[str, list[str]]:
     stable_anchors: list[str] = []
 
     order_match = re.search(
-        r"### 一级模块必需性与 DOM 相对顺序（强制）\s*```text\s*(.*?)```",
+        r">?\s*### 一级模块必需性与 DOM 相对顺序（强制）\s*```text\s*(.*?)```",
         text,
         re.DOTALL,
     )
@@ -165,6 +165,38 @@ def load_5w_template_profile(contract_path: Path) -> dict[str, list[str]]:
     if anchor_match:
         stable_anchors = re.findall(
             r"`(5w-[a-z0-9-]+|quality-[a-z0-9-]+|local-notes|canvas-data)`",
+            anchor_match.group(1),
+        )
+    return {"main_order": main_order, "stable_anchors": stable_anchors}
+
+def load_swot_template_profile(contract_path: Path) -> dict[str, list[str]]:
+    """从 render-contract-swot.md 解析 SWOT 模板结构 profile（一级模块顺序 + 稳定锚点）。
+
+    返回 {"main_order": [...], "stable_anchors": [...]}。
+    """
+    text = contract_path.read_text(encoding="utf-8")
+    main_order: list[str] = []
+    stable_anchors: list[str] = []
+
+    order_match = re.search(
+        r">?\s*### 一级模块必需性与 DOM 相对顺序（强制）\s*```text\s*(.*?)```",
+        text,
+        re.DOTALL,
+    )
+    if order_match:
+        for line in order_match.group(1).splitlines():
+            m = re.match(r"\s*→\s*([a-z][a-z0-9-]*)\s*$", line)
+            if m:
+                main_order.append(m.group(1))
+
+    anchor_match = re.search(
+        r"### 稳定锚点集合（Template Gate 校验）(.*?)(?=\n### |\Z)",
+        text,
+        re.DOTALL,
+    )
+    if anchor_match:
+        stable_anchors = re.findall(
+            r"`(swot-[a-z0-9-]+|quality-[a-z0-9-]+|local-notes|canvas-data)`",
             anchor_match.group(1),
         )
     return {"main_order": main_order, "stable_anchors": stable_anchors}

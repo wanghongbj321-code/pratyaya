@@ -168,6 +168,7 @@ EXPECTED_CANVAS_IDS = {
     "journey",
     "v2c-vac",
     "5w",
+    "swot",
 }
 
 # 画布区块顶层键（schema properties 中属于画布的部分，排除元数据键）。
@@ -180,6 +181,7 @@ CANVAS_SCHEMA_BLOCKS = {
     "journey",
     "v2c_vac",
     "five_whys",
+    "swot",
 }
 # 需从 schema 顶层排除的元数据键（注册表 state_key root 不覆盖它们）。
 SCHEMA_META_KEYS = {
@@ -199,19 +201,19 @@ def _real_rows():
     return parse_canvas_registry(AGENT_MD.read_text(encoding="utf-8"))
 
 
-def test_real_registry_has_all_eight_canvases() -> None:
-    """① 按画布条目断言 8 个（MAAU 与 MVL 是两个条目）。"""
+def test_real_registry_has_all_nine_canvases() -> None:
+    """① 按画布条目断言 9 个（MAAU 与 MVL 是两个条目）。"""
     assert {r.canvas_id for r in _real_rows()} == EXPECTED_CANVAS_IDS
 
 
-def test_real_registry_audit_types_are_seven() -> None:
-    """② 按审计类型断言 7 种（MAAU 复用 mvl，故比 ① 少一个）。
+def test_real_registry_audit_types_are_eight() -> None:
+    """② 按审计类型断言 8 种（MAAU 复用 mvl，故比 ① 少一个）。
 
     ①② 双断言缺一不可：只用 canvas_type 做集合断言时，MAAU 会被去重掉，
-    8 个条目只能证出 7 种，测试通过但注册表其实漏了 MAAU（§8.3 R1）。
+    9 个条目只能证出 8 种，测试通过但注册表其实漏了 MAAU（§8.3 R1）。
     """
     assert {r.audit_type for r in _real_rows()} == {
-        "mvl", "gc", "hmw", "persona", "journey", "v2c-vac", "5w",
+        "mvl", "gc", "hmw", "persona", "journey", "v2c-vac", "5w", "swot",
     }
 
 
@@ -254,7 +256,7 @@ def test_registry_skills_declared_in_plugin() -> None:
     declared = {p.removeprefix("./skills/") for p in plugin["skills"]}
     rows = _real_rows()
 
-    assert len(rows) == 8
+    assert len(rows) == 9
     for r in rows:
         assert r.distill in declared, f"{r.canvas_id}.distill={r.distill} 未在 plugin.json skills 声明"
         assert r.gate in declared, f"{r.canvas_id}.gate={r.gate} 未在 plugin.json skills 声明"

@@ -1,0 +1,32 @@
+{
+  "schema_version": "2.4",
+  "project_slug": "saas-customer-success",
+  "project_name": "SaaS 客户成功优化",
+  "group_id": "cs-team",
+  "topic_slug": "health-score-system",
+  "topic_name": "客户健康度评分系统",
+  "current_module": null,
+  "updated_at": "2026-09-10T11:00:00+08:00",
+  "modules": {},
+  "golden_circle": {},
+  "hmw": {},
+  "persona": {},
+  "journey": {},
+  "v2c_vac": {},
+  "five_whys": {},
+  "maau": {},
+  "swot": {
+    "review-case": {
+      "slug": "review-case",
+      "version": 1,
+      "status": "draft",
+      "gate_recommendation": "pending",
+      "render_authorized": false,
+      "confirmation_mode": null,
+      "override_audit": null,
+      "source_file": "modules/SWOT-review-case-v1.md",
+      "output_file": null,
+      "updated_at": "2026-09-10T11:00:00+08:00"
+    }
+  }
+}

@@ -256,6 +256,10 @@
       "$ref": "#/$defs/five_whys_instance_map",
       "description": "5W（Five Whys，根因分析）Canvas 实例 map。每个 slug 一个 5W 根因分析画布实例；不使用 legacy `default` slug。"
     },
+    "swot": {
+      "$ref": "#/$defs/swot_instance_map",
+      "description": "SWOT/TOWS 实例 map；每个 slug 一个分析实例，业务内容保存在 Markdown 确认包。"
+    },
     "updated_at": {
       "type": "string",
       "minLength": 1
@@ -270,9 +274,46 @@
     { "required": ["journey"] },
     { "required": ["maau"] },
     { "required": ["v2c_vac"] },
-    { "required": ["five_whys"] }
+    { "required": ["five_whys"] },
+    { "required": ["swot"] }
   ],
   "$defs": {
+    "swot_instance_map": {
+      "type": "object",
+      "propertyNames": {
+        "maxLength": 64,
+        "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+      },
+      "patternProperties": {
+        "^[a-z0-9]+(-[a-z0-9]+)*$": {
+          "$ref": "#/$defs/swot_instance_state"
+        }
+      },
+      "additionalProperties": false
+    },
+    "swot_instance_state": {
+      "allOf": [
+        { "$ref": "#/$defs/single_canvas_state_base" },
+        {
+          "required": ["slug"],
+          "properties": {
+            "override_audit": {
+              "properties": {
+                "items": {
+                  "items": {
+                    "properties": {
+                      "assessment_id": {
+                        "pattern": "^SWOT-GATE-0[1-8]$"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
     "single_canvas_state_base": {
       "type": "object",
       "required": [

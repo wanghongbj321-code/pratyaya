@@ -120,11 +120,12 @@ class TestL1TraceAppend:
 
     def test_l1_trace_write_failure_is_silent(self, tmp_path: Path) -> None:
         html = copy_fixture(tmp_path)
-        os.chmod(tmp_path, 0o500)  # 目录只读：trace 写入失败须静默
+        trace_path = tmp_path / TRACE_NAME
+        trace_path.mkdir()  # Occupy the trace path so append fails on every platform.
         try:
             result = run_audit(html)
         finally:
-            os.chmod(tmp_path, 0o700)
+            trace_path.rmdir()
         assert result.returncode == 0, result.stdout + result.stderr
         assert not (tmp_path / TRACE_NAME).exists()
         assert "Traceback" not in result.stderr

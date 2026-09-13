@@ -3,7 +3,7 @@
 > 品牌：pratyaya
 > 版本：以 `.codebuddy-plugin/plugin.json` `version` 字段为权威
 
-多画布工作坊平台，支持 **MAAU 一次性综合路径**（把一次性逐字稿直接综合为 MVL 全局画布的六板块源包）、**MVL M1-M6 六模块管线**、**黄金圈**（Golden Circle）、**HMW**（How Might We，问题重构）、**用户画像**（User Persona）、**用户旅程**（User Journey）与 **V2C Value Attribution Canvas**（价值归因画布，简称 V2C VAC）。对话式引导 + 转写提炼 + 质量门禁 + 模块化智能体画布（Canvas）生成，并提供 FAQ Q/A 支持使用、状态和异常解释。逐字稿必须显式指定目标画布，不默认进入 MAAU 或任何其他画布。
+多画布工作坊平台，支持 **MAAU 一次性综合路径**（把一次性逐字稿直接综合为 MVL 全局画布的六板块源包）、**MVL M1-M6 六模块管线**、**黄金圈**（Golden Circle）、**HMW**（How Might We，问题重构）、**用户画像**（User Persona）、**用户旅程**（User Journey）、**V2C Value Attribution Canvas**（价值归因画布，简称 V2C VAC）与 **SWOT 审查**（SWOT Review，战略态势分析）。对话式引导 + 转写提炼 + 质量门禁 + 模块化智能体画布（Canvas）生成，并提供 FAQ Q/A 支持使用、状态和异常解释。逐字稿必须显式指定目标画布，不默认进入 MAAU 或任何其他画布。
 
 详细专家定位、标签、快速指令以 `.codebuddy-plugin/plugin.json` 为权威来源。
 
@@ -19,6 +19,7 @@
 | 用户旅程 | 动态阶段 × 5 行合并结构 + 断点摘要 + 质量鉴别 | 同上四阶段管线；`journey.{slug}` instance map |
 | V2C VAC | Scenario → Capability → Change → Business Impact → Value 归因链 + 断点 + 质量鉴别 | 支持 `pipeline` 多阶段管道与 `transcript-direct` 一次性综合；`v2c_vac.{slug}` instance map |
 | 5W | 问题陈述 + 五层因果链（制造层 Why 1-2 / 检验层 Why 3-4 / 体系层 Why 5）+ 根本原因 + 对策四要素 | 丰田三层面追问框架；`five_whys.{slug}` instance map |
+| SWOT 审查 | 优势 / 劣势 / 机会 / 威胁四象限 + 交叉策略 + 质量鉴别 | 同上四阶段管线；`swot.{slug}` instance map |
 
 > MAAU 综合路径**不是新增画布类型**，而是 MVL 全局画布的一种生成路径：把用户显式指定给 MAAU 的一次性逐字稿综合提炼为六板块源包（`generation_path=transcript-direct`），与 M1-M6 Phase 2 全局汇总互斥（同一 group 的 MAAU 输出只能二选一）。未指定画布类型的逐字稿会先追问画布类型，不自动进入 MAAU、V2C VAC 或其他画布。
 
@@ -43,9 +44,9 @@ flowchart LR
 draft → gaps_open ↔ review_ready → confirmed → rendered
 ```
 
-5 态转换（MVL 模块级 / GC / HMW / Persona / Journey / V2C VAC / 5W 画布级）：草稿在 `gaps_open` 与 `review_ready` 之间反复直到全部缺口解决，用户决策（`gate_pass` / `override`）后升至 `confirmed`，最后渲染为 `rendered`。`confirmation_mode` 是属性（`gate_pass` / `override` / `null`），不是状态；`rendered` 模块若 `confirmation_mode=override` 仍参与跨模块 caveat 检查（仅 MVL）。
+5 态转换（MVL 模块级 / GC / HMW / Persona / Journey / V2C VAC / 5W / SWOT 画布级）：草稿在 `gaps_open` 与 `review_ready` 之间反复直到全部缺口解决，用户决策（`gate_pass` / `override`）后升至 `confirmed`，最后渲染为 `rendered`。`confirmation_mode` 是属性（`gate_pass` / `override` / `null`），不是状态；`rendered` 模块若 `confirmation_mode=override` 仍参与跨模块 caveat 检查（仅 MVL）。
 
-非 MVL 状态路径为 `state.{state_key}.{slug}`：GC 使用 `golden_circle.{slug}`，HMW 使用 `hmw.{slug}`，Persona 使用 `persona.{slug}`，Journey 使用 `journey.{slug}`，V2C VAC 使用 `v2c_vac.{slug}`，5W 使用 `five_whys.{slug}`。slug 必须为 kebab-case；`default` 仅作为 legacy 迁移逃生口，不用于新建 instance。
+非 MVL 状态路径为 `state.{state_key}.{slug}`：GC 使用 `golden_circle.{slug}`，HMW 使用 `hmw.{slug}`，Persona 使用 `persona.{slug}`，Journey 使用 `journey.{slug}`，V2C VAC 使用 `v2c_vac.{slug}`，5W 使用 `five_whys.{slug}`，SWOT 使用 `swot.{slug}`。slug 必须为 kebab-case；`default` 仅作为 legacy 迁移逃生口，不用于新建 instance。
 
 ## 项目结构
 
@@ -61,6 +62,7 @@ pratyaya/
 │   ├── journey-distill/ # 用户旅程提炼
 │   ├── v2c-vac-distill/ # V2C VAC 价值归因提炼
 │   ├── 5w-distill/      # 5W 根因分析提炼
+│   ├── swot-distill/    # SWOT 审查提炼
 │   ├── maau-synthesize/ # 逐字稿 → MAAU 六板块源包（一次性综合）
 │   ├── module-conclusion-gate/  # MVL 门禁
 │   ├── gc-gate/         # 黄金圈门禁
@@ -69,6 +71,7 @@ pratyaya/
 │   ├── journey-gate/    # 用户旅程门禁
 │   ├── v2c-vac-gate/    # V2C VAC 门禁
 │   ├── 5w-gate/         # 5W 门禁
+│   ├── swot-gate/       # SWOT 门禁
 │   ├── faq-answer/      # FAQ Q/A（使用、状态、异常解释；不进入画布状态机）
 │   ├── _engine/         # 共享画布引擎（v3.3.0）：5 态机 / Gate 汇总 / 授权 / 契约等规则型判定（非 skill，不入 plugin.json skills）
 │   └── canvas-render/   # 统一渲染（画布类型感知）
@@ -100,12 +103,12 @@ workshop/{project_slug}/
         └── output/
 ```
 
-`project_slug` / `group_id` / `topic_slug` 是目录键（kebab-case ASCII）；`project_name` / `group_name` / `topic_name` 是显示名，可使用中文。同一项目下不同 group、同一 group 下不同 topic 的 state 与产物彼此隔离，只有 group 级 / 项目级状态汇总读取 `manifest.json`。`topic_slug` 表示工作坊议题边界，不替代画布 `instance_slug`（同一 topic 下可有多个 GC/HMW/Persona/Journey/MAAU/V2C VAC/5W 画布实例）。
+`project_slug` / `group_id` / `topic_slug` 是目录键（kebab-case ASCII）；`project_name` / `group_name` / `topic_name` 是显示名，可使用中文。同一项目下不同 group、同一 group 下不同 topic 的 state 与产物彼此隔离，只有 group 级 / 项目级状态汇总读取 `manifest.json`。`topic_slug` 表示工作坊议题边界，不替代画布 `instance_slug`（同一 topic 下可有多个 GC/HMW/Persona/Journey/MAAU/V2C VAC/5W/SWOT 画布实例）。
 
 ## 文档导航
 
 - [docs/installation.md](./docs/installation.md) — 部署到 WorkBuddy 的完整步骤
-- [docs/user-guide.md](./docs/user-guide.md) — 工作坊使用流程（MVL + MAAU + 黄金圈 + HMW + Persona + 用户旅程 + V2C VAC + 5W）+ 指令速查
+- [docs/user-guide.md](./docs/user-guide.md) — 工作坊使用流程（MVL + MAAU + 黄金圈 + HMW + Persona + 用户旅程 + V2C VAC + 5W + SWOT）+ 指令速查
 - [DEVELOPMENT.md](./DEVELOPMENT.md) — 维护者与 AI 助教命令清单
 - [DESIGN.md](./DESIGN.md) — 设计文档（架构、不变量、状态机、画布类型）
 
