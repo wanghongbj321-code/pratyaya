@@ -106,7 +106,7 @@ MAAU 是 MVL 全局画布的一次性综合路径（`generation_path=transcript-
 
 <!-- canvas-registry:end -->
 
-> GC 是唯一 `canvas_type` ≠ `audit_type` 的画布：渲染输入与 HTML `canvas-data.canvas_type` 写 `golden-circle`，审计 CLI `--type` 传 `gc`；其余 8 类两列恒等。`goden-circle-canvas.html` 是历史真实文件名，按实际路径使用，改名另行立项。MAAU 与 MVL 共用 `canvas_type=mvl` / `audit_type=mvl`，靠 `canvas_id` 与 `generation_path` 区分。
+> GC 是唯一 `canvas_type` ≠ `audit_type` 的画布：渲染输入与 HTML `canvas-data.canvas_type` 写 `golden-circle`，审计 CLI `--type` 传 `gc`；其余 8 个条目的 `canvas_type` 与 `audit_type` 两列恒等（按 `canvas_type` 去重计为 7 种：MAAU 与 MVL 共用 `mvl`）。`goden-circle-canvas.html` 是历史真实文件名，按实际路径使用，改名另行立项。MAAU 与 MVL 共用 `canvas_type=mvl` / `audit_type=mvl`，靠 `canvas_id` 与 `generation_path` 区分。
 
 注册表派生约束是**路由知识，不写入 state**：MVL 不写 `generation_path`，其全局 Canvas 由 Phase 2 触发；MAAU 与 V2C VAC 在 state 中写 `generation_path`；非 MVL instance 需 `instance_slug`；注册表锚点 `<!-- canvas-registry:begin/end -->` 必须保留。
 
