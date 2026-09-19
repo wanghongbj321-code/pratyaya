@@ -1,4 +1,4 @@
-"""画布注册表 —— 八类画布的唯一参数事实源。
+"""画布注册表 —— 九个注册项、八种画布类型的唯一参数事实源。
 
 红线（见执行计划 §7.4 / §7.6）：
 - 本模块**零副作用、标准库 only**：import 时不得读文件、写日志、发起网络或创建目录。
@@ -16,9 +16,9 @@ from dataclasses import dataclass
 # MVL 六模块管线（显式备选路径）的模块序号；仅 mvl 画布使用。
 MVL_MODULES: tuple[str, ...] = ("M1", "M2", "M3", "M4", "M5", "M6")
 
-# 8 类画布共有 7 种审计类型（maau 复用 mvl），用于 CLI `--type` choices。
+# 9 个注册项共有 8 种审计类型（maau 复用 mvl），用于 CLI `--type` choices。
 AUDIT_TYPES: tuple[str, ...] = (
-    "mvl", "gc", "hmw", "persona", "journey", "v2c-vac", "5w",
+    "mvl", "gc", "hmw", "persona", "journey", "v2c-vac", "5w", "swot",
 )
 
 
@@ -167,6 +167,21 @@ CANVASES: tuple[CanvasSpec, ...] = (
         generation_path=None,
         is_instance_map=True,
     ),
+    CanvasSpec(
+        canvas_id="swot",
+        canvas_type="swot",
+        audit_type="swot",
+        state_key="swot.{slug}",
+        file_prefix="SWOT",
+        output_prefix="swot",
+        distill_skill="swot-distill",
+        gate_skill="swot-gate",
+        gate_id_prefix="SWOT-GATE-",
+        page_type="swot-index",
+        template="skills/canvas-render/examples/swot-canvas.html",
+        generation_path=None,
+        is_instance_map=True,
+    ),
 )
 
 # 私有索引（模块级构建，纯内存，无 IO）。
@@ -201,7 +216,7 @@ def by_prefix(file_prefix: str) -> CanvasSpec | None:
 
 
 def canvas_types() -> tuple[str, ...]:
-    """去重后的 canvas_type 集合（7 种：mvl / golden-circle / hmw / persona / journey / v2c-vac / 5w）。"""
+    """去重后的 canvas_type 集合（8 种：mvl / golden-circle / hmw / persona / journey / v2c-vac / 5w / swot）。"""
     seen: list[str] = []
     for c in CANVASES:
         if c.canvas_type not in seen:
@@ -210,7 +225,7 @@ def canvas_types() -> tuple[str, ...]:
 
 
 def audit_types() -> tuple[str, ...]:
-    """去重后的 audit_type 集合（7 种，即 CLI `--type` choices）。"""
+    """去重后的 audit_type 集合（8 种，即 CLI `--type` choices）。"""
     return AUDIT_TYPES
 
 
@@ -218,8 +233,8 @@ def validate() -> list[str]:
     """校验注册表内部一致性，返回问题列表（空 = 通过）。
 
     锁定的不变式：
-    - canvas_id 唯一且恰为 8 个；
-    - audit_type 去重后恰为 7 种（maau 复用 mvl）；
+    - canvas_id 唯一且恰为 9 个；
+    - audit_type 去重后恰为 8 种（maau 复用 mvl）；
     - gc 是唯一 canvas_type != audit_type 的画布，且 canvas_type 必须为 "golden-circle"；
     - maau 的 canvas_type / audit_type 均须为 "mvl"，且 generation_path == "transcript-direct"；
     - 所有 distill_skill / gate_skill / gate_id_prefix / page_type / template / state_key / file_prefix
@@ -230,10 +245,10 @@ def validate() -> list[str]:
     ids = [c.canvas_id for c in CANVASES]
     if len(set(ids)) != len(ids):
         problems.append("canvas_id 重复")
-    if set(ids) != {"mvl", "maau", "gc", "hmw", "persona", "journey", "v2c-vac", "5w"}:
+    if set(ids) != {"mvl", "maau", "gc", "hmw", "persona", "journey", "v2c-vac", "5w", "swot"}:
         problems.append("canvas_id 集合不完整")
 
-    if set(audit_types()) != {"mvl", "gc", "hmw", "persona", "journey", "v2c-vac", "5w"}:
+    if set(audit_types()) != {"mvl", "gc", "hmw", "persona", "journey", "v2c-vac", "5w", "swot"}:
         problems.append("audit_type 去重集合异常")
 
     gc = by_id("gc")

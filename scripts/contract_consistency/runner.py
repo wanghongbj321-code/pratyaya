@@ -9,6 +9,7 @@ from .canvas_checks import *  # noqa: F403
 from .patterns import *  # noqa: F403
 from .sync_checks import *  # noqa: F403
 from .v2c_vac_checks import *  # noqa: F403
+from .swot_checks import *  # noqa: F403
 
 
 @dataclass(frozen=True)
@@ -72,6 +73,11 @@ RULES: tuple[Rule, ...] = (
     Rule("V2C_VAC_GATE_FILE", "A", "V2C VAC Gate 表格 ID/分类/风险/来源合法", check_v2c_vac_gate_table),
     Rule("V2C_VAC_RENDER_CONTRACT", "B", "V2C VAC render contract / canvas-render Skill / 示例模板同步", check_v2c_vac_render_contract_sync),
     Rule("V2C_VAC_STATE_SCHEMA", "B", "V2C VAC state schema、主 Agent 路由与 plugin 注册同步", check_v2c_vac_state_schema_and_routing),
+    Rule("SWOT_SKILL_SYNC", "A", "SWOT 两个 Skill、插件与 Agent 入口同步", check_swot_skill_sync),
+    Rule("SWOT_GATE_TABLE", "A", "SWOT 八项 Gate 表完整且 ID 连续", check_swot_gate_table),
+    Rule("SWOT_SECTION_SYNC", "B", "SWOT 确认包固定 12 节且第 12 节为治理", check_swot_section_sync),
+    Rule("SWOT_TEMPLATE_PROFILE", "B", "SWOT 模板包含七区稳定锚点", check_swot_template_profile),
+    Rule("SWOT_STATE_SCHEMA", "B", "SWOT state schema 定义与顶层入口同步", check_swot_state_schema),
 )
 
 

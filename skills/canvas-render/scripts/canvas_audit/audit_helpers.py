@@ -161,6 +161,30 @@ def five_whys_source_identity(path: Path) -> tuple[str | None, str | None]:
     version = version_match.group(1) if version_match else filename_version
     return (filename_slug, version)
 
+def swot_source_identity(path: Path) -> tuple[str | None, str | None]:
+    """从 SWOT-{slug}-v{N}.md 确认包提取 slug 与版本号。
+
+    返回 ``(slug, "vN")``；无法解析时返回 ``(None, None)``。slug 从文件名提取，
+    版本号优先取首行标题（`# SWOT 确认包 v{N}`），失败时回退文件名。
+    """
+    try:
+        head = "\n".join(path.read_text(encoding="utf-8").splitlines()[:30])
+    except OSError:
+        return (None, None)
+    filename_match = re.fullmatch(
+        r"SWOT-([a-z0-9]+(?:-[a-z0-9]+)*)-v(\d+)\.md",
+        path.name,
+    )
+    filename_slug = filename_match.group(1) if filename_match else None
+    filename_version = f"v{filename_match.group(2)}" if filename_match else None
+    version_match = re.search(
+        r"^#\s+SWOT 确认包\s*(v\d+)\s*$",
+        head,
+        re.MULTILINE,
+    )
+    version = version_match.group(1) if version_match else filename_version
+    return (filename_slug, version)
+
 def maau_source_identity(path: Path) -> tuple[str | None, str | None]:
     """从 MAAU-{slug}-vN 源包头部提取 slug 与版本号。
 
@@ -882,6 +906,338 @@ def audit_5w_content_mapping(html: HtmlSnapshot, source_path: Path) -> list[Find
                 Finding("CONTENT_MAPPING", f"{countermeasure_ids[field]} 未展示确认包对策字段")
             )
 
+    return findings
+
+
+def audit_swot_content_mapping(html: HtmlSnapshot, package_path: Path) -> list[Finding]:
+    """Verify SWOT canvas content maps to confirmation package sections.
+    
+    Checks:
+    1. Topic card core fields are displayed
+    2. All SWOT factors are displayed with ID, statement, nature
+    3. TOWS strategies reference correct factor IDs
+    4. User decisions are not tampered
+    5. Handover items are complete
+    6. Evidence is preserved
+    """
+    findings: list[Finding] = []
+    package = package_path.read_text(encoding="utf-8")
+
+    # The package is a numbered contract.  Parse the sections first so an
+    # empty/legacy package cannot pass merely because it has no rows to check.
+    headings = list(re.finditer(r"^##\s+(\d+)\.\s+(.+?)\s*$", package, re.MULTILINE))
+    sections: dict[int, str] = {}
+    titles: dict[int, str] = {}
+    for index, match in enumerate(headings):
+        number = int(match.group(1))
+        end = headings[index + 1].start() if index + 1 < len(headings) else len(package)
+        if number in sections:
+            findings.append(Finding("SWOT_CONTENT", f"确认包重复 section 编号：{number}"))
+        else:
+            sections[number] = package[match.end():end]
+            titles[number] = match.group(2).strip()
+    required_titles = {
+        1: "必展项（紧凑前置）", 2: "课题卡", 3: "SWOT 四象限", 4: "待分类候选",
+        5: "被排除因素", 6: "TOWS 策略", 7: "选项比较与取舍", 8: "最小交接与复审",
+        9: "结论登记表", 10: "缺口表", 11: "证据与推断登记", 12: "Gate 与用户决策",
+    }
+    for number, title in required_titles.items():
+        if number not in sections:
+            findings.append(Finding("SWOT_CONTENT", f"缺少必需 section {number}. {title}"))
+        elif titles[number] != title:
+            findings.append(Finding("SWOT_CONTENT", f"section {number} 标题应为“{title}”，实际为“{titles[number]}”"))
+    if any(number > 12 for number in sections):
+        findings.append(Finding("SWOT_CONTENT", "确认包不得出现第 12 节之后的 section"))
+    if findings:
+        return findings
+
+    def table_rows(text: str) -> list[list[str]]:
+        lines = [line.strip() for line in text.splitlines() if line.strip().startswith("|")]
+        if len(lines) < 2:
+            return []
+        return [[cell.strip() for cell in line.strip("|").split("|")] for line in lines[2:]]
+
+    def subsection(text: str, heading: str) -> str:
+        match = re.search(
+            rf"^###\s+{re.escape(heading)}.*?\n(.*?)(?=^###\s|\Z)",
+            text, re.MULTILINE | re.DOTALL,
+        )
+        return match.group(1) if match else ""
+
+    for field in ("分析主体", "决策问题与目标", "业务边界", "时间范围"):
+        row = next((r for r in table_rows(sections[2]) if len(r) >= 2 and r[0] == field), None)
+        if row and row[1] not in html.text_by_id.get("swot-topic", ""):
+            findings.append(Finding("SWOT_CONTENT", f"课题卡字段“{field}”未在 swot-topic 展示"))
+
+    quadrants = {
+        "优势（Strengths）": "swot-quadrant-s", "劣势（Weaknesses）": "swot-quadrant-w",
+        "机会（Opportunities）": "swot-quadrant-o", "威胁（Threats）": "swot-quadrant-t",
+    }
+    for heading, anchor in quadrants.items():
+        for row in table_rows(subsection(sections[3], heading)):
+            if len(row) < 3:
+                continue
+            factor_id, statement, nature = row[0], row[1], row[2]
+            if not re.fullmatch(r"SWOT-F-[SWOT][0-9]{2}", factor_id):
+                findings.append(Finding("SWOT_CONTENT", f"因素编号 {factor_id!r} 必须使用 SWOT-F-* 稳定编号"))
+            target = html.text_by_id.get(anchor, "")
+            for value, label in ((factor_id, "编号"), (statement, "陈述"), (nature, "判断性质")):
+                if value and value not in target:
+                    findings.append(Finding("SWOT_CONTENT", f"因素 {factor_id} 的{label}未在 {anchor} 展示"))
+
+    valid_factors = set(re.findall(r"SWOT-F-[SWOT][0-9]{2}", sections[3]))
+    for heading, anchor in (("SO 策略（利用优势抓住机会）", "swot-tows-so"),
+                            ("ST 策略（利用优势应对威胁）", "swot-tows-st"),
+                            ("WO 策略（克服劣势抓住机会）", "swot-tows-wo"),
+                            ("WT 策略（克服劣势应对威胁）", "swot-tows-wt")):
+        for row in table_rows(subsection(sections[6], heading)):
+            if len(row) < 3:
+                continue
+            strategy_id, basis = row[0], row[2]
+            target = html.text_by_id.get(anchor, "")
+            if not re.fullmatch(r"SWOT-STR-(SO|ST|WO|WT)[0-9]{2}", strategy_id):
+                findings.append(Finding("SWOT_CONTENT", f"策略编号 {strategy_id!r} 必须使用 SWOT-STR-* 稳定编号"))
+            if strategy_id not in target:
+                findings.append(Finding("SWOT_CONTENT", f"策略 {strategy_id} 未在 {anchor} 展示"))
+            refs = re.findall(r"SWOT-F-[SWOT][0-9]{2}", basis)
+            if not refs:
+                findings.append(Finding("SWOT_CONTENT", f"策略 {strategy_id} 缺少 SWOT-F-* 因素引用"))
+            for ref in refs:
+                if ref not in valid_factors or ref not in target:
+                    findings.append(Finding("SWOT_CONTENT", f"策略 {strategy_id} 引用的因素 {ref} 无效或未在 {anchor} 展示"))
+
+    comparison = html.text_by_id.get("swot-comparison-table", "")
+    for row in table_rows(sections[7]):
+        if len(row) >= 5 and (row[0] not in comparison or row[4] not in comparison):
+            findings.append(Finding("SWOT_CONTENT", f"策略 {row[0]} 的用户决定未按确认包展示"))
+
+    handover = html.text_by_id.get("swot-handover-items", "")
+    for row in table_rows(sections[8]):
+        if len(row) >= 3:
+            if row[1] not in handover:
+                findings.append(Finding("SWOT_CONTENT", f"交接事项“{row[1]}”未在画布展示"))
+            if not row[2] or row[2].startswith("{"):
+                findings.append(Finding("SWOT_CONTENT", f"交接事项“{row[1]}”缺少承接角色"))
+
+    evidence_text = subsection(sections[11], "关键证据引用") or sections[11]
+    evidence_items = re.findall(r"^-\s+(.+)$", evidence_text, re.MULTILINE)
+    if not evidence_items:
+        findings.append(Finding("SWOT_CONTENT", "证据登记必须保留原材料位置，且至少有一条引用"))
+    for evidence in evidence_items:
+        source = evidence.split("（", 1)[0].strip()
+        if source and source not in html.text_by_id.get("swot-evidence-detail", ""):
+            findings.append(Finding("SWOT_CONTENT", f"证据“{source}”未在详细证据区展示"))
+    return findings
+    
+    # Helper: extract markdown table rows (skip header and separator)
+    def extract_table_rows(section_text: str) -> list[list[str]]:
+        rows = []
+        lines = section_text.split('\n')
+        header_seen = False
+        separator_seen = False
+        
+        for line in lines:
+            line = line.strip()
+            if not line.startswith('|'):
+                continue
+            
+            # Skip separator line (|---|---|)
+            if '---' in line:
+                separator_seen = True
+                continue
+            
+            cells = [c.strip() for c in line.split('|')[1:-1]]
+            if not cells:
+                continue
+            
+            # First row is header, skip it
+            if not header_seen:
+                header_seen = True
+                continue
+            
+            # Skip if separator not yet seen (shouldn't happen in valid markdown)
+            if not separator_seen:
+                continue
+            
+            rows.append(cells)
+        
+        return rows
+    
+    # 1. Topic card (Section 2)
+    topic_match = re.search(r'## 2\. 课题卡\s*\n(.*?)(?=\n## |\Z)', package, re.DOTALL)
+    if topic_match:
+        topic_section = topic_match.group(1)
+        topic_rows = extract_table_rows(topic_section)
+        # Check core fields: 分析主体, 决策问题与目标, 业务边界, 时间范围
+        core_fields = ['分析主体', '决策问题与目标', '业务边界', '时间范围']
+        for row in topic_rows:
+            if len(row) >= 2 and row[0] in core_fields:
+                field_name = row[0]
+                field_value = row[1]
+                if field_value and field_value not in ['{待填写}', '']:
+                    # Check if this field value appears in HTML
+                    if field_value not in html.text:
+                        findings.append(Finding("SWOT_CONTENT", f"课题卡字段 '{field_name}' 未在画布中展示"))
+    
+    # 2. SWOT factors (Section 3)
+    quadrant_sections = {
+        '优势': ('swot-quadrant-s', 'S-'),
+        '劣势': ('swot-quadrant-w', 'W-'),
+        '机会': ('swot-quadrant-o', 'O-'),
+        '威胁': ('swot-quadrant-t', 'T-'),
+    }
+    
+    for quadrant_name, (anchor_id, prefix) in quadrant_sections.items():
+        quadrant_match = re.search(rf'### {quadrant_name}.*?\s*\n(.*?)(?=\n### |\n## |\Z)', package, re.DOTALL)
+        if quadrant_match:
+            quadrant_section = quadrant_match.group(1)
+            factor_rows = extract_table_rows(quadrant_section)
+            
+            for row in factor_rows:
+                if len(row) >= 3:
+                    factor_id = row[0]
+                    factor_statement = row[1]
+                    factor_nature = row[2]
+                    
+                    # Check if factor ID appears in the correct quadrant anchor
+                    quadrant_text = html.text_by_id.get(anchor_id, "")
+                    if factor_id.startswith('SWOT-F-') and factor_id not in quadrant_text:
+                        findings.append(Finding("SWOT_CONTENT", f"因素 {factor_id} 未在画布 {anchor_id} 中展示"))
+                    
+                    # Check if factor statement appears in the correct quadrant anchor
+                    if factor_statement and factor_statement not in quadrant_text:
+                        findings.append(Finding("SWOT_CONTENT", f"因素 {factor_id} 的陈述未在画布 {anchor_id} 中展示"))
+    
+    # 3. TOWS strategies (Section 6)
+    tows_sections = {
+        'SO': 'swot-tows-so',
+        'ST': 'swot-tows-st',
+        'WO': 'swot-tows-wo',
+        'WT': 'swot-tows-wt',
+    }
+    
+    for strategy_type, anchor_id in tows_sections.items():
+        strategy_match = re.search(rf'### {strategy_type} 策略.*?\s*\n(.*?)(?=\n### |\n## |\Z)', package, re.DOTALL)
+        if strategy_match:
+            strategy_section = strategy_match.group(1)
+            strategy_rows = extract_table_rows(strategy_section)
+            
+            for row in strategy_rows:
+                if len(row) >= 4:
+                    strategy_id = row[0]
+                    strategy_name = row[1]
+                    strategy_basis = row[2]  # 推导依据
+                    
+                    # Check if strategy ID appears in HTML
+                    if strategy_id not in html.text:
+                        findings.append(Finding("SWOT_CONTENT", f"策略 {strategy_id} 未在画布中展示"))
+                    
+                    # Check if strategy references correct factors
+                    # Extract factor IDs from 推导依据 (e.g., "关联因素：S-02, O-01")
+                    factor_refs = re.findall(r'[SWOT]-\d{2}', strategy_basis)
+                    if factor_refs:
+                        # Check if these factor references appear in HTML
+                        for factor_ref in factor_refs:
+                            if factor_ref not in html.text:
+                                findings.append(Finding("SWOT_CONTENT", f"策略 {strategy_id} 引用的因素 {factor_ref} 未在画布中展示"))
+    
+    # 4. Comparison and trade-offs (Section 7)
+    comparison_match = re.search(r'## 7\. 选项比较与取舍\s*\n(.*?)(?=\n## |\Z)', package, re.DOTALL)
+    if comparison_match:
+        comparison_section = comparison_match.group(1)
+        comparison_rows = extract_table_rows(comparison_section)
+        
+        for row in comparison_rows:
+            if len(row) >= 6:
+                strategy_id = row[0]
+                ai_recommendation = row[3]
+                user_decision = row[4]
+                
+                # Check if user decision is preserved (not tampered)
+                # User decision should be one of: 待决策, 采用, 条件采用, 先验证, 暂缓, 放弃
+                valid_decisions = ['待决策', '采用', '条件采用', '先验证', '暂缓', '放弃']
+                if user_decision not in valid_decisions:
+                    findings.append(Finding("SWOT_CONTENT", f"策略 {strategy_id} 的用户决定 '{user_decision}' 不是合法值"))
+                
+                # Check if this strategy appears in comparison table
+                comparison_text = html.text_by_id.get("swot-comparison-table", "")
+                if strategy_id not in comparison_text:
+                    findings.append(Finding("SWOT_CONTENT", f"策略 {strategy_id} 的比较信息未在画布中展示"))
+                
+                # Check if user decision in HTML matches confirmation package
+                if user_decision not in comparison_text:
+                    findings.append(Finding("SWOT_CONTENT", f"策略 {strategy_id} 的用户决定 '{user_decision}' 与确认包不一致"))
+    
+    # 5. Handover items (Section 8)
+    handover_match = re.search(r'## 8\. 最小交接与复审\s*\n(.*?)(?=\n## |\Z)', package, re.DOTALL)
+    if handover_match:
+        handover_section = handover_match.group(1)
+        handover_rows = extract_table_rows(handover_section)
+        
+        for row in handover_rows:
+            if len(row) >= 5:
+                related_strategy = row[0]
+                next_step = row[1]
+                owner = row[2]
+                deadline = row[3]
+                deliverable = row[4]
+                
+                # Check if handover item appears in HTML
+                if next_step and next_step not in html.text_by_id.get('swot-handover-items', ''):
+                    findings.append(Finding("SWOT_CONTENT", f"交接事项 '{next_step}' 未在画布中展示"))
+                
+                # Check if owner is specified
+                if not owner or owner in ['{待填写}', '']:
+                    findings.append(Finding("SWOT_CONTENT", f"交接事项 '{next_step}' 缺少承接角色"))
+    
+    # 6. Evidence references (Section 12)
+    evidence_match = re.search(r'## 12\. 关键证据引用\s*\n(.*?)(?=\n## |\Z)', package, re.DOTALL)
+    if evidence_match:
+        evidence_section = evidence_match.group(1)
+        # Extract evidence items (lines starting with "- ")
+        evidence_items = re.findall(r'^- (.+)$', evidence_section, re.MULTILINE)
+        
+        for evidence in evidence_items:
+            # Check if evidence appears in HTML (at least partially)
+            # Evidence format: "团队访谈记录，2026-09（S-01, CAND-01）"
+            # We check if the key part (before the parenthesis) appears
+            evidence_key = evidence.split('（')[0].strip()
+            if evidence_key and evidence_key not in html.text:
+                findings.append(Finding("SWOT_CONTENT", f"证据 '{evidence_key}' 未在画布中展示"))
+    
+    return findings
+def audit_swot_override(canvas_data: JsonDict) -> list[Finding]:
+    """Verify SWOT override audit follows rules: SWOT-GATE-01..04 are information_integrity (not overridable)."""
+    findings: list[Finding] = []
+    auth = canvas_data.get("auth")
+    if not isinstance(auth, dict):
+        return findings
+    if auth.get("confirmation_mode") != "override":
+        return findings
+    override_audit = auth.get("override_audit")
+    if not isinstance(override_audit, dict):
+        findings.append(Finding("OVERRIDE", "override mode requires override_audit"))
+        return findings
+    items = override_audit.get("items")
+    if not isinstance(items, list) or not items:
+        findings.append(Finding("OVERRIDE", "override_audit.items must be non-empty array"))
+        return findings
+    # SWOT-GATE-01..04 are information_integrity, cannot be overridden
+    non_overridable = {"SWOT-GATE-01", "SWOT-GATE-02", "SWOT-GATE-03", "SWOT-GATE-04"}
+    for item in items:
+        if not isinstance(item, dict):
+            findings.append(Finding("OVERRIDE", "override_audit.items must contain objects"))
+            continue
+        assessment_id = item.get("assessment_id")
+        category = item.get("category")
+        if assessment_id in non_overridable:
+            findings.append(
+                Finding("OVERRIDE", f"{assessment_id} is information_integrity and cannot be overridden")
+            )
+        if category != "business_risk":
+            findings.append(
+                Finding("OVERRIDE", f"{assessment_id} category must be business_risk, got {category!r}")
+            )
     return findings
 
 def select_instance_state(

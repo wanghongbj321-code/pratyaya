@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SWOT/TOWS 分析与策略画布 — review-case v1</title>
+<style>
+:root,[data-theme="base"]{--brand:#000;--brand-dark:#000;--brand-soft:#fff;--brand-pale:#F2F2F2;--accent:#000;--ink:#000;--muted:#8A8A8A;--line:#000;--paper:#fff;--page-bg:#fff;--stripe:#F2F2F2;--title-color:#000;--hint-color:#A5A5A5;--head-bg:transparent;--head-fg:#000;--radius:10px;--border-w:1.6px;--font:"Helvetica Neue",Arial,"Microsoft YaHei","PingFang SC",sans-serif;--shadow:none;--fill-line:#E3E3E3}*{box-sizing:border-box}body{margin:0;background:var(--page-bg);color:var(--ink);font-family:var(--font);line-height:1.55;-webkit-font-smoothing:antialiased}.wrap{max-width:1400px;margin:0 auto;padding:26px 24px 44px}.canvas-head{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;margin-bottom:18px;padding-bottom:14px;border-bottom:2px solid var(--brand)}.canvas-head .eyebrow{font-size:10px;font-weight:700;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;margin-bottom:6px}.canvas-head h1{margin:0;font-size:clamp(22px,2.6vw,34px);font-weight:700;color:var(--title-color);line-height:1.2;letter-spacing:-.01em}.canvas-head .sub{margin:6px 0 0;font-size:13px;color:var(--muted);max-width:760px}.canvas-head .meta{text-align:right;font-size:11px;color:var(--muted);line-height:1.7;white-space:nowrap}.canvas-head .meta strong{display:block;font-size:12px;color:var(--title-color)}.cell-title{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin:0 0 4px;font-size:15px;font-weight:700;color:var(--ink)}.cell-title .en{font-size:14px;font-weight:700;color:var(--ink)}.cell-hint{margin:0 0 10px;font-size:10.5px;color:var(--hint-color);line-height:1.5}.govern .caveat{margin-top:12px;padding:10px 12px;border:1.5px dashed #000;border-radius:var(--radius);font-size:12px;color:#000;background:var(--brand-pale)}.footnote{margin-top:16px;padding-top:12px;border-top:1px solid var(--line);font-size:10px;color:var(--muted);line-height:1.7}.footnote b{color:var(--title-color)}@media(max-width:980px){.canvas-head{flex-direction:column;align-items:flex-start}.canvas-head .meta{text-align:left}}@media(max-width:720px){.wrap{padding:16px 12px 32px}}.canvas-head{border:var(--border-w) solid var(--line);border-radius:var(--radius);background:var(--paper);padding:26px 28px 20px;margin-bottom:18px;align-items:flex-start}.canvas-head::after{content:"";display:block;height:4px;background:var(--brand);border-radius:2px;margin-top:18px}.canvas-head .eyebrow{color:var(--brand)}.canvas-head h1{color:var(--title-color)}#canvas-headline{background:var(--brand-pale);border-left:5px solid var(--brand);padding:10px 14px;border-radius:6px;color:var(--ink)!important;font-size:13px!important;font-weight:700;margin:14px 0 4px!important;line-height:1.55}.section-card{border:var(--border-w) solid var(--line);border-radius:var(--radius);background:var(--paper);box-shadow:var(--shadow);padding:18px 24px 20px;margin-bottom:16px}.section-card .tag{font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--title-color);margin-bottom:10px}.topic-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:10px}.topic-field{border:1px solid var(--line);border-radius:var(--radius);padding:10px 12px}.topic-field .field-name{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px}.topic-field .field-value{font-size:13px;line-height:1.5;color:var(--ink)}#swot-conclusion{margin-top:12px;padding:12px 14px;background:var(--brand-pale);border-left:4px solid var(--brand);border-radius:6px;font-size:13px;line-height:1.6}.quadrant-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:10px}.quadrant{border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;min-height:200px}.quadrant-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid var(--brand)}.quadrant-icon{width:28px;height:28px;border:2px solid var(--brand);border-radius:50%;display:grid;place-items:center;font-size:14px;font-weight:700;color:var(--brand)}.quadrant-title{font-size:14px;font-weight:700;color:var(--title-color)}.quadrant-subtitle{font-size:11px;color:var(--muted);margin-left:auto}.factor-list{list-style:none;padding:0;margin:0}.factor-item{padding:8px 0;border-bottom:1px dashed var(--line);font-size:12.5px;line-height:1.5}.factor-item:last-child{border-bottom:none}.factor-id{display:inline-block;min-width:40px;font-weight:700;color:var(--brand);margin-right:6px}.factor-statement{color:var(--ink)}.factor-meta{margin-top:4px;font-size:10.5px;color:var(--muted)}.quadrant[data-state="empty"]{background:var(--brand-pale);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;font-style:italic}.tows-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:10px}.tows-group{border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;min-height:180px}.tows-group-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid var(--brand)}.tows-group-title{font-size:14px;font-weight:700;color:var(--title-color)}.tows-group-subtitle{font-size:11px;color:var(--muted);margin-left:auto}.strategy-list{list-style:none;padding:0;margin:0}.strategy-item{padding:10px 0;border-bottom:1px dashed var(--line);font-size:12.5px;line-height:1.5}.strategy-item:last-child{border-bottom:none}.strategy-id{display:inline-block;min-width:50px;font-weight:700;color:var(--brand);margin-right:6px}.strategy-name{font-weight:700;color:var(--ink)}.strategy-detail{margin-top:6px;font-size:11px;color:var(--muted);line-height:1.5}.strategy-factors{margin-top:4px;font-size:10.5px;color:var(--muted)}.tows-group[data-state="empty"]{background:var(--brand-pale);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;font-style:italic}.comparison table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:10px}.comparison th,.comparison td{border:1px solid var(--line);padding:10px 12px;text-align:left;vertical-align:top}.comparison th{background:var(--brand-pale);font-weight:700;color:var(--title-color);border-bottom:2px solid var(--brand)}.comparison td:first-child{font-weight:700;white-space:nowrap}.comparison .recommendation{color:var(--brand);font-weight:700}.comparison .decision{font-weight:700;color:var(--ink)}.handover-list{list-style:none;padding:0;margin:10px 0 0}.handover-item{padding:12px 0;border-bottom:1px dashed var(--line)}.handover-item:last-child{border-bottom:none}.handover-title{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:6px}.handover-meta{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;font-size:11.5px;color:var(--muted)}.handover-meta-item{display:flex;gap:6px}.handover-meta-label{font-weight:700;color:var(--muted)}.handover-meta-value{color:var(--ink)}.supplementary-section{margin-top:14px}.supplementary-section-title{font-size:13px;font-weight:700;color:var(--title-color);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--line)}.supplementary-list{list-style:none;padding:0;margin:0}.supplementary-item{padding:8px 0;border-bottom:1px dashed var(--line);font-size:12px;line-height:1.5}.supplementary-item:last-child{border-bottom:none}.lower{display:grid;grid-template-columns:1fr;gap:16px}.govern{border:var(--border-w) solid var(--line);border-radius:var(--radius);background:var(--paper);box-shadow:var(--shadow);padding:16px 18px 18px}.govern dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:12.5px}.govern dt{color:var(--muted)}.govern dd{margin:0;font-weight:700;color:var(--ink)}.local-notes{margin-top:16px;border:1px dashed var(--line);border-radius:var(--radius);padding:12px 14px;font-size:12.5px;min-height:48px;color:var(--ink)}.local-notes:empty::before{content:"本地备注（浏览器内可编辑，刷新即清空）…";color:var(--hint-color)}@media(max-width:1100px){.quadrant-grid,.tows-grid,.topic-grid{grid-template-columns:1fr}.handover-meta{grid-template-columns:1fr}}@media(max-width:720px){.quadrant-grid,.tows-grid,.topic-grid{grid-template-columns:1fr}}@media print{body{background:#fff}.wrap{max-width:none;padding:0}.section-card,.canvas-head,.govern{box-shadow:none;break-inside:avoid}.quadrant-grid,.tows-grid,.topic-grid{grid-template-columns:repeat(2,1fr)}.local-notes{display:none}}
+</style>
+</head>
+<body data-theme="base" data-canvas="swot" data-page-type="swot" data-visual-mode="black-gray-professional" data-version="1" data-instance="review-case">
+<div class="wrap">
+  <header class="canvas-head" id="canvas-header">
+    <div>
+      <div class="eyebrow">Pratyaya Canvas · 一等公民 · SWOT/TOWS</div>
+      <h1>SWOT/TOWS 分析与策略画布</h1>
+      <p class="sub">态势分析与策略推导：先明确课题边界，再分析内外部因素，最后推导策略并明确取舍与交接。</p>
+      <div id="canvas-headline">一句话结论：客户成功团队应投资建立客户健康度评分系统，优先利用现有 CRM 数据和市场成熟工具，弥补数据分析能力不足。</div>
+    </div>
+    <div class="meta">
+      <strong>Canvas · SWOT</strong>
+      日期：2026-09-10<br>
+      小组：cs-team<br>
+      版本：<span id="quality-version">v1</span>
+    </div>
+  </header>
+
+  <section class="section-card" id="swot-topic-summary" aria-label="课题与结论摘要">
+    <div class="tag">课题与结论摘要 · Topic &amp; Conclusion</div>
+    <div class="topic-grid">
+      <div class="topic-field" id="swot-topic">
+        <div class="field-name">分析主体 · Subject</div>
+        <div class="field-value">某中型 SaaS 公司的客户成功团队</div>
+        <div class="field-name" style="margin-top:8px">决策问题与目标 · Decision</div>
+        <div class="field-value">帮助客户成功总监决定是否投资建立客户健康度评分系统，以及优先级如何排序</div>
+        <div class="field-name" style="margin-top:8px">业务边界 · Scope</div>
+        <div class="field-value">B2B SaaS 产品，客户规模 500-2000 人，主要服务科技和金融行业</div>
+        <div class="field-name" style="margin-top:8px">时间范围 · Timeframe</div>
+        <div class="field-value">未来 12 个月（2026 Q3 - 2027 Q2）</div>
+      </div>
+      <div class="topic-field">
+        <div class="field-name">比较基准 · Benchmark</div>
+        <div class="field-value">当前手动跟踪方式（Excel + 定期回访）</div>
+        <div class="field-name" style="margin-top:8px">可控边界 · Controllable</div>
+        <div class="field-value">客户成功团队内部流程、工具选型、资源分配</div>
+        <div class="field-name" style="margin-top:8px">已知约束 · Constraints</div>
+        <div class="field-value">预算有限（&lt;50 万），团队 8 人，技术能力有限</div>
+        <div class="field-name" style="margin-top:8px">关键假设与分歧 · Assumptions</div>
+        <div class="field-value">假设客户流失主要因为缺乏主动预警；分歧在于是否应该先优化现有流程再上系统</div>
+      </div>
+    </div>
+    <div id="swot-conclusion">
+      <b>当前结论及关键限制：</b>应投资建立客户健康度评分系统，优先引入外部 SaaS 工具弥补内部能力不足。分阶段实施：短期建立预警机制，中期上线评分系统，长期整合数据。
+    </div>
+  </section>
+
+  <section class="section-card" id="swot-quadrants" aria-label="SWOT 四象限">
+    <h2 class="cell-title">SWOT 四象限 <span class="en">SWOT Quadrants</span></h2>
+    <p class="cell-hint">内部因素（优势/劣势）与外部因素（机会/威胁）以分析主体为准区分。因素编号不随象限调整而改变。</p>
+    <div class="quadrant-grid">
+      <div class="quadrant" id="swot-quadrant-s">
+        <div class="quadrant-header">
+          <div class="quadrant-icon">S</div>
+          <div class="quadrant-title">优势 Strengths</div>
+          <div class="quadrant-subtitle">内部有利因素</div>
+        </div>
+        <ul class="factor-list">
+          <li class="factor-item"><span class="factor-id">SWOT-F-S01</span><span class="factor-statement">客户成功团队经验丰富，平均从业 5 年，对客户业务理解深入</span><div class="factor-meta">重要性：高 · 判断性质：事实</div></li>
+          <li class="factor-item"><span class="factor-id">SWOT-F-S02</span><span class="factor-statement">现有 CRM 数据完整度 85%，可作为评分系统数据源</span><div class="factor-meta">重要性：高 · 判断性质：事实</div></li>
+          <li class="factor-item"><span class="factor-id">SWOT-F-S03</span><span class="factor-statement">公司文化重视客户成功，高层支持资源投入</span><div class="factor-meta">重要性：中 · 判断性质：事实</div></li>
+        </ul>
+      </div>
+      <div class="quadrant" id="swot-quadrant-w">
+        <div class="quadrant-header">
+          <div class="quadrant-icon">W</div>
+          <div class="quadrant-title">劣势 Weaknesses</div>
+          <div class="quadrant-subtitle">内部不利因素</div>
+        </div>
+        <ul class="factor-list">
+          <li class="factor-item"><span class="factor-id">SWOT-F-W01</span><span class="factor-statement">团队缺乏数据分析能力，无法自主开发评分模型</span><div class="factor-meta">重要性：高 · 判断性质：事实</div></li>
+          <li class="factor-item"><span class="factor-id">SWOT-F-W02</span><span class="factor-statement">现有工具分散（CRM、Excel、邮件），数据整合成本高</span><div class="factor-meta">重要性：高 · 判断性质：事实</div></li>
+          <li class="factor-item"><span class="factor-id">SWOT-F-W03</span><span class="factor-statement">客户触达渠道单一，主要依赖邮件和电话</span><div class="factor-meta">重要性：中 · 判断性质：事实</div></li>
+        </ul>
+      </div>
+      <div class="quadrant" id="swot-quadrant-o">
+        <div class="quadrant-header">
+          <div class="quadrant-icon">O</div>
+          <div class="quadrant-title">机会 Opportunities</div>
+          <div class="quadrant-subtitle">外部有利因素</div>
+        </div>
+        <ul class="factor-list">
+          <li class="factor-item"><span class="factor-id">SWOT-F-O01</span><span class="factor-statement">市场上已有成熟的客户健康度 SaaS 工具，实施周期短</span><div class="factor-meta">重要性：高 · 判断性质：判断</div></li>
+          <li class="factor-item"><span class="factor-id">SWOT-F-O02</span><span class="factor-statement">客户对主动服务期望提升，愿意配合数据收集</span><div class="factor-meta">重要性：中 · 判断性质：判断</div></li>
+          <li class="factor-item"><span class="factor-id">SWOT-F-O03</span><span class="factor-statement">行业最佳实践逐渐标准化，可参考同行经验</span><div class="factor-meta">重要性：低 · 判断性质：事实</div></li>
+        </ul>
+      </div>
+      <div class="quadrant" id="swot-quadrant-t">
+        <div class="quadrant-header">
+          <div class="quadrant-icon">T</div>
+          <div class="quadrant-title">威胁 Threats</div>
+          <div class="quadrant-subtitle">外部不利因素</div>
+        </div>
+        <ul class="factor-list">
+          <li class="factor-item"><span class="factor-id">SWOT-F-T01</span><span class="factor-statement">竞品加速布局客户成功工具，可能形成差异化优势</span><div class="factor-meta">重要性：高 · 判断性质：判断</div></li>
+          <li class="factor-item"><span class="factor-id">SWOT-F-T02</span><span class="factor-statement">经济下行压力，客户预算收紧，续约意愿下降</span><div class="factor-meta">重要性：高 · 判断性质：判断</div></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-card" id="swot-tows" aria-label="TOWS 策略">
+    <h2 class="cell-title">TOWS 策略 <span class="en">TOWS Strategies</span></h2>
+    <p class="cell-hint">基于 SWOT 因素推导策略：SO（利用优势抓住机会）、ST（利用优势应对威胁）、WO（克服劣势抓住机会）、WT（克服劣势应对威胁）。策略必须关联具体因素编号。</p>
+    <div class="tows-grid">
+      <div class="tows-group" id="swot-tows-so">
+        <div class="tows-group-header"><div class="quadrant-icon">SO</div><div class="tows-group-title">SO 策略</div><div class="tows-group-subtitle">利用优势抓住机会</div></div>
+        <ul class="strategy-list"><li class="strategy-item"><span class="strategy-id">SWOT-STR-SO01</span><span class="strategy-name">快速上线客户健康度评分系统</span><div class="strategy-detail">引入外部 SaaS 工具，整合 CRM 数据，通过数据驱动的客户健康度评分提前识别流失风险</div><div class="strategy-factors">关联因素：SWOT-F-S02, SWOT-F-O01 · 成立条件：外部工具与现有 CRM 兼容，预算 &lt;50 万，实施周期 &lt;3 个月</div></li></ul>
+      </div>
+      <div class="tows-group" id="swot-tows-st">
+        <div class="tows-group-header"><div class="quadrant-icon">ST</div><div class="tows-group-title">ST 策略</div><div class="tows-group-subtitle">利用优势应对威胁</div></div>
+        <ul class="strategy-list"><li class="strategy-item"><span class="strategy-id">SWOT-STR-ST01</span><span class="strategy-name">建立客户流失预警机制</span><div class="strategy-detail">基于团队经验建立客户风险分级标准，定期 review 高风险客户，通过主动干预降低流失率</div><div class="strategy-factors">关联因素：SWOT-F-S01, SWOT-F-S03, SWOT-F-T01 · 成立条件：团队经验可转化为可量化的风险指标</div></li></ul>
+      </div>
+      <div class="tows-group" id="swot-tows-wo">
+        <div class="tows-group-header"><div class="quadrant-icon">WO</div><div class="tows-group-title">WO 策略</div><div class="tows-group-subtitle">克服劣势抓住机会</div></div>
+        <ul class="strategy-list"><li class="strategy-item"><span class="strategy-id">SWOT-STR-WO01</span><span class="strategy-name">引入外部工具弥补数据分析能力不足</span><div class="strategy-detail">选择易用的 SaaS 工具，减少技术依赖，通过外部工具弥补内部能力缺口</div><div class="strategy-factors">关联因素：SWOT-F-W01, SWOT-F-O01 · 成立条件：工具易用性足够，团队可快速上手</div></li></ul>
+      </div>
+      <div class="tows-group" id="swot-tows-wt">
+        <div class="tows-group-header"><div class="quadrant-icon">WT</div><div class="tows-group-title">WT 策略</div><div class="tows-group-subtitle">克服劣势应对威胁</div></div>
+        <ul class="strategy-list"><li class="strategy-item"><span class="strategy-id">SWOT-STR-WT01</span><span class="strategy-name">整合现有工具，建立标准化流程</span><div class="strategy-detail">整合 CRM、Excel、邮件数据，建立统一的客户信息管理流程，通过数据整合提高客户洞察能力</div><div class="strategy-factors">关联因素：SWOT-F-W02, SWOT-F-T02 · 成立条件：各工具数据可整合</div></li></ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-card" id="swot-comparison" aria-label="选项比较与取舍">
+    <h2 class="cell-title">选项比较与取舍 <span class="en">Comparison &amp; Trade-offs</span></h2>
+    <p class="cell-hint">比较各策略选项的代价、风险与可行性，明确 AI 推荐与用户决定。取舍理由应能回应决策问题。</p>
+    <div id="swot-comparison-table" class="comparison">
+      <table>
+        <thead><tr><th>策略</th><th>代价与风险</th><th>可行性</th><th>AI 推荐</th><th>用户决定</th><th>取舍理由</th></tr></thead>
+        <tbody>
+          <tr><td>SWOT-STR-SO01</td><td>工具费用 + 实施成本；工具效果未验证</td><td>高</td><td class="recommendation">推荐（优先级高）</td><td class="decision">待决策</td><td>快速上线，弥补能力缺口，应对竞争压力</td></tr>
+          <tr><td>SWOT-STR-ST01</td><td>团队时间投入；人工判断可能遗漏信号</td><td>中</td><td class="recommendation">条件推荐（短期过渡）</td><td class="decision">待决策</td><td>作为自动化方案的过渡，利用团队经验</td></tr>
+          <tr><td>SWOT-STR-WO01</td><td>工具费用 + 培训成本；学习曲线可能较长</td><td>高</td><td class="recommendation">推荐（与 SO-01 协同）</td><td class="decision">待决策</td><td>弥补能力缺口，降低技术依赖</td></tr>
+          <tr><td>SWOT-STR-WT01</td><td>技术整合成本；整合周期可能较长</td><td>中</td><td class="recommendation">条件推荐（长期基础建设）</td><td class="decision">待决策</td><td>建立数据基础，支持长期发展</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="section-card" id="swot-handover" aria-label="最小交接与复审">
+    <h2 class="cell-title">最小交接与复审 <span class="en">Handover &amp; Review</span></h2>
+    <p class="cell-hint">明确下一步事项、承接角色、时间或触发条件、预期交付与判断标准。只为实际需要推进的事项建立交接。</p>
+    <ul class="handover-list" id="swot-handover-items">
+      <li class="handover-item">
+        <div class="handover-title">完成工具选型和供应商评估</div>
+        <div class="handover-meta">
+          <div class="handover-meta-item"><span class="handover-meta-label">承接角色：</span><span class="handover-meta-value">客户成功总监</span></div>
+          <div class="handover-meta-item"><span class="handover-meta-label">时间/触发：</span><span class="handover-meta-value">2026-10-31</span></div>
+          <div class="handover-meta-item"><span class="handover-meta-label">预期交付：</span><span class="handover-meta-value">工具选型报告（包含至少 3 个候选工具的功能对比、成本分析、实施计划）</span></div>
+          <div class="handover-meta-item"><span class="handover-meta-label">关联策略：</span><span class="handover-meta-value">SWOT-STR-SO01, SWOT-STR-WO01</span></div>
+        </div>
+      </li>
+      <li class="handover-item">
+        <div class="handover-title">建立客户风险分级标准</div>
+        <div class="handover-meta">
+          <div class="handover-meta-item"><span class="handover-meta-label">承接角色：</span><span class="handover-meta-value">客户成功团队负责人</span></div>
+          <div class="handover-meta-item"><span class="handover-meta-label">时间/触发：</span><span class="handover-meta-value">2026-11-30</span></div>
+          <div class="handover-meta-item"><span class="handover-meta-label">预期交付：</span><span class="handover-meta-value">风险分级标准文档（包含分级指标、权重、阈值）</span></div>
+          <div class="handover-meta-item"><span class="handover-meta-label">关联策略：</span><span class="handover-meta-value">SWOT-STR-ST01</span></div>
+        </div>
+      </li>
+      <li class="handover-item">
+        <div class="handover-title">评估数据整合可行性</div>
+        <div class="handover-meta">
+          <div class="handover-meta-item"><span class="handover-meta-label">承接角色：</span><span class="handover-meta-value">IT 团队负责人</span></div>
+          <div class="handover-meta-item"><span class="handover-meta-label">时间/触发：</span><span class="handover-meta-value">2026-12-31</span></div>
+          <div class="handover-meta-item"><span class="handover-meta-label">预期交付：</span><span class="handover-meta-value">数据整合可行性报告（包含技术方案、成本估算、实施计划）</span></div>
+          <div class="handover-meta-item"><span class="handover-meta-label">关联策略：</span><span class="handover-meta-value">SWOT-STR-WT01</span></div>
+        </div>
+      </li>
+    </ul>
+  </section>
+
+  <aside class="govern" id="quality-panel" aria-label="质量与治理">
+    <h3 class="cell-title">质量与治理 <span class="en">Quality &amp; Governance</span></h3>
+    <dl><dt>版本</dt><dd id="quality-version-dd">v1</dd></dl>
+    <div id="quality-approval">
+      <dl>
+        <dt>Gate 建议</dt><dd id="quality-gate">pass</dd>
+        <dt>授权渲染</dt><dd id="quality-authorized">true</dd>
+        <dt>确认模式</dt><dd id="quality-mode">gate_pass</dd>
+      </dl>
+    </div>
+    <dl>
+      <dt>缺口摘要</dt><dd id="quality-gaps">blocker: 0, major: 1, minor: 2</dd>
+      <dt>风险摘要</dt><dd id="quality-risks">O-02 证据不足，CAND-01 未分类，WT-01 技术方案未评估</dd>
+    </dl>
+    <div class="caveat" id="quality-caveat" hidden>
+      <b>Override 警示：</b><span id="quality-caveat-text">仅在 override 时显示——列出被接受的业务风险与影响。</span>
+    </div>
+  </aside>
+
+  <section class="section-card" id="swot-supplementary" aria-label="补充记录">
+    <h2 class="cell-title">补充记录 <span class="en">Supplementary</span></h2>
+    <p class="cell-hint">待分类候选、被排除因素及详细证据。</p>
+    <div class="supplementary-section" id="swot-uncategorized">
+      <div class="supplementary-section-title">待分类候选 · Uncategorized</div>
+      <ul class="supplementary-list"><li class="supplementary-item"><span class="factor-id">CAND-01</span><span class="factor-statement">客户成功团队与销售团队协作不畅</span><div class="factor-meta">原因：可能是内部流程问题（劣势），也可能是组织结构问题（威胁），需进一步澄清</div></li></ul>
+    </div>
+    <div class="supplementary-section" id="swot-excluded">
+      <div class="supplementary-section-title">被排除因素 · Excluded</div>
+      <ul class="supplementary-list"><li class="supplementary-item"><span class="factor-id">EXCL-01</span><span class="factor-statement">产品功能不够丰富</span><div class="factor-meta">排除原因：不在客户成功团队可控范围内，属于产品团队职责</div></li></ul>
+    </div>
+    <div class="supplementary-section" id="swot-evidence-detail">
+      <div class="supplementary-section-title">详细证据 · Evidence Detail</div>
+      <ul class="supplementary-list"><li class="supplementary-item">团队访谈记录，2026-09（S-01, CAND-01）；CRM 审计报告，2026-08（S-02）；CEO 公开讲话，2026-07（S-03）；技能评估报告，2026-08（W-01）；工具清单，2026-09（W-02）；沟通记录分析，2026-08（W-03）；供应商调研，2026-09（O-01）；客户满意度调查，2026-08（O-02）；行业报告，2026-07（O-03）；竞品分析，2026-09（T-01）；宏观经济报告，2026-08（T-02）</li></ul>
+    </div>
+  </section>
+
+  <section class="local-notes" id="local-notes" contenteditable="true"></section>
+
+  <p class="footnote"><b>说明：</b>本文件为 SWOT/TOWS <b>一等公民画布示例</b>（对齐 <code>render-contract-swot.md</code>），采用七区综合页面结构。采用标准 pratyaya 黑灰配色，按 Ctrl/Cmd + P 可直接横版打印。本示例为静态骨架（占位内容），正式渲染由 <code>canvas-render</code> Skill 经提炼→门禁→渲染管线生成 <code>output/swot-canvas-{slug}--v{N}.html</code>。<br><b>重要：</b>画布确认与渲染授权不等于策略执行或资源投入授权。</p>
+</div>
+
+<script type="application/json" id="canvas-data">
+{
+  "canvas_type": "swot",
+  "page_type": "swot",
+  "version": "1",
+  "instance": "review-case",
+  "visual_mode": {
+    "id": "black-gray-professional",
+    "zh_name": "黑灰专业版",
+    "visual_system": "Black Gray Professional"
+  },
+  "schema_version_target": "2.4",
+  "sections": {
+    "canvas-headline": "一句话结论",
+    "swot-topic": "课题卡（分析主体、决策问题与目标、业务边界、时间范围）",
+    "swot-conclusion": "当前结论及关键限制",
+    "swot-quadrant-s": "优势（Strengths）",
+    "swot-quadrant-w": "劣势（Weaknesses）",
+    "swot-quadrant-o": "机会（Opportunities）",
+    "swot-quadrant-t": "威胁（Threats）",
+    "swot-tows-so": "SO 策略（利用优势抓住机会）",
+    "swot-tows-st": "ST 策略（利用优势应对威胁）",
+    "swot-tows-wo": "WO 策略（克服劣势抓住机会）",
+    "swot-tows-wt": "WT 策略（克服劣势应对威胁）",
+    "swot-comparison-table": "选项比较与取舍",
+    "swot-handover-items": "最小交接与复审",
+    "swot-uncategorized": "待分类候选",
+    "swot-excluded": "被排除因素",
+    "swot-evidence-detail": "详细证据"
+  },
+  "topic": {
+    "subject": "某中型 SaaS 公司的客户成功团队",
+    "decision": "帮助客户成功总监决定是否投资建立客户健康度评分系统，以及优先级如何排序",
+    "scope": "B2B SaaS 产品，客户规模 500-2000 人，主要服务科技和金融行业",
+    "timeframe": "未来 12 个月（2026 Q3 - 2027 Q2）",
+    "benchmark": "当前手动跟踪方式（Excel + 定期回访）",
+    "controllable": "客户成功团队内部流程、工具选型、资源分配",
+    "constraints": "预算有限（<50 万），团队 8 人，技术能力有限",
+    "assumptions": "假设客户流失主要因为缺乏主动预警；分歧在于是否应该先优化现有流程再上系统"
+  },
+  "quadrants": {
+    "strengths": [
+      {"id": "SWOT-F-S01", "statement": "客户成功团队经验丰富，平均从业 5 年，对客户业务理解深入", "importance": "高", "nature": "事实"},
+      {"id": "SWOT-F-S02", "statement": "现有 CRM 数据完整度 85%，可作为评分系统数据源", "importance": "高", "nature": "事实"},
+      {"id": "SWOT-F-S03", "statement": "公司文化重视客户成功，高层支持资源投入", "importance": "中", "nature": "事实"}
+    ],
+    "weaknesses": [
+      {"id": "SWOT-F-W01", "statement": "团队缺乏数据分析能力，无法自主开发评分模型", "importance": "高", "nature": "事实"},
+      {"id": "SWOT-F-W02", "statement": "现有工具分散（CRM、Excel、邮件），数据整合成本高", "importance": "高", "nature": "事实"},
+      {"id": "SWOT-F-W03", "statement": "客户触达渠道单一，主要依赖邮件和电话", "importance": "中", "nature": "事实"}
+    ],
+    "opportunities": [
+      {"id": "SWOT-F-O01", "statement": "市场上已有成熟的客户健康度 SaaS 工具，实施周期短", "importance": "高", "nature": "判断"},
+      {"id": "SWOT-F-O02", "statement": "客户对主动服务期望提升，愿意配合数据收集", "importance": "中", "nature": "判断"},
+      {"id": "SWOT-F-O03", "statement": "行业最佳实践逐渐标准化，可参考同行经验", "importance": "低", "nature": "事实"}
+    ],
+    "threats": [
+      {"id": "SWOT-F-T01", "statement": "竞品加速布局客户成功工具，可能形成差异化优势", "importance": "高", "nature": "判断"},
+      {"id": "SWOT-F-T02", "statement": "经济下行压力，客户预算收紧，续约意愿下降", "importance": "高", "nature": "判断"}
+    ]
+  },
+  "tows": {
+    "so": [
+      {"id": "SWOT-STR-SO01", "name": "快速上线客户健康度评分系统", "factors": ["SWOT-F-S02", "SWOT-F-O01"], "conditions": "外部工具与现有 CRM 兼容，预算 <50 万，实施周期 <3 个月"}
+    ],
+    "st": [
+      {"id": "SWOT-STR-ST01", "name": "建立客户流失预警机制", "factors": ["SWOT-F-S01", "SWOT-F-S03", "SWOT-F-T01"], "conditions": "团队经验可转化为可量化的风险指标"}
+    ],
+    "wo": [
+      {"id": "SWOT-STR-WO01", "name": "引入外部工具弥补数据分析能力不足", "factors": ["SWOT-F-W01", "SWOT-F-O01"], "conditions": "工具易用性足够，团队可快速上手"}
+    ],
+    "wt": [
+      {"id": "SWOT-STR-WT01", "name": "整合现有工具，建立标准化流程", "factors": ["SWOT-F-W02", "SWOT-F-T02"], "conditions": "各工具数据可整合"}
+    ]
+  },
+  "comparison": [
+    {"strategy": "SO-01", "cost": "工具费用 + 实施成本；工具效果未验证", "feasibility": "高", "recommendation": "推荐（优先级高）", "decision": "待决策", "rationale": "快速上线，弥补能力缺口，应对竞争压力"},
+    {"strategy": "ST-01", "cost": "团队时间投入；人工判断可能遗漏信号", "feasibility": "中", "recommendation": "条件推荐（短期过渡）", "decision": "待决策", "rationale": "作为自动化方案的过渡，利用团队经验"},
+    {"strategy": "WO-01", "cost": "工具费用 + 培训成本；学习曲线可能较长", "feasibility": "高", "recommendation": "推荐（与 SO-01 协同）", "decision": "待决策", "rationale": "弥补能力缺口，降低技术依赖"},
+    {"strategy": "WT-01", "cost": "技术整合成本；整合周期可能较长", "feasibility": "中", "recommendation": "条件推荐（长期基础建设）", "decision": "待决策", "rationale": "建立数据基础，支持长期发展"}
+  ],
+  "handover": [
+    {"task": "完成工具选型和供应商评估", "owner": "客户成功总监", "deadline": "2026-10-31", "deliverable": "工具选型报告", "strategy": "SWOT-STR-SO01, SWOT-STR-WO01"},
+    {"task": "建立客户风险分级标准", "owner": "客户成功团队负责人", "deadline": "2026-11-30", "deliverable": "风险分级标准文档", "strategy": "ST-01"},
+    {"task": "评估数据整合可行性", "owner": "IT 团队负责人", "deadline": "2026-12-31", "deliverable": "数据整合可行性报告", "strategy": "WT-01"}
+  ],
+  "supplementary": {
+    "uncategorized": [
+      {"id": "CAND-01", "statement": "客户成功团队与销售团队协作不畅", "reason": "可能是内部流程问题（劣势），也可能是组织结构问题（威胁），需进一步澄清"}
+    ],
+    "excluded": [
+      {"id": "EXCL-01", "statement": "产品功能不够丰富", "reason": "不在客户成功团队可控范围内，属于产品团队职责"}
+    ],
+    "evidence_detail": ["团队访谈记录，2026-09", "CRM 审计报告，2026-08", "CEO 公开讲话，2026-07", "技能评估报告，2026-08", "工具清单，2026-09", "沟通记录分析，2026-08", "供应商调研，2026-09", "客户满意度调查，2026-08", "行业报告，2026-07", "竞品分析，2026-09", "宏观经济报告，2026-08"]
+  },
+  "auth": {
+    "gate_recommendation": "pass",
+    "render_authorized": true,
+    "confirmation_mode": "gate_pass",
+    "override_audit": null
+  }
+}
+</script>
+</body>
+</html>

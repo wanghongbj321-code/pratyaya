@@ -48,7 +48,7 @@ def test_clean_import_prints_canvas_count():
         text=True,
     )
     assert result.returncode == 0, result.stderr
-    assert result.stdout.strip() == "8"
+    assert result.stdout.strip() == "9"
 
 
 def test_registry_only_stdlib():

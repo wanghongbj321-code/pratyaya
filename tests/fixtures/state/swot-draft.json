@@ -1,0 +1,19 @@
+{
+  "schema_version": "2.4",
+  "project_slug": "swot-review",
+  "project_name": "SWOT review",
+  "group_id": "group-a",
+  "topic_slug": "strategy-review",
+  "topic_name": "Strategy review",
+  "updated_at": "2026-09-09T12:00:00+08:00",
+  "swot": {
+    "review-case": {
+      "slug": "review-case",
+      "version": 0,
+      "status": "draft",
+      "gate_recommendation": "pending",
+      "render_authorized": false,
+      "confirmation_mode": null
+    }
+  }
+}

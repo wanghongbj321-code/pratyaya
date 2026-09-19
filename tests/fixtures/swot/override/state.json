@@ -1,0 +1,45 @@
+{
+  "schema_version": "2.4",
+  "project_slug": "saas-customer-success",
+  "project_name": "SaaS 客户成功优化",
+  "group_id": "cs-team",
+  "topic_slug": "health-score-system",
+  "topic_name": "客户健康度评分系统",
+  "current_module": null,
+  "updated_at": "2026-09-10T12:00:00+08:00",
+  "modules": {},
+  "golden_circle": {},
+  "hmw": {},
+  "persona": {},
+  "journey": {},
+  "v2c_vac": {},
+  "five_whys": {},
+  "maau": {},
+  "swot": {
+    "review-case": {
+      "slug": "review-case",
+      "version": 1,
+      "status": "confirmed",
+      "gate_recommendation": "fail",
+      "render_authorized": true,
+      "confirmation_mode": "override",
+      "override_audit": {
+        "items": [
+          {
+            "assessment_id": "SWOT-GATE-05",
+            "category": "business_risk",
+            "risk_level": "medium",
+            "impact": "因素重要性评估可能存在主观偏差",
+            "reason": "时间紧迫，需要在 Q3 结束前完成系统选型",
+            "confirmed_by": "客户成功总监",
+            "confirmed_at": "2026-09-10T12:00:00+08:00",
+            "remediation": "在系统上线后 3 个月内重新评估因素重要性"
+          }
+        ]
+      },
+      "source_file": "modules/SWOT-review-case-v1.md",
+      "output_file": "output/swot-canvas-review-case--v1.html",
+      "updated_at": "2026-09-10T12:00:00+08:00"
+    }
+  }
+}

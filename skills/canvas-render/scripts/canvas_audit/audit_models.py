@@ -35,6 +35,9 @@ V2C_VAC_CONTRACT = (
 FIVE_WHYS_CONTRACT = (
     REPO_ROOT / "references" / "render-contract-5w.md"
 )
+SWOT_CONTRACT = (
+    REPO_ROOT / "references" / "render-contract-swot.md"
+)
 HMW_TEMPLATE = (
     REPO_ROOT / "examples" / "hmw-canvas.html"
 )
@@ -43,6 +46,9 @@ FIVE_WHYS_TEMPLATE = (
 )
 JOURNEY_TEMPLATE = (
     REPO_ROOT / "examples" / "user-journey-canvas.html"
+)
+SWOT_TEMPLATE = (
+    REPO_ROOT / "examples" / "swot-canvas.html"
 )
 HMW_TPL_MAIN_IDS = (
     "hmw-statement",
@@ -248,6 +254,57 @@ FIVE_WHYS_TPL_GOVERN_IDS = (
     "quality-risks",
     "quality-caveat",
 )
+
+# SWOT 一级模块（内容 Gate 必需 ID）
+SWOT_MAIN_IDS = (
+    "swot-topic-summary",
+    "swot-quadrants",
+    "swot-tows",
+    "swot-comparison",
+    "swot-handover",
+    "swot-supplementary",
+)
+# SWOT 稳定锚点
+SWOT_ANCHORS = (
+    "canvas-headline",
+    "swot-topic",
+    "swot-conclusion",
+    "swot-quadrant-s",
+    "swot-quadrant-w",
+    "swot-quadrant-o",
+    "swot-quadrant-t",
+    "swot-tows-so",
+    "swot-tows-st",
+    "swot-tows-wo",
+    "swot-tows-wt",
+    "swot-comparison-table",
+    "swot-handover-items",
+    "swot-uncategorized",
+    "swot-excluded",
+    "swot-evidence-detail",
+)
+# SWOT Template Gate 一级模块
+SWOT_TPL_MAIN_IDS = (
+    "canvas-header",
+    "swot-topic-summary",
+    "swot-quadrants",
+    "swot-tows",
+    "swot-comparison",
+    "swot-handover",
+    "quality-panel",
+    "swot-supplementary",
+    "local-notes",
+    "canvas-data",
+)
+SWOT_TPL_STABLE_ANCHORS = SWOT_ANCHORS
+SWOT_TPL_GOVERN_IDS = (
+    "quality-version",
+    "quality-approval",
+    "quality-gaps",
+    "quality-risks",
+    "quality-caveat",
+)
+
 # 约定隐藏方式（Template Gate 与内容/授权 Gate 共用）：任一命中即视为隐藏
 HIDDEN_PATTERNS = (
     r"hidden\b",  # hidden HTML 属性
@@ -311,6 +368,7 @@ INSTANCE_STATE_KEYS = {
     "journey": "journey",
     "v2c-vac": "v2c_vac",
     "5w": "five_whys",
+    "swot": "swot",
 }
 VOID_TAGS = {
     "area",
