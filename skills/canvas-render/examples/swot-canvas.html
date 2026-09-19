@@ -33,17 +33,16 @@ body{margin:0;background:var(--page-bg);color:var(--ink);font-family:var(--font)
 </style>
 <style>
 .canvas-head{border:var(--border-w) solid var(--line);border-radius:var(--radius);background:var(--paper);padding:26px 28px 20px;margin-bottom:18px;align-items:flex-start}
-.canvas-head::after{content:"";display:block;height:4px;background:var(--brand);border-radius:2px;margin-top:18px}
 .canvas-head .eyebrow{color:var(--brand)}
 .canvas-head h1{color:var(--title-color)}
-#canvas-headline{background:var(--brand-pale);border-left:5px solid var(--brand);padding:10px 14px;border-radius:6px;color:var(--ink)!important;font-size:13px!important;font-weight:700;margin:14px 0 4px!important;line-height:1.55}
+#canvas-headline{background:var(--brand-pale);padding:10px 14px;border-radius:6px;color:var(--ink)!important;font-size:13px!important;font-weight:700;margin:14px 0 4px!important;line-height:1.55}
 .section-card{border:var(--border-w) solid var(--line);border-radius:var(--radius);background:var(--paper);box-shadow:var(--shadow);padding:18px 24px 20px;margin-bottom:16px}
 .section-card .tag{font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--title-color);margin-bottom:10px}
 .topic-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:10px}
 .topic-field{border:1px solid var(--line);border-radius:var(--radius);padding:10px 12px}
 .topic-field .field-name{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px}
 .topic-field .field-value{font-size:13px;line-height:1.5;color:var(--ink)}
-#swot-conclusion{margin-top:12px;padding:12px 14px;background:var(--brand-pale);border-left:4px solid var(--brand);border-radius:6px;font-size:13px;line-height:1.6}
+#swot-conclusion{margin-top:12px;padding:12px 14px;background:var(--brand-pale);border-radius:6px;font-size:13px;line-height:1.6}
 .quadrant-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:10px}
 .quadrant{border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;min-height:200px}
 .quadrant-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid var(--brand)}
@@ -250,6 +249,7 @@ body{margin:0;background:var(--page-bg);color:var(--ink);font-family:var(--font)
     </ul>
   </section>
 
+  <div class="lower">
   <aside class="govern" id="quality-panel" aria-label="质量与治理">
     <h3 class="cell-title">质量与治理 <span class="en">Quality &amp; Governance</span></h3>
     <dl><dt>版本</dt><dd id="quality-version-dd">v0（草稿）</dd></dl>
@@ -283,6 +283,7 @@ body{margin:0;background:var(--page-bg);color:var(--ink);font-family:var(--font)
       <ul class="supplementary-list"><li class="supplementary-item">{详细证据与其他候选内容}</li></ul>
     </div>
   </section>
+  </div>
 
   <section class="local-notes" id="local-notes" contenteditable="true"></section>
 
