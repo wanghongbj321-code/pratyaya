@@ -133,7 +133,7 @@ SWOT/TOWS 采用薄流程入口，完整管线见 skills/swot-distill/references
 4. **自动 Gate**：调用 swot-gate 执行八项检查，输出 Gate 报告。
 5. **用户渲染授权**：展示 Gate 建议，等待用户决策（确认 / override / 补问）。
 6. **视觉选择与渲染**：扫描 10 个视觉模式，等用户确认后渲染 output/swot-canvas-{slug}--v{N}.html。
-7. **双 Gate 审计**：执行内容/授权审计与 Template Gate 审计，通过后置 endered。
+7. **双 Gate 审计**：执行内容/授权审计与 Template Gate 审计，通过后置 endered。
 
 **关键约束**：
 - SWOT 完成后不预告下一模块，不进入 maau-global-canvas.html。
