@@ -2,7 +2,7 @@
 
 import pytest
 
-from skills._engine.executor import (
+from scripts.engine.executor import (
     ExecutorError,
     assert_advance,
     assert_valid_step,

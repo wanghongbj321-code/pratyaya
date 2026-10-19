@@ -2,7 +2,7 @@
 
 import pytest
 
-from skills._engine.session import (
+from scripts.engine.session import (
     SessionError,
     assert_valid_slug,
     is_valid_slug,

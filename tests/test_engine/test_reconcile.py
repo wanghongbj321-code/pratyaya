@@ -1,6 +1,6 @@
 """跨模块 caveat 浮现与对齐总检数据收集测试（§8）。"""
 
-from skills._engine import reconcile
+from scripts.engine import reconcile
 
 
 def _state():

@@ -8,8 +8,8 @@ import pytest
 REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT))
 
-from skills._engine import authorization as auth
-from skills._engine.authorization import AuthorizationError
+from scripts.engine import authorization as auth
+from scripts.engine.authorization import AuthorizationError
 
 
 def _valid_override_audit():

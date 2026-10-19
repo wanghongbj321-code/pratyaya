@@ -8,8 +8,8 @@ import pytest
 REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT))
 
-from skills._engine import state
-from skills._engine.state import StateMachineError
+from scripts.engine import state
+from scripts.engine.state import StateMachineError
 
 
 # ---- 5 态机 ----

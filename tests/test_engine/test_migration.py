@@ -1,6 +1,6 @@
 """legacy 迁移（v2.6 instance map / v2.9 default topic）测试（§8）。"""
 
-from skills._engine import migration
+from scripts.engine import migration
 
 
 def _legacy_state():

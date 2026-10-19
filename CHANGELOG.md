@@ -1,251 +1,37 @@
 # Pratyaya 变更日志
 
 > 本文件记录 Pratyaya 专家的正式版本变更。
-> 完整 SemVer 与架构说明见 [`README.md`](./README.md) / [`DESIGN.md`](./DESIGN.md) / [docs/MVL-整体架构设计.md](./docs/MVL-整体架构设计.md)。
+> 完整 SemVer 与架构说明见 [`README.md`](./README.md) / [`DESIGN.md`](./DESIGN.md)。
+
+## [v3.8.2] - 2026-10-20
+
+- **发布打包固化**：新增 `scripts/package_release.py`，把「源码仓库 → 可安装专家包」固化为可审计代码（zip 带版本名 `dist/<name>-<version>.zip`）。
+- **共享画布引擎迁址**：`skills/_engine/` → `scripts/engine/`，`skills/` 现与 `plugin.json` `skills[]` 声明一一对应。
+- `dist/` 加入 `.gitignore`。
 
 ## [v3.7.1] - 2026-09-20
 
-### 修复（PATCH）
-
-- **SWOT 画布底部间距修复**：正式渲染的 SWOT 画布中，「质量与治理」与下方「补充记录」卡片区恢复统一的 16px 间距（此前两卡贴边）。
-- **SWOT 画布视觉简化**：移除页头下方的装饰横条，以及「一句话结论」「当前结论及关键限制」卡片的左侧强调竖条；信息与卡片结构不变。
-
-### 兼容性与升级注意
-
-- 仅影响升级后新生成的 SWOT 画布样式；历史画布产物不回溯重渲，state schema 与确认包均无变化，无需迁移。
+- SWOT 画布底部间距修复与视觉简化（移除页头装饰横条与卡片强调竖条）。
 
 ## [v3.7.0] - 2026-09-13
 
-### 新增功能（MINOR）
-
-- **SWOT/TOWS 策略分析画布**：新增课题边界、SWOT 四象限、TOWS 策略推导、选项取舍与最小交接的完整分析流程。
-- **证据与治理检查**：分析结果保留事实、判断、假设及来源位置，并提供八项质量 Gate；信息完整性问题不能通过风险 override 绕过。
-- **独立确认与审计**：SWOT 使用独立确认包、状态和 Canvas 模板，正式交付会校验来源、授权、版本、内容映射与模板结构。
-
-### 兼容性与升级注意
-
-- state schema 继续使用 `2.4`；已有其他画布产物无需迁移。
-- SWOT 只在用户明确选择该画布时运行，不会自动写入其他画布或 MVL 全局 Canvas；画布确认和渲染授权不代表策略执行或资源投入授权。
+- 新增 SWOT/TOWS 策略分析画布：四象限 + TOWS 策略推导 + 八项质量 Gate，独立确认包与渲染模板。
 
 ## [v3.6.3] - 2026-09-06
 
-### 修复（PATCH）
-
-- **专家展示名缩短**：专家标题与会话名称由「Pratyaya Canvas Expert」改为「Pratyaya Coach」（22 → 14 字符），满足平台名称长度限制；品牌标识 `pratyaya`、画布能力与使用方式不变。
-
-### 兼容性与升级注意
-
-- 专家标识 `pratyaya`（name/agentName）、目录与文件命名不变，无需任何迁移；README/docs/FAQ/各 Skill 中的名称引用已同步统一。
-- 展示名由市场快照与会话缓存承载：升级后新会话生效；市场卡片若仍缓存旧名，重装或刷新快照后显示新名。
+- 专家展示名由「Pratyaya Canvas Expert」缩短为「Pratyaya Coach」，满足平台名称长度限制。
 
 ## [v3.6.2] - 2026-09-06
 
-### 修复（PATCH）
-
-- **渲染验收分级调整**：每次正式渲染的静态结构审计仍为必做（含 Workflow 有图画布的治理面板、图例与流程图结构校验，校验毫秒级完成、无需浏览器）；浏览器级视觉检查与截图人工目检改为**仅在你明确要求时执行**（如移动端/打印等严格验收场景），默认不再自动运行。
-- **渲染耗时留痕**：每次渲染的静态审计与视觉检查耗时自动记录到画布输出目录的渲染记录文件（`.render-trace.jsonl`），可直接复盘各阶段耗时，无需人工计时。
-- **Workflow 装配提速**：有图 Workflow 装配改为按示例结构索引单次定位全部片段，减少重复读取往返。
-- **FAQ 增强**：静态 FAQ 回答改为检索索引优先——先按问题定位到对应条目再读取，回答更快且口径一致；FAQ 新增 MAAU / V2C VAC 画布来源与版权说明，可解释画布方法出处与归属。
-
-### 兼容性与升级注意
-
-- 画布数据 schema 版本保持 `2.4` 不变，Workflow 业务拓扑 schema 不变；历史画布不追溯重渲染或改名，重新跑静态审计亦可通过。
-- 升级后新渲染默认只做静态结构审计；如需移动端/打印溢出等严格验收，请在对话中明确要求补跑浏览器级检查与截图目检。
-- 渲染记录文件属派生数据，不参与画布校验、不写入画布内容，随临时文件清理。
+- 渲染验收分级调整：浏览器级视觉检查与截图目检改为按需执行，默认只做静态结构审计。
+- 渲染耗时留痕（`.render-trace.jsonl`）；Workflow 装配提速；FAQ 增强。
 
 ## [v3.6.1] - 2026-09-06
 
-### 修复（PATCH）
-
-- **Workflow 流程图回退为 LLM 直出（移除布局器）**：经用户实测，python 确定性布局器（`workflow_layout`，v3.5.0–v3.6.0）产出的 Workflow 可视化布局效果不可接受，本版起 workflow 形态 SVG 由 LLM 从确认包按 `render-contract.md` §A1 直接静态生成（轨道带 / actor 徽章 / 序号徽标 / 正交 `M/H/V` 连线禁曲线 / dashed 回流走 gutter，SVG class 复用母版、视觉 token 由宿主 CSS 单点控制）；两阶段渲染、noflow/workflow 形态判定、`--v{N}` / `--noflow-v{N}` / `--workflow-v{N}` 版本化命名与身份审计（`--artifact-policy current|legacy` / `--target-output`）全部保留。
-- **删除布局器代码资产**：`skills/canvas-render/scripts/workflow_layout/` 整目录（`workflow_layout.py`、VERSION 0.2.0、`fork_guide.md`、`layout_override.schema.md` / `layout_override.example.json`）、`tests/test_workflow_layout.py`、`tests/fixtures/workflow_layout/`（3 个 fixture）及 `tests/test_two_phase_render.py` 内 2 项 fragment 测试；`canvas-data.workflow.layout` 溯源字段与 `layout_trace` 不再产生。
-- **AGENTS.md 规则 3 恢复 v3.4.1 原文**：禁止新增或使用渲染脚本，渲染统一通过 canvas-render Skill；删除"几何展开工具为官方资产"条款与 workflow_layout CLI（`--fragment` / `--svg`）说明。若未来确需自动化渲染入口，先按规则 2 提出设计变更，经用户确认后再实现。
-- **SKILL / render-contract / two-phase-render / agent 同步改写**：SKILL「Workflow 流程图生成」小节改 LLM 静态生成；render-contract §A1 头与 A1.5 删除布局器生成 / 溯源字段说明，保留完整 schema 拓扑约束（tracks 非空 / track 归属 / 任务类 actor 合法 / edges 引用存在）；two-phase-render §2.1 / §4 / §5 布局器步骤与直出边界改写为 LLM 生成与验收；agent 编排节同步。示例母版 `examples/mvl-canvas/maau-global-canvas.html` 注释与 `canvas-data.workflow.layout` 溯源字段清除（SVG 结构保留为 LLM 版面母版）。
-- 既有历史产物无损：已交付 HTML 若带 `canvas-data.workflow.layout` 字段，audit 对未知可选字段宽容、不追溯不改写。L1 `audit_workflow_flow`（结构 / 正交断言）与 L2 `canvas-smoke.mjs` 维持 LLM 时代静态把关；L3 截图目检按需触发（模板 / SVG 结构变化时必做）。布局效果靠 L1/L2 + 目检人工把关，无自动几何自检（明确取舍）。
-
-### 兼容性与迁移边界
-
-- `plugin.json` `version` `3.6.0` → `3.6.1`（PATCH）；`state.schema.json` `schema_version` 保持 `"2.4"`，`canvas-data.workflow` 业务拓扑 schema 不变。
-- v3.6.0 曾合入 main（PR #31）但未 tag/Release，本版为其功能回退；对外发布版本为 v3.6.1。回退不影响两阶段渲染能力与文件身份规则；历史文件不追溯改名或重渲染。
+- Workflow 流程图回退为 LLM 直出（移除 python 确定性布局器 `workflow_layout`）。
+- 恢复 AGENTS.md 规则 3 原文：禁止渲染脚本，渲染统一走 canvas-render Skill。
 
 ## [v3.6.0] - 2026-09-05
 
-### 新增功能（MINOR）
-
-- **MAAU 画布两阶段渲染**：transcript-direct 实例页与 MVL Phase 2 汇总页改为"无图先交付、Workflow 图按需生成"的两阶段独立正式渲染。第一阶段从确认包渲染无图正式画布（六板块完整，无 `#workflow-flow` 与 `canvas-data.workflow`），L1/L2 必传 `--workflow-variant noflow` 验收通过即提交交付，再询问是否需要流程图；需要时确认布局后由官方布局器生成最终 SVG，canvas-render 从同版本确认包装配有图候选并完成独立验收（`--workflow-variant workflow`）。运行时契约见 `skills/canvas-render/references/two-phase-render.md`。失败保护：首次渲染失败保持 `confirmed`；已有成功产物后的同版本失败保持 `rendered`、原 `output_file` 与成功文件；第二阶段失败不执行 `rendered → confirmed`。
-- **布局器 `--fragment` SVG 片段直出（VERSION 0.2.0）**：`workflow_layout` 新增 `--fragment <全新目标.svg>`，输出可直接嵌入 `#workflow-flow` 的最终 `<svg class="bpmn-flow">`——含轨道、节点、事件、网关、序号与 actor 徽章、正交边/回流边与箭头 marker，文本与属性转义并折行；`--svg` 保留目检预览语义。CLI exit 0/1/2（自检通过 / 几何 FAIL / 输入或参数非法），失败不覆盖既有文件。AGENTS.md 规则 3 与 render-contract / SKILL 同步："布局器产 §A1 SVG 内部结构；HTML 外层、图例、完成条件由 canvas-render 负责"。
-- **两形态示例**：新增 `examples/mvl-canvas/maau-global-canvas-noflow.html`（六板块 + 完成条件条，无 Workflow 图签名）；有图母版 `maau-global-canvas.html` 维护为 `--fragment` 嵌入宿主；noflow 示例不含残留 `bpmn-*` 死 CSS。
-- **输出文件版本化与身份审计**：正式画布文件使用机器后缀 `--v{N}`（MAAU 为 `--noflow-v{N}` / `--workflow-v{N}`），与合法 kebab-case slug 无歧义、与历史无版本文件名隔离；审计 CLI 新增 `--workflow-variant`、`--artifact-policy current|legacy`、`--target-output`（临时候选按目标正式路径校验身份）；新增 `canvas_audit/artifact_identity.py` 承载文件身份与形态判定（noflow 拒绝拓扑与 BPMN DOM 残留，workflow 要求 SVG 完整结构）；索引/下钻读取实际 `output_file`。Phase 2 以固定聚合两路径（`maau-global-canvas.html` / `maau-global-canvas--workflow.html`）交付并只读模块状态；历史文件不追溯改名，只读复查走 `--artifact-policy legacy`。
-- **引擎版本化路径工具**：`skills/_engine/paths.html_file(version=, workflow_variant=)` 与 files stale sidecar 支持逐份版本化标记；state 不新增字段、不升 schema，`rendered → rendered` 自环与升版行为有集成验证。
-- **测试**：新增 `tests/test_two_phase_render.py`（current 身份、反降级、fragment 拓扑保持与转义、失败产物规则、嵌入宿主审计、versioned sidecar、state 自环与升版、索引 output_file）；全量 pytest 512 passed。
-
-### 兼容性与迁移边界
-
-- `plugin.json` `version` `3.5.1` → `3.6.0`（MINOR）；`state.schema.json` `schema_version` 保持 `"2.4"`，`canvas-data.workflow` 业务拓扑 schema 不变。
-- 输出文件命名切换为版本化 `--v{N}` 后缀，**历史文件不追溯改名**；新正式渲染固定 `--artifact-policy current`，历史复查显式 legacy 且不得用于新交付；升版不清理旧版本文件，同版本同形态成功重渲染才可替换。
-- 实施分支 `codex/maau-two-phase-render-v3-6-0`；设计文档与实施核验（§12 落点收敛）见 `internal/…/design/MAAU画布两阶段渲染与Workflow流程图生成优化设计方案-20260905.md`。
-
-## [v3.5.1] - 2026-09-05
-
-### 修复（PATCH）
-
-- **契约测试移除版本号绑定断言**：`tests/test_contract_consistency.py` 删除对 `plugin.json` 具体版本号的硬编码断言（技能注册测试尾部一处、入口语境测试内一处），入口语境测试更名为 `test_plugin_json_entry_context`。契约一致性测试只校验结构/入口契约，不绑定发布版本号——后续升版不再需要同步测试中的版本字面量（此前 v3.4.1 / v3.5.0 均需随升版同步）。
-
-### 兼容性与迁移边界
-
-- `plugin.json` `version` `3.5.0` → `3.5.1`（PATCH）；`state.schema.json` `schema_version` 保持 `"2.4"`。
-- 纯测试与版本元数据改动，不影响渲染契约、审计断言与任何运行产物。
-
-## [v3.5.0] - 2026-09-05
-
-### 新增功能（MINOR）
-
-- **Workflow 确定性布局器（语义 / 布局分离）**：新增官方几何展开资产 `skills/canvas-render/scripts/workflow_layout/workflow_layout.py`——LLM 只产 `canvas-data.workflow` 语义拓扑，布局器确定性生成内联 SVG 几何（轨道分行堆叠 + 轨内横流蛇形折返 + 跨轨 / 回流走行间空隙与 gutter，范式对齐示例母版，无泳道色块）；自带几何自检（节点不重叠 / 边正交 / 不穿节点 / 端点中点 / 边全集不丢），自检 0 问题才可交付；`VERSION` 版本化 + `layout_trace(fork_id?)` 溯源（写 `canvas-data.workflow.layout`，不改 schema_version）。
-- **布局回归基线**：`tests/fixtures/workflow_layout/` 物化真实拓扑样本（hotel-revenue 新 / 旧 schema、suozhang 三轨含 gateway/timer/message/data_store 与 dashed 回流）；`tests/test_workflow_layout.py` 覆盖几何自检 / 边全集 / 宽度预算 / 确定性 / 旧 schema 回归（8 项通过）。
-- **L1 布局配置层**：`layout_override`（渲染输入侧参数，不进 `canvas-data`）可调间距 / 卡宽预算 / 轨道基线 / gutter / 每行容量，支持 `--preset compact|roomy`；配置说明与可配 / 不可配对照清单见 `layout_override.schema.md`。
-- **L2 布局分叉层**：显式触发 + 拷贝协议 + `layout_meta.json`（`derived_from: {baseline_version, baseline_sha}`）+ 自检验收门 + 漂移治理，见 `fork_guide.md`。
-- **AGENTS.md 规则 3 边界修订**：禁止"内容渲染"脚本；`workflow_layout` 作为确定性几何展开官方资产可在 Skill 流程内执行（不承担业务内容渲染）；其他自动化渲染 / 注入入口仍须先按规则 2 提设计变更。
-- **SKILL / render-contract 同步**：SKILL.md 新增「Workflow 流程图生成（确定性几何展开，3.5.0+）」小节；render-contract §A1 明确"布局器生成 / LLM 静态生成"两路径须满足同一 DOM / 元素 / 审计契约，§A1.5 增加可选 `workflow.layout` 溯源字段说明。
-
-### 修复（PATCH）
-
-- `tests/test_contract_consistency.py` 版本硬编码同步（3.4.1 → 3.5.0）。
-- **布局器实施审查修复**（审查报告：`internal/…/全局画布Workflow确定性布局器设计方案-20260905-实施审查报告-ds-v4-flash.md`）：CLI `--override <file.json>` 取值不再被误收为拓扑输入（文档示范用法可正常 exit 0）；几何自检 FAIL → exit `1`（不产 `--svg`，禁止进入装配）、输入不合法 → exit `2`（自检门禁可编程化）；新增 `validate()` 正式输入契约校验（tracks 非空 / track 归属 / 任务类 actor 合法 / type 合法 / edges 引用存在且无重复同向边）；`selfcheck()` 补端点落边界中点、dashed 走 gutter、track 归属、边全集断言，dashed 回流一律强制走 gutter 通道；CLI 输出布局报告坐标表（§3.1）；文本折行 ≤3 行省略号截断（防溢出卡片 / 事件圆）；`--svg` 预览渲染轨道标签；SKILL / render-contract 措辞收敛"布局器 = 几何层，`#workflow-flow` DOM 由渲染回合按 §A1 装配"；`schema.md` / `fork_guide.md` 声明能力边界（单左 gutter、右 gutter / 线-线避让为 L0 演进项）。测试新增 8 项审查修复回归。
-
-### 兼容性与迁移边界
-
-- `plugin.json` `version` `3.4.1` → `3.5.0`（MINOR）；`state.schema.json` `schema_version` 保持 `"2.4"`，`canvas-data.workflow.layout` / `layout_override` 均不改 schema_version。
-- 布局器为增量能力：新渲染可按 §A1 两路径生成，**不追溯重渲染**已交付画布；编排侧"受控几何注入（B）"留待后续版本启用（本版为 CLI 生成路径）。
-
-## [v3.4.1] - 2026-09-05
-
-### 修复（PATCH）
-
-- **全局页示例母版 Workflow 视觉精调**：`examples/mvl-canvas/maau-global-canvas.html` 去除深灰整卡（A2–A6/C1 改浅色单色卡片）、移除三条横向泳道背景带、actor 徽章改白底黑灰描边并整体内移避免压任务框边框、事件符号改用 ⏱/✉、图例补为 7 类带图形符号、补 `#workflow-done` 完成条件条样式；SVG 文字样式改为 CSS 单点 + 直接子代选择器（`>`）控制，防止通用后代规则覆盖嵌套徽章 / 序号样式。打印幅面落地 A3 横版（`@page size: A3 landscape` + 页面文案同步）。
-- **5W 画布示例标题精简**：`examples/5w-canvas.html` 标题去除中文"5W 五个为什么"前缀。
-
-### 兼容性与迁移边界
-
-- `plugin.json` `version` `3.4.0` → `3.4.1`（PATCH）；本轮仅示例母版与文案修订，不影响渲染契约、审计断言与 `state.schema.json` `schema_version`（仍 `"2.4"`）。
-
-## [v3.4.0] - 2026-09-05
-
-### 新增功能（MINOR）
-
-- **MVL/MAAU 全局页 Workflow 双轨 BPMN 可视化**：`render-contract.md` §A1 从旧三泳道（按节点类型）模型升级为 MVL 全局页通用的轨道带模型，Phase 2 全局汇总页与 MAAU transcript-direct 实例页共享同一契约；支持业务阶段轨道（A/B/C…）或单轨 `main`，并用 actor 徽标表达 `human / ai / system / hybrid / reviewer` 执行语义。
-- **扩展 BPMN 结构签名**：Workflow 派生拓扑新增 `workflow.tracks`、`nodes[].track`、`nodes[].actor` 与 `edges[].dashed`，合法节点类型扩展为 `start / end / gateway / agent_execution / human_operation / human_review / timer / message / data_store`；回流/反馈边使用 `bpmn-reflow` 虚线，完成条件可渲染为 `#workflow-done` 条。
-- **A3 全局页打印与示例母版升级**：MVL 全局页示例母版 `examples/mvl-canvas/maau-global-canvas.html` 改为 A3 横版、浅色单色轨道带 Workflow；M1-M6 模块详情页继续保持既有 A4 口径。
-- **审计与 L2 smoke 升级**：`audit_workflow_flow` 新增 tracks、actor、dashed reflow、扩展节点类型与 DOM/data 一致性断言；`canvas-smoke.mjs` 为 `mvl` 增加 Workflow 结构签名和滚动豁免，窄屏横向滚动限制在 `.bpmn-flow-wrap` 内。
-- **测试与 fixtures**：`tests/test_workflow_flow.py` 扩展到 18 条，覆盖 MAAU transcript-direct 三轨、Phase 2 单轨、actor/track/reflow 反向用例；新增 Phase 2 全局页 fixture，MAAU fixtures 与 demo 输出同步重渲染为新轨道带模型。
-
-### 兼容性与迁移边界
-
-- `state.schema.json` `schema_version` 保持 `"2.4"` 不变；本轮只扩展 HTML `canvas-data.workflow` 渲染/审计契约。
-- 已交付旧 `maau-global-canvas*.html` 不追溯重渲染；之后新渲染的 Phase 2 全局页与 MAAU transcript-direct 实例页按新 §A1 输出。
-
-## [v3.3.2] - 2026-09-03
-
-### 重构（PATCH）
-
-- **主 Agent 规则优先级体系（INV + P0-P6）**：`agents/pratyaya.md` 重构为"不变式优先"规则架构——顶部声明 **INV-01..13 不变式**（未指定画布不处理 / Key Points 仅草稿 / 只读已确认确认包 / Gate 只建议 / 人确认的是版本 / 升版重置 / `information_integrity` 不可 override / override 审计完整 / 视觉模式列全候选并需用户确认 / 验收失败保持 `confirmed` / 逐字稿不可信 / FAQ 只读 / 默认只读当前 topic）与 **P0-P6 优先级层**（安全>授权>状态机>注册表>pipeline>指令卡>表达），INV 恒高于 P0-P6；正文由 ~400 行收敛至 ~189 行，路由与治理规则以表格化、可校验形式沉淀。
-- **入口决策树（步骤 -1）**：改为结构化判定链（明确流程指令 → FAQ/状态解释 → 画布类型关键词路由 → 元数据完整 → state 存在 → 三元一致），未指定画布时追问、不进入默认画布。
-- **结构与下沉**：路径/资源解析、Phase 0 迁移、Phase 1-3 与下沉 pipeline 引用、画布注册表、标准管线骨架、状态机与升版、δ 差异、实例管理、指令卡、异常处理表统一收敛；渲染细节继续指向 canvas-render SKILL.md「分级渲染验收」与 references pipeline。
-- **测试**：全量 pytest **469 passed**（契约一致性 / 画布注册表 / 薄控制面门禁全绿，agent ≤ 400 行门禁保持）。
-
-## [v3.3.1] - 2026-09-03
-
-### 优化（PATCH）
-
-- **渲染成本预防（提示词补丁）**：`skills/canvas-render/SKILL.md` 新增"审计脚本是裁判，不是规格书"审计定位（§资源清单 + §Python 静态审计双落点）；§「精简浏览器视觉验收」改写为**分级渲染验收**三级体系（L1 Python 静态审计必做 / L2 DOM 双视口度量断言必做 / L3 截图目检按需），8 处画布输出句与 10 处 `references/*-pipeline.md` 成功句统一替换，主 Agent 提示词改薄引用 + 渲染成本护栏。
-- **L2 冒烟断言脚本**：新增 `skills/canvas-render/scripts/canvas-smoke.mjs`（canvas_type 参数化 + 断点期望表 + 滚动豁免清单 + 环境自检降级；exit 0=PASS / 1=FAIL / 2=DEGRADED），降低浏览器全量截图目检成本。
-- **渲染路径自报**：§渲染自检新增"路径自报"（读哪三类依据 / 跑哪几级验收 / 工具往返量级）与"模式与确认自报"，使低成本默认路径可复盘可核验。
-- **视觉模式选择确认（T1）**：模式选择环节必须列出全部 10 个候选并**默认预选 `10-black-gray-professional`（黑灰专业）**，每次渲染均需用户确认（可一键接受默认或改选），Agent 不得隐式选定。
-- **视觉模式公司名中性化（T2）**：`visual-patterns/` 05-09 五个模式去除咨询公司专名——`05-mckinsey-blue-conclusion`→`05-ink-blue`（墨蓝）、`06-accenture-purple-institutional`→`06-bright-purple`（亮紫）、`07-bain-red-action`→`07-true-red`（正红）、`08-bcg-green-matrix`→`08-teal-green`（青绿）、`09-roland-berger-dark-blue-gray`→`09-dark-blue-gray`（深蓝灰）；正文公司引用、色板 token 公司出处归因句与公司缩写 CSS 变量建议同步中性化；`examples/hmw-canvas.html` 示例同步。
-- **测试**：全量 pytest **469 passed**；hmw / 5W 模板审计与 L2 smoke 双视口 PASS。
-
-### 破坏性变更说明（按内部约定记录，SemVer 号位由发布流程定）
-
-- **T2 模式 id 改名属不向后兼容**：`visual-patterns/` 05-09 模式文件名与 frontmatter `id` 已变更，渲染产物 `data-visual-mode` / canvas-data JSON `visual_mode.{id,zh_name,visual_system}` 使用旧 id 的既有 HTML 需按新 id 重新渲染。`schemas/` 无 visual_mode id 枚举，非 schema 破坏；序号 01-10 与候选总数 10 不变。
-
-## [v3.3.0] - 2026-09-02
-
-### 新增功能（MINOR）
-
-- **主 Agent 薄控制面重构（P1+P2+P3）**：`agents/pratyaya.md` 由 1360 行收敛至 397 行。修复 4 项 defect（Journey 指令块未闭合 / 指令卡重复错位 / 路径约定重复 / `approval` 术语残留）并重排 Phase 编号；引入**画布注册表**（8 画布 × 12 字段，含 `canvas_type` / `audit_type` 双列——GC 为唯一 `golden-circle` ≠ `gc` 的画布）与参数化标准 8 步管线，6 份同构 Phase 合并为 1 份；8 类画布执行细节下沉到各 `{canvas}-distill/references/{PREFIX}-pipeline.md`（9 个文件），各 distill SKILL.md 新增"先读 pipeline reference"强制读取契约。治理不变式（Gate 只建议 / 人确认版本 / 升版边界 / override 规则）保留在控制面。
-- **共享画布引擎（P4）**：新增 `skills/_engine/` 13 模块（canvas_registry / paths / session / state / executor / gate / authorization / contract / files / reconcile / migration / manifest）。引擎只做**规则型判定**（5 态机合法跃迁、Gate 三态汇总、升版重置、授权 if-then、override 完整性、确认包文件名/版本/instance 一致性），不做语义判定、不渲染 HTML、不替人拍板（`authorization.grant()` 强制携带 `confirmed_by` / `confirmed_at` / `user_confirmation_text`）。依赖方向单向：`canvas_registry`（零副作用、标准库 only）← `canvas_audit` ← `audit_canvas_html.py`；audit `--type` choices 改为从注册表读取，消除第二份清单。
-- **规则一致性防线（R14）**：9 个 pipeline references 顶部加入 `<!-- rule:{id}: ... -->` 确定性规则注释块（升版重置 / 授权 if-then / Gate 汇总），由 CI 测试校验 references 声明与引擎实现一致。
-- **测试与门禁**：新增 `tests/test_engine/`（15 个文件，含绕过检测、导入边界、禁 HTML 写出、规则块防线）；新增注册表三方交叉断言（audit choices / state schema / plugin skills）；新增 B 组正式授权链路审计 `tests/test_e2e_authorization.py`——`36cd94c` 起为 5w / v2c-vac / maau 三段式 fixture + 未授权反向用例，`afc51dc` 按 canvas-render Skill（LLM 渲染）补全 gc / hmw / persona / journey / mvl 五类成品 fixture，八类全覆盖 25 passed。全量测试 **469 passed**。
-- **GC examples 模板契约合规修复**：`examples/goden-circle-canvas.html` 补齐 `canvas-header` id、`canvas-data.sections` 扁平锚点键与 `auth` 字段（视觉零改动），A 组 GC 模板自审计（`--type gc`）由 rc=1 → PASS，八类模板自审计全绿。
-
-### 兼容性与迁移边界
-
-- `state.schema.json` `schema_version` 保持 `"2.4"` 不变。
-- `_engine` 不加入 plugin.json `skills` 数组（共享库，非 skill，由各 SKILL.md 以相对路径调用）。
-- e2e 八类 fixture 均含已授权 `state.json` 与正式成品 HTML（由 canvas-render Skill 产出）；正式渲染仍走 canvas-render Skill，不以 fixture 代替。
-
-## [v3.2.0] - 2026-09-02
-
-### 新增功能（MINOR）
-
-- **丰田 5W 根因分析画布（一等公民）**：新增 5W（Five Whys）独立画布，与 GC / HMW / V2C VAC 对称。默认采用**丰田自身推荐的根因分析思考模型**（三层面追问框架：制造层 Why 1-2 → 检验层 Why 3-4 → 体系层 Why 5），问题陈述 + 五层因果链 + 根本原因 + 对策四要素 + 其他原因分支 + 判别记录。以离线工作表 `internal/pratyaya-internal/docs/refs/canvas-templates/06-5W画布.html` 为版面原型（A3 横版、1-5 卡片横向并排、三层面标注、黑灰单配色）。
-- **5W 分析与治理 Skill**：新增 `5w-distill`（Stage 1 Key Points 抽取 + Stage 2 原子提炼，17 节确认包）与 `5w-gate`（`5W-GATE-01~07`，其中 `01~04` 为 `information_integrity` 不可 override，`05~07` 为 `business_risk` 可 override）。机器标识三套分离：文件前缀 / Gate ID `5W-`、`canvas_type=5w`、state 键 `five_whys`。
-- **5W 渲染契约与审计**：新增 `render-contract-5w.md`、契约化示例 `examples/5w-canvas.html`、`audit_canvas_html.py --type 5w`、`--page-type 5w-index` 与 `5W-TPL-GATE-00..06` Template Gate（正式交付必须传 `--template`）；五层锚点 `5w-why-1` ~ `5w-why-5` 必须全部存在（层数弹性暂不支持）。
-- **状态 schema v2.4**：`state.schema.json` `schema_version` 升至 `"2.4"`，新增 `state.five_whys.{slug}` instance map（`assessment_id` pattern `^5W-GATE-[0-9]+$`），anyOf 追加第 8 分支。
-- **Agent 与文档同步**：`agents/pratyaya.md` 新增 Phase 5W 八步流程、5W 指令卡、强制执行指令与状态目录；`README.md` / `DESIGN.md`（§14）/ `DEVELOPMENT.md`（§3.5 调试 + 命令速查）/ `docs/user-guide.md`（§4.8）/ `docs/installation.md` 同步画布清单与流程。
-
-### 兼容性与迁移边界
-
-- 纯新增非破坏性升级；旧 state 无 `five_whys` 区块不阻断既有 MVL / MAAU / GC / HMW / Persona / Journey / V2C VAC 流程。
-- 5W 是独立单画布：不生成 MVL 全局 Canvas，不读取或写入 `state.modules` / `state.maau`。
-
-## [v3.1.1] - 2026-09-01
-
-> v3.1.0 未发布（分支未合并即进入优化），Workflow BPMN 流程图功能与三项视觉/契约优化合并为 v3.1.1 一并发布。
-
-### 新增功能（MINOR）
-
-- **Workflow 板块 BPMN 可视化流程图**：MAAU 全局画布（Phase 2 M1-M6 汇总页与 MAAU transcript-direct 实例页）的 Workflow 板块在文本框下方新增派生只读的 BPMN 流程图（`#workflow-flow`）。采用 BPMN 图形语言子集（Start Event / Task / Exclusive Gateway / End Event / Sequence Flow），三类节点由泳道（桌面）/ 节点在流程中的位置区分；桌面三泳道（Agent 执行 / 人工操作确认 / 人审 + Agent 执行）、窄屏单流横向滚动。
-- **数据派生（Q1=A）**：流程图从确认包 Workflow section（`trigger` / `steps` / `completion_condition` + 三类节点 + `rules`）静态生成内联 SVG，**不改数据契约**（`maau-synth-spec.md` / `workshop-canvas-map.md` 不变）；`canvas-data` 顶层新增 `workflow.nodes` / `workflow.edges` 派生拓扑，供静态审计一致性校验。
-- **渲染契约**：`render-contract.md` 新增 §A1「Workflow BPMN 流程图（`#workflow-flow`）」DOM 契约、BPMN 子集与元素映射、派生规则、泳道/响应式与拓扑数据约束；示例母版 `examples/mvl-canvas/maau-global-canvas.html` 新增三泳道示例 SVG 与图例（门店补货智能体）。
-- **静态审计**：`GLOBAL_MAIN_IDS` 新增 `workflow-flow` 锚点；`audit_workflow_flow` 断言 Start/End Event 存在、`nodes` 覆盖三类节点、SVG `bpmn-node` 数量与 `nodes` 数量一致、`edges.from/to` 引用有效、传入 `--source` 时确认包含三类节点章节。
-- **测试**：新增 `tests/test_workflow_flow.py`（10 项，覆盖 PASS 与 8 种 FAIL 场景）；MAAU fixture `maau-global-canvas-retail-demo.html` 同步补 `#workflow-flow` 与拓扑。
-
-### 优化（PATCH）
-
-- **Sequence Flow 正交化**：所有连接线改为横 / 竖 / 肘型折线（禁止曲线 / 斜线）；所有端点对齐节点边中点（顶 / 底 / 左 / 右边缘中心）；静态审计新增"Sequence Flow 禁止曲线命令（`C`/`Q`/`S`/`A`）"断言。
-- **节点编号徽标**：所有 BPMN 节点（含 Start / End）左上角显示流程序号徽标（白底黑色小字号，`01`–`07`，按 Start → End 拓扑序）；`canvas-data.workflow.nodes[]` 新增 `number` 字段；静态审计校验 `number` 存在且唯一。任务类型不使用 BPMN Task Marker 图标，由泳道（桌面）/ 节点在流程中的位置区分；图例只列 Start / Task / Gateway / End 四类图形符号。
-
-### 兼容性与迁移边界
-
-- 无 schema 变更；`state.schema.json` `schema_version` 仍 `"2.3"`。
-- 渲染参数不变（仍 `canvas_type=mvl` + `page_type=global`），主 Agent 无需改动。
-- 已渲染的旧全局页不包含流程图，需按流程重新渲染才套用新契约。
-
-## [v3.0.0] - 2026-08-13
-
-### 新增功能（MAJOR）
-
-- **V2C Value Attribution Canvas（V2C VAC）一等公民画布**：新增 V2C 系列的 Value Attribution Canvas，来源于王鸿的 Value-to-Capability FDE 工作方法论，支持 `pipeline` 多阶段管道与 `transcript-direct` 一次性综合两种路径，确认包命名为 `V2C-VAC-{slug}-v{N}.md`。
-- **V2C VAC 分析与治理 Skill**：新增 `v2c-vac-distill` 与 `v2c-vac-gate`；前者负责 Key Points、阶段提炼、一次性综合、补问清单与确认包，后者负责 `V2C-GATE-01~12`、信息完整性 / 业务风险分类，以及 `V2C-AGxx` 归因断点与 Gate ID 的边界。
-- **V2C VAC 状态 schema**：新增 `state.v2c_vac.{slug}` instance map，记录 `generation_path`、`pipeline_stage`、`source_package_path`、`gate_report_path`、override、授权与渲染产物路径；`pipeline` 与 `transcript-direct` 在同一实例内保持互斥。
-- **V2C VAC 渲染契约与审计**：新增 `render-contract-v2c-vac.md`、`v2c-value-attribution-canvas.html` 示例模板、`audit_canvas_html.py --type v2c-vac`、`--page-type v2c-vac-index` 与 `V2C-VAC-TPL-GATE-01..08` Template Gate。
-- **V2C VAC fixtures 与契约一致性检查**：新增 V2C VAC 正常 / 异常 fixtures 和专项一致性规则，覆盖 Skill 路径、Gate 表、渲染契约、state schema、审计类型与 README / CHANGELOG 版本语义。
-- **plugin metadata 升级**：`.codebuddy-plugin/plugin.json` 版本升至 `3.0.0`，description / displayDescription / quickPrompts 纳入 V2C VAC，并移除 MAAU 默认入口表述。
-
-### 变更
-
-- **显式画布路由**：只提供逐字稿或会议材料时不再默认进入任何画布；主 Agent 必须先追问画布类型。MAAU、V2C VAC、MVL M1-M6 与其他画布都必须显式选择。
-- **M1-M6 Gate 表格式决策**：正式接受 5 列精简版（`ID / 条件 / 分类 / 风险等级 / 来源`），契约一致性检查器仍兼容历史 8 列详版。
-
-### 兼容性与迁移边界
-
-- `state.schema.json` 顶层 `schema_version` 仍保持 `"2.3"`；V2C VAC 通过 `_meta.v2c_vac_schema_version = "3.0-v2c-vac-1"` 标记派生子版本。
-- 旧项目的 `state.json` 即使没有 `v2c_vac` 区块，也可以继续使用既有 MVL、MAAU、黄金圈、HMW、Persona、Journey 等流程；只有首次创建 V2C VAC 实例时才需要写入 `state.v2c_vac.{slug}`。
-- 旧 quick prompt 或旧文档中“逐字稿默认进入 MAAU”的理解不再适用；v3.0.0 起逐字稿入口必须显式指定画布和生成路径。
-- `v2c` 是 V2C 系列名；Value Attribution Canvas 的机器标识必须使用 `canvas_type=v2c-vac` 与 state key `v2c_vac`。
-- 正式 V2C VAC 渲染只能基于已通过 Gate 并获得授权的 `V2C-VAC-{slug}-v{N}.md`；不得直接从逐字稿或未授权草稿渲染。
-
-## 归档说明（v1.0.0 – v2.9.1）
-
-> 早期版本明细已于 2026-09-05 归档移除。v1.0.0 ~ v2.9.1（2026-08-01 ~ 2026-08-09，共 18 个版本）为「MVL Expert → 多画布平台」演进期的历史记录，其语义与当前 v3.x（显式画布路由 + 多画布一等公民）差异较大，继续陈列会干扰对本文件当前内容的阅读。
-> 完整历史明细可回溯 **git 历史**：`git log --oneline --all -- CHANGELOG.md` 查看各版本变更提交；带 tag 的版本（v1.0.2、v2.3.x、v2.4.0、v2.7.0 ~ v2.9.1 等）亦可查看对应 GitHub Releases（https://github.com/wanghongbj321-code/pratyaya/releases）或执行 `git show <tag>:CHANGELOG.md`。
+- MAAU 画布两阶段渲染（无图先交付、Workflow 图按需生成）。
+- 输出文件版本化命名（`--v{N}` 后缀）与身份审计。

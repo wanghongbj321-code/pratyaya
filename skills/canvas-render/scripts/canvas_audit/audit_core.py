@@ -8,14 +8,14 @@ from collections import Counter
 from pathlib import Path
 from typing import cast
 
-# §7.6 依赖边界：canvas_registry 位于仓库根 skills/_engine/。
+# §7.6 依赖边界：canvas_registry 位于仓库根 scripts/engine/。
 # 本文件位于 skills/canvas-render/scripts/canvas_audit/，仓库根 = parents[4]。
 _REPO_ROOT = Path(__file__).resolve().parents[4]
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
 try:
-    from skills._engine.canvas_registry import audit_types as _registry_audit_types
+    from scripts.engine.canvas_registry import audit_types as _registry_audit_types
 except Exception as _exc:  # noqa: BLE001 - 环境异常，交由 main 显式报错退出码 2
     _registry_audit_types = None
     _REGISTRY_IMPORT_ERROR: Exception | None = _exc
@@ -27,8 +27,8 @@ def _audit_type_choices() -> tuple[str, ...]:
     """§7.3/§7.6：--type 合法集的单一事实源来自 canvas_registry，不做硬编码降级。"""
     if _registry_audit_types is None:
         raise RuntimeError(
-            "画布注册表 skills._engine.canvas_registry 导入失败（§7.6 依赖边界）。"
-            f"请确认 repo root（{_REPO_ROOT}）下存在 skills/_engine/canvas_registry.py。"
+            "画布注册表 scripts.engine.canvas_registry 导入失败（§7.6 依赖边界）。"
+            f"请确认 repo root（{_REPO_ROOT}）下存在 scripts/engine/canvas_registry.py。"
             f"原始错误：{_REGISTRY_IMPORT_ERROR!r}"
         )
     return _registry_audit_types()
@@ -713,7 +713,7 @@ def main(argv: list[str] | None = None) -> int:
     if _REGISTRY_IMPORT_ERROR is not None:
         print(
             "FATAL: 画布注册表导入失败（§7.6 依赖边界）。"
-            f"请确认 repo root 已加入 sys.path 且 skills/_engine/canvas_registry.py 存在。"
+            f"请确认 repo root 已加入 sys.path 且 scripts/engine/canvas_registry.py 存在。"
             f"原始错误：{_REGISTRY_IMPORT_ERROR}",
             file=sys.stderr,
         )

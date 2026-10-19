@@ -73,12 +73,11 @@ pratyaya/
 │   ├── 5w-gate/         # 5W 门禁
 │   ├── swot-gate/       # SWOT 门禁
 │   ├── faq-answer/      # FAQ Q/A（使用、状态、异常解释；不进入画布状态机）
-│   ├── _engine/         # 共享画布引擎（v3.3.0）：5 态机 / Gate 汇总 / 授权 / 契约等规则型判定（非 skill，不入 plugin.json skills）
 │   └── canvas-render/   # 统一渲染（画布类型感知）
 │       └── visual-patterns/ # 10 个视觉模式（所有画布复用）
 ├── schemas/             # 非强制参考 Schema（v2.4 状态 + v2.4 project/group 路径分层）
 ├── examples/modules/    # Key Points / 确认包模板
-├── scripts/             # Canvas HTML 确定性静态审计（支持 --type gc / hmw / persona / journey）
+├── scripts/             # 运行期脚本：engine/（共享画布引擎，v3.3.0，v3.8.2 迁入） + Canvas HTML 确定性静态审计（支持 --type gc / hmw / persona / journey / swot）
 ├── docs/                # 用户文档
 ├── README.md            # 本文件（门面）
 ├── DEVELOPMENT.md       # 维护者文档
