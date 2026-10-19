@@ -2,7 +2,7 @@
 
 import pytest
 
-from skills._engine.contract import (
+from scripts.engine.contract import (
     ContractError,
     assert_filename_consistent,
     gate_id_regex,

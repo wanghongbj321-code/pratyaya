@@ -20,6 +20,9 @@ __pycache__/
 *.egg-info/
 .venv/
 
+# 专家包发布产物（本机生成，不入库；历史包在本机 dist/archive/）
+dist/
+
 # 临时文件
 tmp/
 

@@ -1,6 +1,6 @@
 """导入边界与零副作用测试（§8.3）。
 
-锁定：`skills/_engine/canvas_registry.py` 在干净环境（无 PYTHONPATH）下可独立导入、
+锁定：`scripts/engine/canvas_registry.py` 在干净环境（无 PYTHONPATH）下可独立导入、
 零 IO 副作用、只依赖标准库，不引入 audit/render 等重模块。
 """
 
@@ -39,7 +39,7 @@ def _clean_env() -> dict:
 
 
 def test_clean_import_prints_canvas_count():
-    code = "import skills._engine.canvas_registry as r; print(len(r.CANVASES))"
+    code = "import scripts.engine.canvas_registry as r; print(len(r.CANVASES))"
     result = subprocess.run(
         [sys.executable, "-c", code],
         cwd=str(REPO_ROOT),
@@ -52,12 +52,12 @@ def test_clean_import_prints_canvas_count():
 
 
 def test_registry_only_stdlib():
-    _assert_stdlib_only(REPO_ROOT / "skills" / "_engine" / "canvas_registry.py")
+    _assert_stdlib_only(REPO_ROOT / "scripts" / "engine" / "canvas_registry.py")
 
 
 def test_state_only_stdlib():
-    _assert_stdlib_only(REPO_ROOT / "skills" / "_engine" / "state.py")
+    _assert_stdlib_only(REPO_ROOT / "scripts" / "engine" / "state.py")
 
 
 def test_paths_only_stdlib():
-    _assert_stdlib_only(REPO_ROOT / "skills" / "_engine" / "paths.py")
+    _assert_stdlib_only(REPO_ROOT / "scripts" / "engine" / "paths.py")

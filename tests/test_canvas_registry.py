@@ -18,7 +18,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-# §7.6 依赖边界：audit_core 的 --type choices 从 skills._engine.canvas_registry 读取。
+# §7.6 依赖边界：audit_core 的 --type choices 从 scripts.engine.canvas_registry 读取。
 # 此处把 canvas_audit 包所在目录加入 sys.path，以便交叉断言直接调用 `_audit_type_choices()`。
 _CANVAS_AUDIT_DIR = REPO_ROOT / "skills" / "canvas-render" / "scripts"
 if str(_CANVAS_AUDIT_DIR) not in sys.path:
@@ -220,7 +220,7 @@ def test_real_registry_audit_types_are_eight() -> None:
 def test_registry_matches_audit_choices() -> None:
     """§8.3 交叉断言：注册表 audit_type 集合 == audit CLI `--type` choices。
 
-    P4 后 `audit_core._audit_type_choices()` 从 `skills._engine.canvas_registry`
+    P4 后 `audit_core._audit_type_choices()` 从 `scripts.engine.canvas_registry`
     读取（§7.6），此处直接调用 audit 侧函数，锁定「注册表 = audit 合法集」单一事实源。
     """
     from canvas_audit.audit_core import _audit_type_choices

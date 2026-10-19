@@ -1,6 +1,6 @@
 """画布注册表一致性测试（§8.3）。
 
-锁定 `skills/_engine/canvas_registry.py` 的 CANVASES 为九个注册项的唯一事实源，
+锁定 `scripts/engine/canvas_registry.py` 的 CANVASES 为九个注册项的唯一事实源，
 其参数与 `agents/pratyaya.md` 注册表表格一致。
 """
 
@@ -10,7 +10,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT))
 
-from skills._engine import canvas_registry as reg
+from scripts.engine import canvas_registry as reg
 
 
 def test_nine_canvas_ids():

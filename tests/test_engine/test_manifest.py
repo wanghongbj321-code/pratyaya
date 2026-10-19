@@ -1,6 +1,6 @@
 """group / project manifest 自重建测试（§8）。"""
 
-from skills._engine import manifest
+from scripts.engine import manifest
 
 
 def test_summarize_topic_state():

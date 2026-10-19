@@ -8,9 +8,9 @@ import pytest
 REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT))
 
-from skills._engine import gate, state
-from skills._engine.gate import Assessment
-from skills._engine.state import StateMachineError
+from scripts.engine import gate, state
+from scripts.engine.gate import Assessment
+from scripts.engine.state import StateMachineError
 
 
 def test_cannot_skip_straight_to_rendered():

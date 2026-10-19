@@ -107,7 +107,7 @@ def test_current_all_canvas_e2e_targets():
 
 
 def test_versioned_paths_and_stale_sidecars(tmp_path):
-    from skills._engine import paths, files
+    from scripts.engine import paths, files
     names = set()
     for slug in ("sales", "sales-workflow", "sales-v1"):
         for variant in ("noflow", "workflow"):
@@ -125,7 +125,7 @@ def test_versioned_paths_and_stale_sidecars(tmp_path):
 
 
 def test_state_reentry_and_source_bump():
-    from skills._engine import state
+    from scripts.engine import state
     assert state.can_transition("rendered", "rendered")
     assert not state.can_transition("rendered", "confirmed")
     original = {"version": 1, "status": "rendered", "render_authorized": True,

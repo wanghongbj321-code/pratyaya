@@ -1,6 +1,6 @@
 """文件级 gate：产物存在性 / 版本一致性 / 旧 HTML 过期标记测试（§8）。"""
 
-from skills._engine import files
+from scripts.engine import files
 
 
 def test_confirm_exists_and_list_versions(tmp_path):

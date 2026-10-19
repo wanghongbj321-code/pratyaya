@@ -202,7 +202,7 @@ AGENTS.md 规则 3 已恢复 v3.4.1 原文：禁止新增或使用渲染脚本�
 Phase 2 两份文件的交付由 §2.4 规定，不写入任一模块 `output_file`。迁移工具仍表达历史输出，不改写成未实际生成的新版本路径。
 
 
-版本化文件工具：`skills._engine.paths.html_file(..., version=N)`；MAAU 的 output_prefix 为 `maau-global` 且需 workflow_variant。files 的存在性/过期 sidecar 工具传入同样的 version/variant；升版时两形态逐份标记。省略 version 只兼容历史路径；当前索引和下钻优先读实际 output_file。
+版本化文件工具：`scripts.engine.paths.html_file(..., version=N)`；MAAU 的 output_prefix 为 `maau-global` 且需 workflow_variant。files 的存在性/过期 sidecar 工具传入同样的 version/variant；升版时两形态逐份标记。省略 version 只兼容历史路径；当前索引和下钻优先读实际 output_file。
 
 ## 7. 渲染计时插桩（render-trace.jsonl）
 

@@ -2,7 +2,7 @@
 
 references（`{canvas}-distill/references/{PREFIX}-pipeline.md`）中声明了会被引擎
 强制的确定性规则。引擎不运行时读这些 Markdown（保持 §7.6 依赖边界），一致性由
-本测试在 CI 校验：references 的规则块内容必须与 `skills/_engine` 实现一致，
+本测试在 CI 校验：references 的规则块内容必须与 `scripts/engine` 实现一致，
 防止「agent 说 A、引擎判 B、references 写 C」的三处分散。
 
 本测试只校验**确定性规则**（升版重置 / 授权 if-then / Gate 汇总），不校验语义
@@ -19,10 +19,10 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-# 引擎事实词：从 skills/_engine 模块中确定性规则的关键 token 派生。
+# 引擎事实词：从 scripts/engine 模块中确定性规则的关键 token 派生。
 # 若引擎规则语义变化，此处应随之更新（本测试的作用正是让这类变化强制同步 references）。
-from skills._engine import gate as engine_gate  # noqa: E402
-from skills._engine import state as engine_state  # noqa: E402
+from scripts.engine import gate as engine_gate  # noqa: E402
+from scripts.engine import state as engine_state  # noqa: E402
 
 # 每份 pipeline reference 的确定性规则块（规则 id → 该引擎实现必须包含的事实 token）。
 # 语料与 references 中的 `<!-- rule:{id}: ... -->` 注释对应。
